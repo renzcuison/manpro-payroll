@@ -1,4 +1,5 @@
 const mix = require('laravel-mix');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 /*
  |--------------------------------------------------------------------------
@@ -12,7 +13,26 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
-	.react()
-	.sass('resources/sass/app.scss', 'public/css')
-	.browserSync('127.0.0.1:8000')
-	.version();
+    .react()
+    .sass('resources/sass/app.scss', 'public/css')
+    .version();
+
+if (!mix.inProduction()) {
+    mix.webpackConfig({
+        devServer: {
+            hot: true, // Enable Hot Module Replacement
+            host: 'localhost', // Localhost for local development
+            port: 8080, // Port for dev server (you can change this if needed)
+            headers: {
+                'Access-Control-Allow-Origin': '*', // Allow cross-origin requests
+            },
+            client: {
+                overlay: true, // Show error overlay in the browser
+            },
+        },
+        plugins: [
+            // Ensure React Fast Refresh is enabled for React components
+            new ReactRefreshWebpackPlugin(),
+        ],
+    });
+}
