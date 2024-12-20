@@ -67,28 +67,10 @@ Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
 
 Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
 
-
-
-
-
-Route::post('/auth/signup', [ContactAuthController::class, 'signup']);
-Route::post('/auth/login', [ContactAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 
-
-Route::post('/getVerificationCode', [ContactAuthController::class, 'getVerificationCode']);
-Route::post('/verifyVerificationCode', [ContactAuthController::class, 'verifyVerificationCode']);
-
-Route::post('/verifyEmail', [ContactAuthController::class, 'verifyEmail']);
-Route::post('/user/forgot-password', [ContactAuthController::class, 'forgotPasswordAction']);
 Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
 Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
-
-
-// Social Login
-Route::post('/social/login/facebook', [ContactAuthController::class, 'facebook']);
-Route::post('/social/login/google', [ContactAuthController::class, 'google']);
-Route::post('/social/login/apple', [ContactAuthController::class, 'apple']);
 
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
@@ -116,34 +98,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
 
-    Route::get('/user/delete', [ContactAuthController::class, 'deleteAccount']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
-
-    Route::put('/user/update-user', [ContactAuthController::class, 'updateProfile']);
-    Route::get('/users/{userId}', [ContactAuthController::class, 'getUserDetailsById']);
-    Route::put('/auth/push-token', [ContactAuthController::class, 'addPushToken']);
-    Route::put('/user/link-facebook', [ContactAuthController::class, 'linkFacebookAccount']);
-    Route::put('/user/link-google', [ContactAuthController::class, 'linkGoogleAccount']);
-    Route::post('/user/image-upload', [ContactAuthController::class, 'imageUpload']);
-
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'getTotals']);
-    Route::get('/dashboard/assignedTasks', [DashboardController::class, 'getAssignedTasks']);
-
-    // News Feed Routes
-    Route::get('/portalUpdates/news-feeds', [PortalUpdatesController::class, 'index']);
-    Route::post('/portalUpdates/news-feeds/like-or-unlike', [PortalUpdatesController::class, 'likeUnlikeFeed']);
-    Route::post('/portalUpdates/news-feeds/post-comment', [PortalUpdatesController::class, 'commentFeed']);
-
-    // FAQS
-    Route::get('portalUpdates/faqs', [PortalUpdatesController::class, 'getFAQS']);
-
-    // Notifications
-    Route::get('/user/notifications', [PortalUpdatesController::class, 'portalUpdatesNotifications']);
-    Route::put('/user/notifications/mark-notifications', [PortalUpdatesController::class, 'portalUpdatesMarkNotifications']);
-
-    // PortalUpdate Navigation
-    Route::get('/navigation/{type}', [PortalUpdatesController::class, 'getPortalUpdateNavigation']);
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -174,11 +129,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/employeesBenefit/{id}', [HrEmployeesController::class, 'getEmployeeBenefit']);
     Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
-
-
     // New API for Employees
     Route::get('/getEmployees', [HrEmployeesController::class, 'getEmployees']);
-
 
     // Work Shift
     Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
@@ -229,7 +181,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     
     Route::get('/getReportTypes', [ReportsController::class, 'getReportTypes']);
     Route::post('/saveReportType', [ReportsController::class, 'saveReportType']);
-    
     Route::post('/saveReportViewer', [ReportsController::class, 'saveReportViewer']);
 
 
@@ -391,162 +342,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/incidents', [CategoriesController::class, 'getIncident']);
     Route::post('/add_incident', [CategoriesController::class, 'addIncident']);
 
-    // Services Routes
-    Route::get('/services', [ServicesController::class, 'index']);
-    Route::get('services/requirements/{taskId}', [ServicesController::class, 'allRequirements']);
-    Route::get('services/field/{spaceId}', [ServicesController::class, 'allFields']);
-    Route::get('/services/finance-phase/{spaceId}', [ServicesController::class, 'financePhaseBySpaceId']);
-    Route::get('/services/procedures', [ServicesController::class, 'allProcedures']);
-    Route::get('/services/payment-transactions', [ServicesController::class, 'getPaymentTransaction']);
-    Route::get('/services/space', [ServicesController::class, 'getSpaces']);
-    Route::get('/services/list/{list_id}', [ServicesController::class, 'getListData']);                     // get Steps and its statuses data accordingly.
-    Route::get('/services/status_clients/{status_id}', [ServicesController::class, 'getClientsByStatus']);  // get Steps and its statuses data accordingly.
-    Route::get('/services/task/{task_id}', [ServicesController::class, 'getTaskData']);  // get Steps and its statuses data accordingly.
-
-    // Referrals
-    Route::get('/referrals', [ReferralController::class, 'getReferrals']);
-    Route::get('/referrals/all', [ReferralController::class, 'index']);
-    Route::get('/referrals/show/{id}', [ReferralController::class, 'show']);
-    Route::get('/referrals/comments/{id}', [ReferralController::class, 'getReferralCommentsById']);
-    Route::delete('/referrals/comments/{id}', [ReferralController::class, 'destroy']);
-    Route::post('/referrals/add_comment', [ReferralController::class, 'add_comment']);
-    Route::put('/referrals', [ReferralController::class, 'claimAmount']);
-
-    // Manage Clients
-    Route::get('/clients', [ContactController::class, 'index']);
-
-    // Forms
-    Route::get('/portalUpdates/forms', [FormsController::class, 'index']);
-    Route::get('/portalUpdates/forms/{formId}', [FormsController::class, 'getFormFieldInputById']);
-    Route::put('/portalUpdates/forms', [FormsController::class, 'editForm']);
-
-
-    // Review Materials
-    Route::get('/portalUpdates/review-material', [ReviewMaterialsController::class, 'index']);
-    Route::get('/portalUpdates/review-material/{materialId}', [ReviewMaterialsController::class, 'getReviewMaterialById']);
-
-    // Portal Updates
-    Route::get('/portalUpdates/practice-test/tests', [PracticeTestsController::class, 'index']);
-    Route::get('/portalUpdates/practice-test/{test_id}', [PracticeTestsController::class, 'show']);
-    Route::get('/portalUpdates/practice-test/result/{test_id}', [PracticeTestsController::class, 'showResult']);
-    Route::post('/portalUpdates/practice-test/submit-answer', [PracticeTestsController::class, 'submitAnswer']);
-    Route::post('/portalUpdates/practice-test/update-result', [PracticeTestsController::class, 'updateResult']);
-    Route::get('/portalUpdates/practice-test/correct-answer-count/{testId}', [PracticeTestsController::class, 'correctAnswerCount']);
-
-    // Call Scheduling
-    Route::get('/callScheduling/schedules', [CallSchedulingController::class, 'index']);
-    Route::post('/callScheduling/schedules', [CallSchedulingController::class, 'create']);
 
     // Mailer routes
-
     Route::get('/mail', [MailController::class, 'referralConfirmationMail']);
     Route::get('/sendPayrollMail/{id}', [MailController::class, 'payrollMail']);
     Route::get('/sendNewEmployeeMail/{id}', [MailController::class, 'newEmployeeMail']);
     Route::get('/sendAnnouncementMail/{id}', [MailController::class, 'newAnnouncementMail']);
 
-    // My Support
-
-    Route::post('/addmysupport', [MySupportController::class, 'create']);
-    Route::get('/addmysupport/{id}', [MySupportController::class, 'show']);
-    Route::put('/addmysupport/{id}', [MySupportController::class, 'update']);
-    Route::delete('/addmysupport/{id}', [MySupportController::class, 'delete']);
-    Route::get('/mySupport', [MySupportController::class, 'getMySupport']);
 
     // ---------------------------------------------------------------- End Client Routes ----------------------------------------------------------------
 
     // ---------------------------------------------------------------- Users Routes ----------------------------------------------------------------
     Route::get('/user/{user_id}', [UserAuthController::class, 'getUserDetailsById']);
-    Route::get('/services/all', [ServicesController::class, 'getServices']);
-    Route::get('/services/financePhase/{phase_id}', [ServicesController::class, 'getFinancePhaseById']);
-    Route::get('/services/requirementsFields/{service_id}', [ServicesController::class, 'getRequirementsBySpace']);
-    Route::get('/services/requirement/{requirement_id}', [ServicesController::class, 'getRequirementById']);
-    Route::get('/services/allWithLists', [ServicesController::class, 'getServicesWithLists']);
-    Route::get('/services/lists/{list_id}', [ServicesController::class, 'showList']);
-    Route::get('/services/lists/statuses/{list_id}', [ServicesController::class, 'showStatusesByList']);
-    Route::post('/services/lists/statuses/sort', [ServicesController::class, 'sortStatuses']);
-    Route::get('/services/lists/status/{list_id}', [ServicesController::class, 'showStatus']);
-    Route::put('/services/lists/status/update', [ServicesController::class, 'updateStatus']);
-    Route::delete('/services/lists/status/delete/{status_id}', [ServicesController::class, 'deleteStatus']);
-    Route::post('/services/lists/status/add', [ServicesController::class, 'addStatus']);
-    Route::get('/services/lists/tags/{list_id}', [ServicesController::class, 'showTagsByList']);
-    Route::get('/services/lists/finance/{service_id}', [ServicesController::class, 'showFinanceByService']);
-    Route::get('/services/{service_id}', [ServicesController::class, 'show']);
-    Route::put('/services/updateServiceName', [ServicesController::class, 'updateServiceName']);
-    Route::put('/services/updateListName', [ServicesController::class, 'updateListName']);
-    Route::put('/services/updateRequirementName', [ServicesController::class, 'updateRequirementName']);
-    Route::put('/services/updateRequirementOption', [ServicesController::class, 'updateRequirementOption']);
-    Route::post('/services/requirements/sort', [ServicesController::class, 'saveSortedRequirements']);
-    Route::post('/services/addNewList', [ServicesController::class, 'createList']);
-    Route::post('/services/requirements/addNewRequirement', [ServicesController::class, 'addNewRequirement']);
-    Route::post('/services/addNewRequirementOption', [ServicesController::class, 'createReqOption']);
-    Route::delete('/services/requirement/{requirement_id}', [ServicesController::class, 'deleteRequirementField']);
-    Route::delete('/services/deleteRequirementOption/{requirement_id}', [ServicesController::class, 'deleteRequirementOption']);
-    Route::put('/services/finance/editName', [ServicesController::class, 'updateFinanceOptionName']);
-    Route::delete('/services/finance/finance_option/{id}', [ServicesController::class, 'deleteFinanceOption']);
-    Route::post('/services/finance/finance_option/add', [ServicesController::class, 'createFinanceOption']);
-    Route::put('/services/finance/finance_option/update', [ServicesController::class, 'updateFinanceOption']);
-    Route::put('/services/finance/sortFields', [ServicesController::class, 'sortFinanceFields']);
-    Route::put('/services/finance/updateFinanceName', [ServicesController::class, 'updateFinanceName']);
-    Route::post('/services/finance/add', [ServicesController::class, 'createFinancePhase']);
-    Route::delete('/services/finance/{id}', [ServicesController::class, 'deleteFinancePhase']);
-    Route::delete('/services/tags/{id}', [ServicesController::class, 'deleteTag']);
-    Route::get('/services/tags/{id}', [ServicesController::class, 'showTag']);
-    Route::put('/services/tags/update', [ServicesController::class, 'updateTag']);
-    Route::post('/services/tags/add', [ServicesController::class, 'createTag']);
-    Route::get('/services/steps/all', [ServicesController::class, 'stepsWithStatuses']);
-    Route::post('/services/steps/add', [ServicesController::class, 'addStep']);
-    Route::put('/services/steps/update', [ServicesController::class, 'updateStep']);
-    Route::delete('/services/steps/delete/{step_id}', [ServicesController::class, 'deleteStep']);
-    Route::get('/services/fields/{service_id}', [ServicesController::class, 'showFieldByServiceId']);
-    Route::post('/services/fields/sort', [ServicesController::class, 'sortFields']);
-    Route::post('/services/fields/add', [ServicesController::class, 'addField']);
-    Route::put('/services/fields/update', [ServicesController::class, 'updateField']);
-    Route::delete('/services/fields/{field_id}', [ServicesController::class, 'deleteField']);
-    Route::get('/services/fields/options/{field_id}', [ServicesController::class, 'fetchFieldOptions']);
-    Route::delete('/services/fields/options/{field_id}', [ServicesController::class, 'deleteFieldOptions']);
-    Route::put('/services/fields/options/update', [ServicesController::class, 'updateOptionFieldname']);
-    Route::put('/services/fields/options/updateIcon', [ServicesController::class, 'updateOptionFieldIcon']);
-    Route::post('/services/fields/options/add', [ServicesController::class, 'addOptionField']);
-    Route::post('/services/fields/fix', [ServicesController::class, 'migrateAssignedStatusFields']);
-    Route::get('/services/fields/statuses/{list_id}', [ServicesController::class, 'fetchFieldsWithStatuses']);
-    Route::delete('/services/fields/statuses/{field_id}', [ServicesController::class, 'unassignFieldToStatus']);
-    Route::get('/services/fields/unassigned/{list_id}', [ServicesController::class, 'fetchUnassignedFields']);
-    Route::put('/services/fields/assign', [ServicesController::class, 'assignFieldToStatus']);
-    Route::get('/services/status', [ServicesController::class, 'getAllStatuses']);
-
-
-    // ---------------------------------------------------------------- Accounting Routes ----------------------------------------------------------------
-    Route::put('/accounting/transaction/gross', [AccountingController::class, 'addTransactionToGross']);
-    Route::get('/accounting/dashboard', [AccountingController::class, 'index']);
-    Route::get('/accounting/transactions', [AccountingController::class, 'transactions']);
-    Route::get('/accounting/summaryTransactions', [AccountingController::class, 'summaryTransactions']);
-    Route::get('/accounting/accounts', [AccountingController::class, 'getAccounts']);
-    Route::get('/accounting/methods', [AccountingController::class, 'getMethods']);
-    Route::put('/accounting/pay', [AccountingController::class, 'payLiability']);
-    Route::get('/accounting/fetchTransactionsByClientPhase/{id}', [AccountingController::class, 'fetchTransactionsByClientPhase']);
-    Route::get('/accounting/rate', [AccountingController::class, 'getRate']);
-
-
-    // ---------------------------------------------------------------- Corporate Routes ----------------------------------------------------------------
-    Route::get('/corporate', [CorporateController::class, 'index']);
-
-
-    // ---------------------------------------------------------------- Finance Transaction Routes ----------------------------------------------------------------
-    Route::post('/finance/addPayment', [FinanceTransactionController::class, 'paymentSettle']);
-    Route::post('/finance/addPaymentBlast', [FinanceTransactionController::class, 'paymentSettleBlast']);
-    Route::post('/finance/migrate', [FinanceTransactionController::class, 'migrateTransactionsToAccounting']);
-
-
-    // ---------------------------------------------------------------- Tasks Routes ----------------------------------------------------------------
-    Route::get('/tasks/duetasks', [TaskController::class, 'getAllUsersWithDueTasks']);
-    Route::get('/tasks/data/{task_id}', [TaskController::class, 'show']);
-    Route::get('/tasks/user/{task_id}', [TaskController::class, 'getContactByTaskId']);
-    Route::get('/task/tags/{task_id}', [TaskController::class, 'getTaskTags']);
-    Route::get('/task/assignedUsers/{task_id}', [TaskController::class, 'getAssignedUsersByTaskId']);
-    Route::get('/tasks/note/{task_id}', [TaskController::class, 'getTaskNote']);
-    Route::get('/tasks/statuses/{list}', [TaskController::class, 'getStatusesByListId']);
-    Route::put('/tasks/setPriority', [TaskController::class, 'setPriority']);
-
 
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
