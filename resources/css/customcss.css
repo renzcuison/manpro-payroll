@@ -1,0 +1,15 @@
+.my-swal {
+    z-index: 2000;
+  }
+  @media print{
+
+    .printBtn{
+      display: none;
+    }
+    .hideBtn{
+      display: none;
+    }
+    .updateBtn{
+      display: none;
+    }
+  }

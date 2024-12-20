@@ -1,0 +1,25 @@
+.my-swal {
+    z-index: 10000;
+}
+
+.fc {
+    /* the calendar root */
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-scroller {
+    overflow-y: hidden !important;
+}
+
+.usersAttendance :hover {
+    background-color: #3db249;
+    cursor: pointer;
+    color: 'white'
+}

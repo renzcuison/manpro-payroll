@@ -1,0 +1,211 @@
+﻿2024-05-03 08:47:03.989   Log opened. (Time zone: UTC+08:00)
+2024-05-03 08:47:03.990   Setup version: Inno Setup version 6.2.0
+2024-05-03 08:47:03.990   Original Setup EXE: C:\Users\New User\Downloads\Composer-Setup.exe
+2024-05-03 08:47:03.990   Setup command line: /SL5="$220CB8,882897,831488,C:\Users\New User\Downloads\Composer-Setup.exe" /SPAWNWND=$70D78 /NOTIFYWND=$C0C74  /ALLUSERS
+2024-05-03 08:47:03.990   Windows version: 10.0.19045  (NT platform: Yes)
+2024-05-03 08:47:03.990   64-bit Windows: Yes
+2024-05-03 08:47:03.990   Processor architecture: x64
+2024-05-03 08:47:03.991   User privileges: Administrative
+2024-05-03 08:47:03.998   Administrative install mode: Yes
+2024-05-03 08:47:03.998   Install mode root key: HKEY_LOCAL_MACHINE
+2024-05-03 08:47:03.998   64-bit install mode: No
+2024-05-03 08:47:04.005   Created temporary directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:47:04.008   -- DLL function import --
+2024-05-03 08:47:04.008   Function name: SetEnvironmentVariableW
+2024-05-03 08:47:04.008   DLL name: kernel32.dll
+2024-05-03 08:47:04.008   Dest DLL name: kernel32.dll
+2024-05-03 08:47:04.008   Importing the DLL function.
+2024-05-03 08:47:04.008   Successfully imported the DLL function. Delay loaded? Yes
+2024-05-03 08:47:04.008   -- DLL function import --
+2024-05-03 08:47:04.008   Function name: ExpandEnvironmentStringsW
+2024-05-03 08:47:04.008   DLL name: kernel32.dll
+2024-05-03 08:47:04.008   Dest DLL name: kernel32.dll
+2024-05-03 08:47:04.008   Importing the DLL function.
+2024-05-03 08:47:04.008   Successfully imported the DLL function. Delay loaded? Yes
+2024-05-03 08:47:04.008   -- DLL function import --
+2024-05-03 08:47:04.008   Function name: SendMessageTimeoutW
+2024-05-03 08:47:04.008   DLL name: user32.dll
+2024-05-03 08:47:04.008   Dest DLL name: user32.dll
+2024-05-03 08:47:04.008   Importing the DLL function.
+2024-05-03 08:47:04.008   Successfully imported the DLL function. Delay loaded? Yes
+2024-05-03 08:47:04.010   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\acls.bat
+2024-05-03 08:47:04.016   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\runphp.exe
+2024-05-03 08:47:04.023   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\check.php
+2024-05-03 08:47:04.024   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\inicheck.php
+2024-05-03 08:47:04.027   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\installer.php
+2024-05-03 08:47:04.030   Extracting temporary file: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\composer
+2024-05-03 08:47:04.035   $ Initializing ComposerSetup 6.3.0 for user: New User
+2024-05-03 08:47:04.036   $ Params: dev=, php=, proxy=, loadinf=
+2024-05-03 08:47:04.036   $ Getting path info from registry
+2024-05-03 08:47:04.039   $ Searching for PHP in common locations
+2024-05-03 08:47:04.040   $ PHP found in 1 location
+2024-05-03 08:47:04.234   $ WizardPage [001]: Welcome
+2024-05-03 08:47:04.234   $ WizardPage [100]: Installation Options
+2024-05-03 08:47:05.583   $ Setup will install 6.3.0 in Standard Mode and will uninstall existing version 6.3.0
+2024-05-03 08:47:05.593   $ WizardPage [101]: Settings Check
+2024-05-03 08:47:47.081   $ WizardPage [102]: Running Settings Check
+2024-05-03 08:47:47.085   $ -- Checking cmd.exe: C:\Windows\system32\cmd.exe --
+2024-05-03 08:47:47.086   $ -- Execute File --
+2024-05-03 08:47:47.086   $ Working directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:47:47.086   $ Running C:\Windows\system32\cmd.exe /s /c "cd > stdout.txt 2> stderr.txt"
+2024-05-03 08:47:47.161   $ Success: exit code [0]
+2024-05-03 08:47:47.167   $ Output from stdout [37 bytes]
+                          C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:47:47.167   $ Output from stderr [0 bytes]
+2024-05-03 08:47:47.167   $ Directory from cmd.exe: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp [C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp]
+2024-05-03 08:47:47.171   $ -- Checking selected php: C:\xampp\htdocs\nasya-laravel\php\php.exe --
+2024-05-03 08:47:47.171   $ Env: PHPRC=, PHP_INI_SCAN_DIR=
+2024-05-03 08:47:47.171   $ Reading VersionInfo data from exe
+2024-05-03 08:47:47.171   $ Config: version=8.2.4, id=80204
+2024-05-03 08:47:47.171   $ -- Checking if php will execute --
+2024-05-03 08:47:47.172   $ -- Execute File --
+2024-05-03 08:47:47.172   $ Working directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:47:47.172   $ Running C:\Windows\system32\cmd.exe /s /c "runphp.exe C:\xampp\htdocs\nasya-laravel\php\php.exe -d error_reporting="E_ALL & ~E_DEPRECATED" -d display_errors=Off -d display_startup_errors=Off -v > stdout.txt 2> stderr.txt"
+2024-05-03 08:47:47.387   $ Success: exit code [-2]
+2024-05-03 08:47:47.396   $ Output from stdout [0 bytes]
+2024-05-03 08:47:47.396   $ Output from stderr [2851 bytes]
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'bz2' (tried: C:\xampp\php\ext\bz2 (The specified module could not be found), C:\xampp\php\ext\php_bz2.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'curl' (tried: C:\xampp\php\ext\curl (The specified module could not be found), C:\xampp\php\ext\php_curl.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'fileinfo' (tried: C:\xampp\php\ext\fileinfo (The specified module could not be found), C:\xampp\php\ext\php_fileinfo.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'gettext' (tried: C:\xampp\php\ext\gettext (The specified module could not be found), C:\xampp\php\ext\php_gettext.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'mbstring' (tried: C:\xampp\php\ext\mbstring (The specified module could not be found), C:\xampp\php\ext\php_mbstring.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'exif' (tried: C:\xampp\php\ext\exif (The specified module could not be found), C:\xampp\php\ext\php_exif.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'mysqli' (tried: C:\xampp\php\ext\mysqli (The specified module could not be found), C:\xampp\php\ext\php_mysqli.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_mysql' (tried: C:\xampp\php\ext\pdo_mysql (The specified module could not be found), C:\xampp\php\ext\php_pdo_mysql.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_sqlite' (tried: C:\xampp\php\ext\pdo_sqlite (The specified module could not be found), C:\xampp\php\ext\php_pdo_sqlite.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'php_openssl.dll' (tried: C:\xampp\php\ext\php_openssl.dll (The specified module could not be found), C:\xampp\php\ext\php_php_openssl.dll.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'php_ftp.dll' (tried: C:\xampp\php\ext\php_ftp.dll (The specified module could not be found), C:\xampp\php\ext\php_php_ftp.dll.dll (The specified module could not be found)) in Unknown on line 0
+                          PHP Warning:  Cannot open "C:\xampp\php\extras\browscap.ini" for reading in Unknown on line 0
+                          PHP Fatal error:  Unable to start standard module in Unknown on line 0
+2024-05-03 08:47:47.396   $ Error: [ERR_RUN_PHP]
+                          The PHP exe file you specified did not run correctly [exit code -2]:
+                          C:\xampp\htdocs\nasya-laravel\php\php.exe
+                          
+                          Program Output:
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'bz2' (tried: C:\xampp\php\ext\bz2 (The specified module could not be found), C:\xampp\php\ext\php_bz2.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'curl' (tried: C:\xampp\php\ext\curl (The specified module could not be found), C:\xampp\php\ext\php_curl.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'fileinfo' (tried: C:\xampp\php\ext\fileinfo (The specified module could not be found), C:\xampp\php\ext\php_fileinfo.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'gettext' (tried: C:\xampp\php\ext\gettext (The specified module could not be found), C:\xampp\php\ext\php_gettext.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'mbstring' (tried: C:\xampp\php\ext\mbstring (The specified module could not be found), C:\xampp\php\ext\php_mbstring.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'exif' (tried: C:\xampp\php\ext\exif (The specified module could not be found), C:\xampp\php\ext\php_exif.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'mysqli' (tried: C:\xampp\php\ext\mysqli (The specified module could not be found), C:\xampp\php\ext\php_mysqli.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_mysql' (tried: C:\xampp\php\ext\pdo_mysql (The specified module could not be found), C:\xampp\php\ext\php_pdo_mysql.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_sqlite' (tried: C:\xampp\php\ext\pdo_sqlite (The specified module could not be found), C:\xampp\php\ext\php_pdo_sqlite.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'php_openssl.dll' (tried: C:\xampp\php\ext\php_openssl.dll (The specified module could not be found), C:\xampp\php\ext\php_php_openssl.dll.dll (The specified module could not be found))
+                          PHP Warning:  PHP Startup: Unable to load dynamic library 'php_ftp.dll' (tried: C:\xampp\php\ext\php_ftp.dll (The specified module could not be found), C:\xampp\php\ext\php_php_ftp.dll.dll (The specified module could not be found))
+                          PHP Warning:  Cannot open "C:\xampp\php\extras\browscap.ini" for reading
+                          PHP Fatal error:  Unable to start standard module
+2024-05-03 08:47:47.404   $ WizardPage [101]: Settings Check
+2024-05-03 08:47:47.423   $ WizardPage [103]: Settings Errors
+2024-05-03 08:48:00.582   $ WizardPage [101]: Settings Check
+2024-05-03 08:49:11.261   $ WizardPage [102]: Running Settings Check
+2024-05-03 08:49:11.264   $ -- Checking selected php: C:\xampp\php\php.exe --
+2024-05-03 08:49:11.264   $ Env: PHPRC=, PHP_INI_SCAN_DIR=
+2024-05-03 08:49:11.264   $ Reading VersionInfo data from exe
+2024-05-03 08:49:11.264   $ Config: version=8.2.4, id=80204
+2024-05-03 08:49:11.264   $ -- Checking if php will execute --
+2024-05-03 08:49:11.265   $ -- Execute File --
+2024-05-03 08:49:11.265   $ Working directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:49:11.265   $ Running C:\Windows\system32\cmd.exe /s /c "runphp.exe C:\xampp\php\php.exe -d error_reporting="E_ALL & ~E_DEPRECATED" -d display_errors=Off -d display_startup_errors=Off -v > stdout.txt 2> stderr.txt"
+2024-05-03 08:49:11.469   $ Success: exit code [0]
+2024-05-03 08:49:11.473   $ Output from stdout [153 bytes]
+                          PHP 8.2.4 (cli) (built: Mar 14 2023 17:54:25) (ZTS Visual C++ 2019 x64)
+                          Copyright (c) The PHP Group
+                          Zend Engine v4.2.4, Copyright (c) Zend Technologies
+2024-05-03 08:49:11.473   $ Output from stderr [0 bytes]
+2024-05-03 08:49:11.473   $ -- Checking php configuration --
+2024-05-03 08:49:11.474   $ -- Execute File --
+2024-05-03 08:49:11.474   $ Working directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:49:11.474   $ Running C:\Windows\system32\cmd.exe /s /c "runphp.exe C:\xampp\php\php.exe -d error_reporting="E_ALL & ~E_DEPRECATED" -d display_errors=Off -d display_startup_errors=Off check.php > stdout.txt 2> stderr.txt"
+2024-05-03 08:49:11.628   $ Success: exit code [0]
+2024-05-03 08:49:11.632   $ Output from stdout [92 bytes]
+                          <ComposerSetup:>8.2.4|80204|C:\xampp\php\php.ini||C:\xampp\apache\bin\curl-ca-bundle.crt|||1
+2024-05-03 08:49:11.632   $ Output from stderr [0 bytes]
+2024-05-03 08:49:11.633   $ Config: version=8.2.4, id=80204, ini=C:\xampp\php\php.ini, other=, cafile=C:\xampp\apache\bin\curl-ca-bundle.crt, capath=, missing=, compat=1
+2024-05-03 08:49:11.633   $ Ini is compatible: C:\xampp\php\php.ini
+2024-05-03 08:49:11.637   $ Checking php path
+2024-05-03 08:49:11.637   $ Registering: Add to System path: C:\xampp\php
+2024-05-03 08:49:11.638   $ Registering: Remove from System path: C:\Program Files\install\php
+2024-05-03 08:49:11.638   $ Checking composer bin path
+2024-05-03 08:49:11.638   $ Checking PathExt values for .BAT
+2024-05-03 08:49:11.639   $ Registering: Add to User [New User] path: C:\Users\New User\AppData\Roaming\Composer\vendor\bin
+2024-05-03 08:49:11.645   $ WizardPage [101]: Settings Check
+2024-05-03 08:49:11.657   $ No proxy found
+2024-05-03 08:49:11.665   $ WizardPage [104]: Proxy Settings
+2024-05-03 08:49:12.725   $ UpdateReadyMemo
+                          PHP version 8.2.4
+                                C:\xampp\php\php.exe
+                          
+                          Proxy: none
+                          
+                          Add to System path: 
+                                C:\xampp\php
+                          
+                          Remove from System path: 
+                                C:\Program Files\install\php
+2024-05-03 08:49:12.732   $ WizardPage [010]: Ready to Install
+2024-05-03 08:49:13.902   $ WizardPage [105]: Running Composer Install
+2024-05-03 08:49:13.905   $ Running Composer installer script
+2024-05-03 08:49:13.906   $ -- Execute File --
+2024-05-03 08:49:13.906   $ Working directory: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp
+2024-05-03 08:49:13.906   $ Running C:\Windows\system32\cmd.exe /s /c "C:\xampp\php\php.exe -d error_reporting="E_ALL & ~E_DEPRECATED" -d display_errors=Off -d display_startup_errors=Off installer.php -- --no-ansi --quiet > stdout.txt 2> stderr.txt"
+2024-05-03 08:49:23.231   $ Success: exit code [0]
+2024-05-03 08:49:23.231   $ Output from stdout [0 bytes]
+2024-05-03 08:49:23.231   $ Output from stderr [0 bytes]
+2024-05-03 08:49:23.241   $ WizardPage [010]: Ready to Install
+2024-05-03 08:49:23.245   $ WizardPage [011]: Preparing to Install
+2024-05-03 08:49:23.252   $ Running PrepareToInstall tasks
+2024-05-03 08:49:23.252   $ Writing Unix line-endings to C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\composer
+2024-05-03 08:49:23.269   $ Making changes to the environment: 3 changes registered
+2024-05-03 08:49:23.269   $ Removing 'C:\Program Files\install\php' from [HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\PATH]
+2024-05-03 08:49:23.273   $ Adding 'C:\xampp\php' to [HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\PATH]
+2024-05-03 08:49:23.273   $ Adding 'C:\Users\New User\AppData\Roaming\Composer\vendor\bin' to [HKCU\Environment\PATH]
+2024-05-03 08:49:23.274   $ Uninstalling ComposerSetup 6.3.0
+2024-05-03 08:49:23.274   $ -- Execute File --
+2024-05-03 08:49:23.274   $ Working directory: C:\Users\New User\Downloads
+2024-05-03 08:49:23.274   $ Running "C:\Program Files (x86)\ComposerSetup\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /LOG /UNINSTALLFROMSETUP=6.3.0
+2024-05-03 08:49:23.837   $ Success: exit code [0]
+2024-05-03 08:49:23.856   $ WizardPage [012]: Installing
+2024-05-03 08:49:24.395   Starting the installation process.
+2024-05-03 08:49:24.400   Creating directory: C:\Program Files (x86)\ComposerSetup
+2024-05-03 08:49:24.401   Directory for uninstall files: C:\Program Files (x86)\ComposerSetup
+2024-05-03 08:49:24.401   Creating new uninstall log: C:\Program Files (x86)\ComposerSetup\unins000.dat
+2024-05-03 08:49:24.402   -- File entry --
+2024-05-03 08:49:24.402   Dest filename: C:\Program Files (x86)\ComposerSetup\unins000.exe
+2024-05-03 08:49:24.403   Time stamp of our file: 2024-05-03 08:47:03.864
+2024-05-03 08:49:24.403   Installing the file.
+2024-05-03 08:49:24.412   Successfully installed the file.
+2024-05-03 08:49:24.412   -- File entry --
+2024-05-03 08:49:24.413   Dest filename: C:\ProgramData\ComposerSetup\bin\composer.bat
+2024-05-03 08:49:24.413   Time stamp of our file: 2020-12-11 16:18:28.000
+2024-05-03 08:49:24.413   Installing the file.
+2024-05-03 08:49:24.414   Creating directory: C:\ProgramData\ComposerSetup
+2024-05-03 08:49:24.414   Creating directory: C:\ProgramData\ComposerSetup\bin
+2024-05-03 08:49:24.415   Successfully installed the file.
+2024-05-03 08:49:24.416   -- File entry --
+2024-05-03 08:49:24.417   Dest filename: C:\ProgramData\ComposerSetup\bin\composer
+2024-05-03 08:49:24.417   Time stamp of our file: 2024-05-03 08:49:23.268
+2024-05-03 08:49:24.417   Installing the file.
+2024-05-03 08:49:24.419   Successfully installed the file.
+2024-05-03 08:49:24.420   -- File entry --
+2024-05-03 08:49:24.420   Dest filename: C:\ProgramData\ComposerSetup\bin\composer.phar
+2024-05-03 08:49:24.421   Time stamp of our file: 2024-05-03 08:49:22.897
+2024-05-03 08:49:24.421   Installing the file.
+2024-05-03 08:49:24.428   Successfully installed the file.
+2024-05-03 08:49:24.430   Saving uninstall information.
+2024-05-03 08:49:24.430   Writing uninstaller messages: C:\Program Files (x86)\ComposerSetup\unins000.msg
+2024-05-03 08:49:24.431   Creating new uninstall key: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7315AF68-E777-496A-A6A2-4763A98ED35A}_is1
+2024-05-03 08:49:24.431   Writing uninstall key values.
+2024-05-03 08:49:24.432   Detected previous non administrative install? No
+2024-05-03 08:49:24.432   Detected previous administrative 64-bit install? No
+2024-05-03 08:49:24.438   Installation process succeeded.
+2024-05-03 08:49:24.444   -- Run entry --
+2024-05-03 08:49:24.444   Run as: Current user
+2024-05-03 08:49:24.444   Type: Exec
+2024-05-03 08:49:24.444   Filename: C:\xampp\htdocs\NASYA-~1\is-QMRSQ.tmp\acls.bat
+2024-05-03 08:49:24.595   Process exit code: 0
+2024-05-03 08:49:24.599   Need to restart Windows? No
+2024-05-03 08:49:24.608   $ WizardPage [107]: Information
+2024-05-03 08:49:25.488   $ WizardPage [014]: Setup Completed
+2024-05-03 08:49:26.484   Deinitializing Setup.
+2024-05-03 08:49:26.505   Log closed.
