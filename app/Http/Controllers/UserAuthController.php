@@ -32,10 +32,7 @@ class UserAuthController extends Controller
     {
         log::info("UserAuthController::checkUser");
 
-        $fields = $request->validate([
-            'user' => 'required|string',
-            'pass' => 'required|string'
-        ]);
+        $fields = $request->validate([ 'user' => 'required|string', 'pass' => 'required|string' ]);
 
         $user = User::where('username', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
 

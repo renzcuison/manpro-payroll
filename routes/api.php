@@ -62,12 +62,19 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::post('/auth/signup', [ContactAuthController::class, 'signup']);
-Route::post('/auth/login', [ContactAuthController::class, 'login']);
-
-Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
+
+Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
+
+
+
+
+
+Route::post('/auth/signup', [ContactAuthController::class, 'signup']);
+Route::post('/auth/login', [ContactAuthController::class, 'login']);
+Route::post('/signup', [UserAuthController::class, 'signup']);
+
 
 Route::post('/getVerificationCode', [ContactAuthController::class, 'getVerificationCode']);
 Route::post('/verifyVerificationCode', [ContactAuthController::class, 'verifyVerificationCode']);
@@ -76,7 +83,7 @@ Route::post('/verifyEmail', [ContactAuthController::class, 'verifyEmail']);
 Route::post('/user/forgot-password', [ContactAuthController::class, 'forgotPasswordAction']);
 Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
 Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
-Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
+
 
 // Social Login
 Route::post('/social/login/facebook', [ContactAuthController::class, 'facebook']);
