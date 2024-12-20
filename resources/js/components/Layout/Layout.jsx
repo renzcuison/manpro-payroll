@@ -2,9 +2,16 @@ import React, { useState } from "react";
 import Footer from "./Footer";
 import Header from "./Header";
 import MainContainer from "./MainContainer";
+
 import Sidebar from "./Sidebar";
+import SidebarAdmin from "./Sidebar-Admin";
+import SidebarEmployee from "./Sidebar-Employee";
+
+import { useUser } from '../../hooks/useUser';
 
 const Layout = ({ children, title, differentSidebar = true }) => {
+    const { user } = useUser();
+    const storedUser = localStorage.getItem("nasya_user");
     const [showSidebar, setShowSidebar] = useState(true);
     const [showSidebarMini, setShowSidebarMini] = useState(false);
     const handleToggleSidebar = () => {
@@ -14,6 +21,9 @@ const Layout = ({ children, title, differentSidebar = true }) => {
     const handleCloseMini = () => {
         setShowSidebarMini(!showSidebarMini);
     };
+
+    console.log("Layout");
+    console.log(user);
 
     return (
         <div id="page-container" className={`enable-page-overlay side-scroll page page-header-inverse side-trans-enabled ${ showSidebar ? "sidebar-o" : "" } ${showSidebarMini ? "sidebar-o-xs" : ""}`} >
@@ -35,7 +45,15 @@ const Layout = ({ children, title, differentSidebar = true }) => {
                     <p>Content..</p>
                 </div>
             </aside>
-            <Sidebar showSidebar={showSidebar} closeMini={handleCloseMini} />
+
+            {user.user_type === 'SuperAdmin' ? <>
+                <Sidebar showSidebar={showSidebar} closeMini={handleCloseMini} />
+            </> : user.user_type === 'Admin' ? <>
+                <SidebarAdmin showSidebar={showSidebar} closeMini={handleCloseMini} />
+            </> : <>
+                <SidebarEmployee showSidebar={showSidebar} closeMini={handleCloseMini} />
+            </>}
+
             <Header toogleSidebar={handleToggleSidebar} />
             <MainContainer>{children}</MainContainer>
         </div>
