@@ -124,6 +124,9 @@ export default function SignInCard() {
                         }
                     });
 
+                    console.log(response);
+                    console.log(response.data);
+
                     // Make the API call
                     axiosInstance.get(`/sendVerifyCode/${response.data.user}`)
                         .then(response => {
@@ -213,11 +216,13 @@ export default function SignInCard() {
         axiosInstance.post('/login', formData)
             .then(response => {
 
+                console.log(response);
+
                 if (response.data.success === 1) {
 
                     login(formData).then(response => {
                         setTimeout(() => {
-                            if (response.user.user_type === 'Admin') {
+                            if (response.user.user_type === 'Admin' || response.user.user_type === 'SuperAdmin') {
                                 navigate('/hr/dashboard');
                             } else if (response.user.user_type === 'Member') {
                                 navigate('/member/dashboard');

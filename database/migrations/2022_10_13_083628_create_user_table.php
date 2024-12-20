@@ -14,34 +14,33 @@ class CreateUserTable extends Migration
      */
     public function up()
     {
-        Schema::create('user', function (Blueprint $table) {
-            $table->integer('user_id', true);
-            $table->string('fname', 50)->nullable();
-            $table->string('mname', 50)->nullable();
-            $table->string('lname', 50)->nullable();
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('user_name', 100)->unique();
+
+            $table->string('first_name', 50);
+            $table->string('middle_name', 50)->nullable();
+            $table->string('last_name', 50);
+            $table->string('suffix', 50)->nullable();
+
+            $table->date('birth_date')->nullable();
+
             $table->string('address', 200)->nullable();
             $table->string('contact_number', 15)->nullable();
-            $table->string('email', 200)->nullable();
-            $table->date('bdate')->nullable();
-            $table->string('username', 100)->nullable();
-            $table->string('password', 100)->nullable();
+            $table->string('email', 200);
+            $table->string('password', 100);
+
             $table->string('user_type', 20)->nullable();
-            $table->string('status', 255)->nullable();
             $table->string('profile_pic', 200)->nullable();
-            $table->string('user_color', 20)->nullable();
-            $table->string('team', 50)->nullable();
-            $table->integer('log')->nullable();
-            $table->integer('hourly_rate')->nullable();
-            $table->integer('daily_rate')->nullable();
-            $table->integer('monthly_rate')->nullable();
-            $table->integer('work_days')->nullable();
-            $table->integer('department_id')->nullable();
-            $table->string('department')->nullable();
-            $table->integer('category_id')->nullable();
-            $table->string('category')->nullable();
-            $table->dateTime('date_created')->nullable();
-            $table->date('date_hired')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->integer('is_deleted')->default(0);
+
+            $table->string('verify_code', 8)->nullable();
+            $table->tinyInteger('is_verified')->nullable();
+
+            // $table->foreign('client_id')->references('id')->on('clients');
+            // $table->foreign('branch_id')->references('id')->on('branches');
+            // $table->foreign('department_id')->references('id')->on('departments');
+
+            $table->timestamps();
         });
     }
 
@@ -51,7 +50,7 @@ class CreateUserTable extends Migration
      * @return void
      */
     public function down()
-    {
+    {   
         Schema::dropIfExists('user');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 
 use App\Models\User;
+use App\Models\UsersModel;
 use App\Models\UserIpModel;
 
 use Illuminate\Http\Request;
@@ -34,11 +35,16 @@ class UserAuthController extends Controller
 
         $fields = $request->validate([ 'user' => 'required|string', 'pass' => 'required|string' ]);
 
-        $user = User::where('username', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
+        $user = UsersModel::where('user_name', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
+
+        log::info($user);
+
+        // $user->password = Hash::make('Admin@123');
+        // $user->save();
 
         if ($user && Hash::check($request->input('pass'), $user->password)) {
             log::info("Valid User");
-            return response()->json([ 'success' => 1, 'user' => $user->user_id, 'email' => $user->email]);
+            return response()->json([ 'success' => 1, 'user' => $user->id, 'email' => $user->email]);
         } else {
             log::info("Invalid User");
             return response()->json([ 'success' => 0 ]);
@@ -91,25 +97,15 @@ class UserAuthController extends Controller
             'passcode' => 'required|string'
         ]);
 
-        $user = User::where(function ($query)
+        $user = UsersModel::where(function ($query)
         
         use ($fields) {
-            $query->where('username', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
+            $query->where('user_name', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
         })->first();
 
-        if ($user && Hash::check($request->input('password'), $user->password) && $user->user_type !== 'Suspended' && $user->verify_code === $request->input('passcode')) {
+        if ($user && Hash::check($request->input('password'), $user->password) && $user->verify_code === $request->input('passcode')) {
             $user->token = $user->createToken('userAppToken')->plainTextToken;
             $user->id    = $user->user_id;
-
-            log::info( $user->user_id . " has logged in | IP Address: " . $request->ip());
-            $existingRecord = UserIpModel::where('user_id', $user->user_id)->where('ip_address', $request->ip())->first();
-
-            if (!$existingRecord) {
-                UserIpModel::create([
-                    'user_id' => $user->user_id,
-                    'ip_address' => $request->ip(),
-                ]);
-            }
 
             return response(['success' => 1,'user' => $user], 200);
         } else {

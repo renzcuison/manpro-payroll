@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\UsersModel;
 use App\Mail\PayrollMail;
 use App\Mail\NewEmployeeMail;
 use App\Mail\ForgotPasswordMail;
@@ -9,7 +11,7 @@ use App\Mail\NewAnnouncementMail;
 use App\Mail\ReferralInternalMail;
 use App\Mail\ReferralMail;
 use App\Mail\VerifyCodeMail;
-use App\Models\User;
+
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -298,24 +300,25 @@ class MailController extends Controller
     public function verifyCode(Request $request, $id)
     {
 
-        log::info("MailController::verifyCode");
+        log::info("MailController::verifyCode " . $id);
         
         try {
             $code = $this->generateRandomCode(8);
 
             log::info("Code: " . $code);
 
-            $userInsert = User::findOrFail($id);
+            log::info("1");
+            $userInsert = UsersModel::find($id);
             $userInsert->verify_code = $code;
             $userInsert->is_verified = 0;
             $userInsert->save();
             // Query the database to retrieve user data
-            $user = DB::table('user')->select('email', 'fname', 'lname', 'team', 'username')->where('is_deleted', 0)->where('user_id', $id)->first();
+            $user = DB::table('users')->select('email', 'first_name', 'last_name', 'user_name')->where('id', $id)->first();
 
             if ($user) {
-                $fullname = $user->fname . ' ' . $user->lname;
-                $company = $user->team;
-                $username = $user->username;
+                $fullname = $user->first_name . ' ' . $user->last_name;
+                $company = "ManPro";
+                $username = $user->user_name;
                 $email = $user->email;
 
                 $details = [
@@ -355,12 +358,15 @@ class MailController extends Controller
 
     function generateRandomCode($length)
     {
-        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        // $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $chars = '0123456789';
         $result = '';
         $charsLength = strlen($chars);
+
         for ($i = 0; $i < $length; $i++) {
             $result .= $chars[rand(0, $charsLength - 1)];
         }
+
         return $result;
     }
 }
