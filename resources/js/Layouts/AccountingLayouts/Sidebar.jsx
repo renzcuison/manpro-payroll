@@ -169,8 +169,11 @@ const Sidebar = ({ children, closeMini }) => {
                         <ul className="list-inline mt-10">
                             <li className="list-inline-item">
                                 <a className="link-effect text-white font-size-xs font-w600">
-                                    {capitalize(user.fname)}{" "}
-                                    {capitalize(user.lname)}
+                                    {user.fname}{" "}
+                                    {user.lname}
+
+                                    {/* {capitalize(user.fname)}{" "} */}
+                                    {/* {capitalize(user.lname)} */}
                                 </a>
                             </li>
                         </ul>
