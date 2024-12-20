@@ -2,9 +2,11 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
+import AccountingDashboard from "./Pages/Accounting/AccountingDashboard";
 
 import { queryClient } from "./utils/queryClient";
 import { useUser } from "./hooks/useUser";
+import Sales from "./Pages/Accounting/Sales";
 
 // import "@fontsource/roboto/300.css";
 // import "@fontsource/roboto/400.css";
@@ -16,7 +18,8 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import CheckUser from "./Pages/CheckUser";
 import Dashboard from "./Pages/Dashboard";
-
+import ProtectedRoute from './Routes/ProtectedRoute.jsx';
+import Invoice from "./Pages/Accounting/Invoice";
 
 import Error404 from "./Pages/Errors/Error404";
 
@@ -93,6 +96,10 @@ function App() {
         <Route path="/change-password" element={user ? <MemberChangePassword /> : <CheckUser />} />
 
         {/* OTHER ROUTES */}
+        <Route path="/accounting" element={user ? <AccountingDashboard /> : <CheckUser />} />
+        <Route path="/accounting/dashboard" element={user ? <AccountingDashboard /> : <CheckUser />} />
+        <Route path="/accounting/sales" element={user ? <Sales /> : <CheckUser />} />
+        <Route path="/accounting/invoice" element={user ? <Invoice /> : <CheckUser />} />
         <Route path="/login" element={<Login />} />
         <Route path="/check-user" element={<CheckUser />} />
         <Route path="/register" element={<Register />} />
