@@ -4,7 +4,8 @@ import ProtectedRoute from './ProtectedRoute';
 
 import Error404 from "../Pages/Errors/Error404";
 
-import Clients from "../Pages/SuperAdmin/Clients/ClientsList";
+import ClientsAdd from "../Pages/SuperAdmin/Clients/ClientsAdd";
+import ClientsList from "../Pages/SuperAdmin/Clients/ClientsList";
 
 const SuperAdminRoutes = ({ user }) => {
     const navigate = useNavigate()
@@ -17,7 +18,8 @@ const SuperAdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route path="clients" element={<ProtectedRoute element={<Clients />} user={user} />} />
+            <Route path="clients" element={<ProtectedRoute element={<ClientsList />} user={user} />} />
+            <Route path="clients-add" element={<ProtectedRoute element={<ClientsAdd />} user={user} />} />
         </Routes>
     );
 };

@@ -74,7 +74,14 @@ const ClientsList = () => {
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 3, alignItems: 'center' }}>
                     <Typography variant="h5" sx={{ pt: 3 }}> Clients </Typography>
 
-                    <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: '#177604', color: 'white' }}
+                        className="m-1"
+                        onClick={() => { 
+                            window.location.href = "http://127.0.0.1:8080/super-admin/clients-add"; 
+                        }}    
+                    >
                         <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                     </Button>
                 </Box>
