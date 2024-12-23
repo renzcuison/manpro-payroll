@@ -1,17 +1,10 @@
 <?php
 
+use App\Http\Controllers\ClientsController;
+
 use App\Http\Controllers\VoiceController;
-use App\Http\Controllers\CallSchedulingController;
-use App\Http\Controllers\ContactAuthController;
-use App\Http\Controllers\FormsController;
 use App\Http\Controllers\HrApplicationsController;
 use App\Http\Controllers\MailController;
-use App\Http\Controllers\MySupportController;
-use App\Http\Controllers\PortalUpdatesController;
-use App\Http\Controllers\ReviewMaterialsController;
-use App\Http\Controllers\ServicesController;
-use App\Http\Controllers\PracticeTestsController;
-use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\HrAttendanceController;
 use App\Http\Controllers\HrDashboardController;
@@ -19,47 +12,21 @@ use App\Http\Controllers\HrEmployeesController;
 use App\Http\Controllers\HrPayrollController;
 use App\Http\Controllers\HrProfileController;
 use App\Http\Controllers\HrStatusController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HrPayrollSummaryController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\CorporateController;
-use App\Http\Controllers\FinanceTransactionController;
-use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\MemberApplicationsController;
 use App\Http\Controllers\MemberAttendanceController;
 use App\Http\Controllers\MemberDashboardController;
 use App\Http\Controllers\MemberPayrollDetails;
 use App\Http\Controllers\MemberSettingsController;
 use App\Http\Controllers\CategoriesController;
-
-
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ReportsController;
-
 use App\Http\Controllers\PreviousFilterController;
-use App\Http\Controllers\MobileAppController;
 
-// php artisan make:controller Mobile/AuthMobileController
 use App\Http\Controllers\Mobile\AuthMobileController;
-use App\Http\Controllers\Mobile\DashboardMobileController;
-use App\Http\Controllers\Mobile\AttendanceMobileController;
-use App\Http\Controllers\Mobile\ApplicationsMobileController;
-use App\Http\Controllers\Mobile\PayrollMobileController;
-use App\Http\Controllers\Mobile\HrApplicationListMobileController;
-use App\Http\Controllers\Mobile\CategoryMobileController;
-use App\Http\Controllers\Mobile\UserMobileController;
-
 use App\Http\Controllers\Desktop\DesktopController;
 
-// C:\xampp\htdocs\ManProPayroll-Intern\app\Http\Controllers\Desktop
-
-use App\Models\HrApplications;
-use App\Mail\ReferralMail;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
-
 
 
 Route::post('/login', [UserAuthController::class, 'login']);
@@ -97,8 +64,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
-
     Route::post('/logout', [UserAuthController::class, 'logout']);
+
+    Route::prefix('clients')->group(function () {
+        Route::get('/getClients', [ClientsController::class, 'getClients']);
+        Route::post('/saveClient', [ClientsController::class, 'saveClient']);
+    });
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);

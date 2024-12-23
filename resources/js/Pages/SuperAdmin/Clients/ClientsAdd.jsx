@@ -25,20 +25,25 @@ const ClientsAdd = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [loading, setLoading] = useState(true);
 
+    const [clientNameError, setClientNameError] = useState(false);
+    const [selectedPackageError, setSelectedPackageError] = useState(false);
+    const [firstNameError, setFirstNameError] = useState(false);
+    const [lastNameError, setLastNameError] = useState(false);
+    const [userNameError, setUserNameError] = useState(false);
+    const [emailAddressError, setEmailAddressError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [confirmError, setConfirmError] = useState(false);
+
     const [clientName, setClientName] = useState('');
     const [selectedPackage, setSelectedPackage] = useState('');
-
     const [firstName, setFirstName] = useState('');
     const [middleName, setMiddleName] = useState('');
     const [lastName, setLastName] = useState('');
     const [suffix, setSuffix] = useState('');
-
     const [userName, setUserName] = useState('');
     const [emailAddress, setEmailAddress] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-
     const [address, setAddress] = useState('');
-
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
 
@@ -46,6 +51,129 @@ const ClientsAdd = () => {
         event.preventDefault();
 
         console.log("checkInput");
+
+        if (!clientName) {
+            setClientNameError(true);
+        } else {
+            setClientNameError(false);
+        }
+
+        if (!selectedPackage) {
+            setSelectedPackageError(true);
+        } else {
+            setSelectedPackageError(false);
+        }
+
+        if (!firstName) {
+            setFirstNameError(true);
+        } else {
+            setFirstNameError(false);
+        }
+
+        if (!lastName) {
+            setLastNameError(true);
+        } else {
+            setLastNameError(false);
+        }
+
+        if (!userName) {
+            setUserNameError(true);
+        } else {
+            setUserNameError(false);
+        }
+
+        if (!emailAddress) {
+            setEmailAddressError(true);
+        } else {
+            setEmailAddressError(false);
+        }
+
+        if (!password) {
+            setPasswordError(true);
+        } else {
+            setPasswordError(false);
+        }
+
+        if (!confirm) {
+            setConfirmError(true);
+        } else {
+            setConfirmError(false);
+        }
+
+        if (!clientName || !selectedPackage || !firstName || !lastName || !userName || !emailAddress || !password || !confirm) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            if ( confirm != password ){
+                setConfirmError(true);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Password does not match!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            } else {
+                new Swal({
+                    customClass: { container: "my-swal" },
+                    title: "Are you sure?",
+                    text: "You want to save this client?",
+                    icon: "warning",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Save',
+                    confirmButtonColor: '#177604',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel',
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        saveInput(event);
+                    }
+                });
+            }
+        }
+    };
+
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const data = {
+            clientName: clientName,
+            selectedPackage: selectedPackage,
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            suffix: suffix,
+            userName: userName,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            address: address,
+            password: password,
+        };
+
+        axiosInstance.post('/clients/saveClient', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Evaluation form saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/hr/performance-evaluation-review/${response.data.formId}`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
 
     return (
@@ -55,7 +183,7 @@ const ClientsAdd = () => {
                     <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
                         <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }} > Create Client </Typography>
-                        <Typography sx={{ mt: 3, ml: 1 }} > Client Information </Typography>
+                        <Typography sx={{ mt: 3, ml: 1 }}> Client Information </Typography>
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
@@ -69,6 +197,7 @@ const ClientsAdd = () => {
                                     label="Client Name"
                                     variant="outlined"
                                     value={clientName}
+                                    error={clientNameError}
                                     onChange={(e) => setClientName(e.target.value)}
                                 />
                             </FormControl>
@@ -82,6 +211,7 @@ const ClientsAdd = () => {
                                     id="package"
                                     label="Package"
                                     value={selectedPackage}
+                                    error={selectedPackageError}
                                     onChange={(event) => setSelectedPackage(event.target.value)}
                                 >
                                     <MenuItem key="Basic" value="Basic"> Basic </MenuItem>
@@ -92,7 +222,7 @@ const ClientsAdd = () => {
                             </FormControl>
                         </FormGroup>
 
-                        <Typography sx={{ mt: 3, ml: 1 }} > Admin Account</Typography>
+                        <Typography sx={{ mt: 3, ml: 1 }}> Admin Account</Typography>
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
@@ -106,6 +236,7 @@ const ClientsAdd = () => {
                                     label="First Name"
                                     variant="outlined"
                                     value={firstName}
+                                    error={firstNameError}
                                     onChange={(e) => setFirstName(e.target.value)}
                                 />
                             </FormControl>
@@ -130,6 +261,7 @@ const ClientsAdd = () => {
                                     label="Last Name"
                                     variant="outlined"
                                     value={lastName}
+                                    error={lastNameError}
                                     onChange={(e) => setLastName(e.target.value)}
                                 />
                             </FormControl>
@@ -161,6 +293,7 @@ const ClientsAdd = () => {
                                     label="User Name"
                                     variant="outlined"
                                     value={userName}
+                                    error={userNameError}
                                     onChange={(e) => setUserName(e.target.value)}
                                 />
                             </FormControl>
@@ -174,6 +307,7 @@ const ClientsAdd = () => {
                                     label="Email Address"
                                     variant="outlined"
                                     value={emailAddress}
+                                    error={emailAddressError}
                                     onChange={(e) => setEmailAddress(e.target.value)}
                                 />
                             </FormControl>
@@ -218,7 +352,9 @@ const ClientsAdd = () => {
                                     id="Password"
                                     label="Password"
                                     variant="outlined"
+                                    type="password"
                                     value={password}
+                                    error={passwordError}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
                             </FormControl>
@@ -231,7 +367,9 @@ const ClientsAdd = () => {
                                     id="confirmPassword"
                                     label="Confirm Password"
                                     variant="outlined"
+                                    type="password"
                                     value={confirm}
+                                    error={confirmError}
                                     onChange={(e) => setConfirm(e.target.value)}
                                 />
                             </FormControl>
@@ -242,8 +380,9 @@ const ClientsAdd = () => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Client </p>
                             </Button>
                         </Box>
+                        
                     </Box>
-                </div > 
+                </div> 
 
             </Box>
         </Layout >
