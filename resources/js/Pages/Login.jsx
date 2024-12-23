@@ -24,7 +24,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useUser } from "../hooks/useUser";
 
 import Swal from "sweetalert2";
-import { MarkEmailReadOutlined } from '@mui/icons-material';
+import { CodeOffOutlined, MarkEmailReadOutlined } from '@mui/icons-material';
 
 import { useMediaQuery } from '@mui/material';
 
@@ -212,11 +212,12 @@ export default function SignInCard() {
 
         axiosInstance.post('/login', formData)
             .then(response => {
-
                 if (response.data.success === 1) {
                     login(formData).then(response => {
                         setTimeout(() => {
-                            if (response.user.user_type === 'Admin' || response.user.user_type === 'SuperAdmin') {
+                            if (response.user.user_type === 'SuperAdmin') {
+                                navigate('/dashboard');
+                            } else if (response.user.user_type === 'Admin') {
                                 navigate('/hr/dashboard');
                             } else if (response.user.user_type === 'Member') {
                                 navigate('/member/dashboard');

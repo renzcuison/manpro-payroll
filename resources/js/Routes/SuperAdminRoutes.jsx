@@ -4,14 +4,11 @@ import ProtectedRoute from './ProtectedRoute';
 
 import Error404 from "../Pages/Errors/Error404";
 
-import Employees from "../Pages/Admin/Employees/HrEmployees";
+import Clients from "../Pages/SuperAdmin/Clients/ClientsList";
 
 const SuperAdminRoutes = ({ user }) => {
     const navigate = useNavigate()
-
-    console.log("SuperAdminRoutes");
-    console.log(user);
-
+    
     if (!user) {
         navigate('/');
     } else if (user.user_type !== "SuperAdmin") {
@@ -20,7 +17,7 @@ const SuperAdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route path="employees" element={<ProtectedRoute element={<Employees />} user={user} />} />
+            <Route path="clients" element={<ProtectedRoute element={<Clients />} user={user} />} />
         </Routes>
     );
 };

@@ -79,10 +79,10 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
                             </StyledNav>
                             <li className="nav-main-heading">
-                                <span className="sidebar-mini-hidden text-dark">Clients</span>
+                                <span className="sidebar-mini-hidden text-dark">Management</span>
                             </li>
-                            <StyledNav to={`/clients`}>
-                                <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
+                            <StyledNav to={`/super-admin/clients`}>
+                                <i className="fa fa-address-card-o" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Clients</span>
                             </StyledNav>
                         </ul>
                     </div>

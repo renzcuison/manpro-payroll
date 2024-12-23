@@ -44,6 +44,7 @@ import AdminRoutes from "./Routes/AdminRoutes.jsx";
 import MemberRoutes from "./Routes/MemberRoutes.jsx";
 
 import HrEmployeeAddEmp from "./Pages/Hr/HrEmployeeAddEmp";
+import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
 
 function App() {
     const { user, isFetching } = useUser();
@@ -72,6 +73,7 @@ function App() {
         <Route path="/hr/*" element={<HrRoutes user={user} />} />
         <Route path="/admin/*" element={<AdminRoutes user={user} />} />
         <Route path="/member/*" element={<MemberRoutes user={user} />} />
+        <Route path="/super-admin/*" element={<SuperAdminRoutes user={user} />} />
 
 
 
