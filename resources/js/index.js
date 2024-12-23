@@ -16,6 +16,8 @@ import Invoice from "./Pages/Accounting/Invoice";
 
 
 import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
+import AdminDashboard from "./Pages/Hr/HrDashboard";
+import EmployeeDashboard from "./Pages/Member/MemberDashboard";
 
 import Error404 from "./Pages/Errors/Error404";
 

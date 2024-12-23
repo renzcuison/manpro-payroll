@@ -75,12 +75,15 @@ const Sidebar = ({ children, closeMini }) => {
                             <li className="nav-main-heading">
                                 <span className="sidebar-mini-hidden" style={{ color: '#3d3d3f' }}>ADMIN</span>
                             </li>
-                            <StyledNav to={`/hr/dashboard?year=${moment().year()}`} >
+                            <StyledNav to={`/dashboard`}>
                                 <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
                             </StyledNav>
                             <li className="nav-main-heading">
-                                <span className="sidebar-mini-hidden text-dark">Management</span>
+                                <span className="sidebar-mini-hidden text-dark">Clients</span>
                             </li>
+                            <StyledNav to={`/clients`}>
+                                <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
+                            </StyledNav>
                         </ul>
                     </div>
                 </div>
