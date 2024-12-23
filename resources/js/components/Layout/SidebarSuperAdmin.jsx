@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 import SideItem from '../LayoutComponents/SideItem';
 import moment from 'moment/moment';
 import { NavLink, useNavigate } from 'react-router-dom';
-import Iconify from '../../components/iconify/iconify/Iconify'
+import Iconify from '../iconify/iconify/Iconify'
 import HomeLogo from "../../../images/ManProTab.png";
 import React, { useEffect, useState } from 'react'
 import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
@@ -65,8 +65,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </a>
                             <ul className="list-inline mt-10">
                                 <li className="list-inline-item">
-                                    {/* <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.fname)} {capitalize(user.lname)}</a> */}
-                                    <a className="link-effect text-white font-size-xs font-w600">{user.first_name} {user.last_name}</a>
+                                    <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.first_name)} {capitalize(user.middle_name ? user.middle_name : "")} {capitalize(user.last_name)} {capitalize(user.suffix ? user.suffix : "")}</a>
                                 </li>
                             </ul>
                         </div>

@@ -3,9 +3,9 @@ import Footer from "./Footer";
 import Header from "./Header";
 import MainContainer from "./MainContainer";
 
-import Sidebar from "./Sidebar";
-import SidebarAdmin from "./Sidebar-Admin";
-import SidebarEmployee from "./Sidebar-Employee";
+import SidebarSuperAdmin from "./SidebarSuperAdmin";
+import SidebarAdmin from "./SidebarAdmin";
+import SidebarEmployee from "./SidebarEmployee";
 
 import { useUser } from '../../hooks/useUser';
 
@@ -21,9 +21,6 @@ const Layout = ({ children, title, differentSidebar = true }) => {
     const handleCloseMini = () => {
         setShowSidebarMini(!showSidebarMini);
     };
-
-    console.log("Layout");
-    console.log(user);
 
     return (
         <div id="page-container" className={`enable-page-overlay side-scroll page page-header-inverse side-trans-enabled ${ showSidebar ? "sidebar-o" : "" } ${showSidebarMini ? "sidebar-o-xs" : ""}`} >
@@ -47,7 +44,7 @@ const Layout = ({ children, title, differentSidebar = true }) => {
             </aside>
 
             {user.user_type === 'SuperAdmin' ? <>
-                <Sidebar showSidebar={showSidebar} closeMini={handleCloseMini} />
+                <SidebarSuperAdmin showSidebar={showSidebar} closeMini={handleCloseMini} />
             </> : user.user_type === 'Admin' ? <>
                 <SidebarAdmin showSidebar={showSidebar} closeMini={handleCloseMini} />
             </> : <>

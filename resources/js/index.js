@@ -8,18 +8,14 @@ import { queryClient } from "./utils/queryClient";
 import { useUser } from "./hooks/useUser";
 import Sales from "./Pages/Accounting/Sales";
 
-// import "@fontsource/roboto/300.css";
-// import "@fontsource/roboto/400.css";
-// import "@fontsource/roboto/500.css";
-// import "@fontsource/roboto/700.css";
-// import '../css/custom-sweetalert2.class$';
-
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import CheckUser from "./Pages/CheckUser";
 import Dashboard from "./Pages/Dashboard";
-import ProtectedRoute from './Routes/ProtectedRoute.jsx';
 import Invoice from "./Pages/Accounting/Invoice";
+
+
+import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 
 import Error404 from "./Pages/Errors/Error404";
 
@@ -53,11 +49,50 @@ function App() {
   
     return (
       <Routes>
+
+        <Route path="/" element={ user ? (
+              user.user_type === 'SuperAdmin' ? ( <SuperAdminDashboard /> ) : user.user_type === 'Admin' ? ( <AdminDashboard /> ) : user.user_type === 'Employee' ? ( <EmployeeDashboard /> ) : ( <CheckUser /> )
+            ) : (
+              <CheckUser />
+            )
+          }
+        />
+
+        <Route path="/dashboard" element={ user ? (
+              user.user_type === 'SuperAdmin' ? ( <SuperAdminDashboard /> ) : user.user_type === 'Admin' ? ( <AdminDashboard /> ) : user.user_type === 'Employee' ? ( <EmployeeDashboard /> ) : ( <CheckUser /> )
+            ) : (
+              <CheckUser />
+            )
+          }
+        />
+
         {/* <Route path="/" element={<Login />} /> */}
-        <Route path="/" element={user ? <Dashboard /> : <CheckUser />} />
         <Route path="/hr/*" element={<HrRoutes user={user} />} />
         <Route path="/admin/*" element={<AdminRoutes user={user} />} />
         <Route path="/member/*" element={<MemberRoutes user={user} />} />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         {/* <Route path="/" element={user && user.user_type !== 'Member' && user.user_type !== 'Suspended' ? <VerifyLogin /> : user && user.user_type === 'Member' ? <VerifyLogin /> : <Login />} /> */}
 

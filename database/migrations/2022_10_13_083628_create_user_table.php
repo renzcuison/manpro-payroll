@@ -27,14 +27,14 @@ class CreateUserTable extends Migration
 
             $table->string('address', 200)->nullable();
             $table->string('contact_number', 15)->nullable();
-            $table->string('email', 200);
+            $table->string('email', 200)->unique();
             $table->string('password', 100);
 
             $table->string('user_type', 20)->nullable();
             $table->string('profile_pic', 200)->nullable();
 
             $table->string('verify_code', 8)->nullable();
-            $table->tinyInteger('is_verified')->nullable();
+            $table->dateTime('code_expiration', 8)->nullable();
 
             // $table->foreign('client_id')->references('id')->on('clients');
             // $table->foreign('branch_id')->references('id')->on('branches');
