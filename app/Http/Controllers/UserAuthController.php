@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Exception;
 
-use App\Models\User;
 use App\Models\UsersModel;
 use App\Models\UserIpModel;
 
@@ -69,7 +68,7 @@ class UserAuthController extends Controller
         $fields['user_color'] = $arrX[array_rand($arrX)];
         $fields['date_created'] = date("Y-m-d h:i:s");
 
-        $user = User::create($fields);
+        $user = UsersModel::create($fields);
 
         if ($user) {
             $user->token = $user->createToken('contactAppToken')->plainTextToken;
@@ -121,20 +120,14 @@ class UserAuthController extends Controller
             $userID = Auth::id();
         }
 
-        $user = User::where('user_id', $userID)->first();
+        $user = UsersModel::where('user_id', $userID)->first();
         $user->tokens()->delete();
-
-        // auth()->user()->tokens()->delete();
-
-        // log::info(User::where('user_id', $userID)->first());
         
-        return [
-            'message' => 'Logged out'
-        ];
+        return [ 'message' => 'Logged out' ];
     }
 
     protected function getUserDetailsById($user_id)
     {
-        $user_details = User::find($user_id);
+        $user_details = UsersModel::find($user_id);
     }
 }
