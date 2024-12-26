@@ -120,7 +120,7 @@ class UserAuthController extends Controller
             $userID = Auth::id();
         }
 
-        $user = UsersModel::where('user_id', $userID)->first();
+        $user = UsersModel::where('id', $userID)->first();
         $user->tokens()->delete();
         
         return [ 'message' => 'Logged out' ];

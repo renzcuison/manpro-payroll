@@ -91,10 +91,6 @@ const EmployeesList = () => {
                 </Box>
 
                 <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                        <PageToolbar handleSearch={handleFilter} />
-                    </Box>
-
                     {isLoading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                             <CircularProgress />
