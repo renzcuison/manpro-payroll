@@ -15,6 +15,22 @@ const ClientEditModal = ({ open, close, client }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [clientNameError, setClientNameError] = useState(false);
+    const [selectedPackageError, setSelectedPackageError] = useState(false);
+    const [statusError, setStatusError] = useState(false);
+    const [expirationError, setExpirationError] = useState(false);
+    
+    const [clientName, setClientName] = useState('');
+    const [status, setStatus] = useState('');
+    const [expiration, setExpiration] = useState('');
+    const [selectedPackage, setSelectedPackage] = useState('');
+
+    useEffect(() => {
+        setStatus(client.status);
+        setClientName(client.name);
+        setSelectedPackage(client.package);
+    }, []);
+
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -32,43 +48,7 @@ const ClientEditModal = ({ open, close, client }) => {
             setSelectedPackageError(false);
         }
 
-        if (!firstName) {
-            setFirstNameError(true);
-        } else {
-            setFirstNameError(false);
-        }
-
-        if (!lastName) {
-            setLastNameError(true);
-        } else {
-            setLastNameError(false);
-        }
-
-        if (!userName) {
-            setUserNameError(true);
-        } else {
-            setUserNameError(false);
-        }
-
-        if (!emailAddress) {
-            setEmailAddressError(true);
-        } else {
-            setEmailAddressError(false);
-        }
-
-        if (!password) {
-            setPasswordError(true);
-        } else {
-            setPasswordError(false);
-        }
-
-        if (!confirm) {
-            setConfirmError(true);
-        } else {
-            setConfirmError(false);
-        }
-
-        if (!clientName || !selectedPackage || !firstName || !lastName || !userName || !emailAddress || !password || !confirm) {
+        if (!clientName || !selectedPackage) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -77,32 +57,7 @@ const ClientEditModal = ({ open, close, client }) => {
                 confirmButtonColor: '#177604',
             });
         } else {
-            if ( confirm != password ){
-                setConfirmError(true);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Password does not match!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            } else {
-                new Swal({
-                    customClass: { container: "my-swal" },
-                    title: "Are you sure?",
-                    text: "You want to save this client?",
-                    icon: "warning",
-                    showConfirmButton: true,
-                    confirmButtonText: 'Save',
-                    confirmButtonColor: '#177604',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancel',
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        saveInput(event);
-                    }
-                });
-            }
+            saveInput(event);
         }
     };
 
@@ -111,7 +66,7 @@ const ClientEditModal = ({ open, close, client }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> {client.name} </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> {clientName} </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -126,19 +81,14 @@ const ClientEditModal = ({ open, close, client }) => {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
-                                    select
                                     required
-                                    id="package"
-                                    label="Package"
-                                    // value={selectedPackage}
-                                    // error={selectedPackageError}
-                                    // onChange={(event) => setSelectedPackage(event.target.value)}
-                                >
-                                    <MenuItem key="Basic" value="Basic"> Basic </MenuItem>
-                                    <MenuItem key="Standard" value="Standard"> Standard </MenuItem>
-                                    <MenuItem key="Professional" value="Professional"> Professional </MenuItem>
-                                    <MenuItem key="Enterprise" value="Enterprise"> Enterprise </MenuItem>
-                                </TextField>
+                                    id="clientName"
+                                    label="Client Name"
+                                    variant="outlined"
+                                    value={clientName}
+                                    error={clientNameError}
+                                    onChange={(e) => setClientName(e.target.value)}
+                                />
                             </FormControl>
                         </FormGroup>
 
@@ -154,9 +104,9 @@ const ClientEditModal = ({ open, close, client }) => {
                                     required
                                     id="package"
                                     label="Package"
-                                    // value={selectedPackage}
-                                    // error={selectedPackageError}
-                                    // onChange={(event) => setSelectedPackage(event.target.value)}
+                                    value={selectedPackage}
+                                    error={selectedPackageError}
+                                    onChange={(event) => setSelectedPackage(event.target.value)}
                                 >
                                     <MenuItem key="Basic" value="Basic"> Basic </MenuItem>
                                     <MenuItem key="Standard" value="Standard"> Standard </MenuItem>
@@ -173,9 +123,9 @@ const ClientEditModal = ({ open, close, client }) => {
                                     id="status"
                                     label="Status"
                                     variant="outlined"
-                                    // value={clientName}
-                                    // error={clientNameError}
-                                    // onChange={(e) => setClientName(e.target.value)}
+                                    value={status}
+                                    error={statusError}
+                                    onChange={(e) => setStatus(e.target.value)}
                                 />
                             </FormControl>
 
@@ -183,7 +133,9 @@ const ClientEditModal = ({ open, close, client }) => {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker label="Basic date picker" />
+                                    <DatePicker
+                                        label="Expiration"
+                                    />
                                 </LocalizationProvider>
                             </FormControl>
                         </FormGroup>
