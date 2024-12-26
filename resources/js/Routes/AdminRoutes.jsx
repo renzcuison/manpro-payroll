@@ -4,7 +4,7 @@ import ProtectedRoute from './ProtectedRoute';
 
 import Error404 from "../Pages/Errors/Error404";
 
-import Employees from "../Pages/Admin/Employees/HrEmployees";
+import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate()
@@ -17,7 +17,7 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route path="employees" element={<ProtectedRoute element={<Employees />} user={user} />} />
+            <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
         </Routes>
     );
 };

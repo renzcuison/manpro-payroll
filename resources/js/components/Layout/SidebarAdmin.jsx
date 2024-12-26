@@ -24,7 +24,7 @@ const sidebarItems = [{
     icon: 'si si-users',
     children: [
         {
-            href: `/hr/employees?`,
+            href: `/admin/employees?`,
             text: 'List of Employees',
             icon: 'si si-user',
         },
@@ -66,8 +66,7 @@ const sidebarItems = [{
             icon: 'fa fa-cogs',
         }
     ]
-}
-];
+}];
 
 const payrollItems = [{
     id: 3,
