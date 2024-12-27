@@ -8,47 +8,43 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import moment from 'moment';
-import 'react-quill/dist/quill.snow.css'; // Import styles
+import 'react-quill/dist/quill.snow.css';
 
-const BranchesAdd = ({ open, close, client }) => {
+const BranchesAdd = ({ open, close, onUpdateBranches }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [clientNameError, setClientNameError] = useState(false);
-    const [selectedPackageError, setSelectedPackageError] = useState(false);
-    const [statusError, setStatusError] = useState(false);
-    const [expirationError, setExpirationError] = useState(false);
+    const [nameError, setNameError] = useState(false);
+    const [acronymError, setAcronymError] = useState(false);
+    const [addressError, setAddressError] = useState(false);
     
-    const [clientName, setClientName] = useState('');
-    const [status, setStatus] = useState('');
-    const [expiration, setExpiration] = useState('');
-    const [selectedPackage, setSelectedPackage] = useState('');
-
-    useEffect(() => {
-        setStatus(client.status);
-        setClientName(client.name);
-        setSelectedPackage(client.package);
-    }, []);
+    const [name, setName] = useState('');
+    const [acronym, setAcronym] = useState('');
+    const [address, setAddress] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        console.log("checkInput");
-
-        if (!clientName) {
-            setClientNameError(true);
+        if (!name) {
+            setNameError(true);
         } else {
-            setClientNameError(false);
+            setNameError(false);
         }
 
-        if (!selectedPackage) {
-            setSelectedPackageError(true);
+        if (!acronym) {
+            setAcronymError(true);
         } else {
-            setSelectedPackageError(false);
+            setAcronymError(false);
         }
 
-        if (!clientName || !selectedPackage) {
+        if (!address) {
+            setAddressError(true);
+        } else {
+            setAddressError(false);
+        }
+
+        if (!name || !acronym || !address) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -61,12 +57,45 @@ const BranchesAdd = ({ open, close, client }) => {
         }
     };
 
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const data = { name: name, acronym: acronym, address: address };
+
+        axiosInstance.post('/settings/saveBranch', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+
+                    const newBranch = response.data.branch;
+
+                    if (onUpdateBranches) {
+                        onUpdateBranches(newBranch);
+                    }
+
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Branch saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> {clientName} </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Branch </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -77,17 +106,31 @@ const BranchesAdd = ({ open, close, client }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            }}>
+                                <TextField
+                                    required
+                                    id="name"
+                                    label="Name"
+                                    variant="outlined"
+                                    value={name}
+                                    error={nameError}
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                            </FormControl>
+                            
+                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
-                                    id="clientName"
-                                    label="Client Name"
+                                    id="acronym"
+                                    label="Acronym"
                                     variant="outlined"
-                                    value={clientName}
-                                    error={clientNameError}
-                                    onChange={(e) => setClientName(e.target.value)}
+                                    value={acronym}
+                                    error={acronymError}
+                                    onChange={(e) => setAcronym(e.target.value)}
                                 />
                             </FormControl>
                         </FormGroup>
@@ -96,53 +139,24 @@ const BranchesAdd = ({ open, close, client }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
-                                    select
                                     required
-                                    id="package"
-                                    label="Package"
-                                    value={selectedPackage}
-                                    error={selectedPackageError}
-                                    onChange={(event) => setSelectedPackage(event.target.value)}
-                                >
-                                    <MenuItem key="Basic" value="Basic"> Basic </MenuItem>
-                                    <MenuItem key="Standard" value="Standard"> Standard </MenuItem>
-                                    <MenuItem key="Professional" value="Professional"> Professional </MenuItem>
-                                    <MenuItem key="Enterprise" value="Enterprise"> Enterprise </MenuItem>
-                                </TextField>
-                            </FormControl>
-
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
-                                <TextField
-                                    required
-                                    id="status"
-                                    label="Status"
+                                    id="address"
+                                    label="Address"
                                     variant="outlined"
-                                    value={status}
-                                    error={statusError}
-                                    onChange={(e) => setStatus(e.target.value)}
+                                    value={address}
+                                    error={addressError}
+                                    onChange={(e) => setAddress(e.target.value)}
                                 />
-                            </FormControl>
-
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        label="Expiration"
-                                    />
-                                </LocalizationProvider>
                             </FormControl>
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Client </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
                             </Button>
                         </Box>
                         

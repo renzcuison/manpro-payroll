@@ -8,7 +8,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import moment from 'moment';
-import 'react-quill/dist/quill.snow.css'; // Import styles
+import 'react-quill/dist/quill.snow.css';
 
 const DepartmentsAdd = ({ open, close, onUpdateDepartments }) => {
     const navigate = useNavigate();

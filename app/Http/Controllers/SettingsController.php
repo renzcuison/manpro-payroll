@@ -96,4 +96,43 @@ class SettingsController extends Controller
 
         return response()->json(['status' => 200, 'branches' => null]);
     }
+
+    public function saveBranch(Request $request)
+    {
+        // log::info("SettingsController::saveBranch");
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $branch = BranchesModel::create([
+                    "name" => $request->name,
+                    "acronym" => $request->acronym,
+                    "address" => $request->address,
+                    "status" => "Active",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'branch' => $branch ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
 }

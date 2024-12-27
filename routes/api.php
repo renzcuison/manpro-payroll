@@ -75,6 +75,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('settings')->group(function () {
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
+
+        Route::get('/getBranches', [SettingsController::class, 'getBranches']);
+        Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
     });
 
     // Hr employees
