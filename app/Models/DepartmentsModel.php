@@ -15,6 +15,7 @@ class DepartmentsModel extends Model
 
     protected $fillable = [
         'name',
+        'acronym',
         'description',
         'status',
         'client_id',

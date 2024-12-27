@@ -17,7 +17,7 @@ class SettingsController extends Controller
 {
     public function checkUser()
     {
-        Log::info("SettingsController::checkUser");
+        // Log::info("SettingsController::checkUser");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -28,6 +28,19 @@ class SettingsController extends Controller
         }
 
         return false;
+    }
+
+    public function getDepartments(Request $request)
+    {
+        // Log::info("SettingsController::getDepartments");
+
+        if ($this->checkUser()) {
+            $departments = DepartmentsModel::get();
+
+            return response()->json(['status' => 200, 'departments' => $departments]);
+        }
+
+        return response()->json(['status' => 200, 'departments' => null]);
     }
 
     public function saveDepartment(Request $request)
@@ -47,7 +60,7 @@ class SettingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $department = DepartmentsModel::create([
+                DepartmentsModel::create([
                     "name" => $request->name,
                     "acronym" => $request->acronym,
                     "description" => $request->description,

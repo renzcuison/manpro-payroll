@@ -73,6 +73,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('settings')->group(function () {
+        Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
     });
 

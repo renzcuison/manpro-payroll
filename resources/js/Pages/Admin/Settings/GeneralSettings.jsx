@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -40,21 +40,24 @@ const GeneralSettings = () => {
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('calories');
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [clients, setClients] = useState([]);
+    const [isBranchesLoading, setIsBranchesLoading] = useState(true);
+    const [isDepartmentLoading, setIsDepartmentLoading] = useState(true);
+
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
 
     const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
     const [openAddDepartmentModal, setOpenAddDepartmentModal] = useState(false);
 
     useEffect(() => {
-        axiosInstance.get('/clients/getClients', { headers })
+        axiosInstance.get('/settings/getDepartments', { headers })
             .then((response) => {
-                setClients(response.data.clients);
-                setIsLoading(false);
+                setDepartments(response.data.departments);
+                setIsDepartmentLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching clients:', error);
-                setIsLoading(false);
+                console.error('Error fetching departments:', error);
+                setIsDepartmentLoading(false);
             });
     }, []);
 
@@ -86,9 +89,33 @@ const GeneralSettings = () => {
                                 </Button>
                             </Box>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >    
-                                <CircularProgress />
-                            </Box>
+                            {isDepartmentLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="cemter">Name</TableCell>
+                                                    <TableCell align="cemter">Status</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {departments.map((department) => (
+                                                    <TableRow key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                        <TableCell align="left">{department.name} ({department.acronym})</TableCell>
+                                                        <TableCell align="left">{department.status}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
+
                         </Box>
                     </Grid>
 
@@ -102,7 +129,7 @@ const GeneralSettings = () => {
                                 </Button>
                             </Box>
                             
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >    
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >    
                                 <CircularProgress />
                             </Box>
                         </Box>
