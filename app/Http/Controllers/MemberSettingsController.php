@@ -15,8 +15,9 @@ class MemberSettingsController extends Controller
     public function updateProfile(Request $request)
     {
         if (Auth::check()) {
-            $userID = Auth::id(); // Get the user ID of the authenticated user
+            $userID = Auth::id();
         }
+
         $validated = $request->validate([
             'fname' => 'required',
             'mname' => 'required',
@@ -26,6 +27,7 @@ class MemberSettingsController extends Controller
             'contact' => 'required',
             'address' => 'required'
         ]);
+
         if ($validated) {
             $dataToUpdate = [
                 'fname' => $request->input('fname'),
@@ -35,35 +37,25 @@ class MemberSettingsController extends Controller
                 'email' => $request->input('email'),
                 'contact_number' => $request->input('contact'),
                 'address' => $request->input('address'),
-
             ];
 
             try {
-                DB::table('user')
-                    ->where('user_id', $userID)
-                    ->update($dataToUpdate);
+                DB::table('user')->where('user_id', $userID)->update($dataToUpdate);
             } catch (\Exception $e) {
             }
         }
 
 
-        return response()->json([
-            'status' => 200,
-            'data' => $validated
-        ]);
+        return response()->json([ 'status' => 200, 'data' => $validated ]);
     }
 
     public function getUserData()
     {
         if (Auth::check()) {
-            $userID = Auth::id(); // Get the user ID of the authenticated user
+            $userID = Auth::id();
         }
 
-        $userData = DB::table('user')
-            ->select('*')
-            ->where('user_id', $userID)
-            ->first();
-
+        $userData = DB::table('user')->select('*')->where('user_id', $userID)->first();
         $user = [];
 
         if ($userData) {
@@ -84,15 +76,13 @@ class MemberSettingsController extends Controller
     public function updatePicture(Request $request)
     {
         if (Auth::check()) {
-            $userID = Auth::id(); // Get the user ID of the authenticated user
+            $userID = Auth::id();
         }
-        $validated = $request->validate([
-            'profile_pic' => 'required|file'
-        ]);
+
+        $validated = $request->validate([ 'profile_pic' => 'required|file' ]);
+
         if ($validated) {
-            $dataToUpdate = [
-                'profile_pic' => $request->file('profile_pic'),
-            ];
+            $dataToUpdate = [ 'profile_pic' => $request->file('profile_pic') ];
 
             if ($request->hasFile('profile_pic')) {
                 $path = $request->file('profile_pic')->store('public');
@@ -102,23 +92,18 @@ class MemberSettingsController extends Controller
             }
 
             try {
-                DB::table('user')
-                    ->where('user_id', $userID)
-                    ->update($dataToUpdate);
+                DB::table('user')->where('user_id', $userID)->update($dataToUpdate);
             } catch (\Exception $e) {
             }
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => $validated
-        ]);
+        return response()->json([ 'status' => 200, 'data' => $validated ]);
     }
 
     public function changePassword(Request $request)
     {
         if (Auth::check()) {
-            $userID = Auth::id(); // Get the user ID of the authenticated user
+            $userID = Auth::id();
         }
 
         $user = User::find($userID);
@@ -128,44 +113,28 @@ class MemberSettingsController extends Controller
             'new' => 'required|string',
             'confirm' => 'required|string'
         ]);
+
         if ($validated) {
             $current = $validated['current'];
             $new = $validated['new'];
             $confirm = $validated['confirm'];
 
-            // Check if the old password matches the stored password
             if ($validated && Hash::check($request->input('current'), $user->password)) {
-                // Old password matches the stored password
                 if ($request->input('new') === $request->input('confirm')) {
-                    // New and confirmed passwords match
                     try {
                         $updatePass = DB::table('user')
                             ->where('user_id', $userID)
-                            ->update([
-                                'password' => Hash::make($request->input('new')),
+                            ->update(['password' => Hash::make($request->input('new'))]);
 
-                            ]);
-                        return response()->json([
-                            'status' => 200,
-                            'message' => 'Password changed successfully',
-                        ]);
+                        return response()->json([ 'status' => 200, 'message' => 'Password changed successfully' ]);
                     } catch (\Exception $e) {
-                        return response()->json([
-                            'status' => 500,
-                            'message' => 'Failed to update password',
-                        ]);
+                        return response()->json([ 'status' => 500, 'message' => 'Failed to update password' ]);
                     }
                 } else {
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'New and confirm new passwords do not match',
-                    ]);
+                    return response()->json([ 'status' => 400, 'message' => 'New and confirm new passwords do not match' ]);
                 }
             } else {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Current password is incorrect',
-                ]);
+                return response()->json([ 'status' => 400, 'message' => 'Current password is incorrect' ]);
             }
         }
     }
@@ -189,33 +158,19 @@ class MemberSettingsController extends Controller
 
             $user = User::find($request->input('user_id'));
 
-            // Check if the old password matches the stored password
             if ($validated && ($request->input('current') === $user->password)) {
-                // Old password matches the stored password
                 if ($request->input('new') === $request->input('confirm')) {
-                    // New and confirmed passwords match
                     try {
                         $updatePass = DB::table('user')
                             ->where('user_id', $request->input('user_id'))
-                            ->update([
-                                'password' => Hash::make($request->input('new')),
+                            ->update(['password' => Hash::make($request->input('new'))]);
 
-                            ]);
-                        return response()->json([
-                            'status' => 200,
-                            'message' => 'Success',
-                        ]);
+                        return response()->json([ 'status' => 200, 'message' => 'Success' ]);
                     } catch (\Exception $e) {
-                        return response()->json([
-                            'status' => 500,
-                            'message' => 'Failed to reset password',
-                        ]);
+                        return response()->json([ 'status' => 500, 'message' => 'Failed to reset password' ]);
                     }
                 } else {
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'New and confirm new passwords do not match',
-                    ]);
+                    return response()->json([ 'status' => 400, 'message' => 'New and confirm new passwords do not match' ]);
                 }
             }
         }
