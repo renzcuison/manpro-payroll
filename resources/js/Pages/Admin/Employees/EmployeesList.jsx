@@ -78,8 +78,8 @@ const EmployeesList = () => {
         <Layout title={"Clients"}>
             <Box sx={{ mx: 12 }}>
 
-                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 3, alignItems: 'center' }}>
-                    <Typography variant="h5" sx={{ pt: 3 }}> Employees </Typography>
+                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employees </Typography>
 
                     <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
                         onClick={() => { 

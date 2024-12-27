@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
+use App\Models\BranchesModel;
+use App\Models\DepartmentsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,50 +13,48 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
-class ClientsController extends Controller
+class EmployeesController extends Controller
 {
     public function checkUser()
     {
-        // Log::info("ClientsController::checkUser");
+        // Log::info("EmployeesController::checkUser");
 
         if (Auth::check()) {
             $user = Auth::user();
 
-            if ($user->user_type == 'SuperAdmin') {
+            if ($user->user_type == 'Admin') {
                 return true;
             }
         }
 
         return false;
     }
-    public function getClients(Request $request)
+
+    public function saveEmployee(Request $request)
     {
-        // Log::info("ClientsController::getClients");
+        log::info("EmployeesController::saveEmployee");
 
-        if ($this->checkUser()) {
-            $clients = ClientsModel::get();
+        $validated = $request->validate([
+            'firstName' => 'required',
+            'lastName' => 'required',
+            'userName' => 'required',
+            'emailAddress' => 'required',
+            'password' => 'required',
+        ]);
 
-            return response()->json(['status' => 200, 'clients' => $clients]);
-        }
+        if ($this->checkUser() && $validated) {
 
-        return response()->json(['status' => 200, 'clients' => null]);
-    }
-    public function saveClient(Request $request)
-    {
-        // Log::info("ClientsController::saveClient");
+            log::info($request);
 
-        if ($this->checkUser()) {
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
             try {
                 DB::beginTransaction();
 
-                $client = ClientsModel::create([
-                    "name" => $request->clientName,
-                    "package" => $request->selectedPackage,
-                ]);
-        
                 $password = Hash::make($request->password);
         
-                $admin = UsersModel::create([
+                UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
                     "middle_name" => $request->middleName,
@@ -70,7 +70,7 @@ class ClientsController extends Controller
                     "user_type" => "Admin",
                     "client_id" => $client->id,
                 ]);
-
+                
                 DB::commit();
             
                 return response()->json([ 'status' => 200 ]);

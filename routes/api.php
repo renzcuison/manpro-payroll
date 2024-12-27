@@ -1,8 +1,13 @@
 <?php
 
+// New Controllers
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\EmployeesController;
 
+
+
+// Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
 use App\Http\Controllers\MailController;
@@ -24,6 +29,9 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\PreviousFilterController;
 
+
+
+// Other Controllers
 use App\Http\Controllers\Mobile\AuthMobileController;
 use App\Http\Controllers\Desktop\DesktopController;
 
@@ -78,6 +86,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
+    });
+
+    Route::prefix('employees')->group(function () {
+        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
     });
 
     // Hr employees
