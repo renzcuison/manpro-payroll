@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientsController;
+use App\Http\Controllers\SettingsController;
 
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -69,6 +70,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('clients')->group(function () {
         Route::get('/getClients', [ClientsController::class, 'getClients']);
         Route::post('/saveClient', [ClientsController::class, 'saveClient']);
+    });
+
+    Route::prefix('settings')->group(function () {
+        Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
     });
 
     // Hr employees

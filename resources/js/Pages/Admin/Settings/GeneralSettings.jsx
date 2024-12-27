@@ -7,6 +7,9 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import BranchesAdd from '../Settings/Modals/BranchesAdd';
+import DepartmentsAdd from '../Settings/Modals/DepartmentsAdd';
+
 const headCells = [
     {
         id: 'id',
@@ -34,33 +37,14 @@ const GeneralSettings = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const queryParameters = new URLSearchParams(window.location.search)
-    const [searchParams, setSearchParams] = useSearchParams()
-    const [totalAttendance, setTotalAttendance] = useState([]);
-    const [filterAttendance, setFilterAttendance] = useState([]);
-
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('calories');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [isLoading, setIsLoading] = useState(true);
     const [clients, setClients] = useState([]);
 
-    const handleRequestSort = (_event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    const handleChangePage = (_event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(event.target.value);
-        setPage(0);
-    };
+    const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
+    const [openAddDepartmentModal, setOpenAddDepartmentModal] = useState(false);
 
     useEffect(() => {
         axiosInstance.get('/clients/getClients', { headers })
@@ -73,6 +57,14 @@ const GeneralSettings = () => {
                 setIsLoading(false);
             });
     }, []);
+
+    const handleOpenDepartment = (data) => {
+        setOpenAddDepartmentModal(true);
+    }
+
+    const handleCloseDepartment = (data) => {
+        setOpenAddDepartmentModal(false);
+    }
     
     return (
         <Layout title={"Clients"}>
@@ -89,11 +81,7 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Departments </Typography>
             
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
-                                    onClick={() => { 
-                                        window.location.href = "http://127.0.0.1:8080/super-admin/clients-add"; 
-                                    }}    
-                                >
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenDepartment()} >
                                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                                 </Button>
                             </Box>
@@ -101,7 +89,6 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >    
                                 <CircularProgress />
                             </Box>
-            
                         </Box>
                     </Grid>
 
@@ -110,11 +97,7 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Branches </Typography>
             
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
-                                    onClick={() => { 
-                                        window.location.href = "http://127.0.0.1:8080/super-admin/clients-add"; 
-                                    }}    
-                                >
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenDepartment()} >
                                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                                 </Button>
                             </Box>
@@ -122,11 +105,18 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >    
                                 <CircularProgress />
                             </Box>
-            
                         </Box>
                     </Grid>
                 </Grid>
     
+                {openAddBranchModal &&
+                    <BranchesAdd open={openAddBranchModal} close={handleCloseBranch} type={2} />
+                }
+
+                {openAddDepartmentModal &&
+                    <DepartmentsAdd open={openAddDepartmentModal} close={handleCloseDepartment} type={2} />
+                }
+
             </Box>
         </Layout >
     )

@@ -30,6 +30,11 @@ class UsersModel extends Authenticatable
 
         'user_type',
         'profile_pic',
+
         'verify_code',
+        'code_expiration',
+        'is_verified',
+
+        'client_id',
     ];
 }
