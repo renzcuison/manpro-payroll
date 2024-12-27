@@ -17,5 +17,6 @@ class BranchesModel extends Model
         'name',
         'description',
         'status',
+        'client_id',
     ];
 }

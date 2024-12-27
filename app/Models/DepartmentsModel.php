@@ -17,5 +17,6 @@ class DepartmentsModel extends Model
         'name',
         'description',
         'status',
+        'client_id',
     ];
 }
