@@ -15,7 +15,8 @@ class BranchesModel extends Model
 
     protected $fillable = [
         'name',
-        'description',
+        'acronym',
+        'address',
         'status',
         'client_id',
     ];
