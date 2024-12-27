@@ -151,15 +151,15 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportEditActive = useIsActive('/report-edit');
     const isReportCreateActive = useIsActive('/report-create');
 
-    useEffect(() => {  
-        axiosInstance.get(`/getWorkshifts`, { headers })
-            .then((response) => {
-                setWorkshifts(response.data.workShifts);
-            })
-            .catch((error) => {
-                console.error('Error fetching work shifts:', error);
-            });
-    }, []);
+    // useEffect(() => {  
+        // axiosInstance.get(`/getWorkshifts`, { headers })
+            // .then((response) => {
+                // setWorkshifts(response.data.workShifts);
+            // })
+            // .catch((error) => {
+                // console.error('Error fetching work shifts:', error);
+            // });
+    // }, []);
 
     const workDays = [{
         id: 5,
