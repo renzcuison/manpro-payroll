@@ -79,11 +79,11 @@ const EmployeesList = () => {
             <Box sx={{ mx: 12 }}>
 
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 3, alignItems: 'center' }}>
-                    <Typography variant="h5" sx={{ pt: 3 }}> Clients </Typography>
+                    <Typography variant="h5" sx={{ pt: 3 }}> Employees </Typography>
 
                     <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
                         onClick={() => { 
-                            window.location.href = "http://127.0.0.1:8080/super-admin/clients-add"; 
+                            window.location.href = "http://127.0.0.1:8080/admin/employees-add"; 
                         }}    
                     >
                         <p className='m-0'><i className="fa fa-plus"></i> Add </p>

@@ -97,15 +97,10 @@ const settingsItems = [{
     icon: 'fa fa-gear',
     children: [
         {
-            href: `/personal-details?`,
-            text: 'Personal Details',
+            href: `/settings/general?`,
+            text: 'General',
             icon: 'fa fa-cogs',
         },
-        {
-            href: `/change-password?`,
-            text: 'Change Password',
-            icon: 'fa fa-cogs',
-        }
     ]
 }]
 
