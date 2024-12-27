@@ -35,7 +35,8 @@ class SettingsController extends Controller
         // Log::info("SettingsController::getDepartments");
 
         if ($this->checkUser()) {
-            $departments = DepartmentsModel::get();
+            $user = Auth::user();
+            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
 
             return response()->json(['status' => 200, 'departments' => $departments]);
         }
@@ -45,7 +46,7 @@ class SettingsController extends Controller
 
     public function saveDepartment(Request $request)
     {
-        log::info("SettingsController::saveDepartment");
+        // log::info("SettingsController::saveDepartment");
 
         $validated = $request->validate([
             'name' => 'required',
@@ -60,7 +61,7 @@ class SettingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                DepartmentsModel::create([
+                $department = DepartmentsModel::create([
                     "name" => $request->name,
                     "acronym" => $request->acronym,
                     "description" => $request->description,
@@ -70,7 +71,7 @@ class SettingsController extends Controller
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200 ]);
+                return response()->json([ 'status' => 200, 'department' => $department ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -80,5 +81,19 @@ class SettingsController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function getBranches(Request $request)
+    {
+        // Log::info("SettingsController::getBranches");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $branches = BranchesModel::where('client_id', $user->client_id)->get();
+
+            return response()->json(['status' => 200, 'branches' => $branches]);
+        }
+
+        return response()->json(['status' => 200, 'branches' => null]);
     }
 }

@@ -61,13 +61,17 @@ const GeneralSettings = () => {
             });
     }, []);
 
-    const handleOpenDepartment = (data) => {
+    const handleOpenAddDepartmentModal = (data) => {
         setOpenAddDepartmentModal(true);
     }
 
-    const handleCloseDepartment = (data) => {
+    const handleCloseAddDepartmentModal = (data) => {
         setOpenAddDepartmentModal(false);
     }
+
+    const handleUpdateDepartments = (newDepartment) => {
+        setDepartments((prevDepartments) => [...prevDepartments, newDepartment]);
+    };
     
     return (
         <Layout title={"Clients"}>
@@ -84,7 +88,7 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Departments </Typography>
             
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenDepartment()} >
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddDepartmentModal()} >
                                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                                 </Button>
                             </Box>
@@ -99,13 +103,13 @@ const GeneralSettings = () => {
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell align="cemter">Name</TableCell>
-                                                    <TableCell align="cemter">Status</TableCell>
+                                                    <TableCell align="center">Name</TableCell>
+                                                    <TableCell align="center">Status</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
                                                 {departments.map((department) => (
-                                                    <TableRow key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                    <TableRow key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                                         <TableCell align="left">{department.name} ({department.acronym})</TableCell>
                                                         <TableCell align="left">{department.status}</TableCell>
                                                     </TableRow>
@@ -124,7 +128,7 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Branches </Typography>
             
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenDepartment()} >
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddDepartmentModal()} >
                                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                                 </Button>
                             </Box>
@@ -141,7 +145,7 @@ const GeneralSettings = () => {
                 }
 
                 {openAddDepartmentModal &&
-                    <DepartmentsAdd open={openAddDepartmentModal} close={handleCloseDepartment} type={2} />
+                    <DepartmentsAdd open={openAddDepartmentModal} close={handleCloseAddDepartmentModal} onUpdateDepartments={handleUpdateDepartments} type={2} />
                 }
 
             </Box>

@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css'; // Import styles
 
-const DepartmentsAdd = ({ open, close, client }) => {
+const DepartmentsAdd = ({ open, close, onUpdateDepartments }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -24,8 +24,6 @@ const DepartmentsAdd = ({ open, close, client }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-
-        console.log("checkInput");
 
         if (!name) {
             setNameError(true);
@@ -60,6 +58,13 @@ const DepartmentsAdd = ({ open, close, client }) => {
         axiosInstance.post('/settings/saveDepartment', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
+
+                    const newDepartment = response.data.department;
+
+                    if (onUpdateDepartments) {
+                        onUpdateDepartments(newDepartment);
+                    }
+
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Department saved successfully!",
@@ -69,7 +74,7 @@ const DepartmentsAdd = ({ open, close, client }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        // navigate(`/hr/performance-evaluation-review/${response.data.formId}`);
+                        close();
                     });
                 }
             })
