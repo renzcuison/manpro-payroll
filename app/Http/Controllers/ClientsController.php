@@ -15,7 +15,7 @@ class ClientsController extends Controller
 {
     public function checkUser()
     {
-        Log::info("ClientsController::checkUser");
+        // Log::info("ClientsController::checkUser");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -29,7 +29,7 @@ class ClientsController extends Controller
     }
     public function getClients(Request $request)
     {
-        Log::info("ClientsController::getClients");
+        // Log::info("ClientsController::getClients");
 
         if ($this->checkUser()) {
             $clients = ClientsModel::get();
@@ -41,7 +41,7 @@ class ClientsController extends Controller
     }
     public function saveClient(Request $request)
     {
-        log::info("ClientsController::saveClient");
+        // log::info("ClientsController::saveClient");
 
         if ($this->checkUser()) {
             try {
