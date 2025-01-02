@@ -97,7 +97,7 @@ const settingsItems = [{
     icon: 'fa fa-gear',
     children: [
         {
-            href: `/settings/general?`,
+            href: `/admin/settings/general?`,
             text: 'General',
             icon: 'fa fa-cogs',
         },

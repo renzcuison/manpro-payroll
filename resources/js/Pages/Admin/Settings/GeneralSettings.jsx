@@ -159,6 +159,87 @@ const GeneralSettings = () => {
                         </Box>
                     </Grid>
                 </Grid>
+
+                <Grid container spacing={4} sx={{ mt: 1 }}>
+                    <Grid item xs={6}>
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                                <Typography variant="h5"> Employee Status </Typography>
+            
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddDepartmentModal()} >
+                                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                                </Button>
+                            </Box>
+
+                            {isDepartmentLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="center">Name</TableCell>
+                                                    <TableCell align="center">Status</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {departments.map((department) => (
+                                                    <TableRow key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                        <TableCell align="left">{department.name} ({department.acronym})</TableCell>
+                                                        <TableCell align="center">{department.status}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
+
+                        </Box>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                                <Typography variant="h5"> Employee Roles </Typography>
+            
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddBranchModal()} >
+                                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                                </Button>
+                            </Box>
+                            
+                            {isBranchesLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="center">Name</TableCell>
+                                                    <TableCell align="center">Status</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {branches.map((branch) => (
+                                                    <TableRow key={branch.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                        <TableCell align="left">{branch.name} ({branch.acronym})</TableCell>
+                                                        <TableCell align="center">{branch.status}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
+                        </Box>
+                    </Grid>
+                </Grid>
     
                 {openAddBranchModal &&
                     <BranchesAdd open={openAddBranchModal} close={handleCloseAddBranchModal} onUpdateBranches={handleUpdateBranches} type={2} />
