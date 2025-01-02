@@ -24,6 +24,7 @@ const EmployeesAdd = () => {
     const [userNameError, setUserNameError] = useState(false);
     const [emailAddressError, setEmailAddressError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+    const [birthdateError, setBirthdateError] = useState(false);
     const [confirmError, setConfirmError] = useState(false);
 
     const [firstName, setFirstName] = useState('');
@@ -34,11 +35,9 @@ const EmployeesAdd = () => {
     const [emailAddress, setEmailAddress] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [address, setAddress] = useState('');
+    const [birthdate, setBirthdate] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
-
-    // const [birthdate, setBirthdate] = React.useState<Dayjs | null>(dayjs('2022-04-17'));
-    const [birthdate, setBirthdate] = ('');
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -69,6 +68,12 @@ const EmployeesAdd = () => {
             setEmailAddressError(false);
         }
 
+        if (!birthdate) {
+            setBirthdateError(true);
+        } else {
+            setBirthdateError(false);
+        }
+
         if (!password) {
             setPasswordError(true);
         } else {
@@ -81,7 +86,7 @@ const EmployeesAdd = () => {
             setConfirmError(false);
         }
 
-        if ( !firstName || !lastName || !userName || !emailAddress || !password || !confirm) {
+        if ( !firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -129,6 +134,7 @@ const EmployeesAdd = () => {
             suffix: suffix,
             userName: userName,
             emailAddress: emailAddress,
+            birthdate: birthdate,
             phoneNumber: phoneNumber,
             address: address,
             password: password,
@@ -162,7 +168,6 @@ const EmployeesAdd = () => {
                     <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
                         <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }} > Add Employee </Typography>
-                        {/* <Typography sx={{ mt: 3, ml: 1 }}> Basic Information </Typography> */}
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
@@ -290,8 +295,10 @@ const EmployeesAdd = () => {
                                         id="birthdate"
                                         label="Birth Date"
                                         variant="outlined"
-                                        value={birthdate}
                                         onChange={(newValue) => setBirthdate(newValue)}
+                                        slotProps={{
+                                            textField: { required: true, error: birthdateError }
+                                        }}
                                     />
                                 </LocalizationProvider>
                             </FormControl>

@@ -33,6 +33,10 @@ class EmployeesController extends Controller
     public function saveEmployee(Request $request)
     {
         log::info("EmployeesController::saveEmployee");
+        log::info($request);
+        
+        log::info("Stopper");
+        dd("Stopper");
 
         $validated = $request->validate([
             'firstName' => 'required',
