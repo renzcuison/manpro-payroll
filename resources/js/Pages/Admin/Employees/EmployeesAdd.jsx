@@ -152,7 +152,7 @@ const EmployeesAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/hr/performance-evaluation-review/${response.data.formId}`);
+                        navigate(`/admin/employees`);
                     });
                 }
             })
@@ -226,6 +226,7 @@ const EmployeesAdd = () => {
                             </FormControl>
                            
                         </FormGroup>
+
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},

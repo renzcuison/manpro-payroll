@@ -35,14 +35,15 @@ class EmployeesController extends Controller
         log::info("EmployeesController::saveEmployee");
         log::info($request);
         
-        log::info("Stopper");
-        dd("Stopper");
+        // log::info("Stopper");
+        // dd("Stopper");
 
         $validated = $request->validate([
             'firstName' => 'required',
             'lastName' => 'required',
             'userName' => 'required',
             'emailAddress' => 'required',
+            'birthdate' => 'required',
             'password' => 'required',
         ]);
 
@@ -64,14 +65,14 @@ class EmployeesController extends Controller
                     "middle_name" => $request->middleName,
                     "last_name" => $request->lastName,
                     "suffix" => $request->suffix,
-                    // "birth_date" => $request->selectedPackage,
+                    "birth_date" => $request->birthdate,
         
                     "address" => $request->address,
                     "contact_number" => $request->phoneNumber,
                     "email" => $request->emailAddress,
                     "password" => $password,
         
-                    "user_type" => "Admin",
+                    "user_type" => "Employee",
                     "client_id" => $client->id,
                 ]);
                 
