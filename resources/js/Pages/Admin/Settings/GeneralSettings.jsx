@@ -67,8 +67,10 @@ const GeneralSettings = () => {
 
     const handleUpdateRoles = (newRole) => {
         console.log('Updating roles');
-        setBranches((prevRoles) => [...prevRoles, newRole]);
+        console.log(roles);
+        setRoles((prevRoles) => [...prevRoles, newRole]);
         console.log('Updated roles');
+        console.log(newRole);
     };
 
     // Branch Functions

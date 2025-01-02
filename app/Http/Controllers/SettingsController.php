@@ -47,8 +47,7 @@ class SettingsController extends Controller
 
     public function saveRole(Request $request)
     {
-        log::info("SettingsController::saveRole");
-        log::info($request);
+        // log::info("SettingsController::saveRole");
 
         $validated = $request->validate([
             'name' => 'required',
@@ -63,7 +62,7 @@ class SettingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $branch = EmployeeRolesModel::create([
+                $role = EmployeeRolesModel::create([
                     "name" => $request->name,
                     "acronym" => $request->acronym,
                     "status" => "Active",
@@ -72,7 +71,7 @@ class SettingsController extends Controller
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200, 'branch' => $branch ]);
+                return response()->json([ 'status' => 200, 'role' => $role ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

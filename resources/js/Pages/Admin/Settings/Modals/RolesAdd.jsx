@@ -61,10 +61,10 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
 
                 if (response.data.status === 200) {
 
-                    const newRoles = response.data.roles;
+                    const newRole = response.data.role;
 
                     if (onUpdateRoles) {
-                        onUpdateRoles(newRoles);
+                        onUpdateRoles(newRole);
                     }
 
                     Swal.fire({
