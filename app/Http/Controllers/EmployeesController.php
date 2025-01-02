@@ -30,6 +30,22 @@ class EmployeesController extends Controller
         return false;
     }
 
+    public function getEmployees(Request $request)
+    {
+        log::info("EmployeesController::getEmployees");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
+
+            return response()->json(['status' => 200, 'employees' => $employees]);
+        }    
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
+
     public function saveEmployee(Request $request)
     {
         log::info("EmployeesController::saveEmployee");

@@ -18,4 +18,9 @@ class ClientsModel extends Model
         'package',
         'status',
     ];
+
+    public function employees()
+    {
+        return $this->hasMany(UsersModel::class, 'client_id')->where('user_type', 'Employee');
+    }
 }

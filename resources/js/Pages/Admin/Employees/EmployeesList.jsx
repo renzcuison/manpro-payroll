@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -7,65 +7,17 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-const headCells = [
-    {
-        id: 'id',
-        label: 'ID',
-        sortable: true,
-    },
-    {
-        id: 'name',
-        label: 'Name',
-        sortable: true,
-    },
-    {
-        id: 'package',
-        label: 'Package',
-        sortable: true,
-    },
-    {
-        id: 'status',
-        label: 'Status',
-        sortable: true,
-    },
-];
-
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const queryParameters = new URLSearchParams(window.location.search)
-    const [searchParams, setSearchParams] = useSearchParams()
-    const [totalAttendance, setTotalAttendance] = useState([]);
-    const [filterAttendance, setFilterAttendance] = useState([]);
-
-    const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState('calories');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
     const [isLoading, setIsLoading] = useState(true);
-    const [clients, setClients] = useState([]);
-
-    const handleRequestSort = (_event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    const handleChangePage = (_event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(event.target.value);
-        setPage(0);
-    };
+    const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get('/clients/getClients', { headers })
+        axiosInstance.get('/employees/getEmployees', { headers })
             .then((response) => {
-                setClients(response.data.clients);
+                setEmployees(response.data.employees);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -97,7 +49,32 @@ const EmployeesList = () => {
                         </Box>
                     ) : (
                         <>
-
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <Table aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="center">Name</TableCell>
+                                            <TableCell align="center">Username</TableCell>
+                                            <TableCell align="center">Role</TableCell>
+                                            <TableCell align="center">Status</TableCell>
+                                            <TableCell align="center">Department</TableCell>
+                                            <TableCell align="center">Branch</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {employees.map((employee) => (
+                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                <TableCell align="left">{employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</TableCell>
+                                                <TableCell align="center">{employee.user_name}</TableCell>
+                                                <TableCell align="center">{employee.branch_id ? '-' : employee.branch_id }</TableCell>
+                                                <TableCell align="center">{employee.department_id ? '-' : employee.department_id }</TableCell>
+                                                <TableCell align="center">{employee.role_id ? '-' : employee.role_id }</TableCell>
+                                                <TableCell align="center">{employee.status_id ? '-' : employee.status_id }</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </>
                     )}
                 </Box>
