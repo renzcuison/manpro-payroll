@@ -6,6 +6,7 @@ use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BranchesModel;
 use App\Models\DepartmentsModel;
+use App\Models\EmployeeRolesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,23 +31,24 @@ class SettingsController extends Controller
         return false;
     }
 
-    public function getDepartments(Request $request)
+    public function getRoles(Request $request)
     {
-        // Log::info("SettingsController::getDepartments");
+        // Log::info("SettingsController::getRoles");
 
         if ($this->checkUser()) {
             $user = Auth::user();
-            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
+            $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
 
-            return response()->json(['status' => 200, 'departments' => $departments]);
+            return response()->json(['status' => 200, 'roles' => $roles]);
         }
 
-        return response()->json(['status' => 200, 'departments' => null]);
+        return response()->json(['status' => 200, 'roles' => null]);
     }
 
-    public function saveDepartment(Request $request)
+    public function saveRole(Request $request)
     {
-        // log::info("SettingsController::saveDepartment");
+        log::info("SettingsController::saveRole");
+        log::info($request);
 
         $validated = $request->validate([
             'name' => 'required',
@@ -61,17 +63,16 @@ class SettingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $department = DepartmentsModel::create([
+                $branch = EmployeeRolesModel::create([
                     "name" => $request->name,
                     "acronym" => $request->acronym,
-                    "description" => $request->description,
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200, 'department' => $department ]);
+                return response()->json([ 'status' => 200, 'branch' => $branch ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -125,6 +126,59 @@ class SettingsController extends Controller
                 DB::commit();
             
                 return response()->json([ 'status' => 200, 'branch' => $branch ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function getDepartments(Request $request)
+    {
+        // Log::info("SettingsController::getDepartments");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
+
+            return response()->json(['status' => 200, 'departments' => $departments]);
+        }
+
+        return response()->json(['status' => 200, 'departments' => null]);
+    }
+
+    public function saveDepartment(Request $request)
+    {
+        // log::info("SettingsController::saveDepartment");
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $department = DepartmentsModel::create([
+                    "name" => $request->name,
+                    "acronym" => $request->acronym,
+                    "description" => $request->description,
+                    "status" => "Active",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'department' => $department ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

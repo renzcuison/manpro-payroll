@@ -10,18 +10,16 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const RolesAdd = ({ open, close, onUpdateBranches }) => {
+const RolesAdd = ({ open, close, onUpdateRoles }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
-    const [addressError, setAddressError] = useState(false);
     
     const [name, setName] = useState('');
     const [acronym, setAcronym] = useState('');
-    const [address, setAddress] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -38,13 +36,7 @@ const RolesAdd = ({ open, close, onUpdateBranches }) => {
             setAcronymError(false);
         }
 
-        if (!address) {
-            setAddressError(true);
-        } else {
-            setAddressError(false);
-        }
-
-        if (!name || !acronym || !address) {
+        if (!name || !acronym) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -60,21 +52,24 @@ const RolesAdd = ({ open, close, onUpdateBranches }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = { name: name, acronym: acronym, address: address };
+        const data = { name: name, acronym: acronym };
 
-        axiosInstance.post('/settings/saveBranch', data, { headers })
+        axiosInstance.post('/settings/saveRole', data, { headers })
             .then(response => {
+                
+                console.log(response.data);
+
                 if (response.data.status === 200) {
 
-                    const newBranch = response.data.branch;
+                    const newRoles = response.data.roles;
 
-                    if (onUpdateBranches) {
-                        onUpdateBranches(newBranch);
+                    if (onUpdateRoles) {
+                        onUpdateRoles(newRoles);
                     }
 
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Branch saved successfully!",
+                        text: "Roles saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
@@ -95,7 +90,7 @@ const RolesAdd = ({ open, close, onUpdateBranches }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Branch </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Role </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -135,28 +130,9 @@ const RolesAdd = ({ open, close, onUpdateBranches }) => {
                             </FormControl>
                         </FormGroup>
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="address"
-                                    label="Address"
-                                    variant="outlined"
-                                    value={address}
-                                    error={addressError}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Role </p>
                             </Button>
                         </Box>
                         

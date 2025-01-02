@@ -81,11 +81,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('settings')->group(function () {
-        Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
-        Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
+        Route::get('/getRoles', [SettingsController::class, 'getRoles']);
+        Route::post('/saveRole', [SettingsController::class, 'saveRole']);
 
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
+
+        Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
     });
 
     Route::prefix('employees')->group(function () {
