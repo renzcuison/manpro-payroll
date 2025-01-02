@@ -8,6 +8,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import RolesAdd from '../Settings/Modals/RolesAdd';
+import StatusAdd from '../Settings/Modals/StatusAdd';
 import BranchesAdd from '../Settings/Modals/BranchesAdd';
 import DepartmentsAdd from '../Settings/Modals/DepartmentsAdd';
 
@@ -16,14 +17,17 @@ const GeneralSettings = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isRolesLoading, setIsRolesLoading] = useState(true);
+    const [isStatusLoading, setIsStatusLoading] = useState(true);
     const [isBranchesLoading, setIsBranchesLoading] = useState(true);
     const [isDepartmentLoading, setIsDepartmentLoading] = useState(true);
 
     const [roles, setRoles] = useState([]);
+    const [status, setStatus] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
 
     const [openAddRolesModal, setOpenAddRolesModal] = useState(false);
+    const [openAddStatusModal, setOpenAddStatusModal] = useState(false);
     const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
     const [openAddDepartmentModal, setOpenAddDepartmentModal] = useState(false);
 
@@ -35,6 +39,15 @@ const GeneralSettings = () => {
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
+            });
+
+        axiosInstance.get('/settings/getStatus', { headers })
+            .then((response) => {
+                setStatus(response.data.stats);
+                setIsStatusLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching status:', error);
             });
 
         axiosInstance.get('/settings/getBranches', { headers })
@@ -66,11 +79,22 @@ const GeneralSettings = () => {
     }
 
     const handleUpdateRoles = (newRole) => {
-        console.log('Updating roles');
-        console.log(roles);
         setRoles((prevRoles) => [...prevRoles, newRole]);
-        console.log('Updated roles');
-        console.log(newRole);
+    };
+
+    // Status Functions
+    const handleOpenAddStatusModal = () => {
+        setOpenAddStatusModal(true);
+    }
+
+    const handleCloseAddStatusModal = () => {
+        setOpenAddStatusModal(false);
+    }
+
+    const handleUpdateStatus = (newStatus) => {
+        console.log("New Status");
+        console.log(newStatus);
+        setStatus((prevStatus) => [...prevStatus, newStatus]);
     };
 
     // Branch Functions
@@ -83,9 +107,7 @@ const GeneralSettings = () => {
     }
 
     const handleUpdateBranches = (newBranch) => {
-        console.log('Updating branches');
         setBranches((prevBranches) => [...prevBranches, newBranch]);
-        console.log('Updated branches');
     };
 
     // Department Functions
@@ -196,12 +218,12 @@ const GeneralSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Employee Status </Typography>
             
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddDepartmentModal()} >
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddStatusModal()} >
                                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                                 </Button>
                             </Box>
 
-                            {isDepartmentLoading ? (
+                            {isStatusLoading ? (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
                                     <CircularProgress />
                                 </Box>
@@ -216,10 +238,10 @@ const GeneralSettings = () => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {departments.map((department) => (
-                                                    <TableRow key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                        <TableCell align="left">{department.name} ({department.acronym})</TableCell>
-                                                        <TableCell align="center">{department.status}</TableCell>
+                                                {status.map((stat) => (
+                                                    <TableRow key={stat.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                        <TableCell align="left">{stat.name}</TableCell>
+                                                        <TableCell align="center">{stat.status}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -273,6 +295,10 @@ const GeneralSettings = () => {
 
                 {openAddRolesModal &&
                     <RolesAdd open={openAddRolesModal} close={handleCloseAddRoleModal} onUpdateRoles={handleUpdateRoles} type={2} />
+                }
+
+                {openAddStatusModal &&
+                    <StatusAdd open={openAddStatusModal} close={handleCloseAddStatusModal} onUpdateStatus={handleUpdateStatus} type={2} />
                 }
     
                 {openAddBranchModal &&

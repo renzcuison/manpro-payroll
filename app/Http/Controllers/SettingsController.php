@@ -7,6 +7,7 @@ use App\Models\ClientsModel;
 use App\Models\BranchesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
+use App\Models\EmployeeStatusModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +73,54 @@ class SettingsController extends Controller
                 DB::commit();
             
                 return response()->json([ 'status' => 200, 'role' => $role ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function getStatus(Request $request)
+    {
+        // Log::info("SettingsController::getStatus");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $stats = EmployeeStatusModel::where('client_id', $user->client_id)->get();
+
+            return response()->json(['status' => 200, 'stats' => $stats]);
+        }
+
+        return response()->json(['status' => 200, 'stats' => null]);
+    }
+
+    public function saveStatus(Request $request)
+    {
+        // log::info("SettingsController::saveStatus");
+
+        $validated = $request->validate([ 'name' => 'required' ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $stat = EmployeeStatusModel::create([
+                    "name" => $request->name,
+                    "status" => "Active",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'stat' => $stat ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

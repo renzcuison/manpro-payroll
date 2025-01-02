@@ -10,16 +10,13 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const RolesAdd = ({ open, close, onUpdateRoles }) => {
+const StatusAdd = ({ open, close, onUpdateStatus }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [nameError, setNameError] = useState(false);
-    const [acronymError, setAcronymError] = useState(false);
-    
     const [name, setName] = useState('');
-    const [acronym, setAcronym] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -30,13 +27,7 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
             setNameError(false);
         }
 
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
-
-        if (!name || !acronym) {
+        if (!name) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -52,24 +43,24 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = { name: name, acronym: acronym };
+        const data = { name: name };
 
-        axiosInstance.post('/settings/saveRole', data, { headers })
+        axiosInstance.post('/settings/saveStatus', data, { headers })
             .then(response => {
                 
                 console.log(response.data);
 
                 if (response.data.status === 200) {
 
-                    const newRole = response.data.role;
+                    const newStatus = response.data.status;
 
-                    if (onUpdateRoles) {
-                        onUpdateRoles(newRole);
+                    if (onUpdateStatus) {
+                        onUpdateStatus(newStatus);
                     }
 
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Role saved successfully!",
+                        text: "Status saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
@@ -90,7 +81,7 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Role </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Status </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -101,7 +92,7 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -114,25 +105,11 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
                                     onChange={(e) => setName(e.target.value)}
                                 />
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="acronym"
-                                    label="Acronym"
-                                    variant="outlined"
-                                    value={acronym}
-                                    error={acronymError}
-                                    onChange={(e) => setAcronym(e.target.value)}
-                                />
-                            </FormControl>
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Role </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Status </p>
                             </Button>
                         </Box>
                         
@@ -143,4 +120,4 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
     )
 }
 
-export default RolesAdd;
+export default StatusAdd;
