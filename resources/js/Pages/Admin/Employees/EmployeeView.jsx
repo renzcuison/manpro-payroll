@@ -46,38 +46,38 @@ const EmployeeView = () => {
                     <Grid item xs={8}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             
-                            <Grid container spacing={4}>
-                                <Grid item xs={3}>
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
                                     <Typography> Full Name </Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={8}>
                                     <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
                                 </Grid>
                             </Grid>
 
-                            <Grid container spacing={4}>
-                                <Grid item xs={3}>
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
                                     <Typography> Email Address </Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={8}>
                                     <Typography variant="h6"> {employee.email}</Typography>
                                 </Grid>
                             </Grid>
 
-                            <Grid container spacing={4}>
-                                <Grid item xs={3}>
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
                                     <Typography> Contact Number </Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={8}>
                                     <Typography variant="h6"> {employee.contact_number}</Typography>
                                 </Grid>
                             </Grid>
 
-                            <Grid container spacing={4}>
-                                <Grid item xs={3}>
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
                                     <Typography> Address </Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={8}>
                                     <Typography variant="h6"> {employee.address}</Typography>
                                 </Grid>
                             </Grid>

@@ -218,9 +218,9 @@ export default function SignInCard() {
                             if (response.user.user_type === 'SuperAdmin') {
                                 navigate('/dashboard');
                             } else if (response.user.user_type === 'Admin') {
-                                navigate('/hr/dashboard');
-                            } else if (response.user.user_type === 'Member') {
-                                navigate('/member/dashboard');
+                                navigate('/dashboard');
+                            } else if (response.user.user_type === 'Employee') {
+                                navigate('/dashboard');
                             }
                         }, 1000);
                     }).catch(error => {

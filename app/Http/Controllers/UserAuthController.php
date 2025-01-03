@@ -38,8 +38,8 @@ class UserAuthController extends Controller
 
         log::info($user);
 
-        $user->password = Hash::make('Admin@123');
-        $user->save();
+        // $user->password = Hash::make('Admin@123');
+        // $user->save();
 
         if ($user && Hash::check($request->input('pass'), $user->password)) {
             log::info("Valid User");
