@@ -223,19 +223,24 @@ const Sidebar = ({ children, closeMini }) => {
                     </div>
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
-                            {user_type === 'Admin' ? <>
+                            {user.user_type === 'Admin' ? <>
+                            
                                 <li className="nav-main-heading">
                                     <span className="sidebar-mini-hidden" style={{ color: '#3d3d3f' }}>ADMIN</span>
                                 </li>
+
                                 <StyledNav to={`/hr/dashboard?year=${moment().year()}`} >
                                     <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
                                 </StyledNav>
+
                                 <li className="nav-main-heading">
                                     <span className="sidebar-mini-hidden text-dark">Management</span>
                                 </li>
+
                                 {sidebarItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
                                 {workDays.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
@@ -247,6 +252,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 {payrollItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
                                 <StyledNav to={`/hr/summary-reports?month=${moment().format('MM')}&year=${moment().year()}`} >
                                     <i className="fa fa-file" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Summary Reports</span>
                                 </StyledNav>
@@ -262,50 +268,12 @@ const Sidebar = ({ children, closeMini }) => {
                                 <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav>
-                            </> : <>
-                                <li className="nav-main-heading">
-                                    <span className="sidebar-mini-hidden" style={{ color: '#3d3d3f' }}>SUPER ADMIN</span>
-                                </li>
-                                <StyledNav to={`/hr/dashboard?year=${moment().year()}`} >
-                                    <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Dashboard</span>
-                                </StyledNav>
-                                <li className="nav-main-heading">
-                                    <span className="sidebar-mini-hidden text-dark">Management</span>
-                                </li>
-                                <StyledNav to={`/super/employees`} >
-                                    <i className="si si-users" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Administrators</span>
-                                </StyledNav>
-                                <StyledNav to={`/super/applications`} >
-                                    <i className="fa fa-pencil-square-o" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Applications</span>
-                                </StyledNav>
-                                <StyledNav to={`/super/attendance`} >
-                                    <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }} ></i><span id="navName" className="sidebar-mini-hide">Attendance</span>
-                                </StyledNav>
-                                <StyledNav to={`/super/payroll-process`} >
-                                    <i className="fa fa-money" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Payroll</span>
-                                </StyledNav>
-                                <StyledNav to={`/hr/summary-reports?month=${moment().format('MM')}&year=${moment().year()}`} >
-                                    <i className="fa fa-file" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Reports</span>
-                                </StyledNav>
-                                <StyledNav to={`/hr/announcements`} >
-                                    <i className="fa fa-file-text-o" style={{ color: '#2a800f' }} ></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
-                                </StyledNav>
-                                <StyledNav to={`/hr/trainings`} >
-                                    <i><Iconify icon="healthicons:i-training-class-outline" style={{ color: '#2a800f' }} /></i> <span id="navName" className="sidebar-mini-hide">Trainings</span>
-                                </StyledNav>
-                                <StyledNav to={`/hr/performance-evaluation`} >
-                                    <i className="fa fa-check" style={{ color: '#2a800f' }} ></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
-                                </StyledNav>
-                                <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive || isReportEditActive ? 'active' : ''}>
-                                    <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
-                                </StyledNav>
-                                <StyledNav to={`/super/reset-password`} >
-                                    <i className="fa fa-key" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Reset Password</span>
-                                </StyledNav>
-                            </>}
-                            {settingsItems.map((items, index) => {
-                                return <SideItem key={index} items={items} />
-                            })}
+
+                                {settingsItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                            </> : <> </>}
                         </ul>
                     </div>
                 </div>
