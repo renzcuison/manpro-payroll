@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, FormGroup, FormControl } from '@mui/material'
+import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import PropTypes from 'prop-types';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -26,6 +27,29 @@ const EmployeeView = () => {
             });
     }, []);
     
+    const [activeTab, setActiveTab] = useState('1');
+
+    const handleTabChange = (event, newActiveTab) => {
+      setActiveTab(newActiveTab);
+    };
+
+    const renderEmploymentContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Employment Information will be displayed here</Typography>
+        </Box>
+    );
+    
+    const renderAttendanceContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Attendance Information will be displayed here</Typography>
+        </Box>
+    );
+
+    const renderPayrollContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Payroll Information will be displayed here</Typography>
+        </Box>
+    );
     
     return (
         <Layout title={"Clients"}>
@@ -90,10 +114,16 @@ const EmployeeView = () => {
 
                 <Grid container spacing={4} sx={{ mt: 2 }}>
                     <Grid item xs={12}>
+                        {/* Put Tabs in Here */}
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                                <Typography variant="h5"> Departments </Typography>
-                            </Box>
+                            <Tabs value={activeTab} onChange={handleTabChange}>
+                                <Tab label="Employment" value="1"/>
+                                <Tab label="Attendance" value="2"/>
+                                <Tab label="Payroll" value="3"/>
+                            </Tabs>
+                            {activeTab === '1' && renderEmploymentContent()}
+                            {activeTab === '2' && renderAttendanceContent()}
+                            {activeTab === '3' && renderPayrollContent()}
                         </Box>
                     </Grid>
                 </Grid>
