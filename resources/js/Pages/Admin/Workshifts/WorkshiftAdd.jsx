@@ -22,8 +22,9 @@ const WorkshiftAdd = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [shiftNameError, setShiftNameError] = useState(false);
-    const [shiftTypeError, setShiftTypeError] = useState(false);
     const [firstLabelError, setFirstLabelError] = useState(false);
+    const [regularTimeInError, setRegularTimeInError] = useState(false);
+    const [regularTimeOutError, setRegularTimeOutError] = useState(false);
 
     const [shiftName, setShiftName] = useState('');
     const [shiftType, setShiftType] = useState('');
@@ -41,6 +42,12 @@ const WorkshiftAdd = () => {
     const checkInput = (event) => {
         event.preventDefault();
 
+        if (!shiftName) {
+            setShiftNameError(true);
+        } else {
+            setShiftNameError(false);
+        }
+
         if ( shiftType == 'regular' ) {
             checkInputRegular(event);
         }
@@ -53,19 +60,25 @@ const WorkshiftAdd = () => {
     const checkInputRegular = (event) => {
         event.preventDefault();
 
-        if (!shiftName) {
-            setShiftNameError(true);
+        if (!firstLabel) {
+            setFirstLabelError(true);
         } else {
-            setShiftNameError(false);
+            setFirstLabelError(false);
         }
 
-        if (!shiftType) {
-            setShiftTypeError(true);
+        if (!regularTimeIn) {
+            setRegularTimeInError(true);
         } else {
-            setShiftTypeError(false);
+            setRegularTimeInError(false);
         }
 
-        if ( !shiftName || !shiftType ) {
+        if (!regularTimeOut) {
+            setRegularTimeOutError(true);
+        } else {
+            setRegularTimeOutError(false);
+        }
+
+        if ( !shiftName || !firstLabel ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -167,7 +180,6 @@ const WorkshiftAdd = () => {
                                     id="shiftType"
                                     label="Shift Type"
                                     value={shiftType}
-                                    error={shiftTypeError}
                                     onChange={(event) => setShiftType(event.target.value)}
                                 >
                                     <MenuItem key="regular" value="regular"> Regular Hours </MenuItem>
@@ -211,6 +223,10 @@ const WorkshiftAdd = () => {
                                                 <TimePicker
                                                     required
                                                     label="Time In"
+                                                    value={regularTimeIn}
+                                                    error={regularTimeInError}
+                                                    onChange={(e) => setRegularTimeIn(e.target.value)}
+                                                    renderInput={(params) => <TextField {...params} />}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -226,6 +242,10 @@ const WorkshiftAdd = () => {
                                                 <TimePicker
                                                     required
                                                     label="Time Out"
+                                                    value={regularTimeOut}
+                                                    error={regularTimeOutError}
+                                                    onChange={(e) => setRegularTimeOut(e.target.value)}
+                                                    renderInput={(params) => <TextField {...params} />}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
