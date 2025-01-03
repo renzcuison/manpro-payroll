@@ -35,7 +35,54 @@ const EmployeeView = () => {
 
     const renderEmploymentContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Employment Information will be displayed here</Typography>
+            <Box sx={{ px: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Department </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> Role </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Branch </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> Status </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Start Date </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> End Date </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+            </Box>
         </Box>
     );
     

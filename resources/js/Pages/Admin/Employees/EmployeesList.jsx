@@ -10,6 +10,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
@@ -25,6 +26,10 @@ const EmployeesList = () => {
                 setIsLoading(false);
             });
     }, []);
+
+    const handleRowClick = (employee) => {
+        navigate(`/admin/employee/${employee.user_name}`);
+    };
     
     return (
         <Layout title={"Clients"}>
@@ -63,7 +68,7 @@ const EmployeesList = () => {
                                     </TableHead>
                                     <TableBody>
                                         {employees.map((employee) => (
-                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}>
+                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleRowClick(employee)}>
                                                 <TableCell align="left">{employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</TableCell>
                                                 <TableCell align="center">{employee.user_name}</TableCell>
                                                 <TableCell align="center">{employee.branch_id ? '-' : employee.branch_id }</TableCell>

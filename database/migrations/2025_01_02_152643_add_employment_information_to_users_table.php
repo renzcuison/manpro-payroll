@@ -20,7 +20,7 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->enum('gender', ['Male', 'Female'])->nullable()->after('birth_date');
 
             $table->date('date_start')->nullable()->after('is_verified');
-            $table->date('date_end')->nullable()->after('is_verified');
+            $table->date('date_end')->nullable()->after('date_start');
 
             $table->unsignedBigInteger('branch_id')->nullable()->after('client_id');
             $table->unsignedBigInteger('department_id')->nullable()->after('branch_id');
