@@ -63,7 +63,7 @@ const EmployeesList = () => {
                                     </TableHead>
                                     <TableBody>
                                         {employees.map((employee) => (
-                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}>
                                                 <TableCell align="left">{employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</TableCell>
                                                 <TableCell align="center">{employee.user_name}</TableCell>
                                                 <TableCell align="center">{employee.branch_id ? '-' : employee.branch_id }</TableCell>

@@ -32,7 +32,7 @@ class EmployeesController extends Controller
 
     public function getEmployees(Request $request)
     {
-        log::info("EmployeesController::getEmployees");
+        // log::info("EmployeesController::getEmployees");
 
         if ($this->checkUser()) {
 
@@ -48,11 +48,7 @@ class EmployeesController extends Controller
 
     public function saveEmployee(Request $request)
     {
-        log::info("EmployeesController::saveEmployee");
-        log::info($request);
-        
-        // log::info("Stopper");
-        // dd("Stopper");
+        // log::info("EmployeesController::saveEmployee");
 
         $validated = $request->validate([
             'firstName' => 'required',
@@ -104,5 +100,20 @@ class EmployeesController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function getEmployeeDetails(Request $request)
+    {
+        // log::info("EmployeesController::getEmployeeDetails");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();            
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+
+            return response()->json(['status' => 200, 'employee' => $employee]);
+        }    
+
+        return response()->json(['status' => 200, 'employee' => null]);
     }
 }

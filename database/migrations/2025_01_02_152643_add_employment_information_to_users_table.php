@@ -17,6 +17,11 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->enum('salary_type', ['Hourly', 'Daily', 'Weekly', 'Bi-Monthly', 'Monthly'])->default('Monthly')->nullable()->after('user_type');
             $table->decimal('salary', 10, 2)->default(0.00)->after('salary_type');
 
+            $table->enum('gender', ['Male', 'Female'])->nullable()->after('birth_date');
+
+            $table->date('date_start')->nullable()->after('is_verified');
+            $table->date('date_end')->nullable()->after('is_verified');
+
             $table->unsignedBigInteger('branch_id')->nullable()->after('client_id');
             $table->unsignedBigInteger('department_id')->nullable()->after('branch_id');
             $table->unsignedBigInteger('role_id')->nullable()->after('department_id');
@@ -41,6 +46,11 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->dropForeign(['department_id']);
             $table->dropForeign(['role_id']);
             $table->dropForeign(['status_id']);
+
+            $table->dropColumn('gender');
+
+            $table->dropColumn('date_start');
+            $table->dropColumn('date_end');
 
             $table->dropColumn('salary_type');
             $table->dropColumn('salary');

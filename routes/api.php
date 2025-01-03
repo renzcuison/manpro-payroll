@@ -97,6 +97,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('employees')->group(function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+
+        Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
     });
 
     // Hr employees
