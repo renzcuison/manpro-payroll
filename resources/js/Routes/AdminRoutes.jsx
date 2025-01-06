@@ -8,6 +8,9 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 import EmployeesView from "../Pages/Admin/Employees/EmployeeView";
 
+import WorkHoursAdd from "../Pages/Admin/WorkHours/WorkHoursAdd";
+import WorkHoursList from "../Pages/Admin/WorkHours/WorkHoursList";
+
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
 const AdminRoutes = ({ user }) => {
@@ -27,6 +30,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
+
+            <Route path="workhours" element={<ProtectedRoute element={<WorkHoursList />} user={user} />} />
+            <Route path="workhours-add" element={<ProtectedRoute element={<WorkHoursAdd />} user={user} />} />
 
 
 

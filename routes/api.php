@@ -101,6 +101,22 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
     });
 
+    Route::prefix('workhours')->group(function () {
+        // Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
+        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+
+        // Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+    });
+
+
+
+
+
+
+
+
+
+
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
     Route::get('/additional_benefits_brackets', [HrEmployeesController::class, 'getAdditionalBenefitsBrackets']);

@@ -151,6 +151,9 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportEditActive = useIsActive('/report-edit');
     const isReportCreateActive = useIsActive('/report-create');
 
+    const isWorkHoursActive = useIsActive('/admin/workhours');
+    const isWorkHoursAddActive = useIsActive('/admin/workhours-add');
+
     // useEffect(() => {  
         // axiosInstance.get(`/getWorkshifts`, { headers })
             // .then((response) => {
@@ -166,11 +169,8 @@ const Sidebar = ({ children, closeMini }) => {
         text: 'Work Schedule',
         icon: 'fa fa-calendar',
         children: [
-            {
-                href: `/hr/workdays`,
-                text: 'Workdays',
-                icon: 'fa fa-cogs',
-            },
+            { href: `/hr/workdays`, text: 'Workdays' },
+            { href: `/admin/workhours`, text: 'Work Hours' },
             {
                 text: 'Work Shifts',
                 children: workshifts.map(shift => ({
