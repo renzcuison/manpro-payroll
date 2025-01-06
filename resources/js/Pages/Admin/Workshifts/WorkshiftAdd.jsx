@@ -31,13 +31,21 @@ const WorkshiftAdd = () => {
     const [firstLabel, setFirstLabel] = useState('');
     const [secondLabel, setSecondLabel] = useState('');
 
-    const [regularTimeIn, setRegularTimeIn] = useState('');
-    const [regularTimeOut, setRegularTimeOut] = useState('');
+    const [regularTimeIn, setRegularTimeIn] = useState(null);
+    const [regularTimeOut, setRegularTimeOut] = useState(null);
 
-    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState('');
-    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState('');
-    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState('');
-    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState('');
+    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
+    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
+    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
+    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
+
+    const handleRegularTimeInChange = (newValue) => {
+        setRegularTimeIn(newValue);
+    };
+
+    const handleRegularTimeOutChange = (newValue) => {
+        setRegularTimeOut(newValue);
+    };
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -66,19 +74,23 @@ const WorkshiftAdd = () => {
             setFirstLabelError(false);
         }
 
-        if (!regularTimeIn) {
+        if (regularTimeIn === null) {
+            console.log("Regular Time In is null");
             setRegularTimeInError(true);
         } else {
+            console.log("Regular Time In is valid");
             setRegularTimeInError(false);
         }
-
-        if (!regularTimeOut) {
+    
+        if (regularTimeOut === null) {
+            console.log("Regular Time Out is null");
             setRegularTimeOutError(true);
         } else {
+            console.log("Regular Time Out is valid");
             setRegularTimeOutError(false);
         }
 
-        if ( !shiftName || !firstLabel ) {
+        if ( !firstLabel || !shiftType ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -197,7 +209,7 @@ const WorkshiftAdd = () => {
                                         '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                     },
                                 }}>
-                                    <FormControl sx={{ marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': {
                                             '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                         },
@@ -218,15 +230,21 @@ const WorkshiftAdd = () => {
                                             '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                         },
                                     }}>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ padding: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']} sx={{ padding: '0 !important' }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
                                                 <TimePicker
                                                     required
                                                     label="Time In"
+                                                    views={['hours', 'minutes']}
                                                     value={regularTimeIn}
-                                                    error={regularTimeInError}
-                                                    onChange={(e) => setRegularTimeIn(e.target.value)}
-                                                    renderInput={(params) => <TextField {...params} />}
+                                                    // error={regularTimeInError}
+                                                    onChange={handleRegularTimeInChange}
+                                                    slotProps={{
+                                                      textField: {
+                                                        variant: 'outlined',
+                                                        error: regularTimeInError,
+                                                      },
+                                                    }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -237,15 +255,21 @@ const WorkshiftAdd = () => {
                                             '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                         },
                                     }}>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ padding: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']} sx={{ padding: '0 !important' }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
                                                 <TimePicker
                                                     required
                                                     label="Time Out"
+                                                    views={['hours', 'minutes']}
                                                     value={regularTimeOut}
-                                                    error={regularTimeOutError}
-                                                    onChange={(e) => setRegularTimeOut(e.target.value)}
-                                                    renderInput={(params) => <TextField {...params} />}
+                                                    // error={regularTimeOutError}
+                                                    onChange={handleRegularTimeOutChange}
+                                                    slotProps={{
+                                                      textField: {
+                                                        variant: 'outlined',
+                                                        error: regularTimeOutError,
+                                                      },
+                                                    }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
