@@ -28,20 +28,20 @@ class WorkScheduleController extends Controller
         return false;
     }
 
-    public function getWorkShifts(Request $request)
+    public function getWorkShiftLinks(Request $request)
     {
-        // log::info("WorkScheduleController::getWorkShifts");
+        // log::info("WorkScheduleController::getWorkShiftLinks");
 
         if ($this->checkUser()) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
+            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->select('name')->get();
 
-            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->get();
+            $workShifts = $workShifts->map(function ($workShift) use ($client) {
+                $workShift->link = str_replace(' ', '_', $workShift->name);
+                $workShift->unique_code = $client->unique_code;
 
-            $workShifts = $workShifts->map(function ($workShift) {
-                $modifiedName = str_replace(' ', '_', $workShift->name);
-                $workShift->link = $workShift->client_id . '_' . $modifiedName;
                 return $workShift;
             });
 

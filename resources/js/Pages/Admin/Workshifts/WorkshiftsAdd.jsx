@@ -331,7 +331,7 @@ const WorkshiftAdd = () => {
                 <div className='px-4 block-content bg-light' style={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}>
                     <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
-                        <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Add Work Shift</Typography>
+                        <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Add Work Shifts</Typography>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},

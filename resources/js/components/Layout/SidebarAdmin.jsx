@@ -152,7 +152,7 @@ const Sidebar = ({ children, closeMini }) => {
     const [workshifts, setWorkshifts] = useState([]);
 
     useEffect(() => {  
-        axiosInstance.get(`/workshifts/getWorkShifts`, { headers })
+        axiosInstance.get(`/workshifts/getWorkShiftLinks`, { headers })
             .then((response) => {
                 console.log(response);
                 setWorkshifts(response.data.workShifts);
@@ -172,12 +172,12 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 text: 'Work Shifts',
                 children: workshifts.map(shift => ({
-                    id: shift.id,
-                    href: `/hr/workshift?shift=${shift.link}`,
+                    // id: shift.id,
+                    href: `/admin/workshift?id=${shift.unique_code}&shift=${shift.link}`,
                     text: shift.name,
                 })).concat({
-                    id: 'add-shift',
-                    href: '/hr/workshift-add',
+                    // id: 'add-shift',
+                    href: '/admin/workshifts-add',
                     text: '+ Add Shift',
                 }),
             },

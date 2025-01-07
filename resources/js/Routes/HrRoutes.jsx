@@ -14,7 +14,7 @@ import HrEmployeesDeductions from "../Pages/Hr/HrEmployeesDeductions";
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 import Workshift from "../Pages/Admin/Workshifts/Workshift";
 import Workshifts from "../Pages/Admin/Workshifts/Workshifts";
-import WorkshiftAdd from "../Pages/Admin/Workshifts/WorkshiftAdd";
+import WorkshiftAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
 import HrApplications from "../Pages/Hr/HrApplications";
 import HrApplicationList from "../Pages/Hr/HrApplicationList";
 import HrApplicationLeave from "../Pages/Hr/HrApplicationLeave";
