@@ -234,32 +234,21 @@ const WorkshiftAdd = () => {
                 confirmButtonColor: '#177604',
             });
         } else {
-            if ( confirm != password ){
-                setConfirmError(true);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Password does not match!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            } else {
-                new Swal({
-                    customClass: { container: "my-swal" },
-                    title: "Are you sure?",
-                    text: "You want to save this client?",
-                    icon: "warning",
-                    showConfirmButton: true,
-                    confirmButtonText: 'Save',
-                    confirmButtonColor: '#177604',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancel',
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        saveInput(event);
-                    }
-                });
-            }
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this work shift?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInputSplit(event);
+                }
+            });
         }
     };
 
@@ -276,6 +265,46 @@ const WorkshiftAdd = () => {
         };
 
         axiosInstance.post('/workshifts/saveRegularWorkShift', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Work Shift saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/admin/workhours`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+
+    const saveInputSplit = (event) => {
+        event.preventDefault();
+
+        const data = {
+            shiftName: shiftName,
+            shiftType: shiftType,
+
+            firstLabel: firstLabel,
+            splitFirstTimeIn: splitFirstTimeIn,
+            splitFirstTimeOut: splitFirstTimeOut,
+
+            secondLabel: secondLabel,
+            splitSecondTimeIn: splitSecondTimeIn,
+            splitSecondTimeOut: splitSecondTimeOut,
+
+            overTimeIn: overTimeIn,
+            overTimeOut: overTimeOut,
+        };
+
+        axiosInstance.post('/workshifts/saveSplitWorkShift', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -585,6 +614,63 @@ const WorkshiftAdd = () => {
                                                     value={splitSecondTimeOut}
                                                     onChange={handleSplitSecondTimeOutChange}
                                                     slotProps={{ textField: { error: splitSecondTimeOutError } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+                                </FormGroup>
+
+                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                    '& label.Mui-focused': {color: '#97a5ba'},
+                                    '& .MuiOutlinedInput-root': {
+                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                    },
+                                }}>
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <TextField
+                                            required
+                                            id="overTimeLabel"
+                                            label="Over Time"
+                                            variant="outlined"
+                                            value="Over Time"
+                                        />
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time In"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeIn}
+                                                    onChange={handleOverTimeInChange}
+                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time Out"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeOut}
+                                                    onChange={handleOverTimeOutChange}
+                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>

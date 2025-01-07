@@ -16,17 +16,24 @@ class CreateWorkshiftsTable extends Migration
         Schema::create('workshifts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
+            $table->enum('shift_type', ['Regular', 'Split'])->nullable();
+
             $table->time('regular_time_in')->nullable();
             $table->time('regular_time_out')->nullable();
+
             $table->string('split_first_label', 128)->nullable();
             $table->time('split_first_time_in')->nullable();
             $table->time('split_first_time_out')->nullable();
+
             $table->string('split_second_label', 128)->nullable();
             $table->time('split_second_time_in')->nullable();
             $table->time('split_second_time_out')->nullable();
+
             $table->time('over_time_in')->nullable();
             $table->time('over_time_out')->nullable();
+
             $table->unsignedBigInteger('client_id');
+
             $table->softDeletes();
             $table->timestamps();
 

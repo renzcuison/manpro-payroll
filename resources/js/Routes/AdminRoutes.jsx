@@ -13,6 +13,12 @@ import WorkHoursList from "../Pages/Admin/WorkHours/WorkHoursList";
 
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
+
+
+import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
+
+
+
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate()
 
@@ -30,6 +36,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
+
+            <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
             <Route path="workhours" element={<ProtectedRoute element={<WorkHoursList />} user={user} />} />
             <Route path="workhours-add" element={<ProtectedRoute element={<WorkHoursAdd />} user={user} />} />
