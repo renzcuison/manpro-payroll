@@ -63,6 +63,10 @@ class ClientsController extends Controller
 
                 $code = $this->generateRandomCode(8);
 
+                while (ClientsModel::where('unique_code', $code)->exists()) {
+                    $code = $this->generateRandomCode(8);
+                }
+
                 $client = ClientsModel::create([
                     "unique_code" => $code,
                     "name" => $request->clientName,
