@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import ClientEditModal from '../Clients/Modals/ClientEditModal';
@@ -108,13 +108,11 @@ const ClientsList = () => {
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 3, alignItems: 'center' }}>
                     <Typography variant="h5" sx={{ pt: 3 }}> Clients </Typography>
 
-                    <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
-                        onClick={() => { 
-                            window.location.href = "http://127.0.0.1:8080/super-admin/clients-add"; 
-                        }}    
-                    >
-                        <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                    </Button>
+                    <Link to="/super-admin/clients-add">
+                        <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                            <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                        </Button>
+                    </Link>
                 </Box>
 
                 <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>

@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 const EmployeesList = () => {
@@ -36,15 +36,13 @@ const EmployeesList = () => {
             <Box sx={{ mx: 12 }}>
 
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employees </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employees </Typography>
 
-                    <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1"
-                        onClick={() => { 
-                            window.location.href = "http://127.0.0.1:8080/admin/employees-add"; 
-                        }}    
-                    >
-                        <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                    </Button>
+                    <Link to="/admin/employees-add">
+                        <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                            <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                        </Button>
+                    </Link>
                 </Box>
 
                 <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
