@@ -8,11 +8,11 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 import EmployeesView from "../Pages/Admin/Employees/EmployeeView";
 
-import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
-
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
+import WorkshiftsView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
+import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
 
 
@@ -34,10 +34,10 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
-            <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
-
+            <Route path="workshift/:id/:shift" element={<ProtectedRoute element={<WorkshiftsView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
+            <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
 
             {/* <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} /> */}

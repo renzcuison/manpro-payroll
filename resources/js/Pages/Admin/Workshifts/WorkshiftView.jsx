@@ -1,86 +1,174 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
+import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import PropTypes from 'prop-types';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 const WorkshiftView = () => {
+    const { id } = useParams();
+    const { shift } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
+    const [employee, setEmployee] = useState(''); 
 
     useEffect(() => {
-        axiosInstance.get('/employees/getEmployees', { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching clients:', error);
-                setIsLoading(false);
-            });
+        console.log("ID: " + id);
+        console.log("Shift: " + shift);
     }, []);
+    
+    const [activeTab, setActiveTab] = useState('1');
 
-    const handleRowClick = (employee) => {
-        navigate(`/admin/employee/${employee.user_name}`);
+    const handleTabChange = (event, newActiveTab) => {
+      setActiveTab(newActiveTab);
     };
+
+    const renderEmploymentContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Box sx={{ px: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Department </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> Role </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Branch </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> Status </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={4} sx={{ py: 1 }}>
+                    <Grid item xs={2}>
+                        <Typography> Start Date </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Typography> End Date </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                    </Grid>
+                </Grid>
+
+            </Box>
+        </Box>
+    );
+    
+    const renderAttendanceContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Attendance Information will be displayed here</Typography>
+        </Box>
+    );
+
+    const renderPayrollContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Payroll Information will be displayed here</Typography>
+        </Box>
+    );
     
     return (
         <Layout title={"Clients"}>
             <Box sx={{ mx: 12 }}>
-
+    
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employees </Typography>
-
-                    <Link to="/admin/employees-add">
-                        <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                            <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                        </Button>
-                    </Link>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
                 </Box>
+        
+                <Grid container spacing={4} sx={{ mt: 2 }}>
 
-                <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                    {isLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                            <CircularProgress />
+                    <Grid item xs={4}>
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
+                            <Typography variant="h5"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }  </Typography>
                         </Box>
-                    ) : (
-                        <>
-                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                <Table aria-label="simple table">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell align="center">Name</TableCell>
-                                            <TableCell align="center">Username</TableCell>
-                                            <TableCell align="center">Role</TableCell>
-                                            <TableCell align="center">Status</TableCell>
-                                            <TableCell align="center">Department</TableCell>
-                                            <TableCell align="center">Branch</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {employees.map((employee) => (
-                                            <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleRowClick(employee)}>
-                                                <TableCell align="left">{employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</TableCell>
-                                                <TableCell align="center">{employee.user_name}</TableCell>
-                                                <TableCell align="center">{employee.branch_id ? '-' : employee.branch_id }</TableCell>
-                                                <TableCell align="center">{employee.department_id ? '-' : employee.department_id }</TableCell>
-                                                <TableCell align="center">{employee.role_id ? '-' : employee.role_id }</TableCell>
-                                                <TableCell align="center">{employee.status_id ? '-' : employee.status_id }</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </>
-                    )}
-                </Box>
+                    </Grid>
+
+                    <Grid item xs={8}>
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
+                                    <Typography> Full Name </Typography>
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
+                                    <Typography> Email Address </Typography>
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <Typography variant="h6"> {employee.email}</Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
+                                    <Typography> Contact Number </Typography>
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <Typography variant="h6"> {employee.contact_number}</Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={4}>
+                                    <Typography> Address </Typography>
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <Typography variant="h6"> {employee.address}</Typography>
+                                </Grid>
+                            </Grid>
+
+                        </Box>
+                    </Grid>
+
+                    
+                </Grid>
+
+                <Grid container spacing={4} sx={{ mt: 2 }}>
+                    <Grid item xs={12}>
+                        {/* Put Tabs in Here */}
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            <Tabs value={activeTab} onChange={handleTabChange}>
+                                <Tab label="Employment" value="1"/>
+                                <Tab label="Attendance" value="2"/>
+                                <Tab label="Payroll" value="3"/>
+                            </Tabs>
+                            {activeTab === '1' && renderEmploymentContent()}
+                            {activeTab === '2' && renderAttendanceContent()}
+                            {activeTab === '3' && renderPayrollContent()}
+                        </Box>
+                    </Grid>
+                </Grid>
+
             </Box>
         </Layout >
     )
