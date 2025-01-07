@@ -55,17 +55,17 @@ const Workshifts = () => {
 
     const [loading, setLoading] = useState(true);
     useEffect(() => {  
-        axiosInstance.get(`/getWorkshifts`, { headers })
-            .then((response) => {
+        // axiosInstance.get(`/getWorkshifts`, { headers })
+            // .then((response) => {
                 // console.log(response);
-                setWorkshifts(response.data.workShifts);
-                setFilterWorkshift(response.data.workShifts);
-                setLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching work shifts:', error);
-                setLoading(false);
-            });
+                // setWorkshifts(response.data.workShifts);
+                // setFilterWorkshift(response.data.workShifts);
+                // setLoading(false);
+            // })
+            // .catch((error) => {
+                // console.error('Error fetching work shifts:', error);
+                // setLoading(false);
+            // });
     }, []);
 
     const handleRequestSort = (_event, property) => {

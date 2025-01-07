@@ -31,14 +31,14 @@ const HrEmployeesCalendar = () => {
     const [shiftId, setShiftId] = useState('0');
 
     useEffect(() => {  
-        axiosInstance.get(`/getWorkshifts`, { headers })
-            .then((response) => {
-                console.log(response);
-                setWorkshifts(response.data.workShifts);
-            })
-            .catch((error) => {
-                console.error('Error fetching work shifts:', error);
-            });
+        // axiosInstance.get(`/getWorkshifts`, { headers })
+            // .then((response) => {
+                // console.log(response);
+                // setWorkshifts(response.data.workShifts);
+            // })
+            // .catch((error) => {
+                // console.error('Error fetching work shifts:', error);
+            // });
     }, []);
 
     const handleDateSelect = (selectInfo) => {

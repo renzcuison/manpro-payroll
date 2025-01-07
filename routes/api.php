@@ -112,6 +112,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('workshifts')->group(function () {
         Route::get('/getWorkShiftLinks', [WorkScheduleController::class, 'getWorkShiftLinks']);
+        Route::get('/getWorkShiftDetails', [WorkScheduleController::class, 'getWorkShiftDetails']);
+
         Route::post('/saveSplitWorkShift', [WorkScheduleController::class, 'saveSplitWorkShift']);
         Route::post('/saveRegularWorkShift', [WorkScheduleController::class, 'saveRegularWorkShift']);
     });
@@ -163,12 +165,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployees', [HrEmployeesController::class, 'getEmployees']);
 
     // Work Shift
-    Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
-    Route::get('/getWorkshifts', [HrEmployeesController::class, 'getWorkShifts']);
-    Route::post('/saveWorkShift', [HrEmployeesController::class, 'saveWorkShift']);
-    Route::post('/editWorkShift', [HrEmployeesController::class, 'editWorkShift']);
-    Route::post('/deleteWorkShift', [HrEmployeesController::class, 'deleteWorkShift']);
-    Route::get('/getWorkShiftEmployees', [HrEmployeesController::class, 'getWorkShiftEmployees']);
+    // Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
+    // Route::get('/getWorkshifts', [HrEmployeesController::class, 'getWorkShifts']);
+    // Route::post('/saveWorkShift', [HrEmployeesController::class, 'saveWorkShift']);
+    // Route::post('/editWorkShift', [HrEmployeesController::class, 'editWorkShift']);
+    // Route::post('/deleteWorkShift', [HrEmployeesController::class, 'deleteWorkShift']);
+    // Route::get('/getWorkShiftEmployees', [HrEmployeesController::class, 'getWorkShiftEmployees']);
 
 
     // Evaluation

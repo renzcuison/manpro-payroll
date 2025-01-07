@@ -46,9 +46,9 @@ const HrEmployeeEditModal = ({ open, close, wkdays, data: { user_id, fname, mnam
         axiosInstance.get('/bank', { headers }).then((response) => {
             setBankDetails(response.data.bank);
         });
-        axiosInstance.get('/getWorkShifts', { headers }).then((response) => {
-            setWorkshifts(response.data.workShifts);
-        });
+        // axiosInstance.get('/getWorkShifts', { headers }).then((response) => {
+            // setWorkshifts(response.data.workShifts);
+        // });
     }, [])
     useEffect(() => {
         handleEditrate(daily_rate, hourly_rate)
