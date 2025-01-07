@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateWorkhoursTable extends Migration
+class CreateWorkshiftsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreateWorkhoursTable extends Migration
      */
     public function up()
     {
-        Schema::create('workhours', function (Blueprint $table) {
+        Schema::create('workshifts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
-            $table->string('regular_label', 128)->nullable();
             $table->time('regular_time_in')->nullable();
             $table->time('regular_time_out')->nullable();
             $table->string('split_first_label', 128)->nullable();
@@ -25,6 +24,8 @@ class CreateWorkhoursTable extends Migration
             $table->string('split_second_label', 128)->nullable();
             $table->time('split_second_time_in')->nullable();
             $table->time('split_second_time_out')->nullable();
+            $table->time('over_time_in')->nullable();
+            $table->time('over_time_out')->nullable();
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
             $table->timestamps();
@@ -40,6 +41,10 @@ class CreateWorkhoursTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('workhours');
+        Schema::table('workshifts', function (Blueprint $table) {
+            $table->dropForeign(['client_id']);
+        });
+    
+        Schema::dropIfExists('workshifts');
     }
 }

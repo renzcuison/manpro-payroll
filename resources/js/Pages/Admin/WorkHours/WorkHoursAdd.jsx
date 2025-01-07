@@ -30,6 +30,8 @@ const WorkHoursAdd = () => {
     const [splitFirstTimeOutError, setSplitFirstTimeOutError] = useState(false);
     const [splitSecondTimeInError, setSplitSecondTimeInError] = useState(false);
     const [splitSecondTimeOutError, setSplitSecondTimeOutError] = useState(false);
+    const [overTimeInError, setOverTimeInError] = useState(false);
+    const [overTimeOutError, setOverTimeOutError] = useState(false);
 
     const [workHourName, setWorkHourName] = useState('');
     const [workHourType, setWorkHourType] = useState('');
@@ -44,6 +46,9 @@ const WorkHoursAdd = () => {
     const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
     const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
     const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
+
+    const [overTimeIn, setOverTimeIn] = useState(null);
+    const [overTimeOut, setOverTimeOut] = useState(null);
 
     const handleRegularTimeInChange = (newValue) => {
         setRegularTimeIn(newValue);
@@ -69,6 +74,15 @@ const WorkHoursAdd = () => {
         setSplitSecondTimeOut(newValue);
     };
 
+    const handleOverTimeInChange = (newValue) => {
+        setOverTimeIn(newValue);
+    };
+
+    const handleOverTimeOutChange = (newValue) => {
+        setOverTimeOut(newValue);
+    };
+
+
     const handleWorkHourTypeChange = (newValue) => {
         
         setFirstLabelError(false);
@@ -92,6 +106,9 @@ const WorkHoursAdd = () => {
         setSplitFirstTimeOut(null);
         setSplitSecondTimeIn(null);
         setSplitSecondTimeOut(null);
+
+        setOverTimeIn(null);
+        setOverTimeOut(null);
 
         setWorkHourType(newValue);
     };
@@ -171,7 +188,7 @@ const WorkHoursAdd = () => {
                     cancelButtonText: 'Cancel',
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        saveInput(event);
+                        saveInputRegular(event);
                     }
                 });
             }
@@ -255,27 +272,30 @@ const WorkHoursAdd = () => {
         }
     };
 
-    const saveInput = (event) => {
+    const saveInputRegular = (event) => {
         event.preventDefault();
 
         const data = {
             workHourName: workHourName,
             workHourType: workHourType,
+            firstLabel: firstLabel,
+            regularTimeIn: regularTimeIn,
+            regularTimeOut: regularTimeOut,
         };
 
-        axiosInstance.post('/employees/saveEmployee', data, { headers })
+        axiosInstance.post('/workhours/saveRegularWorkHour', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
+                        text: "Work Hour saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/employees`);
+                        navigate(`/admin/workhours`);
                     });
                 }
             })
@@ -385,6 +405,65 @@ const WorkHoursAdd = () => {
                                                     value={regularTimeOut}
                                                     onChange={handleRegularTimeOutChange}
                                                     slotProps={{ textField: { error: regularTimeOutError } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+                                </FormGroup>
+
+                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                    '& label.Mui-focused': {color: '#97a5ba'},
+                                    '& .MuiOutlinedInput-root': {
+                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                    },
+                                }}>
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <TextField
+                                            required
+                                            id="overTimeLabel"
+                                            label="Over Time"
+                                            variant="outlined"
+                                            value="Over Time"
+                                        />
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    required
+                                                    label="Time In"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeIn}
+                                                    onChange={handleOverTimeInChange}
+                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    required
+                                                    label="Time Out"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeOut}
+                                                    onChange={handleOverTimeOutChange}
+                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>

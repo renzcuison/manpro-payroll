@@ -4,6 +4,15 @@
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\EmployeesController;
+use App\Http\Controllers\WorkScheduleController;
+
+// use App\Http\Controllers\NewControllerName;
+// use App\Http\Controllers\NewControllerName;
+// use App\Http\Controllers\NewControllerName;
+// use App\Http\Controllers\NewControllerName;
+// use App\Http\Controllers\NewControllerName;
+
+
 
 
 
@@ -101,12 +110,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
     });
 
-    Route::prefix('workhours')->group(function () {
-        // Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
-        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
-
-        // Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+    Route::prefix('workshifts')->group(function () {
+        Route::post('/saveRegularWorkShift', [WorkScheduleController::class, 'saveRegularWorkShift']);
     });
+
+
+
+
+
 
 
 

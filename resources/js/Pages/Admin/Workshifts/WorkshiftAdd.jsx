@@ -30,10 +30,12 @@ const WorkshiftAdd = () => {
     const [splitFirstTimeOutError, setSplitFirstTimeOutError] = useState(false);
     const [splitSecondTimeInError, setSplitSecondTimeInError] = useState(false);
     const [splitSecondTimeOutError, setSplitSecondTimeOutError] = useState(false);
+    const [overTimeInError, setOverTimeInError] = useState(false);
+    const [overTimeOutError, setOverTimeOutError] = useState(false);
 
     const [shiftName, setShiftName] = useState('');
     const [shiftType, setShiftType] = useState('');
-    // const [shiftType, setShiftType] = useState('split');
+
     const [firstLabel, setFirstLabel] = useState('');
     const [secondLabel, setSecondLabel] = useState('');
 
@@ -44,6 +46,9 @@ const WorkshiftAdd = () => {
     const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
     const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
     const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
+
+    const [overTimeIn, setOverTimeIn] = useState(null);
+    const [overTimeOut, setOverTimeOut] = useState(null);
 
     const handleRegularTimeInChange = (newValue) => {
         setRegularTimeIn(newValue);
@@ -69,6 +74,45 @@ const WorkshiftAdd = () => {
         setSplitSecondTimeOut(newValue);
     };
 
+    const handleOverTimeInChange = (newValue) => {
+        setOverTimeIn(newValue);
+    };
+
+    const handleOverTimeOutChange = (newValue) => {
+        setOverTimeOut(newValue);
+    };
+
+
+    const handleShiftTypeChange = (newValue) => {
+        
+        setFirstLabelError(false);
+        setSecondLabelError(false);
+
+        setRegularTimeInError(false);
+        setRegularTimeOutError(false);
+
+        setSplitFirstTimeInError(false);
+        setSplitFirstTimeOutError(false);
+        setSplitSecondTimeInError(false);
+        setSplitSecondTimeOutError(false);
+
+        setFirstLabel('');
+        setSecondLabel('');
+
+        setRegularTimeIn(null);
+        setRegularTimeOut(null);
+        
+        setSplitFirstTimeIn(null);
+        setSplitFirstTimeOut(null);
+        setSplitSecondTimeIn(null);
+        setSplitSecondTimeOut(null);
+
+        setOverTimeIn(null);
+        setOverTimeOut(null);
+
+        setShiftType(newValue);
+    };
+
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -77,6 +121,18 @@ const WorkshiftAdd = () => {
             setShiftNameError(true);
         } else {
             setShiftNameError(false);
+        }
+
+        if (overTimeIn === null) {
+            setOverTimeInError(true);
+        } else {
+            setOverTimeInError(false);
+        }
+
+        if (overTimeOut === null) {
+            setOverTimeOutError(true);
+        } else {
+            setOverTimeOutError(false);
         }
 
         if ( shiftType == 'regular' ) {
@@ -91,29 +147,19 @@ const WorkshiftAdd = () => {
     const checkInputRegular = (event) => {
         event.preventDefault();
 
-        if (!firstLabel) {
-            setFirstLabelError(true);
-        } else {
-            setFirstLabelError(false);
-        }
-
         if (regularTimeIn === null) {
-            console.log("Regular Time In is null");
             setRegularTimeInError(true);
         } else {
-            console.log("Regular Time In is valid");
             setRegularTimeInError(false);
         }
     
         if (regularTimeOut === null) {
-            console.log("Regular Time Out is null");
             setRegularTimeOutError(true);
         } else {
-            console.log("Regular Time Out is valid");
             setRegularTimeOutError(false);
         }
 
-        if ( !firstLabel || regularTimeIn === null || regularTimeOut === null ) {
+        if ( regularTimeIn === null || regularTimeOut === null || overTimeIn === null || overTimeOut === null ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -122,32 +168,21 @@ const WorkshiftAdd = () => {
                 confirmButtonColor: '#177604',
             });
         } else {
-            if ( confirm != password ){
-                setConfirmError(true);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Password does not match!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            } else {
-                new Swal({
-                    customClass: { container: "my-swal" },
-                    title: "Are you sure?",
-                    text: "You want to save this client?",
-                    icon: "warning",
-                    showConfirmButton: true,
-                    confirmButtonText: 'Save',
-                    confirmButtonColor: '#177604',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancel',
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        saveInput(event);
-                    }
-                });
-            }
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this work shift?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInputRegular(event);
+                }
+            });
         }
     };
 
@@ -228,27 +263,31 @@ const WorkshiftAdd = () => {
         }
     };
 
-    const saveInput = (event) => {
+    const saveInputRegular = (event) => {
         event.preventDefault();
 
         const data = {
             shiftName: shiftName,
             shiftType: shiftType,
+            regularTimeIn: regularTimeIn,
+            regularTimeOut: regularTimeOut,
+            overTimeIn: overTimeIn,
+            overTimeOut: overTimeOut,
         };
 
-        axiosInstance.post('/employees/saveEmployee', data, { headers })
+        axiosInstance.post('/workshifts/saveRegularWorkShift', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
+                        text: "Work Shift saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/employees`);
+                        navigate(`/admin/workhours`);
                     });
                 }
             })
@@ -283,7 +322,7 @@ const WorkshiftAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                           <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -292,7 +331,7 @@ const WorkshiftAdd = () => {
                                     id="shiftType"
                                     label="Shift Type"
                                     value={shiftType}
-                                    onChange={(event) => setShiftType(event.target.value)}
+                                    onChange={(event) => handleShiftTypeChange(event.target.value)}
                                 >
                                     <MenuItem key="regular" value="regular"> Regular Hours </MenuItem>
                                     <MenuItem key="split" value="split"> Split Hours </MenuItem>
@@ -319,9 +358,7 @@ const WorkshiftAdd = () => {
                                             id="firstLabel"
                                             label="First Label"
                                             variant="outlined"
-                                            value={firstLabel}
-                                            error={firstLabelError}
-                                            onChange={(e) => setFirstLabel(e.target.value)}
+                                            value="Attendance"
                                         />
                                     </FormControl>
 
@@ -338,7 +375,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeIn}
                                                     onChange={handleRegularTimeInChange}
-                                                    slotProps={{ textField: { error: regularTimeInError } }}
+                                                    slotProps={{ textField: { error: regularTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -357,7 +394,64 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeOut}
                                                     onChange={handleRegularTimeOutChange}
-                                                    slotProps={{ textField: { error: regularTimeOutError } }}
+                                                    slotProps={{ textField: { error: regularTimeOutError, required: true } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+                                </FormGroup>
+
+                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                    '& label.Mui-focused': {color: '#97a5ba'},
+                                    '& .MuiOutlinedInput-root': {
+                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                    },
+                                }}>
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <TextField
+                                            required
+                                            id="overTimeLabel"
+                                            label="Over Time"
+                                            variant="outlined"
+                                            value="Over Time"
+                                        />
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time In"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeIn}
+                                                    onChange={handleOverTimeInChange}
+                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </FormControl>
+
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                        },
+                                    }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time Out"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeOut}
+                                                    onChange={handleOverTimeOutChange}
+                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
