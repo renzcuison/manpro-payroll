@@ -27,6 +27,20 @@ class ClientsController extends Controller
 
         return false;
     }
+
+    function generateRandomCode($length)
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $result = '';
+        $charsLength = strlen($chars);
+
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[rand(0, $charsLength - 1)];
+        }
+
+        return $result;
+    }
+
     public function getClients(Request $request)
     {
         // Log::info("ClientsController::getClients");
@@ -47,7 +61,10 @@ class ClientsController extends Controller
             try {
                 DB::beginTransaction();
 
+                $code = $this->generateRandomCode(8);
+
                 $client = ClientsModel::create([
+                    "unique_code" => $code,
                     "name" => $request->clientName,
                     "package" => $request->selectedPackage,
                 ]);

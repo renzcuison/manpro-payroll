@@ -14,6 +14,7 @@ class ClientsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'unique_code',
         'name',
         'package',
         'status',
