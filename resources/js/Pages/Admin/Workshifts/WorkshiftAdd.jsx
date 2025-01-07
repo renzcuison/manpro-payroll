@@ -258,10 +258,10 @@ const WorkshiftAdd = () => {
         const data = {
             shiftName: shiftName,
             shiftType: shiftType,
-            regularTimeIn: regularTimeIn,
-            regularTimeOut: regularTimeOut,
-            overTimeIn: overTimeIn,
-            overTimeOut: overTimeOut,
+            regularTimeIn: regularTimeIn.format('HH:mm:ss'),
+            regularTimeOut: regularTimeOut.format('HH:mm:ss'),
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
         axiosInstance.post('/workshifts/saveRegularWorkShift', data, { headers })
@@ -293,15 +293,15 @@ const WorkshiftAdd = () => {
             shiftType: shiftType,
 
             firstLabel: firstLabel,
-            splitFirstTimeIn: splitFirstTimeIn,
-            splitFirstTimeOut: splitFirstTimeOut,
+            splitFirstTimeIn: splitFirstTimeIn.format('HH:mm:ss'),
+            splitFirstTimeOut: splitFirstTimeOut.format('HH:mm:ss'),
 
             secondLabel: secondLabel,
-            splitSecondTimeIn: splitSecondTimeIn,
-            splitSecondTimeOut: splitSecondTimeOut,
+            splitSecondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
+            splitSecondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
 
-            overTimeIn: overTimeIn,
-            overTimeOut: overTimeOut,
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
         axiosInstance.post('/workshifts/saveSplitWorkShift', data, { headers })
