@@ -60,7 +60,7 @@ const SideItem = ({ items }) => {
             const url = new URL(link.href, window.location.origin);
             const isActive = location.pathname === url.pathname && searchParams.get('id') === url.searchParams.get('id');
             
-            const fontSize = link.text.length > 20 ? '12px' : '14px';
+            const fontSize = link.text.trim().length > 20 ? '12px' : '14px';
             
             return (
                 <div key={index} style={{ paddingLeft: `${level * 10}px` }}>

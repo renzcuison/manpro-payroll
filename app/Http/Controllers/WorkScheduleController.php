@@ -28,6 +28,29 @@ class WorkScheduleController extends Controller
         return false;
     }
 
+    public function getWorkShifts(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkShifts");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->get();
+
+            $workShifts = $workShifts->map(function ($workShift) {
+                $modifiedName = str_replace(' ', '_', $workShift->name);
+                $workShift->link = $workShift->client_id . '_' . $modifiedName;
+                return $workShift;
+            });
+
+            return response()->json(['status' => 200, 'workShifts' => $workShifts]);   
+        } 
+
+        return response()->json(['status' => 200, 'workShifts' => null]);   
+    }
+
     public function saveSplitWorkShift(Request $request)
     {
         // log::info("WorkScheduleController::saveSplitWorkShift");

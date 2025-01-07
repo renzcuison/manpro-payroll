@@ -134,15 +134,13 @@ const StyledNav = styled(NavLink)(({ isActive }) => ({
 
 const Sidebar = ({ children, closeMini }) => {
     const { user } = useUser();
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
     const dayToday = moment().format('DD');
     const handleNavigate = (link) => {
         navigate(link);
     }
-
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    const [workshifts, setWorkshifts] = useState([]);
     
     const isAttendanceActive = useIsActive('/hr/attendance');
     const isAttendanceEmployeeActive = useIsActive('/hr/attendance-employee');
@@ -151,18 +149,18 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportEditActive = useIsActive('/report-edit');
     const isReportCreateActive = useIsActive('/report-create');
 
-    const isWorkHoursActive = useIsActive('/admin/workhours');
-    const isWorkHoursAddActive = useIsActive('/admin/workhours-add');
+    const [workshifts, setWorkshifts] = useState([]);
 
-    // useEffect(() => {  
-        // axiosInstance.get(`/getWorkshifts`, { headers })
-            // .then((response) => {
-                // setWorkshifts(response.data.workShifts);
-            // })
-            // .catch((error) => {
-                // console.error('Error fetching work shifts:', error);
-            // });
-    // }, []);
+    useEffect(() => {  
+        axiosInstance.get(`/workshifts/getWorkShifts`, { headers })
+            .then((response) => {
+                console.log(response);
+                setWorkshifts(response.data.workShifts);
+            })
+            .catch((error) => {
+                console.error('Error fetching work shifts:', error);
+            });
+    }, []);
 
     const workDays = [{
         id: 5,
@@ -174,9 +172,9 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 text: 'Work Shifts',
                 children: workshifts.map(shift => ({
-                    id: shift.description,
-                    href: `/hr/workshift?id=${shift.id}&shift=${shift.description}`,
-                    text: shift.description,
+                    id: shift.id,
+                    href: `/hr/workshift?shift=${shift.link}`,
+                    text: shift.name,
                 })).concat({
                     id: 'add-shift',
                     href: '/hr/workshift-add',
@@ -215,8 +213,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </a>
                             <ul className="list-inline mt-10">
                                 <li className="list-inline-item">
-                                    {/* <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.fname)} {capitalize(user.lname)}</a> */}
-                                    <a className="link-effect text-white font-size-xs font-w600">{user.first_name} {user.last_name}</a>
+                                    <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.first_name)} {capitalize(user.last_name)}</a>
                                 </li>
                             </ul>
                         </div>
