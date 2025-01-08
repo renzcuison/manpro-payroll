@@ -8,7 +8,6 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import RolesAdd from '../Settings/Modals/RolesAdd';
-import StatusAdd from '../Settings/Modals/StatusAdd';
 import BranchesAdd from '../Settings/Modals/BranchesAdd';
 import DepartmentsAdd from '../Settings/Modals/DepartmentsAdd';
 
@@ -17,17 +16,14 @@ const GeneralSettings = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isRolesLoading, setIsRolesLoading] = useState(true);
-    const [isStatusLoading, setIsStatusLoading] = useState(true);
     const [isBranchesLoading, setIsBranchesLoading] = useState(true);
     const [isDepartmentLoading, setIsDepartmentLoading] = useState(true);
 
     const [roles, setRoles] = useState([]);
-    const [status, setStatus] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
 
     const [openAddRolesModal, setOpenAddRolesModal] = useState(false);
-    const [openAddStatusModal, setOpenAddStatusModal] = useState(false);
     const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
     const [openAddDepartmentModal, setOpenAddDepartmentModal] = useState(false);
 
@@ -39,15 +35,6 @@ const GeneralSettings = () => {
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
-            });
-
-        axiosInstance.get('/settings/getStatus', { headers })
-            .then((response) => {
-                setStatus(response.data.stats);
-                setIsStatusLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching status:', error);
             });
 
         axiosInstance.get('/settings/getBranches', { headers })
@@ -82,20 +69,6 @@ const GeneralSettings = () => {
         setRoles((prevRoles) => [...prevRoles, newRole]);
     };
 
-    // Status Functions
-    const handleOpenAddStatusModal = () => {
-        setOpenAddStatusModal(true);
-    }
-
-    const handleCloseAddStatusModal = () => {
-        setOpenAddStatusModal(false);
-    }
-
-    const handleUpdateStatus = (newStatus) => {
-        console.log("New Status");
-        console.log(newStatus);
-        setStatus((prevStatus) => [...prevStatus, newStatus]);
-    };
 
     // Branch Functions
     const handleOpenAddBranchModal = () => {
@@ -213,45 +186,7 @@ const GeneralSettings = () => {
                 </Grid>
 
                 <Grid container spacing={4} sx={{ mt: 1 }}>
-                    <Grid item xs={6}>
-                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                                <Typography variant="h5"> Employee Status </Typography>
-            
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddStatusModal()} >
-                                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                                </Button>
-                            </Box>
-
-                            {isStatusLoading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
-                                    <CircularProgress />
-                                </Box>
-                            ) : (
-                                <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                        <Table aria-label="simple table">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell align="center">Name</TableCell>
-                                                    <TableCell align="center">Status</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {status.map((stat) => (
-                                                    <TableRow key={stat.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                        <TableCell align="left">{stat.name}</TableCell>
-                                                        <TableCell align="center">{stat.status}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </>
-                            )}
-
-                        </Box>
-                    </Grid>
+                    <Grid item xs={6}></Grid>
 
                     <Grid item xs={6}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -295,10 +230,6 @@ const GeneralSettings = () => {
 
                 {openAddRolesModal &&
                     <RolesAdd open={openAddRolesModal} close={handleCloseAddRoleModal} onUpdateRoles={handleUpdateRoles} type={2} />
-                }
-
-                {openAddStatusModal &&
-                    <StatusAdd open={openAddStatusModal} close={handleCloseAddStatusModal} onUpdateStatus={handleUpdateStatus} type={2} />
                 }
     
                 {openAddBranchModal &&

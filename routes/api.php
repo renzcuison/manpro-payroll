@@ -93,9 +93,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
         Route::post('/saveRole', [SettingsController::class, 'saveRole']);
 
-        Route::get('/getStatus', [SettingsController::class, 'getStatus']);
-        Route::post('/saveStatus', [SettingsController::class, 'saveStatus']);
-
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
 
