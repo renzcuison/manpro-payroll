@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress } from '@mui/material'
+import { useMediaQuery, Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
@@ -11,6 +11,7 @@ const EmployeeView = () => {
     const { user } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const isAbove1080 = useMediaQuery('(min-width:1080px)');
 
     const [employee, setEmployee] = useState(''); 
 
@@ -26,6 +27,21 @@ const EmployeeView = () => {
                 console.error('Error fetching employee:', error);
             });
     }, []);
+
+    const calculateAge = (birthDate) => {
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+    
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+          age--;
+        }
+    
+        return age;
+    };
+
+    const formattedDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
     
     const [activeTab, setActiveTab] = useState('1');
 
@@ -100,7 +116,7 @@ const EmployeeView = () => {
     
     return (
         <Layout title={"Clients"}>
-            <Box sx={{ mx: 12 }}>
+            <Box sx={isAbove1080 ? { mx: 12 } : {}}>
     
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
@@ -110,7 +126,69 @@ const EmployeeView = () => {
 
                     <Grid item xs={4}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                            <Typography variant="h5"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }  </Typography>
+                            
+                            <Grid container sx={{ py: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                <Avatar
+                                    alt="Remy Sharp"
+                                    src="../../../../../images/admin.png"
+                                    sx={{ width: '50%', height: 'auto' }}
+                                />
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-id-card"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.first_name} {employee.middle_name ? employee.middle_name : ''} {employee.last_name} {employee.suffix ? employee.suffix : ''} </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-envelope"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.email} </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-mobile"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.contact_number ? employee.contact_number : '' } </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-globe"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.address ? employee.address : '' } </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.birth_date ? `${formattedDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={1}>
+                                    <Typography> <i className="fa fa-venus-mars"></i> </Typography>
+                                </Grid>
+                                <Grid item xs={11}>
+                                    <Typography> {employee.gender ? employee.gender : 'Not Indicated' } </Typography>
+                                </Grid>
+                            </Grid>
+
                         </Box>
                     </Grid>
 
@@ -118,38 +196,56 @@ const EmployeeView = () => {
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             
                             <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={4}>
+                                <Grid item xs={3}>
                                     <Typography> Full Name </Typography>
                                 </Grid>
-                                <Grid item xs={8}>
+                                <Grid item xs={9}>
                                     <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
                                 </Grid>
                             </Grid>
 
                             <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={4}>
+                                <Grid item xs={3}>
+                                    <Typography> User Name </Typography>
+                                </Grid>
+                                <Grid item xs={9}>
+                                    <Typography variant="h6"> {employee.user_name}</Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={3}>
                                     <Typography> Email Address </Typography>
                                 </Grid>
-                                <Grid item xs={8}>
+                                <Grid item xs={9}>
                                     <Typography variant="h6"> {employee.email}</Typography>
                                 </Grid>
                             </Grid>
 
                             <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={4}>
+                                <Grid item xs={3}>
                                     <Typography> Contact Number </Typography>
                                 </Grid>
-                                <Grid item xs={8}>
+                                <Grid item xs={9}>
                                     <Typography variant="h6"> {employee.contact_number}</Typography>
                                 </Grid>
                             </Grid>
 
                             <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={4}>
+                                <Grid item xs={3}>
                                     <Typography> Address </Typography>
                                 </Grid>
-                                <Grid item xs={8}>
+                                <Grid item xs={9}>
                                     <Typography variant="h6"> {employee.address}</Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container spacing={4} sx={{ py: 1 }}>
+                                <Grid item xs={3}>
+                                    <Typography> Birthday </Typography>
+                                </Grid>
+                                <Grid item xs={9}>
+                                    <Typography variant="h6"> {employee.birth_date ? employee.birth_date : '' }</Typography>
                                 </Grid>
                             </Grid>
 
