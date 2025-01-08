@@ -9,30 +9,29 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 const WorkshiftView = () => {
-    const { id } = useParams();
     const { shift } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState(''); 
+    const [workShift, setWorkShift] = useState(''); 
 
     useEffect(() => {
-        console.log("ID: " + id);
-        console.log("Shift: " + shift);
-
-        const data = {
-            id: id,
-            shift, shift
-        };
+        const data = { shift, shift };
 
         axiosInstance.get(`/workshifts/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
-                console.log(response);
+                setWorkShift(response.data.workShift);
+                getEmployees(response.data.workShift.id);
             })
             .catch((error) => {
                 console.error('Error fetching work shifts:', error);
             });
     }, []);
+
+    const getEmployees = (id) => {
+        console.log("getEmployees: " + id);
+    };
     
     return (
         <Layout title={"Clients"}>

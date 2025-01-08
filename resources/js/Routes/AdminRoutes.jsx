@@ -34,7 +34,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
-            <Route path="workshift/:id/:shift" element={<ProtectedRoute element={<WorkshiftsView />} user={user} />} />
+            <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftsView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
             <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />

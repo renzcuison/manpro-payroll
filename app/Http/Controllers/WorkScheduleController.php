@@ -53,24 +53,17 @@ class WorkScheduleController extends Controller
 
     public function getWorkShiftDetails(Request $request)
     {
-        log::info("WorkScheduleController::getEmployeeDetails");
-
-        log::info($request);
+        // log::info("WorkScheduleController::getEmployeeDetails");
 
         if ($this->checkUser()) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
-            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->select('name')->get();
+            $shift = str_replace('_', ' ', $request->shift);
 
-            $workShifts = $workShifts->map(function ($workShift) use ($client) {
-                $workShift->link = str_replace(' ', '_', $workShift->name);
-                $workShift->unique_code = $client->unique_code;
+            $workShift = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $shift)->first();
 
-                return $workShift;
-            });
-
-            return response()->json(['status' => 200, 'workShifts' => $workShifts]);   
+            return response()->json(['status' => 200, 'workShift' => $workShift]);   
         } 
 
         return response()->json(['status' => 200, 'workShifts' => null]);   

@@ -172,7 +172,7 @@ const Sidebar = ({ children, closeMini }) => {
                 text: 'Work Shifts',
                 children: workshifts.map(shift => ({
                     // id: shift.id,
-                    href: `/admin/workshift/${shift.unique_code}/${shift.link}`,
+                    href: `/admin/workshift/${shift.link}`,
                     text: shift.name,
                 })).concat({
                     // id: 'add-shift',
