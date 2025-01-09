@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useMediaQuery, Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar } from '@mui/material'
+import { useMediaQuery, Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
@@ -7,8 +7,15 @@ import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import { deepOrange, deepPurple } from '@mui/material/colors';
+
+
 const EmployeeView = () => {
     const { user } = useParams();
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const isAbove1080 = useMediaQuery('(min-width:1080px)');
@@ -113,129 +120,233 @@ const EmployeeView = () => {
             <Typography variant="body1">Payroll Information will be displayed here</Typography>
         </Box>
     );
+
+    const handleOpenActions = (event) => {
+        console.log("Open Actions");
+        setAnchorEl(event.currentTarget);
+    };
+    
+    const handleCloseActions = () => {
+        setAnchorEl(null);
+    };
     
     return (
         <Layout title={"Clients"}>
-            <Box sx={isAbove1080 ? { mx: 12 } : {}}>
-    
-                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
+            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1420px' }}} >
+                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
+
+                        <Button variant="contained" color="primary" onClick={handleOpenActions} >
+                            Actions
+                        </Button>
+                        
+                        <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
+                            <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem>
+                            <MenuItem onClick={handleCloseActions}>Edit Employment Details</MenuItem>
+                        </Menu>
+
+                    </Box>
+            
+                    <Grid container spacing={4} sx={{ mt: 2 }}>
+
+                        <Grid item xs={4}>
+                            <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
+                                
+                                <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Avatar
+                                        alt="Remy Sharp"
+                                        src="../../../../../images/admin.png"
+                                        sx={{ width: '50%', height: 'auto' }}
+                                    />
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-id-card"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-envelope"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        <Typography> {employee.email} </Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-mobile"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        <Typography> {employee.contact_number || '' } </Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-globe"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        <Typography> {employee.address || '' } </Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        <Typography> {employee.birth_date ? `${formattedDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                    <Grid item xs={1}>
+                                        <Typography> <i className="fa fa-venus-mars"></i> </Typography>
+                                    </Grid>
+                                    <Grid item xs={11}>
+                                        <Typography> {employee.gender || 'Not Indicated' } </Typography>
+                                    </Grid>
+                                </Grid>
+
+                            </Box>
+                        </Grid>
+
+                        <Grid item xs={8}>
+                            <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+
+                                <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Summary </Typography>
+
+                                <Grid container spacing={4}>
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 100, height: 100 }}>1</Avatar>
+                                            </Grid>
+                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Typography variant="h6"> Signed Payroll </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 100, height: 100, bgcolor: deepOrange[500] }}>23</Avatar>
+                                            </Grid>
+                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Typography variant="h6"> Attendance </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 100, height: 100, bgcolor: deepOrange[500] }}>456</Avatar>
+                                            </Grid>
+                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Typography variant="h6"> Applications </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+
+                            <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+
+                                <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employement Details </Typography>
+
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item xs={2}>
+                                        <Typography> Role </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+
+                                    <Grid item xs={2}>
+                                        <Typography> Job Title </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item xs={2}>
+                                        <Typography> Department </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+
+                                    <Grid item xs={2}>
+                                        <Typography> Branch </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item xs={2}>
+                                        <Typography> Type </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+
+                                    <Grid item xs={2}>
+                                        <Typography> Status </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item xs={2}>
+                                        <Typography> Start Date </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+
+                                    <Grid item xs={2}>
+                                        <Typography> End Date </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        </Grid>
+
+                    </Grid>
+
+                    <Grid container spacing={4} sx={{ mt: 1, mb: 12 }}>
+                        <Grid item xs={12}>
+                            {/* Put Tabs in Here */}
+                            <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                <Tabs value={activeTab} onChange={handleTabChange}>
+                                    <Tab label="Employment" value="1"/>
+                                    <Tab label="Attendance" value="2"/>
+                                    <Tab label="Payroll" value="3"/>
+                                </Tabs>
+                                {activeTab === '1' && renderEmploymentContent()}
+                                {activeTab === '2' && renderAttendanceContent()}
+                                {activeTab === '3' && renderPayrollContent()}
+                            </Box>
+                        </Grid>
+                    </Grid>
                 </Box>
-        
-                <Grid container spacing={4} sx={{ mt: 2 }}>
-
-                    <Grid item xs={4}>
-                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                            
-                            <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
-                                <Avatar
-                                    alt="Remy Sharp"
-                                    src="../../../../../images/admin.png"
-                                    sx={{ width: '50%', height: 'auto' }}
-                                />
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-id-card"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.first_name} {employee.middle_name ? employee.middle_name : ''} {employee.last_name} {employee.suffix ? employee.suffix : ''} </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-envelope"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.email} </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-mobile"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.contact_number ? employee.contact_number : '' } </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-globe"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.address ? employee.address : '' } </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.birth_date ? `${formattedDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={1}>
-                                    <Typography> <i className="fa fa-venus-mars"></i> </Typography>
-                                </Grid>
-                                <Grid item xs={11}>
-                                    <Typography> {employee.gender ? employee.gender : 'Not Indicated' } </Typography>
-                                </Grid>
-                            </Grid>
-
-                        </Box>
-                    </Grid>
-
-                    <Grid item xs={8}>
-                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                            <Typography variant="h5" sx={{ fontWeight: 'bold' }} > Employement Details </Typography>
-                            
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={2}>
-                                    <Typography> Department </Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                                </Grid>
-
-                                <Grid item xs={2}>
-                                    <Typography> Branch </Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                                </Grid>
-                            </Grid>
-
-
-                        </Box>
-                    </Grid>
-
-                    
-                </Grid>
-
-                <Grid container spacing={4} sx={{ mt: 2 }}>
-                    <Grid item xs={12}>
-                        {/* Put Tabs in Here */}
-                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                            <Tabs value={activeTab} onChange={handleTabChange}>
-                                <Tab label="Employment" value="1"/>
-                                <Tab label="Attendance" value="2"/>
-                                <Tab label="Payroll" value="3"/>
-                            </Tabs>
-                            {activeTab === '1' && renderEmploymentContent()}
-                            {activeTab === '2' && renderAttendanceContent()}
-                            {activeTab === '3' && renderPayrollContent()}
-                        </Box>
-                    </Grid>
-                </Grid>
-
             </Box>
         </Layout >
     )
