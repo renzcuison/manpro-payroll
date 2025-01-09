@@ -7,8 +7,6 @@ import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
-import { deepOrange, deepPurple } from '@mui/material/colors';
-
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -227,7 +225,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 100, height: 100 }}>1</Avatar>
+                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#7eb73d' }}>456</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Signed Payroll </Typography>
@@ -238,7 +236,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 100, height: 100, bgcolor: deepOrange[500] }}>23</Avatar>
+                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#eab000' }}>23</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Attendance </Typography>
@@ -249,7 +247,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 100, height: 100, bgcolor: deepOrange[500] }}>456</Avatar>
+                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#de5146' }}>1</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Applications </Typography>
