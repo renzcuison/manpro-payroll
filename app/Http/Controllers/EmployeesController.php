@@ -116,4 +116,32 @@ class EmployeesController extends Controller
 
         return response()->json(['status' => 200, 'employee' => null]);
     }
+
+    public function editEmmployeeDetails(Request $request)
+    {
+        // log::info("EmployeesController::editEmmployeeDetails");
+
+        if ($this->checkUser()) {
+
+            log::info($request);
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            // try {
+            //     DB::beginTransaction();
+                
+            //     DB::commit();
+            
+            //     return response()->json([ 'status' => 200 ]);
+
+            // } catch (\Exception $e) {
+            //     DB::rollBack();
+
+            //     Log::error("Error saving: " . $e->getMessage());
+
+            //     throw $e;
+            // }
+        }    
+    }
 }

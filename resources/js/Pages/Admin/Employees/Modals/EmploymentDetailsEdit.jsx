@@ -40,7 +40,6 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
         axiosInstance.get('/settings/getRoles', { headers })
             .then((response) => {
                 setRoles(response.data.roles);
-                setIsRolesLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -49,7 +48,6 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
         axiosInstance.get('/settings/getBranches', { headers })
             .then((response) => {
                 setBranches(response.data.branches);
-                setIsBranchesLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -58,7 +56,6 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
         axiosInstance.get('/settings/getJobTitles', { headers })
             .then((response) => {
                 setJobTitles(response.data.jobTitles);
-                setIsJobTitlesLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -67,39 +64,44 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
         axiosInstance.get('/settings/getDepartments', { headers })
             .then((response) => {
                 setDepartments(response.data.departments);
-                setIsDepartmentsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching departments:', error);
             });
     }, []);
 
-    const checkInput = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
+        const data = {
+            id: employee.id,
+            selectedRole: selectedRole,
+            selectedBranch: selectedBranch,
+            selectedJobTitle: selectedJobTitle,
+            selectedDepartment: selectedDepartment,
+            startDate: startDate,
+            endDate: endDate,
+        };
 
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
-
-        if (!name || !acronym) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
+        axiosInstance.post('/employees/editEmmployeeDetails', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Evaluation form saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/admin/employees`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
-        } else {
-            saveInput(event);
-        }
     };
 
     return (
@@ -113,7 +115,7 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
                 </DialogTitle>
             
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},

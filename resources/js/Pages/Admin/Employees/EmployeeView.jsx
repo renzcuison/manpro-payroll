@@ -278,14 +278,14 @@ const EmployeeView = () => {
                                         <Typography> Role </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.role_id || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Job Title </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.job_title_id || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -294,14 +294,14 @@ const EmployeeView = () => {
                                         <Typography> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.department_id || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.branch_id || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -310,14 +310,14 @@ const EmployeeView = () => {
                                         <Typography> Type </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.employment_type || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Status </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.employment_status || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -326,14 +326,14 @@ const EmployeeView = () => {
                                         <Typography> Start Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.date_start || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> End Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                        <Typography variant="h6"> {employee.date_end || '-' } </Typography>
                                     </Grid>
                                 </Grid>
                             </Box>
