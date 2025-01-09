@@ -8,6 +8,8 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
+
 const EmployeeView = () => {
     const { user } = useParams();
 
@@ -19,6 +21,8 @@ const EmployeeView = () => {
     const isAbove1080 = useMediaQuery('(min-width:1080px)');
 
     const [employee, setEmployee] = useState(''); 
+
+    const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
 
     useEffect(() => {
         const data = { username: user };
@@ -127,11 +131,19 @@ const EmployeeView = () => {
     const handleCloseActions = () => {
         setAnchorEl(null);
     };
+
+    const handleOpenEmploymentDetailsEditModal = () => {
+        setOpenEmploymentDetailsEditModal(true);
+    }
+
+    const handleCloseEmploymentDetailsEditModal = () => {
+        setOpenEmploymentDetailsEditModal(false);
+    }
     
     return (
         <Layout title={"Clients"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1420px' }}} >
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
 
@@ -141,7 +153,7 @@ const EmployeeView = () => {
                         
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem>
-                            <MenuItem onClick={handleCloseActions}>Edit Employment Details</MenuItem>
+                            <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
                         </Menu>
 
                     </Box>
@@ -225,7 +237,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#7eb73d' }}>456</Avatar>
+                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#7eb73d' }}>100,000</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Signed Payroll </Typography>
@@ -236,7 +248,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#eab000' }}>23</Avatar>
+                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#eab000' }}>100,000</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Attendance </Typography>
@@ -247,7 +259,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 113, height: 113, bgcolor: '#de5146' }}>1</Avatar>
+                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#de5146' }}>100,000</Avatar>
                                             </Grid>
                                             <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Applications </Typography>
@@ -345,6 +357,10 @@ const EmployeeView = () => {
                         </Grid>
                     </Grid>
                 </Box>
+
+                {openEmploymentDetailsEditModal &&
+                    <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} />
+                }
             </Box>
         </Layout >
     )
