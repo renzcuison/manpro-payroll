@@ -127,7 +127,7 @@ const EmployeeView = () => {
                     <Grid item xs={4}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
                             
-                            <Grid container sx={{ py: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                 <Avatar
                                     alt="Remy Sharp"
                                     src="../../../../../images/admin.png"
@@ -194,60 +194,25 @@ const EmployeeView = () => {
 
                     <Grid item xs={8}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+
+                            <Typography variant="h5" sx={{ fontWeight: 'bold' }} > Employement Details </Typography>
                             
                             <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> Full Name </Typography>
+                                <Grid item xs={2}>
+                                    <Typography> Department </Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={4}>
+                                    <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
+                                </Grid>
+
+                                <Grid item xs={2}>
+                                    <Typography> Branch </Typography>
+                                </Grid>
+                                <Grid item xs={4}>
                                     <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
                                 </Grid>
                             </Grid>
 
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> User Name </Typography>
-                                </Grid>
-                                <Grid item xs={9}>
-                                    <Typography variant="h6"> {employee.user_name}</Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> Email Address </Typography>
-                                </Grid>
-                                <Grid item xs={9}>
-                                    <Typography variant="h6"> {employee.email}</Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> Contact Number </Typography>
-                                </Grid>
-                                <Grid item xs={9}>
-                                    <Typography variant="h6"> {employee.contact_number}</Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> Address </Typography>
-                                </Grid>
-                                <Grid item xs={9}>
-                                    <Typography variant="h6"> {employee.address}</Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={4} sx={{ py: 1 }}>
-                                <Grid item xs={3}>
-                                    <Typography> Birthday </Typography>
-                                </Grid>
-                                <Grid item xs={9}>
-                                    <Typography variant="h6"> {employee.birth_date ? employee.birth_date : '' }</Typography>
-                                </Grid>
-                            </Grid>
 
                         </Box>
                     </Grid>
