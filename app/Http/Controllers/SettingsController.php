@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BranchesModel;
+use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 
@@ -124,6 +125,58 @@ class SettingsController extends Controller
                 DB::commit();
             
                 return response()->json([ 'status' => 200, 'branch' => $branch ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function getJobTitles(Request $request)
+    {
+        // Log::info("SettingsController::getJobTitles");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $jobTitles = JobTitlesModel::where('client_id', $user->client_id)->get();
+
+            return response()->json(['status' => 200, 'jobTitles' => $jobTitles]);
+        }
+
+        return response()->json(['status' => 200, 'jobTitles' => null]);
+    }
+
+    public function saveJobTitle(Request $request)
+    {
+        // log::info("SettingsController::saveJobTitle");
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $jobTitle = JobTitlesModel::create([
+                    "name" => $request->name,
+                    "acronym" => $request->acronym,
+                    "status" => "Active",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'jobTitle' => $jobTitle ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

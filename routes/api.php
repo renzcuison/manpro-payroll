@@ -96,6 +96,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
 
+        Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
     });
