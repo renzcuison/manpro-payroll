@@ -6,9 +6,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
 import moment from 'moment';
-import 'react-quill/dist/quill.snow.css';
+import dayjs from 'dayjs';
 
 const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const navigate = useNavigate();
@@ -28,16 +27,15 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    const [selectedType, setSelectedType] = useState('');
-    const [selectedStatus, setSelectedStatus] = useState('');
+    const [selectedType, setSelectedType] = useState(employee.employment_type);
+    const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     useEffect(() => {
         axiosInstance.get('/settings/getRoles', { headers })
             .then((response) => {
                 setRoles(response.data.roles);
                 setSelectedRole(employee.role_id);
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
 
@@ -45,8 +43,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             .then((response) => {
                 setBranches(response.data.branches);
                 setSelectedBranch(employee.branch_id);
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
 
@@ -54,8 +51,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             .then((response) => {
                 setJobTitles(response.data.jobTitles);
                 setSelectedJobTitle(employee.job_title_id);
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
 
@@ -63,13 +59,15 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             .then((response) => {
                 setDepartments(response.data.departments);
                 setSelectedDepartment(employee.department_id);
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 console.error('Error fetching departments:', error);
             });
 
-        setSelectedType(employee.employment_type);
-        setSelectedStatus(employee.employment_status);
+        setStartDate(dayjs(employee.date_start));
+        setEndDate(dayjs(employee.end_start));
+
+        console.log("Start Date:", employee.date_start);
+        console.log("Parsed Start Date:", dayjs(employee.date_start));
     }, []);
 
     const saveInput = (event) => {
@@ -86,6 +84,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             startDate: startDate,
             endDate: endDate,
         };
+
+        console.log("saveInput()");
+        console.log(data);
 
         axiosInstance.post('/employees/editEmmployeeDetails', data, { headers })
             .then(response => {
@@ -195,7 +196,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            {/* <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -203,15 +204,11 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                         id="startDate"
                                         label="Start Date"
                                         variant="outlined"
+                                        value={startDate} // This should be a dayjs object or null
                                         onChange={(newValue) => setStartDate(newValue)}
-                                        componentsProps={{
-                                            actionBar: {
-                                              actions: ['clear'],
-                                            },
-                                          }}
                                     />
                                 </LocalizationProvider>
-                            </FormControl>
+                            </FormControl> */}
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
@@ -232,7 +229,6 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                     <MenuItem key="Regular" value="Regular"> Regular </MenuItem>
                                     <MenuItem key="Part-Time" value="Part-Time"> Part-Time </MenuItem>
                                     <MenuItem key="Full-Time" value="Full-Time"> Full-Time </MenuItem>
-
                                 </TextField>
                             </FormControl>
                             
@@ -252,7 +248,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            {/* <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -260,10 +256,11 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                         id="endDate"
                                         label="End Date"
                                         variant="outlined"
+                                        value={endDate}
                                         onChange={(newValue) => setEndDate(newValue)}
                                     />
                                 </LocalizationProvider>
-                            </FormControl>
+                            </FormControl> */}
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>

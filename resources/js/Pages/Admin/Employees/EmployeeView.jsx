@@ -57,7 +57,9 @@ const EmployeeView = () => {
         return age;
     };
 
-    const formattedDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
+    const formattedBirthDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
+    const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
+    const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
     
     const [activeTab, setActiveTab] = useState('1');
 
@@ -165,7 +167,7 @@ const EmployeeView = () => {
                                         <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
                                     </Grid>
                                     <Grid item xs={11}>
-                                        <Typography> {employee.birth_date ? `${formattedDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
+                                        <Typography> {employee.birth_date ? `${formattedBirthDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -279,11 +281,11 @@ const EmployeeView = () => {
                                         <Typography> Start Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.date_start || '-' } </Typography>
+                                        <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> End Date </Typography>
+                                        <Typography> {employee.date_end ? `${formattedEndDate}` : '-'} </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.date_end || '-' } </Typography>

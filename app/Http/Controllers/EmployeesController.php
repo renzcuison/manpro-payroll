@@ -163,6 +163,8 @@ class EmployeesController extends Controller
 
                 $employee->employment_type = $request->selectedType;
                 $employee->employment_status = $request->selectedStatus;
+                $employee->date_start = $request->startDate;
+                $employee->date_end = $request->endDate;
                 $employee->save();
                 
                 DB::commit();

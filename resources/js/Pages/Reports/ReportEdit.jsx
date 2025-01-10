@@ -68,7 +68,6 @@ const ReportEdit = () => {
     const [dateError, setDateError] = useState(false);
     const [typeError, setTypeError] = useState(false);
     const [periodFromError, setPeriodFromError] = useState(false);
-    const [periodToError, setPeriodToError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [selectedEmployeesError, setSelectedEmployeesError] = useState(false);
     const [attachmentError, setAttachmentError] = useState(false);
@@ -204,12 +203,6 @@ const ReportEdit = () => {
             setPeriodFromError(true);
         } else {
             setPeriodFromError(false);
-        }
-
-        if (!periodTo) {
-            setPeriodToError(true);
-        } else {
-            setPeriodToError(false);
         }
 
         if (!attachment) {
