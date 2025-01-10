@@ -285,10 +285,10 @@ const EmployeeView = () => {
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> {employee.date_end ? `${formattedEndDate}` : '-'} </Typography>
+                                        <Typography> Start Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.date_end || '-' } </Typography>
+                                        <Typography> {employee.date_end ? `${formattedEndDate}` : '-'} </Typography>                                    
                                     </Grid>
                                 </Grid>
                             </Box>

@@ -24,8 +24,8 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const [selectedJobTitle, setSelectedJobTitle] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('');
 
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = React.useState(dayjs(employee.date_start));
+    const [endDate, setEndDate] = React.useState(dayjs(employee.date_end));
 
     const [selectedType, setSelectedType] = useState(employee.employment_type);
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
@@ -63,11 +63,11 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                 console.error('Error fetching departments:', error);
             });
 
-        setStartDate(dayjs(employee.date_start));
-        setEndDate(dayjs(employee.end_start));
+        // setStartDate(employee.date_start ? dayjs(employee.date_start) : null);
+        // setEndDate(employee.date_end ? dayjs(employee.date_end) : null);
 
-        console.log("Start Date:", employee.date_start);
-        console.log("Parsed Start Date:", dayjs(employee.date_start));
+        // console.log("Start Date:", employee.date_start);
+        // console.log("Parsed Start Date:", dayjs(employee.date_start));
     }, []);
 
     const saveInput = (event) => {
@@ -196,19 +196,21 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            {/* <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         id="startDate"
                                         label="Start Date"
-                                        variant="outlined"
-                                        value={startDate} // This should be a dayjs object or null
-                                        onChange={(newValue) => setStartDate(newValue)}
+                                        value={startDate}
+                                        onChange={(newValue) => {
+                                            setStartDate(newValue);
+                                        }}
+                                        slotProps={{ textField: { variant: 'outlined' }}}
                                     />
                                 </LocalizationProvider>
-                            </FormControl> */}
+                            </FormControl>
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
@@ -248,7 +250,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            {/* <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -257,10 +259,13 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                         label="End Date"
                                         variant="outlined"
                                         value={endDate}
-                                        onChange={(newValue) => setEndDate(newValue)}
+                                        onChange={(newValue) => {
+                                            setEndDate(newValue);
+                                        }}
+                                        slotProps={{ textField: { variant: 'outlined' }}}
                                     />
                                 </LocalizationProvider>
-                            </FormControl> */}
+                            </FormControl>
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
