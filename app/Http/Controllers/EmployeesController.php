@@ -115,15 +115,27 @@ class EmployeesController extends Controller
 
             $employee->role = "";
             $employee->jobTitle = "";
+            $employee->branch = "";
+            $employee->department = "";
 
             if ( $employee->role_id ) {
                 $role = EmployeeRolesModel::find($employee->role_id);
                 $employee->role = $role->name . " (" . $role->acronym . ")";
             }
 
+            if ( $employee->branch_id ) {
+                $branch = BranchesModel::find($employee->branch_id);
+                $employee->branch = $branch->name . " (" . $branch->acronym . ")";
+            }
+
             if ( $employee->job_title_id ) {
                 $jobTitle = JobTitlesModel::find($employee->job_title_id);
                 $employee->jobTitle = $jobTitle->name . " (" . $jobTitle->acronym . ")";
+            }
+
+            if ( $employee->department_id ) {
+                $department = DepartmentsModel::find($employee->department_id);
+                $employee->department = $department->name . " (" . $department->acronym . ")";
             }
 
             return response()->json(['status' => 200, 'employee' => $employee]);

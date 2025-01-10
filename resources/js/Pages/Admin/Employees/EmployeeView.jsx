@@ -66,7 +66,6 @@ const EmployeeView = () => {
     };
 
     const handleOpenActions = (event) => {
-        console.log("Open Actions");
         setAnchorEl(event.currentTarget);
     };
     
@@ -248,14 +247,14 @@ const EmployeeView = () => {
                                         <Typography> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.department_id || '-' } </Typography>
+                                        <Typography> {employee.department || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.branch_id || '-' } </Typography>
+                                        <Typography> {employee.branch || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 

@@ -35,6 +35,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
         axiosInstance.get('/settings/getRoles', { headers })
             .then((response) => {
                 setRoles(response.data.roles);
+                setSelectedRole(employee.role_id);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -43,6 +44,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
         axiosInstance.get('/settings/getBranches', { headers })
             .then((response) => {
                 setBranches(response.data.branches);
+                setSelectedBranch(employee.branch_id);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -51,6 +53,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
         axiosInstance.get('/settings/getJobTitles', { headers })
             .then((response) => {
                 setJobTitles(response.data.jobTitles);
+                setSelectedJobTitle(employee.job_title_id);
             })
             .catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -59,15 +62,11 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
         axiosInstance.get('/settings/getDepartments', { headers })
             .then((response) => {
                 setDepartments(response.data.departments);
+                setSelectedDepartment(employee.department_id);
             })
             .catch((error) => {
                 console.error('Error fetching departments:', error);
             });
-
-        setSelectedRole(employee.role_id);
-        setSelectedBranch(employee.branch_id);
-        setSelectedJobTitle(employee.job_title_id);
-        setSelectedDepartment(employee.department_id);
 
         setSelectedType(employee.employment_type);
         setSelectedStatus(employee.employment_status);
