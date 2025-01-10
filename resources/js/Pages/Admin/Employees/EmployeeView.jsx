@@ -25,7 +25,14 @@ const EmployeeView = () => {
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
 
     useEffect(() => {
+        getEmployeeDetails();
+    }, []);
+
+    const getEmployeeDetails = () => {
         const data = { username: user };
+
+        setOpenEmploymentDetailsEditModal(false);
+        setAnchorEl(null);
 
         axiosInstance.get(`/employees/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
@@ -35,7 +42,7 @@ const EmployeeView = () => {
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
             });
-    }, []);
+    };
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
@@ -58,71 +65,6 @@ const EmployeeView = () => {
       setActiveTab(newActiveTab);
     };
 
-    const renderEmploymentContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Box sx={{ px: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                            
-                <Grid container spacing={4} sx={{ py: 1 }}>
-                    <Grid item xs={2}>
-                        <Typography> Department </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Typography> Role </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                </Grid>
-
-                <Grid container spacing={4} sx={{ py: 1 }}>
-                    <Grid item xs={2}>
-                        <Typography> Branch </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Typography> Status </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                </Grid>
-
-                <Grid container spacing={4} sx={{ py: 1 }}>
-                    <Grid item xs={2}>
-                        <Typography> Start Date </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Typography> End Date </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6"> {employee.first_name} {employee.middle_name ? '' : employee.middle_name } {employee.last_name} {employee.suffix ? '' : employee.suffix }</Typography>
-                    </Grid>
-                </Grid>
-
-            </Box>
-        </Box>
-    );
-    
-    const renderAttendanceContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Attendance Information will be displayed here</Typography>
-        </Box>
-    );
-
-    const renderPayrollContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Payroll Information will be displayed here</Typography>
-        </Box>
-    );
-
     const handleOpenActions = (event) => {
         console.log("Open Actions");
         setAnchorEl(event.currentTarget);
@@ -139,6 +81,18 @@ const EmployeeView = () => {
     const handleCloseEmploymentDetailsEditModal = () => {
         setOpenEmploymentDetailsEditModal(false);
     }
+
+    const renderAttendanceContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Attendance Information will be displayed here</Typography>
+        </Box>
+    );
+
+    const renderPayrollContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Payroll Information will be displayed here</Typography>
+        </Box>
+    );
     
     return (
         <Layout title={"Clients"}>
@@ -231,15 +185,15 @@ const EmployeeView = () => {
                         <Grid item xs={8}>
                             <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
-                                <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Summary </Typography>
+                                <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
 
                                 <Grid container spacing={4}>
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#7eb73d' }}>100,000</Avatar>
+                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
                                             </Grid>
-                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Signed Payroll </Typography>
                                             </Grid>
                                         </Box>
@@ -247,10 +201,10 @@ const EmployeeView = () => {
 
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#eab000' }}>100,000</Avatar>
+                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
                                             </Grid>
-                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Attendance </Typography>
                                             </Grid>
                                         </Box>
@@ -258,10 +212,10 @@ const EmployeeView = () => {
 
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 110, height: 110, bgcolor: '#de5146' }}>100,000</Avatar>
+                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
                                             </Grid>
-                                            <Grid container sx={{ pt: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Applications </Typography>
                                             </Grid>
                                         </Box>
@@ -278,14 +232,14 @@ const EmployeeView = () => {
                                         <Typography> Role </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.role_id || '-' } </Typography>
+                                        <Typography> {employee.role || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Job Title </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.job_title_id || '-' } </Typography>
+                                        <Typography> {employee.jobTitle || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -294,14 +248,14 @@ const EmployeeView = () => {
                                         <Typography> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.department_id || '-' } </Typography>
+                                        <Typography> {employee.department_id || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.branch_id || '-' } </Typography>
+                                        <Typography> {employee.branch_id || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -310,14 +264,14 @@ const EmployeeView = () => {
                                         <Typography> Type </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.employment_type || '-' } </Typography>
+                                        <Typography> {employee.employment_type || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Status </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.employment_status || '-' } </Typography>
+                                        <Typography> {employee.employment_status || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -326,14 +280,14 @@ const EmployeeView = () => {
                                         <Typography> Start Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.date_start || '-' } </Typography>
+                                        <Typography> {employee.date_start || '-' } </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> End Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography variant="h6"> {employee.date_end || '-' } </Typography>
+                                        <Typography> {employee.date_end || '-' } </Typography>
                                     </Grid>
                                 </Grid>
                             </Box>
@@ -346,20 +300,18 @@ const EmployeeView = () => {
                             {/* Put Tabs in Here */}
                             <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Tabs value={activeTab} onChange={handleTabChange}>
-                                    <Tab label="Employment" value="1"/>
-                                    <Tab label="Attendance" value="2"/>
-                                    <Tab label="Payroll" value="3"/>
+                                    <Tab label="Attendance" value="1"/>
+                                    <Tab label="Payroll" value="2"/>
                                 </Tabs>
-                                {activeTab === '1' && renderEmploymentContent()}
-                                {activeTab === '2' && renderAttendanceContent()}
-                                {activeTab === '3' && renderPayrollContent()}
+                                {activeTab === '1' && renderAttendanceContent()}
+                                {activeTab === '2' && renderPayrollContent()}
                             </Box>
                         </Grid>
                     </Grid>
                 </Box>
 
                 {openEmploymentDetailsEditModal &&
-                    <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} />
+                    <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} onUpdateEmployee={getEmployeeDetails} />
                 }
             </Box>
         </Layout >

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BranchesModel;
+use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
+use App\Models\EmployeeRolesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -106,10 +108,23 @@ class EmployeesController extends Controller
     {
         // log::info("EmployeesController::getEmployeeDetails");
 
-        if ($this->checkUser()) {
+        $user = Auth::user();            
+        $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
 
-            $user = Auth::user();            
-            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+        if ($this->checkUser() && $user->client_id == $employee->client_id) {
+
+            $employee->role = "";
+            $employee->jobTitle = "";
+
+            if ( $employee->role_id ) {
+                $role = EmployeeRolesModel::find($employee->role_id);
+                $employee->role = $role->name . " (" . $role->acronym . ")";
+            }
+
+            if ( $employee->job_title_id ) {
+                $jobTitle = JobTitlesModel::find($employee->job_title_id);
+                $employee->jobTitle = $jobTitle->name . " (" . $jobTitle->acronym . ")";
+            }
 
             return response()->json(['status' => 200, 'employee' => $employee]);
         }    
@@ -121,27 +136,34 @@ class EmployeesController extends Controller
     {
         // log::info("EmployeesController::editEmmployeeDetails");
 
-        if ($this->checkUser()) {
+        $user = Auth::user();
+        $employee = UsersModel::find($request->id);
 
-            log::info($request);
+        if ($this->checkUser() && $user->client_id == $employee->client_id) {
 
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
+            try {
+                DB::beginTransaction();
 
-            // try {
-            //     DB::beginTransaction();
+                $employee->role_id = $request->selectedRole;
+                $employee->branch_id = $request->selectedBranch;
+                $employee->job_title_id = $request->selectedJobTitle;
+                $employee->department_id = $request->selectedDepartment;
+
+                $employee->employment_type = $request->selectedType;
+                $employee->employment_status = $request->selectedStatus;
+                $employee->save();
                 
-            //     DB::commit();
+                DB::commit();
             
-            //     return response()->json([ 'status' => 200 ]);
+                return response()->json([ 'status' => 200 ]);
 
-            // } catch (\Exception $e) {
-            //     DB::rollBack();
+            } catch (\Exception $e) {
+                DB::rollBack();
 
-            //     Log::error("Error saving: " . $e->getMessage());
+                Log::error("Error saving: " . $e->getMessage());
 
-            //     throw $e;
-            // }
+                throw $e;
+            }
         }    
     }
 }

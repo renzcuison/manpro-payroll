@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const EmploymentDetailsEdit = ({ open, close, employee }) => {
+const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -30,11 +30,6 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
 
     const [selectedType, setSelectedType] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
-
-    useEffect(() => {
-        console.log("Employee: ");
-        console.log(employee);
-    }, []);
 
     useEffect(() => {
         axiosInstance.get('/settings/getRoles', { headers })
@@ -68,6 +63,14 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
             .catch((error) => {
                 console.error('Error fetching departments:', error);
             });
+
+        setSelectedRole(employee.role_id);
+        setSelectedBranch(employee.branch_id);
+        setSelectedJobTitle(employee.job_title_id);
+        setSelectedDepartment(employee.department_id);
+
+        setSelectedType(employee.employment_type);
+        setSelectedStatus(employee.employment_status);
     }, []);
 
     const saveInput = (event) => {
@@ -79,6 +82,8 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
             selectedBranch: selectedBranch,
             selectedJobTitle: selectedJobTitle,
             selectedDepartment: selectedDepartment,
+            selectedType: selectedType,
+            selectedStatus: selectedStatus,
             startDate: startDate,
             endDate: endDate,
         };
@@ -88,14 +93,16 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
+                        text: "Employment Details updated successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/employees`);
+                        if (onUpdateEmployee) {
+                            onUpdateEmployee();
+                        }
                     });
                 }
             })
@@ -198,6 +205,11 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
                                         label="Start Date"
                                         variant="outlined"
                                         onChange={(newValue) => setStartDate(newValue)}
+                                        componentsProps={{
+                                            actionBar: {
+                                              actions: ['clear'],
+                                            },
+                                          }}
                                     />
                                 </LocalizationProvider>
                             </FormControl>
@@ -217,10 +229,10 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
                                     value={selectedType}
                                     onChange={(event) => setSelectedType(event.target.value)}
                                 >
-                                    <MenuItem key="probation" value="probation"> Probation </MenuItem>
-                                    <MenuItem key="regular" value="regular"> Regular </MenuItem>
-                                    <MenuItem key="partTime" value="partTime"> Part-Time </MenuItem>
-                                    <MenuItem key="fullTime" value="fullTime"> Full-Time </MenuItem>
+                                    <MenuItem key="Probation" value="Probation"> Probation </MenuItem>
+                                    <MenuItem key="Regular" value="Regular"> Regular </MenuItem>
+                                    <MenuItem key="Part-Time" value="Part-Time"> Part-Time </MenuItem>
+                                    <MenuItem key="Full-Time" value="Full-Time"> Full-Time </MenuItem>
 
                                 </TextField>
                             </FormControl>
@@ -235,9 +247,9 @@ const EmploymentDetailsEdit = ({ open, close, employee }) => {
                                     value={selectedStatus}
                                     onChange={(event) => setSelectedStatus(event.target.value)}
                                 >
-                                    <MenuItem key="active" value="active"> Active </MenuItem>
-                                    <MenuItem key="resigned" value="resigned"> Resigned </MenuItem>
-                                    <MenuItem key="terminated" value="terminated"> Terminated </MenuItem>
+                                    <MenuItem key="Active" value="Active"> Active </MenuItem>
+                                    <MenuItem key="Resigned" value="Resigned"> Resigned </MenuItem>
+                                    <MenuItem key="Terminated" value="Terminated"> Terminated </MenuItem>
                                 </TextField>
                             </FormControl>
 

@@ -22,6 +22,7 @@ class UsersModel extends Authenticatable
         'last_name',
         'suffix',
         'birth_date',
+        'gender',
 
         'address',
         'contact_number',
@@ -29,12 +30,24 @@ class UsersModel extends Authenticatable
         'password',
 
         'user_type',
-        'profile_pic',
+        'salary_type',
+        'salary',
 
+        'profile_pic',
         'verify_code',
         'code_expiration',
         'is_verified',
 
+        'date_start',
+        'date_end',
+
+        'employment_type',
+        'employment_status',
+
         'client_id',
+        'branch_id',
+        'department_id',
+        'role_id',
+        'job_title_id',
     ];
 }
