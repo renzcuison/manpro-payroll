@@ -264,7 +264,7 @@ const WorkshiftAdd = () => {
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
-        axiosInstance.post('/workshifts/saveRegularWorkShift', data, { headers })
+        axiosInstance.post('/workshedule/saveRegularWorkShift', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -304,7 +304,7 @@ const WorkshiftAdd = () => {
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
-        axiosInstance.post('/workshifts/saveSplitWorkShift', data, { headers })
+        axiosInstance.post('/workshedule/saveSplitWorkShift', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({

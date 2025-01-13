@@ -111,7 +111,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
     });
 
-    Route::prefix('workshifts')->group(function () {
+    Route::prefix('workshedule')->group(function () {
         Route::get('/getWorkShiftLinks', [WorkScheduleController::class, 'getWorkShiftLinks']);
         Route::get('/getWorkShiftDetails', [WorkScheduleController::class, 'getWorkShiftDetails']);
 

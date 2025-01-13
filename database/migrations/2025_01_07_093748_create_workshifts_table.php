@@ -13,7 +13,7 @@ class CreateWorkshiftsTable extends Migration
      */
     public function up()
     {
-        Schema::create('workshifts', function (Blueprint $table) {
+        Schema::create('work_shifts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
             $table->enum('shift_type', ['Regular', 'Split'])->nullable();

@@ -9,7 +9,7 @@ class WorkShiftsModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'workshifts';
+    protected $table = 'work_shifts';
 
     protected $primaryKey = 'id';
 

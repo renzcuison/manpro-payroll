@@ -19,7 +19,7 @@ const WorkshiftView = () => {
     useEffect(() => {
         const data = { shift, shift };
 
-        axiosInstance.get(`/workshifts/getWorkShiftDetails`, { params: data, headers })
+        axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
                 setWorkShift(response.data.workShift);
                 getEmployees(response.data.workShift.id);

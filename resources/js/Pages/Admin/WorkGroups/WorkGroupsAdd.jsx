@@ -33,6 +33,32 @@ const WorkGroupsAdd = () => {
         } else {
             setGroupNameError(false);
         }
+
+        if ( !groupName ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this work group?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInputSplit(event);
+                }
+            });
+        }
     };
 
     return (

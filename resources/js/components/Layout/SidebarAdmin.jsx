@@ -152,7 +152,7 @@ const Sidebar = ({ children, closeMini }) => {
     const [workshifts, setWorkshifts] = useState([]);
 
     useEffect(() => {  
-        axiosInstance.get(`/workshifts/getWorkShiftLinks`, { headers })
+        axiosInstance.get(`/workshedule/getWorkShiftLinks`, { headers })
             .then((response) => {
                 setWorkshifts(response.data.workShifts);
             })
