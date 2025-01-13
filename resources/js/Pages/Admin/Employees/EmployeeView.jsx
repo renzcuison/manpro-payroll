@@ -89,6 +89,12 @@ const EmployeeView = () => {
         </Box>
     );
 
+    const renderWorkScheduleContent = () => (
+        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            <Typography variant="body1">Work Schedule Information will be displayed here</Typography>
+        </Box>
+    );
+
     const renderPayrollContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Typography variant="body1">Payroll Information will be displayed here</Typography>
@@ -302,10 +308,12 @@ const EmployeeView = () => {
                             <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Tabs value={activeTab} onChange={handleTabChange}>
                                     <Tab label="Attendance" value="1"/>
-                                    <Tab label="Payroll" value="2"/>
+                                    <Tab label="Work Schedule" value="2"/>
+                                    <Tab label="Payroll" value="3"/>
                                 </Tabs>
                                 {activeTab === '1' && renderAttendanceContent()}
-                                {activeTab === '2' && renderPayrollContent()}
+                                {activeTab === '2' && renderWorkScheduleContent()}
+                                {activeTab === '3' && renderPayrollContent()}
                             </Box>
                         </Grid>
                     </Grid>
