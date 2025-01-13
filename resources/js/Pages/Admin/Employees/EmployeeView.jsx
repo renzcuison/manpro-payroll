@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useMediaQuery, Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
+import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
@@ -18,7 +18,6 @@ const EmployeeView = () => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const isAbove1080 = useMediaQuery('(min-width:1080px)');
 
     const [employee, setEmployee] = useState(''); 
 
@@ -104,7 +103,8 @@ const EmployeeView = () => {
     return (
         <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}}>
+
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
 

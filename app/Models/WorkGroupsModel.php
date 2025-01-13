@@ -15,8 +15,8 @@ class WorkGroupsModel extends Model
 
     protected $fillable = [
         'name',
-        'name',
-
+        
+        'work_shift_id',
         'client_id',
         'deleted_at',
     ];

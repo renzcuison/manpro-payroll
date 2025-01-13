@@ -94,8 +94,6 @@ class WorkScheduleController extends Controller
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
-            log::info($request);
-
             try {
                 DB::beginTransaction();
 
@@ -151,8 +149,6 @@ class WorkScheduleController extends Controller
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
-            log::info($request);
-
             try {
                 DB::beginTransaction();
 
@@ -205,6 +201,40 @@ class WorkScheduleController extends Controller
         } 
 
         return response()->json(['status' => 200, 'workGroups' => null]);   
+    }
+
+    public function getWorkGroupDetails(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkGroupDetails");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $group = str_replace('_', ' ', $request->group);
+
+            $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $group)->first();
+
+            $workShift = WorkShiftsModel::select(
+                'name',
+                'shift_type',
+                'regular_time_in',
+                'regular_time_out',
+                'split_first_label',
+                'split_first_time_in',
+                'split_first_time_out',
+                'split_second_label',
+                'split_second_time_in',
+                'split_second_time_out',
+                'over_time_in',
+                'over_time_out'
+            )->find($workGroup->work_shift_id);
+            
+
+            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift]);   
+        } 
+
+        return response()->json(['status' => 200, 'workSGroup' => null]);   
     }
 
     public function saveWorkGroup(Request $request)
