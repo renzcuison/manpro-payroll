@@ -180,6 +180,18 @@ const Sidebar = ({ children, closeMini }) => {
                     text: '+ Add Shift',
                 }),
             },
+            {
+                text: 'Work Groups',
+                children: workshifts.map(shift => ({
+                    // id: shift.id,
+                    href: `/admin/workshift/${shift.link}`,
+                    text: shift.name,
+                })).concat({
+                    // id: 'add-shift',
+                    href: '/admin/workgroups-add',
+                    text: '+ Add Group',
+                }),
+            },
         ]
     }];
 

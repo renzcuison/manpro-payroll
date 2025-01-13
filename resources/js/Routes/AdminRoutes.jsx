@@ -11,6 +11,8 @@ import EmployeesView from "../Pages/Admin/Employees/EmployeeView";
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
 import WorkshiftsView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
+import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
+
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
@@ -36,6 +38,11 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftsView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
+
+
+            <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
+
+            
 
             <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
