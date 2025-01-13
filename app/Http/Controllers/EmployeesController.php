@@ -32,19 +32,52 @@ class EmployeesController extends Controller
         return false;
     }
 
+    private function enrichEmployeeDetails($employee)
+    {
+        $employee->role = "";
+        $employee->jobTitle = "";
+        $employee->branch = "";
+        $employee->department = "";
+
+        if ($employee->role_id) {
+            $role = EmployeeRolesModel::find($employee->role_id);
+            $employee->role = $role ? $role->name . " (" . $role->acronym . ")" : "";
+        }
+
+        if ($employee->branch_id) {
+            $branch = BranchesModel::find($employee->branch_id);
+            $employee->branch = $branch ? $branch->name . " (" . $branch->acronym . ")" : "";
+        }
+
+        if ($employee->job_title_id) {
+            $jobTitle = JobTitlesModel::find($employee->job_title_id);
+            $employee->jobTitle = $jobTitle ? $jobTitle->name . " (" . $jobTitle->acronym . ")" : "";
+        }
+
+        if ($employee->department_id) {
+            $department = DepartmentsModel::find($employee->department_id);
+            $employee->department = $department ? $department->name . " (" . $department->acronym . ")" : "";
+        }
+
+        return $employee;
+    }
+
     public function getEmployees(Request $request)
     {
         // log::info("EmployeesController::getEmployees");
 
         if ($this->checkUser()) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
             $employees = $client->employees;
-
-            return response()->json(['status' => 200, 'employees' => $employees]);
+    
+            $enrichedEmployees = $employees->map(function ($employee) {
+                return $this->enrichEmployeeDetails($employee);
+            });
+    
+            return response()->json(['status' => 200, 'employees' => $enrichedEmployees]);
         }    
-
+    
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
@@ -110,37 +143,12 @@ class EmployeesController extends Controller
 
         $user = Auth::user();            
         $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
-
+    
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
-
-            $employee->role = "";
-            $employee->jobTitle = "";
-            $employee->branch = "";
-            $employee->department = "";
-
-            if ( $employee->role_id ) {
-                $role = EmployeeRolesModel::find($employee->role_id);
-                $employee->role = $role->name . " (" . $role->acronym . ")";
-            }
-
-            if ( $employee->branch_id ) {
-                $branch = BranchesModel::find($employee->branch_id);
-                $employee->branch = $branch->name . " (" . $branch->acronym . ")";
-            }
-
-            if ( $employee->job_title_id ) {
-                $jobTitle = JobTitlesModel::find($employee->job_title_id);
-                $employee->jobTitle = $jobTitle->name . " (" . $jobTitle->acronym . ")";
-            }
-
-            if ( $employee->department_id ) {
-                $department = DepartmentsModel::find($employee->department_id);
-                $employee->department = $department->name . " (" . $department->acronym . ")";
-            }
-
+            $employee = $this->enrichEmployeeDetails($employee);
             return response()->json(['status' => 200, 'employee' => $employee]);
         }    
-
+    
         return response()->json(['status' => 200, 'employee' => null]);
     }
 

@@ -96,7 +96,7 @@ const EmployeeView = () => {
     );
     
     return (
-        <Layout title={"Clients"}>
+        <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
