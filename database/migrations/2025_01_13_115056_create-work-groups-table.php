@@ -16,7 +16,7 @@ class CreateWorkGroupsTable extends Migration
         Schema::create('work_groups', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
-            $table->unsignedBigInteger('work_shift_id');
+            $table->unsignedBigInteger('work_shift_id')->nullable();
             $table->unsignedBigInteger('client_id');
 
             $table->softDeletes();
@@ -34,6 +34,11 @@ class CreateWorkGroupsTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('work_groups', function (Blueprint $table) {
+            $table->dropForeign(['work_shift_id']);
+            $table->dropForeign(['client_id']);
+        });
+    
+        Schema::dropIfExists('work_groups');
     }
 }

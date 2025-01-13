@@ -55,11 +55,40 @@ const WorkGroupsAdd = () => {
                 cancelButtonText: 'Cancel',
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveInputSplit(event);
+                    saveInput(event);
                 }
             });
         }
     };
+
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const data = {
+            groupName: groupName,
+        };
+
+        axiosInstance.post('/workshedule/saveWorkGroup', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Work group saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/admin/workgroup/${response.data.link}`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+
 
     return (
         <Layout title={"AddWorkShift"}>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClientsModel;
+use App\Models\WorkGroupsModel;
 use App\Models\WorkShiftsModel;
 
 use Illuminate\Http\Request;
@@ -170,6 +171,45 @@ class WorkScheduleController extends Controller
                 DB::commit();
             
                 return response()->json([ 'status' => 200, 'shift' => $shift ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function saveWorkGroup(Request $request)
+    {
+        // log::info("WorkScheduleController::saveWorkGroup");
+
+        $validated = $request->validate([
+            'groupName' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            log::info($request);
+
+            try {
+                DB::beginTransaction();
+
+                $group = WorkGroupsModel::create([
+                    "name" => $request->groupName,
+                    "client_id" => $client->id,
+                ]);
+
+                $link = str_replace(' ', '_', $group->name);
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200, 'group' => $group, 'link' => $link ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
