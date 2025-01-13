@@ -181,6 +181,22 @@ class WorkScheduleController extends Controller
         }    
     }
 
+    public function getWorkGroups(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkGroups");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $workGroups = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->select('id', 'name')->get();
+
+            return response()->json(['status' => 200, 'workGroups' => $workGroups]);   
+        } 
+
+        return response()->json(['status' => 200, 'workGroups' => null]);   
+    }
+
     public function getWorkGroupLinks(Request $request)
     {
         // log::info("WorkScheduleController::getWorkGroupLinks");

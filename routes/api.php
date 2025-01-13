@@ -119,6 +119,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveRegularWorkShift', [WorkScheduleController::class, 'saveRegularWorkShift']);
 
 
+        Route::get('/getWorkGroups', [WorkScheduleController::class, 'getWorkGroups']);
         Route::get('/getWorkGroupLinks', [WorkScheduleController::class, 'getWorkGroupLinks']);
         Route::get('/getWorkGroupDetails', [WorkScheduleController::class, 'getWorkGroupDetails']);
 

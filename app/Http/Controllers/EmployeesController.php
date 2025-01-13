@@ -8,6 +8,7 @@ use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
+use App\Models\WorkGroupsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,7 @@ class EmployeesController extends Controller
         $employee->jobTitle = "";
         $employee->branch = "";
         $employee->department = "";
+        $employee->work_group = "";
 
         if ($employee->role_id) {
             $role = EmployeeRolesModel::find($employee->role_id);
@@ -57,6 +59,11 @@ class EmployeesController extends Controller
         if ($employee->department_id) {
             $department = DepartmentsModel::find($employee->department_id);
             $employee->department = $department ? $department->name . " (" . $department->acronym . ")" : "";
+        }
+
+        if ($employee->work_group_id) {
+            $work_group = WorkGroupsModel::find($employee->work_group_id);
+            $employee->work_group = $work_group ? $work_group->name : "";
         }
 
         return $employee;
@@ -168,6 +175,7 @@ class EmployeesController extends Controller
                 $employee->branch_id = $request->selectedBranch;
                 $employee->job_title_id = $request->selectedJobTitle;
                 $employee->department_id = $request->selectedDepartment;
+                $employee->work_group_id = $request->selectedWorkGroup;
 
                 $employee->employment_type = $request->selectedType;
                 $employee->employment_status = $request->selectedStatus;

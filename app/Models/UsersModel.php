@@ -49,5 +49,6 @@ class UsersModel extends Authenticatable
         'department_id',
         'role_id',
         'job_title_id',
+        'work_group_id',
     ];
 }

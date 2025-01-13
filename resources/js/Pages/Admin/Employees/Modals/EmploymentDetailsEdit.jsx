@@ -18,11 +18,13 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const [branches, setBranches] = useState([]);
     const [jobTitles, setJobTitles] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [workGroups, setWorkGroups] = useState([]);
 
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedJobTitle, setSelectedJobTitle] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [selectedWorkGroup, setSelectedWorkGroup] = useState('');
 
     const [startDate, setStartDate] = React.useState(dayjs(employee.date_start));
     const [endDate, setEndDate] = React.useState(dayjs(employee.date_end));
@@ -63,15 +65,19 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                 console.error('Error fetching departments:', error);
             });
 
-        // setStartDate(employee.date_start ? dayjs(employee.date_start) : null);
-        // setEndDate(employee.date_end ? dayjs(employee.date_end) : null);
-
-        // console.log("Start Date:", employee.date_start);
-        // console.log("Parsed Start Date:", dayjs(employee.date_start));
+        axiosInstance.get('/workshedule/getWorkGroups', { headers })
+            .then((response) => {
+                setWorkGroups(response.data.workGroups);
+                setSelectedWorkGroup(employee.work_group_id);
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+            });
     }, []);
 
     const saveInput = (event) => {
         event.preventDefault();
+
+        console.log(selectedWorkGroup);
 
         const data = {
             id: employee.id,
@@ -79,6 +85,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             selectedBranch: selectedBranch,
             selectedJobTitle: selectedJobTitle,
             selectedDepartment: selectedDepartment,
+            selectedWorkGroup: selectedWorkGroup,
             selectedType: selectedType,
             selectedStatus: selectedStatus,
             startDate: startDate,
@@ -127,7 +134,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -143,7 +150,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
                             
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -155,6 +162,22 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 >
                                     {jobTitles.map((jobTitle) => (
                                         <MenuItem key={jobTitle.id} value={jobTitle.id}> {jobTitle.name} ({jobTitle.acronym}) </MenuItem>
+                                    ))}
+                                </TextField>
+                            </FormControl>
+
+                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    select
+                                    id="workGroup"
+                                    label="Work Group"
+                                    value={selectedWorkGroup}
+                                    onChange={(event) => setSelectedWorkGroup(event.target.value)}
+                                >
+                                    {workGroups.map((workGroup) => (
+                                        <MenuItem key={workGroup.id} value={workGroup.id}> {workGroup.name} </MenuItem>
                                     ))}
                                 </TextField>
                             </FormControl>
