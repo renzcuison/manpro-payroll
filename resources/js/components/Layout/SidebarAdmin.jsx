@@ -150,6 +150,7 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportCreateActive = useIsActive('/report-create');
 
     const [workshifts, setWorkshifts] = useState([]);
+    const [workgroups, setWorkgroups] = useState([]);
 
     useEffect(() => {  
         axiosInstance.get(`/workshedule/getWorkShiftLinks`, { headers })
@@ -158,6 +159,14 @@ const Sidebar = ({ children, closeMini }) => {
             })
             .catch((error) => {
                 console.error('Error fetching work shifts:', error);
+            });
+
+        axiosInstance.get(`/workshedule/getWorkGroupLinks`, { headers })
+            .then((response) => {
+                setWorkgroups(response.data.workGroups);
+            })
+            .catch((error) => {
+                console.error('Error fetching work groups:', error);
             });
     }, []);
 
@@ -182,12 +191,12 @@ const Sidebar = ({ children, closeMini }) => {
             },
             {
                 text: 'Work Groups',
-                children: workshifts.map(shift => ({
-                    // id: shift.id,
-                    href: `/admin/workshift/${shift.link}`,
-                    text: shift.name,
+                children: workgroups.map(group => ({
+                    // id: group.id,
+                    href: `/admin/workgroup/${group.link}`,
+                    text: group.name,
                 })).concat({
-                    // id: 'add-shift',
+                    // id: 'add-group',
                     href: '/admin/workgroups-add',
                     text: '+ Add Group',
                 }),

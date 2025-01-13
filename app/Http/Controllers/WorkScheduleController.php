@@ -39,9 +39,8 @@ class WorkScheduleController extends Controller
             $client = ClientsModel::find($user->client_id);
             $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->select('name')->get();
 
-            $workShifts = $workShifts->map(function ($workShift) use ($client) {
+            $workShifts = $workShifts->map(function ($workShift) {
                 $workShift->link = str_replace(' ', '_', $workShift->name);
-                $workShift->unique_code = $client->unique_code;
 
                 return $workShift;
             });
@@ -184,6 +183,28 @@ class WorkScheduleController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function getWorkGroupLinks(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkGroupLinks");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $workGroups = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->select('name')->get();
+
+            $workGroups = $workGroups->map(function ($workGroup) {
+                $workGroup->link = str_replace(' ', '_', $workGroup->name);
+
+                return $workGroup;
+            });
+
+            return response()->json(['status' => 200, 'workGroups' => $workGroups]);   
+        } 
+
+        return response()->json(['status' => 200, 'workGroups' => null]);   
     }
 
     public function saveWorkGroup(Request $request)
