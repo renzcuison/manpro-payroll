@@ -5,7 +5,7 @@ import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 const WorkGroupView = () => {
@@ -30,6 +30,7 @@ const WorkGroupView = () => {
             .then((response) => {
                 setWorkGroup(response.data.workGroup);
                 setWorkShift(response.data.workShift);
+                setEmployees(response.data.employees);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -148,8 +149,6 @@ const WorkGroupView = () => {
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
                                                             <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                            <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                            <TableCell align="center">{employee.employment_status || '-'}</TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>

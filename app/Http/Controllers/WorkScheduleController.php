@@ -3,8 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClientsModel;
+use App\Models\UsersModel;
 use App\Models\WorkGroupsModel;
 use App\Models\WorkShiftsModel;
+use App\Models\BranchesModel;
+use App\Models\JobTitlesModel;
+use App\Models\DepartmentsModel;
+use App\Models\EmployeeRolesModel;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -232,22 +238,46 @@ class WorkScheduleController extends Controller
             $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $group)->first();
 
             $workShift = WorkShiftsModel::select(
-                'name',
-                'shift_type',
-                'regular_time_in',
-                'regular_time_out',
-                'split_first_label',
-                'split_first_time_in',
-                'split_first_time_out',
-                'split_second_label',
-                'split_second_time_in',
-                'split_second_time_out',
-                'over_time_in',
-                'over_time_out'
-            )->find($workGroup->work_shift_id);
-            
+                    'name',
+                    'shift_type',
+                    'regular_time_in',
+                    'regular_time_out',
+                    'split_first_label',
+                    'split_first_time_in',
+                    'split_first_time_out',
+                    'split_second_label',
+                    'split_second_time_in',
+                    'split_second_time_out',
+                    'over_time_in',
+                    'over_time_out'
+                )->find($workGroup->work_shift_id);
 
-            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift]);   
+            $employees = UsersModel::where('work_group_id', $workGroup->id)
+                ->select('user_name', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id', 'job_title_id')
+                ->get()
+                ->map(function ($employee) {
+                    $branch = BranchesModel::find($employee->branch_id);
+                    $employee->branch = $branch ? $branch->name . " (" . $branch->acronym . ")" : null;
+    
+                    $department = DepartmentsModel::find($employee->department_id);
+                    $employee->department = $department ? $department->name . " (" . $department->acronym . ")" : null;
+    
+                    $role = EmployeeRolesModel::find($employee->role_id);
+                    $employee->role = $role ? $role->name . " (" . $role->acronym . ")" : null;
+    
+                    return [
+                        'user_name' => $employee->user_name,
+                        'first_name' => $employee->first_name,
+                        'middle_name' => $employee->middle_name,
+                        'last_name' => $employee->last_name,
+                        'suffix' => $employee->suffix,
+                        'branch' => $employee->branch,
+                        'department' => $employee->department,
+                        'role' => $employee->role,
+                    ];
+                });
+        
+            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'employees' => $employees]);   
         } 
 
         return response()->json(['status' => 200, 'workSGroup' => null]);   
