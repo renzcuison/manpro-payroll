@@ -119,8 +119,10 @@ class WorkScheduleController extends Controller
                 ]);
                 
                 DB::commit();
+
+                $link = str_replace(' ', '_', $shift->name);
             
-                return response()->json([ 'status' => 200, 'shift' => $shift ]);
+                return response()->json([ 'status' => 200, 'shift' => $shift, 'link' => $link ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -170,7 +172,9 @@ class WorkScheduleController extends Controller
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200, 'shift' => $shift ]);
+                $link = str_replace(' ', '_', $shift->name);
+            
+                return response()->json([ 'status' => 200, 'shift' => $shift, 'link' => $link ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

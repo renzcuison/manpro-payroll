@@ -276,7 +276,7 @@ const WorkshiftAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/workhours`);
+                        navigate(`/admin/workshift/${response.data.link}`);
                     });
                 }
             })
@@ -316,7 +316,7 @@ const WorkshiftAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/workhours`);
+                        navigate(`/admin/workshift/${response.data.link}`);
                     });
                 }
             })

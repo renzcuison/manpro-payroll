@@ -48,7 +48,7 @@ class CreateWorkshiftsTable extends Migration
      */
     public function down()
     {
-        Schema::table('workshifts', function (Blueprint $table) {
+        Schema::table('work_shifts', function (Blueprint $table) {
             $table->dropForeign(['client_id']);
         });
     
