@@ -5,13 +5,14 @@ import ProtectedRoute from './ProtectedRoute';
 import Error404 from "../Pages/Errors/Error404";
 
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
+import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
-import EmployeesView from "../Pages/Admin/Employees/EmployeeView";
 
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
-import WorkshiftsView from "../Pages/Admin/WorkShifts/WorkshiftView";
+import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
 import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
+import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
 
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
@@ -29,20 +30,19 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            {/* <Route path="employee" element={<ProtectedRoute element={<EmployeesView />} user={user} />} /> */}
-            <Route path="employee/:user" element={<ProtectedRoute element={<EmployeesView />} user={user} />} />
+            <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
-            <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftsView />} user={user} />} />
+            <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
-
+            <Route path="workgroup/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
             <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
-            
+
 
             <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
