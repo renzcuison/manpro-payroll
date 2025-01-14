@@ -107,13 +107,13 @@ class WorkScheduleController extends Controller
                     "name" => $request->shiftName,
                     "shift_type" => $request->shiftType,
 
-                    "split_first_label" => $request->firstLabel,
-                    "split_first_time_in" => $request->splitFirstTimeIn,
-                    "split_first_time_out" => $request->splitFirstTimeOut,
+                    "first_label" => $request->firstLabel,
+                    "first_time_in" => $request->splitFirstTimeIn,
+                    "first_time_out" => $request->splitFirstTimeOut,
 
-                    "split_second_label" => $request->secondLabel,
-                    "split_second_time_in" => $request->splitSecondTimeIn,
-                    "split_second_time_out" => $request->splitSecondTimeOut,
+                    "second_label" => $request->secondLabel,
+                    "second_time_in" => $request->splitSecondTimeIn,
+                    "second_time_out" => $request->splitSecondTimeOut,
 
                     "over_time_in" => $request->overTimeIn,
                     "over_time_out" => $request->overTimeOut,
@@ -162,8 +162,9 @@ class WorkScheduleController extends Controller
                     "name" => $request->shiftName,
                     "shift_type" => $request->shiftType,
 
-                    "regular_time_in" => $request->regularTimeIn,
-                    "regular_time_out" => $request->regularTimeOut,
+                    "first_label" => "Attendance",
+                    "first_time_in" => $request->regularTimeIn,
+                    "first_time_out" => $request->regularTimeOut,
 
                     "over_time_in" => $request->overTimeIn,
                     "over_time_out" => $request->overTimeOut,
@@ -240,14 +241,12 @@ class WorkScheduleController extends Controller
             $workShift = WorkShiftsModel::select(
                     'name',
                     'shift_type',
-                    'regular_time_in',
-                    'regular_time_out',
-                    'split_first_label',
-                    'split_first_time_in',
-                    'split_first_time_out',
-                    'split_second_label',
-                    'split_second_time_in',
-                    'split_second_time_out',
+                    'first_label',
+                    'first_time_in',
+                    'first_time_out',
+                    'second_label',
+                    'second_time_in',
+                    'second_time_out',
                     'over_time_in',
                     'over_time_out'
                 )->find($workGroup->work_shift_id);

@@ -17,16 +17,13 @@ class WorkShiftsModel extends Model
         'name',
         'shift_type',
 
-        'regular_time_in',
-        'regular_time_out',
+        'first_label',
+        'first_time_in',
+        'first_time_out',
 
-        'split_first_label',
-        'split_first_time_in',
-        'split_first_time_out',
-
-        'split_second_label',
-        'split_second_time_in',
-        'split_second_time_out',
+        'second_label',
+        'second_time_in',
+        'second_time_out',
 
         'over_time_in',
         'over_time_out',
