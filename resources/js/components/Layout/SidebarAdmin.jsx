@@ -18,108 +18,6 @@ const useIsActive = (path) => {
     return location.pathname.startsWith(path);
 };
 
-const sidebarItems = [{
-    id: 1,
-    text: 'Employees',
-    icon: 'si si-users',
-    children: [
-        {
-            href: `/admin/employees?`,
-            text: 'List of Employees',
-            icon: 'si si-user',
-        },
-        {
-            href: `/hr/employees-benefits?`,
-            text: 'List of Benefits',
-            icon: 'si si-user',
-        },
-        {
-            href: `/hr/employees-deductions?`,
-            text: 'List of Deductions',
-            icon: 'si si-user',
-        },
-    ]
-},
-{
-    id: 2,
-    text: 'Applications',
-    icon: 'fa fa-pencil-square-o',
-    children: [
-        {
-            href: `/hr/applications?`,
-            text: 'Request',
-            icon: 'fa fa-cogs',
-        },
-        {
-            href: `/hr/applications-list?`,
-            text: 'List',
-            icon: 'fa fa-cogs',
-        },
-        {
-            href: `/hr/applications-leave?`,
-            text: 'Leave Credit',
-            icon: 'fa fa-cogs',
-        },
-        {
-            href: `/hr/applications-overtime?`,
-            text: 'Overtime',
-            icon: 'fa fa-cogs',
-        }
-    ]
-}];
-
-const payrollItems = [{
-    id: 3,
-    text: 'Payroll',
-    icon: 'fa fa-money',
-    children: [
-        {
-            href: `/hr/payroll-process?`,
-            text: 'Process',
-            icon: 'fa fa-cogs',
-        },
-        {
-            href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-            text: 'Records',
-            icon: 'fa fa-cogs',
-        },
-        {
-            href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-            text: 'Summary',
-            icon: 'fa fa-cogs',
-        }
-    ]
-}]
-
-const settingsItems = [{
-    id: 4,
-    text: 'Settings',
-    icon: 'fa fa-gear',
-    children: [
-        {
-            href: `/admin/settings/general?`,
-            text: 'General',
-            icon: 'fa fa-cogs',
-        },
-    ]
-}]
-
-const evaluationItems = [{
-    id: 4,
-    text: 'Performance Evaluation',
-    icon: 'fa fa-check',
-    children: [
-        {
-            href: `/member/evaluate`,
-            text: 'Evaluate',
-        },
-        {
-            href: `/member/evaluation`,
-            text: 'My Evaluation',
-        }
-    ]
-}]
-
 const StyledNav = styled(NavLink)(({ isActive }) => ({
     backgroundColor: 'transparent',
     ':hover': {
@@ -170,6 +68,93 @@ const Sidebar = ({ children, closeMini }) => {
             });
     }, []);
 
+    const employeesItems = [{
+        id: 1,
+        text: 'Employees',
+        icon: 'si si-users',
+        children: [
+            {
+                href: `/admin/employees?`,
+                text: 'List of Employees',
+                icon: 'si si-user',
+            },
+            // {
+                // href: `/hr/employees-benefits?`,
+                // text: 'List of Benefits',
+                // icon: 'si si-user',
+            // },
+            // {
+                // href: `/hr/employees-deductions?`,
+                // text: 'List of Deductions',
+                // icon: 'si si-user',
+            // },
+        ]
+    }];
+    
+    const applicationsItems = [{
+        id: 2,
+        text: 'Applications',
+        icon: 'fa fa-pencil-square-o',
+        children: [
+            {
+                href: `/hr/applications?`,
+                text: 'Request',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-list?`,
+                text: 'List',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-leave?`,
+                text: 'Leave Credit',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-overtime?`,
+                text: 'Overtime',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }];
+
+    const payrollItems = [{
+        id: 3,
+        text: 'Payroll',
+        icon: 'fa fa-money',
+        children: [
+            {
+                href: `/hr/payroll-process?`,
+                text: 'Process',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Records',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Summary',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }]
+    
+    const settingsItems = [{
+        id: 4,
+        text: 'Settings',
+        icon: 'fa fa-gear',
+        children: [
+            {
+                href: `/admin/settings/general?`,
+                text: 'General',
+                icon: 'fa fa-cogs',
+            },
+        ]
+    }]
+
     const workDays = [{
         id: 5,
         text: 'Work Schedule',
@@ -203,6 +188,22 @@ const Sidebar = ({ children, closeMini }) => {
             },
         ]
     }];
+
+    const evaluationItems = [{
+        id: 6,
+        text: 'Performance Evaluation',
+        icon: 'fa fa-check',
+        children: [
+            {
+                href: `/member/evaluate`,
+                text: 'Evaluate',
+            },
+            {
+                href: `/member/evaluation`,
+                text: 'My Evaluation',
+            }
+        ]
+    }]
 
     return (
         <nav id="sidebar" style={{ zIndex: 1, height: '100vh', overflow: 'hidden' }}>
@@ -254,15 +255,19 @@ const Sidebar = ({ children, closeMini }) => {
                                     <span className="sidebar-mini-hidden text-dark">Management</span>
                                 </li>
 
-                                {sidebarItems.map((items, index) => {
+                                {employeesItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
+                                {/* {applicationsItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })} */}
 
                                 {workDays.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
                                 
-                                <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
+                                {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
                                 </StyledNav>
 
@@ -284,7 +289,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 </StyledNav>
                                 <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
-                                </StyledNav>
+                                </StyledNav> */}
 
                                 {settingsItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
