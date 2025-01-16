@@ -156,43 +156,7 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportsActive = useIsActive('/reports');
     const isReportEditActive = useIsActive('/report-edit');
     const isReportCreateActive = useIsActive('/report-create');
-
-    useEffect(() => {  
-        console.log("Sidebar Employee");
-
-        axiosInstance.get(`/getWorkshifts`, { headers })
-            .then((response) => {
-                setWorkshifts(response.data.workShifts);
-            })
-            .catch((error) => {
-                console.error('Error fetching work shifts:', error);
-            });
-    }, []);
-
-    const workDays = [{
-        id: 5,
-        text: 'Work Schedule',
-        icon: 'fa fa-calendar',
-        children: [
-            {
-                href: `/hr/workdays`,
-                text: 'Workdays',
-                icon: 'fa fa-cogs',
-            },
-            {
-                text: 'Work Shifts',
-                children: workshifts.map(shift => ({
-                    id: shift.description,
-                    href: `/hr/workshift?id=${shift.id}&shift=${shift.description}`,
-                    text: shift.description,
-                })).concat({
-                    id: 'add-shift',
-                    href: '/hr/workshift-add',
-                    text: '+ Add Shift',
-                }),
-            },
-        ]
-    }];
+    
 
     return (
         <nav id="sidebar" style={{ zIndex: 1, height: '100vh', overflow: 'hidden' }}>

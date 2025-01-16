@@ -14,10 +14,9 @@ import CheckUser from "./Pages/CheckUser";
 import Dashboard from "./Pages/Dashboard";
 import Invoice from "./Pages/Accounting/Invoice";
 
-
-import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 import AdminDashboard from "./Pages/Hr/HrDashboard";
-import EmployeeDashboard from "./Pages/Member/MemberDashboard";
+import EmployeeDashboard from "./Pages/Employee/Dashboard";
+import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 
 import Error404 from "./Pages/Errors/Error404";
 
@@ -40,10 +39,13 @@ import ReportView from "./Pages/Reports/ReportView.jsx";
 import ReportEdit from "./Pages/Reports/ReportEdit.jsx";
 
 import HrRoutes from "./Routes/HrRoutes.jsx";
-import AdminRoutes from "./Routes/AdminRoutes.jsx";
-import MemberRoutes from "./Routes/MemberRoutes.jsx";
+
 
 import HrEmployeeAddEmp from "./Pages/Hr/HrEmployeeAddEmp";
+
+
+import AdminRoutes from "./Routes/AdminRoutes.jsx";
+import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
 import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
 
 function App() {
@@ -72,8 +74,10 @@ function App() {
         {/* <Route path="/" element={<Login />} /> */}
         <Route path="/hr/*" element={<HrRoutes user={user} />} />
         <Route path="/admin/*" element={<AdminRoutes user={user} />} />
-        <Route path="/member/*" element={<MemberRoutes user={user} />} />
         <Route path="/super-admin/*" element={<SuperAdminRoutes user={user} />} />
+        <Route path="/employee/*" element={<EmployeeRoutes user={user} />} />
+
+        {/* <Route path="/member/*" element={<MemberRoutes user={user} />} /> */}
 
 
 

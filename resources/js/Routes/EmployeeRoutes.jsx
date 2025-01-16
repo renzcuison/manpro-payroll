@@ -1,0 +1,50 @@
+import React from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import ProtectedRoute from './ProtectedRoute';
+
+import Error404 from "../Pages/Errors/Error404";
+
+import Dashboard from "../Pages/Employee/Dashboard";
+
+import MemberAttendance from "../Pages/Member/MemberAttendance";
+import MemberApplication from "../Pages/Member/MemberApplication";
+import MemberPayrollDetails from "../Pages/Member/MemberPayrollDetails";
+import MemberAnnouncements from "../Pages/Member/MemberAnnouncements";
+import MemberTrainings from "../Pages/Member/MemberTrainings";
+import MemberEvaluate from "../Pages/Member/MemberEvaluate";
+import MemberEvaluation from "../Pages/Member/MemberEvaluation";
+import MemberMyEvaluation from "../Pages/Member/MemberMyEvaluation";
+import MemberForEvaluation from "../Pages/Member/MemberForEvaluation";
+import MemberIncidentReports from "../Pages/Member/MemberIncidentReports";
+
+const EmployeeRoutes = ({ user }) => {
+    const navigate = useNavigate()
+
+    if (!user) {
+        navigate('/');
+    } else if (user.user_type !== "Employee") {
+        return <Error404 />;
+    }
+
+  return (
+    <Routes>
+        <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} user={user} />} />
+
+        <Route path="member-attendance" element={<ProtectedRoute element={<MemberAttendance />} user={user} />} />
+        <Route path="member-application" element={<ProtectedRoute element={<MemberApplication />} user={user} />} />
+        <Route path="member-payroll-details" element={<ProtectedRoute element={<MemberPayrollDetails />} user={user} />} />
+        <Route path="announcements" element={<ProtectedRoute element={<MemberAnnouncements />} user={user} />} />
+        <Route path="trainings" element={<ProtectedRoute element={<MemberTrainings />} user={user} />} />
+
+        {/* <Route path="evaluation" element={<ProtectedRoute element={<MemberEvaluation />} user={user} />} /> */}
+        
+        <Route path="evaluate" element={<ProtectedRoute element={<MemberForEvaluation />} user={user} />} />
+        <Route path="evaluate/:id" element={<ProtectedRoute element={<MemberEvaluate />} user={user} />} />
+        <Route path="evaluation" element={<ProtectedRoute element={<MemberMyEvaluation />} user={user} />} />
+
+        <Route path="incident-reports" element={<ProtectedRoute element={<MemberIncidentReports />} user={user} />} />
+    </Routes>
+  );
+};
+
+export default EmployeeRoutes;
