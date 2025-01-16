@@ -8,6 +8,8 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import AssignShift from '../WorkGroups/Modals/AssignShift';
+
 const WorkGroupView = () => {
     const { group } = useParams();
 
@@ -23,7 +25,13 @@ const WorkGroupView = () => {
     const [workShift, setWorkShift] = useState([]);
     const [employees, setEmployees] = useState([]);
 
+    const [openAssignShiftModal, setOpenAssignShiftModal] = useState(false);
+
     useEffect(() => {
+        getWorkGroupDetails();
+    }, []);
+
+    const getWorkGroupDetails = () => {
         const data = { group };
 
         axiosInstance.get(`/workshedule/getWorkGroupDetails`, { params: data, headers })
@@ -36,7 +44,7 @@ const WorkGroupView = () => {
             .catch((error) => {
                 console.error('Error fetching work group:', error);
             });
-    }, []);
+    }
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
@@ -55,6 +63,14 @@ const WorkGroupView = () => {
         return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     }  
 
+    const handleOpenAssignShiftModal = () => {
+        setOpenAssignShiftModal(true);
+    }
+
+    const handleCloseAssignShiftModal = () => {
+        setOpenAssignShiftModal(false);
+    }
+
     return (
         <Layout title={"Clients"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -68,7 +84,7 @@ const WorkGroupView = () => {
                         </Button>
                         
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions}>
-                            <MenuItem>Assign Shift</MenuItem>
+                            <MenuItem onClick={handleOpenAssignShiftModal}>Assign Shift</MenuItem>
                             <MenuItem>Edit Work Group</MenuItem>
                             <MenuItem>Delete Work Group</MenuItem>
                         </Menu>
@@ -94,7 +110,7 @@ const WorkGroupView = () => {
                                     {workShift.shift_type === "Regular" ? (
                                         <Grid container spacing={4} sx={{ p: 1 }}>
                                             <Grid item xs={4}> Attendance </Grid>
-                                            <Grid item xs={8}> {formatTime(workShift.time_in)} - {formatTime(workShift.time_out)} </Grid>
+                                            <Grid item xs={8}> {formatTime(workShift.first_time_in)} - {formatTime(workShift.first_time_out)} </Grid>
                                         </Grid>
                                     ) : workShift.shift_type === "Split" ? (
                                         <>
@@ -115,12 +131,32 @@ const WorkGroupView = () => {
                                     </Grid>
 
                                 </Box>
-                            ) : <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}></Box>}
+                            ) : <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
+                                    <Grid container spacing={4} sx={{ p: 1 }}>
+                                        <Grid item xs={4}> Assigned Shift </Grid>
+                                        <Grid item xs={8}></Grid>
+                                    </Grid>
+
+                                    <Grid container spacing={4} sx={{ p: 1 }}>
+                                        <Grid item xs={4}> Shift Type </Grid>
+                                        <Grid item xs={8}></Grid>
+                                    </Grid>
+
+                                    <Grid container spacing={4} sx={{ p: 1 }}>
+                                        <Grid item xs={4}> Attendance </Grid>
+                                        <Grid item xs={8}></Grid>
+                                    </Grid>
+
+                                    <Grid container spacing={4} sx={{ p: 1 }}>
+                                        <Grid item xs={4}> Over Time </Grid>
+                                        <Grid item xs={8}></Grid>
+                                    </Grid>
+                                </Box>
+                            }
                         </Grid>
 
                         <Grid item xs={8}>
                             <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
                                 {isLoading ? (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                         <CircularProgress />
@@ -139,14 +175,14 @@ const WorkGroupView = () => {
                                                 </TableHead>
 
                                                 <TableBody>
-                                                    {employees.map((employee) => (
+                                                    {employees.map((employee, index) => (
                                                         <TableRow
-                                                            key={employee.id}
-                                                            component={Link}
-                                                            to={`/admin/employee/${employee.user_name}`}
+                                                            key={employee.id || index}
+                                                            // component={Link}
+                                                            // to={`/admin/employee/${employee.user_name}`}
                                                             sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                         >
-                                                            <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
+                                                            <TableCell align="left"> {employee.id} {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
                                                             <TableCell align="center">{employee.role || '-'}</TableCell>
@@ -163,6 +199,10 @@ const WorkGroupView = () => {
 
                     </Grid>
                 </Box>
+
+                {openAssignShiftModal &&
+                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                }
             </Box>
         </Layout >
     )

@@ -35,6 +35,22 @@ class WorkScheduleController extends Controller
         return false;
     }
 
+    public function getWorkShifts(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkShifts");
+
+        if ($this->checkUser()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->get();
+
+            return response()->json(['status' => 200, 'workShifts' => $workShifts]);
+        } 
+
+        return response()->json(['status' => 200, 'workShifts' => null]);   
+    }
+
     public function getWorkShiftLinks(Request $request)
     {
         // log::info("WorkScheduleController::getWorkShiftLinks");
@@ -196,7 +212,7 @@ class WorkScheduleController extends Controller
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
-            $workGroups = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->select('id', 'name')->get();
+            $workGroups = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->get();
 
             return response()->json(['status' => 200, 'workGroups' => $workGroups]);   
         } 
@@ -310,6 +326,38 @@ class WorkScheduleController extends Controller
                 DB::commit();
                 
                 return response()->json([ 'status' => 200, 'group' => $group, 'link' => $link ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function saveWorkGroupShift(Request $request)
+    {
+        // log::info("WorkScheduleController::saveWorkGroupShift");
+
+        $validated = $request->validate([ 'workGroup' => 'required', 'workShift' => 'required' ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('name', $request->workGroup)->first();            
+
+            try {
+                DB::beginTransaction();
+                
+                $workGroup->work_shift_id = $request->workShift;
+                $workGroup->save();
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200 ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

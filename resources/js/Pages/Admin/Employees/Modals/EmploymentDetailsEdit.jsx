@@ -77,8 +77,6 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        console.log(selectedWorkGroup);
-
         const data = {
             id: employee.id,
             selectedRole: selectedRole,
@@ -91,9 +89,6 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             startDate: startDate,
             endDate: endDate,
         };
-
-        console.log("saveInput()");
-        console.log(data);
 
         axiosInstance.post('/employees/editEmmployeeDetails', data, { headers })
             .then(response => {
