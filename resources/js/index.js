@@ -15,7 +15,7 @@ import Dashboard from "./Pages/Dashboard";
 import Invoice from "./Pages/Accounting/Invoice";
 
 import AdminDashboard from "./Pages/Hr/HrDashboard";
-import EmployeeDashboard from "./Pages/Employee/Dashboard";
+import EmployeeDashboard from "./Pages/Employee/Dashboard/DashboardView.jsx";
 import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 
 import Error404 from "./Pages/Errors/Error404";

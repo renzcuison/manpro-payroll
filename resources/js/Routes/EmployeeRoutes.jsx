@@ -4,7 +4,7 @@ import ProtectedRoute from './ProtectedRoute';
 
 import Error404 from "../Pages/Errors/Error404";
 
-import Dashboard from "../Pages/Employee/Dashboard";
+import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 
 import MemberAttendance from "../Pages/Member/MemberAttendance";
 import MemberApplication from "../Pages/Member/MemberApplication";

@@ -1,13 +1,13 @@
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import Layout from "../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
+import Layout from "../../../components/Layout/Layout";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../resources/css/calendar.css";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Grid } from "@mui/material";
 import { AccessTime, CheckCircle, Info } from '@mui/icons-material';
-import PageHead from "../../components/Table/PageHead";
-import { getComparator, stableSort } from "../../components/utils/tableUtils";
+import PageHead from "../../../components/Table/PageHead";
+import { getComparator, stableSort } from "../../../components/utils/tableUtils";
 import Swal from "sweetalert2";
 import { useMediaQuery } from '@mui/material';
 
@@ -28,8 +28,6 @@ const isToday = (someDate) => {
 };
 
 const Dashboard = () => {
-    const [isDisabled, setIsDisabled] = useState(true);
-    const [getTimeAttendance, setGetTimeAttendance] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const [recentAttendances, setRecentAttendances] = useState([]);
     const [recentApplication, setRecentApplication] = useState([]);
@@ -55,24 +53,6 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-
-        // axiosInstance.get(`/dashboard_recentMemberAttendance`, { headers }).then((response) => {
-        //     setRecentAttendances(response.data.attendances);
-        //     setIsAttendanceLoading(false);
-        // });
-
-        // axiosInstance.get(`/dashboard_recentMemberApplication`, { headers }).then((response) => {
-        //     setRecentApplication(response.data.applications);
-        //     setIsApplicationLoading(false);
-        // });
-
-        // axiosInstance.get('/get_time', { headers }).then((response) => {
-        //     setGetTimeAttendance(response.data.attendance);
-        //     setIsDisabled(false);
-        // });
-    }, []);
-
-    useEffect(() => {
         const intervalId = setInterval(() => {
             setCurrentDateTime(new Date());
         }, 1000);
@@ -80,172 +60,13 @@ const Dashboard = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const handleTimein = () => {
-        new Swal({
-            customClass: { container: "my-swal", },
-            title: "Are you sure?",
-            text: "Confirm Morning Time in?",
-            icon: "warning",
-            dangerMode: true,
-            showCancelButton: true,
-        }).then(res => {
-            if (res.isConfirmed) {
-                const start = moment(start).format('YYYY-MM-DD');
-                const end = moment(end).format('YYYY-MM-DD');
-                const time_in = moment().format('HH:mm:ss');
-                const color = 'rgb(250, 34, 34)';
-                const timeIn = start + " " + time_in;
-                axiosInstance.post('/add_timein', {
-                    timeIn: timeIn,
-                    start: start,
-                    end: end,
-                    color: color,
-                    add_time_in: 1
-                }, { headers }).then((response) => {
-                    Swal.fire({
-                        customClass: { container: "my-swal", },
-                        icon: 'success',
-                        title: 'Successfully time in',
-                        showConfirmButton: false,
-                        timer: 1000
-                    }).then(function () {
-                        window.location.reload();
-                    })
-                });
-            }
-        })
-    }
-
-    const handleTimeout = () => {
-        new Swal({
-            customClass: { container: "my-swal", },
-            title: "Are you sure?",
-            text: "Confirm Morning Time out?",
-            icon: "warning",
-            dangerMode: true,
-            showCancelButton: true,
-        }).then(res => {
-            if (res.isConfirmed) {
-                const start = moment(start).format('YYYY-MM-DD');;
-                const end = moment(end).format('YYYY-MM-DD');
-                const time_out = moment().format('HH:mm:ss');
-                const color = 'rgb(250, 34, 34)';
-                const timeOut = start + " " + time_out;
-                axiosInstance.post('/add_timeout', {
-                    timeOut: timeOut,
-                    start: start,
-                    end: end,
-                    color: color,
-                    morning_time_out: 1
-                }, { headers }).then((response) => {
-                    Swal.fire({
-                        customClass: { container: "my-swal", },
-                        icon: 'success',
-                        title: 'Successfully time out',
-                        showConfirmButton: false,
-                        timer: 1000
-                    }).then(function () {
-                        window.location.reload();
-                    })
-                });
-            }
-        })
-    }
-
-    const handleTimeinAfternoon = () => {
-        new Swal({
-            customClass: { container: "my-swal", },
-            title: "Are you sure?",
-            text: "Confirm Afternoon Time in?",
-            icon: "warning",
-            dangerMode: true,
-            showCancelButton: true,
-        }).then(res => {
-            if (res.isConfirmed) {
-                const start = moment(start).format('YYYY-MM-DD');;
-                const end = moment(end).format('YYYY-MM-DD');
-                const time_in = moment().format('HH:mm:ss');
-                const color = 'rgb(250, 34, 34)';
-                const timeIn = start + " " + time_in;
-                axiosInstance.post('/add_timeinAfternoon', {
-                    timeIn: timeIn,
-                    start: start,
-                    end: end,
-                    color: color,
-                    afternoon_time_in: 1
-                }, { headers }).then((response) => {
-                    Swal.fire({
-                        customClass: { container: "my-swal", },
-                        icon: 'success',
-                        title: 'Successfully time in',
-                        showConfirmButton: false,
-                        timer: 1000
-                    }).then(function () {
-                        window.location.reload();
-                    })
-                });
-            }
-        })
-    }
-
-    const handleTimeoutAfternoon = () => {
-        new Swal({
-            customClass: { container: "my-swal", },
-            title: "Are you sure?",
-            text: "Confirm Afternoon Time out?",
-            icon: "warning",
-            dangerMode: true,
-            showCancelButton: true,
-        }).then(res => {
-            if (res.isConfirmed) {
-                const start = moment(start).format('YYYY-MM-DD');;
-                const end = moment(end).format('YYYY-MM-DD');
-                const time_out = moment().format('HH:mm:ss');
-                const color = 'rgb(250, 34, 34)';
-                const timeOut = start + " " + time_out;
-                axiosInstance.post('/add_timeoutAfternoon', {
-                    timeOut: timeOut,
-                    start: start,
-                    end: end,
-                    color: color,
-                    afternoon_time_out: 1
-                }, { headers }).then((response) => {
-                    Swal.fire({
-                        customClass: { container: "my-swal", },
-                        icon: 'success',
-                        title: 'Successfully time out',
-                        showConfirmButton: false,
-                        timer: 1000
-                    }).then(function () {
-                        window.location.reload();
-                    })
-                });
-            }
-        })
-    }
 
     const handleRowClick = (path) => {
         navigate(path);
     };
 
-    const checkAttendance = () => {
-        console.log(isDisabled);
+    const openAttendanceModal = () => {
 
-        if (isDisabled == false) {
-            if (getTimeAttendance.length === 0) {
-                handleTimein();
-            } else {
-                const attendance = getTimeAttendance[0];
-        
-                if ( attendance.morning_in !== null && attendance.morning_out === null ) {
-                    handleTimeout();
-                } else if ( attendance.morning_in !== null && attendance.morning_out !== null && attendance.afternoon_in === null ) {
-                    handleTimeinAfternoon();
-                } else if ( attendance.morning_in !== null && attendance.morning_out !== null && attendance.afternoon_in !== null  && attendance.afternoon_out === null  ) {
-                    handleTimeoutAfternoon();
-                }
-            }
-        }
     }
 
     return (
@@ -254,19 +75,21 @@ const Dashboard = () => {
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
-                    <Box sx={{ mt: 5}}>
+                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Dashboard</Typography>
+
+                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> {formattedDateTime} </Typography>
                     </Box>
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid item xs={12} lg={4}>
                             <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
-                                <Link onClick={checkAttendance} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <Link onClick={openAttendanceModal} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
                                             <AccessTime sx={{ color: 'white', fontSize: 30 }} />
                                         </Box>
-                                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> {formattedDateTime} </Typography>
+                                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Time In/Out </Typography>
                                     </Box>
                                 </Link>
                             </Box>
@@ -299,7 +122,7 @@ const Dashboard = () => {
                         </Grid>
                     </Grid>
 
-                    <Grid container spacing={4}>
+                    <Grid container spacing={4} sx={{ mt: 1 }}>
                         <Grid item xs={12} lg={8}>
                             <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
                                 <div style={{ marginLeft: 10 }}>
