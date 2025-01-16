@@ -103,7 +103,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
     });
 
-    Route::prefix('employees')->group(function () {
+    Route::prefix('employee')->group(function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
         Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);

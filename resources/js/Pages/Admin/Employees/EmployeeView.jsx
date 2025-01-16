@@ -33,7 +33,7 @@ const EmployeeView = () => {
         setOpenEmploymentDetailsEditModal(false);
         setAnchorEl(null);
 
-        axiosInstance.get(`/employees/getEmployeeDetails`, { params: data, headers })
+        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 if ( response.data.status === 200 ) {
                     setEmployee(response.data.employee);

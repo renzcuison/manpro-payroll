@@ -16,7 +16,7 @@ const EmployeesList = () => {
     const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get('/employees/getEmployees', { headers })
+        axiosInstance.get('/employee/getEmployees', { headers })
             .then((response) => {
                 setEmployees(response.data.employees);
                 setIsLoading(false);

@@ -90,7 +90,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             endDate: endDate,
         };
 
-        axiosInstance.post('/employees/editEmmployeeDetails', data, { headers })
+        axiosInstance.post('/employee/editEmmployeeDetails', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({

@@ -140,7 +140,7 @@ const EmployeesAdd = () => {
             password: password,
         };
 
-        axiosInstance.post('/employees/saveEmployee', data, { headers })
+        axiosInstance.post('/employee/saveEmployee', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({

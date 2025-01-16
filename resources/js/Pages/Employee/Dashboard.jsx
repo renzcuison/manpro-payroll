@@ -28,14 +28,13 @@ const isToday = (someDate) => {
 };
 
 const Dashboard = () => {
-    const isMdUp = useMediaQuery('(min-width: 1440px)');
     const [isDisabled, setIsDisabled] = useState(true);
     const [getTimeAttendance, setGetTimeAttendance] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const [recentAttendances, setRecentAttendances] = useState([]);
     const [recentApplication, setRecentApplication] = useState([]);
-    const [isAttendanceLoading, setIsAttendanceLoading] = useState(true);
-    const [isApplicationLoading, setIsApplicationLoading] = useState(true);
+    const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
+    const [isApplicationLoading, setIsApplicationLoading] = useState(false);
 
     const [order, setOrder] = useState("asc");
     const [orderBy, setOrderBy] = useState("calories");
@@ -56,8 +55,6 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        setIsAttendanceLoading(true);
-        setIsApplicationLoading(true);
 
         // axiosInstance.get(`/dashboard_recentMemberAttendance`, { headers }).then((response) => {
         //     setRecentAttendances(response.data.attendances);
@@ -254,345 +251,180 @@ const Dashboard = () => {
     return (
         <Layout>
 
-            {isMdUp && (
-                <>
-                    <Box sx={{ mx: 12, mt: 8 }}>
-                        <Grid container spacing={4} sx={{ marginBottom: 4 }}>
-                            <Grid item xs={12} lg={4}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
-                                    <Link onClick={checkAttendance} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <AccessTime sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> {formattedDateTime} </Typography>
-                                        </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
+            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
-                            <Grid item xs={12} lg={4}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
-                                    <Link to="/member/announcements" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <CheckCircle sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Announcements </Typography>
-                                        </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
+                    <Box sx={{ mt: 5}}>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Dashboard</Typography>
+                    </Box>
 
-                            <Grid item xs={12} lg={4}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
-                                    <Link to="/member/trainings" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <Info sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Trainings </Typography>
+                    <Grid container spacing={4} sx={{ mt: 2 }}>
+                        <Grid item xs={12} lg={4}>
+                            <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
+                                <Link onClick={checkAttendance} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
+                                            <AccessTime sx={{ color: 'white', fontSize: 30 }} />
                                         </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
+                                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> {formattedDateTime} </Typography>
+                                    </Box>
+                                </Link>
+                            </Box>
                         </Grid>
 
-                        <Grid container spacing={4} sx={{ marginBottom: 4 }}>
-                            <Grid item xs={12} lg={8}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
-                                    <div style={{ marginLeft: 10 }}>
-                                        <Box component={"div"} className="d-flex justify-content-between" >
-                                            <div className="font-size-h5 font-w600" style={{ marginTop: 12, marginBottom: 10, }} > Your Attendance </div>
+                        <Grid item xs={12} lg={4}>
+                            <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
+                                <Link to="/member/announcements" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
+                                            <CheckCircle sx={{ color: 'white', fontSize: 30 }} />
                                         </Box>
+                                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Announcements </Typography>
+                                    </Box>
+                                </Link>
+                            </Box>
+                        </Grid>
 
-                                        <div style={{ height: "560px", overflow: "auto" }}>
-                                            {isAttendanceLoading && isApplicationLoading ? (
-                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                                                    <CircularProgress />
-                                                </div>
-                                            ) : (
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
-                                                        <PageHead order={order} orderBy={orderBy} onRequestSort={ handleRequestSort } headCells={headCells} />
-                                                        <TableBody sx={{ cursor: "pointer" }} >
-                                                            {recentAttendances.length !=
-                                                                0 ? (
-                                                                stableSort(
-                                                                    recentAttendances,
-                                                                    getComparator( order, orderBy )
-                                                                )
-                                                                    .slice( page * rowsPerPage, page * rowsPerPage + rowsPerPage )
-                                                                    .map(
-                                                                        ( attendance, index ) => {
-                                                                            return (
-                                                                                <TableRow key={index} hover role="checkbox" tabIndex={-1} onClick={() => handleRowClick(`/member/member-attendance`)} >
-                                                                                    <TableCell>
-                                                                                        {new Date(attendance.start_date).toLocaleDateString()}
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        <div className="d-flex justify-content-end">
-                                                                                            <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} >
-                                                                                                {moment( attendance.morning_in ).format( "hh:mm a" )}
-                                                                                            </Typography>
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        <div className="d-flex justify-content-start">
-                                                                                            {" "}
-                                                                                            {attendance.afternoon_out ? (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} > {moment( attendance.afternoon_out ).format( "hh:mm a" )} </Typography>
-                                                                                            ) : isToday(new Date(attendance.start_date)) ? (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e9ab13" }} > Ongoing.. </Typography>
-                                                                                            ) : (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e24e45" }} > Failed to Timeout </Typography>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                </TableRow>
-                                                                            );
-                                                                        }
-                                                                    )
-                                                            ) : (
-                                                                <TableRow hover role="checkbox" tabIndex={-1} >
-                                                                    <TableCell colSpan={4}>
-                                                                        {" "}
-                                                                        {"No Data Found"}
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                            {emptyRows > 0 && (
-                                                                <TableRow style={{ height: 53 * emptyRows, }} >
-                                                                    <TableCell colSpan={6} />
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Box>
-                            </Grid>
+                        <Grid item xs={12} lg={4}>
+                            <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
+                                <Link to="/member/trainings" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
+                                            <Info sx={{ color: 'white', fontSize: 30 }} />
+                                        </Box>
+                                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Trainings </Typography>
+                                    </Box>
+                                </Link>
+                            </Box>
+                        </Grid>
+                    </Grid>
 
-                            <Grid item xs={12} lg={4}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
-                                    <div style={{ marginLeft: 10 }}>
-                                        <div className="font-size-h5 font-w600" style={{ paddingTop: 5, marginBottom: 10, }} > New Applications </div>
-                                        <div style={{ height: "560px", overflow: "auto", }} >
-                                            {isAttendanceLoading && isApplicationLoading ? (
-                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                                                    <CircularProgress />
-                                                </div>
-                                            ) : (
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
-                                                        <TableBody sx={{ cursor: "pointer" }} >
-                                                            {recentApplication.length != 0 ? (
-                                                                recentApplication.map(
-                                                                    ( application, index ) => {
+                    <Grid container spacing={4}>
+                        <Grid item xs={12} lg={8}>
+                            <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
+                                <div style={{ marginLeft: 10 }}>
+                                    <Box component={"div"} className="d-flex justify-content-between" >
+                                        <div className="font-size-h5 font-w600" style={{ marginTop: 12, marginBottom: 10, }} > Your Attendance </div>
+                                    </Box>
+
+                                    <div style={{ height: "560px", overflow: "auto" }}>
+                                        {isAttendanceLoading && isApplicationLoading ? (
+                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                                                <CircularProgress />
+                                            </div>
+                                        ) : (
+                                            <TableContainer>
+                                                <Table className="table table-md table-striped table-vcenter">
+                                                    <PageHead order={order} orderBy={orderBy} onRequestSort={ handleRequestSort } headCells={headCells} />
+                                                    <TableBody sx={{ cursor: "pointer" }} >
+                                                        {recentAttendances.length !=
+                                                            0 ? (
+                                                            stableSort(
+                                                                recentAttendances,
+                                                                getComparator( order, orderBy )
+                                                            )
+                                                                .slice( page * rowsPerPage, page * rowsPerPage + rowsPerPage )
+                                                                .map(
+                                                                    ( attendance, index ) => {
                                                                         return (
-                                                                            <TableRow key={ index } hover role="checkbox" tabIndex={ -1 } >
-                                                                                <TableCell> { application.leave_type } </TableCell>
+                                                                            <TableRow key={index} hover role="checkbox" tabIndex={-1} onClick={() => handleRowClick(`/member/member-attendance`)} >
                                                                                 <TableCell>
-                                                                                    <Typography  variant="subtitle2"  className="p-1 ml-2 text-center text-white rounded-lg"  style={{ backgroundColor: application.AppColor }} >
-                                                                                        { application.AppStatus }
-                                                                                    </Typography>
+                                                                                    {new Date(attendance.start_date).toLocaleDateString()}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    <div className="d-flex justify-content-end">
+                                                                                        <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} >
+                                                                                            {moment( attendance.morning_in ).format( "hh:mm a" )}
+                                                                                        </Typography>
+                                                                                    </div>
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    <div className="d-flex justify-content-start">
+                                                                                        {" "}
+                                                                                        {attendance.afternoon_out ? (
+                                                                                            <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} > {moment( attendance.afternoon_out ).format( "hh:mm a" )} </Typography>
+                                                                                        ) : isToday(new Date(attendance.start_date)) ? (
+                                                                                            <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e9ab13" }} > Ongoing.. </Typography>
+                                                                                        ) : (
+                                                                                            <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e24e45" }} > Failed to Timeout </Typography>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </TableCell>
                                                                             </TableRow>
                                                                         );
                                                                     }
                                                                 )
-                                                            ) : (
-                                                                <TableRow hover role="checkbox" tabIndex={-1} >
-                                                                    <TableCell colSpan={3} >
-                                                                        {" "}
-                                                                        { "No Data Found" }
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            )}
-                                        </div>
+                                                        ) : (
+                                                            <TableRow hover role="checkbox" tabIndex={-1} >
+                                                                <TableCell colSpan={4}>
+                                                                    {" "}
+                                                                    {"No Data Found"}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                        {emptyRows > 0 && (
+                                                            <TableRow style={{ height: 53 * emptyRows, }} >
+                                                                <TableCell colSpan={6} />
+                                                            </TableRow>
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        )}
                                     </div>
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                </>
-            )}
-
-            {!isMdUp && (
-                <>
-                    <Box sx={{ mx: 1, mt: 2 }}>
-                        <Grid container spacing={4} sx={{ marginBottom: 4 }}>
-                            <Grid item xs={12}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
-                                    <Link onClick={checkAttendance} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <AccessTime sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> {formattedDateTime} </Typography>
-                                        </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
-
-                            <Grid item xs={12}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
-                                    <Link to="/member/announcements" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <CheckCircle sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Announcements </Typography>
-                                        </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
-
-                            <Grid item xs={12}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
-                                    <Link to="/member/trainings" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                                <Info sx={{ color: 'white', fontSize: 30 }} />
-                                            </Box>
-                                            <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: 'right', color: '#777777' }}> Trainings </Typography>
-                                        </Box>
-                                    </Link>
-                                </Box>
-                            </Grid>
+                                </div>
+                            </Box>
                         </Grid>
 
-                        <Grid container spacing={4} sx={{ marginBottom: 4 }}>
-                            <Grid item xs={12} lg={8}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
-                                    <div style={{ marginLeft: 10 }}>
-                                        <Box component={"div"} className="d-flex justify-content-between" >
-                                            <div className="font-size-h5 font-w600" style={{ marginTop: 12, marginBottom: 10, }} > Your Attendance 1 </div>
-                                        </Box>
-
-                                        <div style={{ height: "560px", overflow: "auto" }}>
-                                            {isAttendanceLoading && isApplicationLoading ? (
-                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                                                    <CircularProgress />
-                                                </div>
-                                            ) : (
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
-                                                        <PageHead order={order} orderBy={orderBy} onRequestSort={ handleRequestSort } headCells={headCells} />
-                                                        <TableBody sx={{ cursor: "pointer" }} >
-                                                            {recentAttendances.length !=
-                                                                0 ? (
-                                                                stableSort(
-                                                                    recentAttendances,
-                                                                    getComparator( order, orderBy )
-                                                                )
-                                                                    .slice( page * rowsPerPage, page * rowsPerPage + rowsPerPage )
-                                                                    .map(
-                                                                        ( attendance, index ) => {
-                                                                            return (
-                                                                                <TableRow key={index} hover role="checkbox" tabIndex={-1} onClick={() => handleRowClick(`/member/member-attendance`)} >
-                                                                                    <TableCell>
-                                                                                        {new Date(attendance.start_date).toLocaleDateString()}
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        <div className="d-flex justify-content-end">
-                                                                                            <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} >
-                                                                                                {moment( attendance.morning_in ).format( "hh:mm a" )}
-                                                                                            </Typography>
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        <div className="d-flex justify-content-start">
-                                                                                            {" "}
-                                                                                            {attendance.afternoon_out ? (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} > {moment( attendance.afternoon_out ).format( "hh:mm a" )} </Typography>
-                                                                                            ) : isToday(new Date(attendance.start_date)) ? (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e9ab13" }} > Ongoing.. </Typography>
-                                                                                            ) : (
-                                                                                                <Typography variant="subtitle2" className="p-1 px-2 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#e24e45" }} > Failed </Typography>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                </TableRow>
-                                                                            );
-                                                                        }
-                                                                    )
-                                                            ) : (
-                                                                <TableRow hover role="checkbox" tabIndex={-1} >
-                                                                    <TableCell colSpan={4}>
-                                                                        {" "}
-                                                                        {"No Data Found"}
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                            {emptyRows > 0 && (
-                                                                <TableRow style={{ height: 53 * emptyRows, }} >
-                                                                    <TableCell colSpan={6} />
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            )}
-                                        </div>
+                        <Grid item xs={12} lg={4}>
+                            <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
+                                <div style={{ marginLeft: 10 }}>
+                                    <div className="font-size-h5 font-w600" style={{ paddingTop: 5, marginBottom: 10, }} > New Applications </div>
+                                    <div style={{ height: "560px", overflow: "auto", }} >
+                                        {isAttendanceLoading && isApplicationLoading ? (
+                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                                                <CircularProgress />
+                                            </div>
+                                        ) : (
+                                            <TableContainer>
+                                                <Table className="table table-md table-striped table-vcenter">
+                                                    <TableBody sx={{ cursor: "pointer" }} >
+                                                        {recentApplication.length != 0 ? (
+                                                            recentApplication.map(
+                                                                ( application, index ) => {
+                                                                    return (
+                                                                        <TableRow key={ index } hover role="checkbox" tabIndex={ -1 } >
+                                                                            <TableCell> { application.leave_type } </TableCell>
+                                                                            <TableCell>
+                                                                                <Typography  variant="subtitle2"  className="p-1 ml-2 text-center text-white rounded-lg"  style={{ backgroundColor: application.AppColor }} >
+                                                                                    { application.AppStatus }
+                                                                                </Typography>
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    );
+                                                                }
+                                                            )
+                                                        ) : (
+                                                            <TableRow hover role="checkbox" tabIndex={-1} >
+                                                                <TableCell colSpan={3} >
+                                                                    {" "}
+                                                                    { "No Data Found" }
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
+                                        )}
                                     </div>
-                                </Box>
-                            </Grid>
-
-                            <Grid item xs={12} lg={4}>
-                                <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 2, borderRadius: '16px'}}>
-                                    <div style={{ marginLeft: 10 }}>
-                                        <div className="font-size-h5 font-w600" style={{ paddingTop: 5, marginBottom: 10, }} > New Applications </div>
-                                        <div style={{ height: "560px", overflow: "auto", }} >
-                                            {isAttendanceLoading && isApplicationLoading ? (
-                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                                                    <CircularProgress />
-                                                </div>
-                                            ) : (
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
-                                                        <TableBody sx={{ cursor: "pointer" }} >
-                                                            {recentApplication.length != 0 ? (
-                                                                recentApplication.map(
-                                                                    ( application, index ) => {
-                                                                        return (
-                                                                            <TableRow key={ index } hover role="checkbox" tabIndex={ -1 } >
-                                                                                <TableCell> { application.leave_type } </TableCell>
-                                                                                <TableCell>
-                                                                                    <Typography  variant="subtitle2"  className="p-1 ml-2 text-center text-white rounded-lg"  style={{ backgroundColor: application.AppColor }} >
-                                                                                        { application.AppStatus }
-                                                                                    </Typography>
-                                                                                </TableCell>
-                                                                            </TableRow>
-                                                                        );
-                                                                    }
-                                                                )
-                                                            ) : (
-                                                                <TableRow hover role="checkbox" tabIndex={-1} >
-                                                                    <TableCell colSpan={3} >
-                                                                        {" "}
-                                                                        { "No Data Found" }
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Box>
-                            </Grid>
+                                </div>
+                            </Box>
                         </Grid>
-                    </Box>
-                </>
-            )}
+                    </Grid>
+
+                </Box>
+            </Box>
+
         </Layout>
     );
 };
