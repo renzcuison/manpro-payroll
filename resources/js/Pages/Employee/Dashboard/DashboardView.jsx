@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import "../../../../resources/css/calendar.css";
+import "../../../../../resources/css/calendar.css";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Grid } from "@mui/material";
 import { AccessTime, CheckCircle, Info } from '@mui/icons-material';
 import PageHead from "../../../components/Table/PageHead";
