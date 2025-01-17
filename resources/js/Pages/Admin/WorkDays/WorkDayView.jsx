@@ -26,21 +26,16 @@ const WorkDayView = () => {
     const [openWorkhoursData, setOpenWorkhoursData] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const [selectedShiftType, setSelectedShiftType] = useState('0');
-    const [shiftId, setShiftId] = useState('0');
-
-    // const [selectedWorkGroup, setSelectedWorkGroup] = useState('0');
-    const [selectedWorkGroup, setSelectedWorkGroup] = useState('1');
+    const [workGroups, setWorkGroups] = useState([]);
+    const [selectedWorkGroup, setSelectedWorkGroup] = useState('0');
 
     useEffect(() => {  
-        // axiosInstance.get(`/getWorkshifts`, { headers })
-            // .then((response) => {
-                // console.log(response);
-                // setWorkshifts(response.data.workShifts);
-            // })
-            // .catch((error) => {
-                // console.error('Error fetching work shifts:', error);
-            // });
+        axiosInstance.get('/workshedule/getWorkGroups', { headers })
+            .then((response) => {
+                setWorkGroups(response.data.workGroups);
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+            });
     }, []);
 
     const handleDateSelect = (selectInfo) => {
@@ -167,19 +162,19 @@ const WorkDayView = () => {
 
     const handleGroupChange = (event) => {
         setIsLoading(true);   
-        const shiftId = event.target.value;
+
+        const groupId = event.target.value;
     
-        setShiftId(shiftId);
-        setSelectedShiftType(shiftId);
+        setSelectedWorkGroup(groupId);
     
-        console.log("shiftId:", shiftId);
+        console.log("groupId:", groupId);
     
-        setCurrentDate(new Date());
-        axiosInstance.get(`/get_events/${empID}/` + shiftId, { headers }).then((response) => {
-            setGetEvents(response.data.events);
-            setGetHours(response.data.hours);
-            setIsLoading(false);
-        });
+        // setCurrentDate(new Date());
+        // axiosInstance.get(`/get_events/${empID}/` + shiftId, { headers }).then((response) => {
+            // setGetEvents(response.data.events);
+            // setGetHours(response.data.hours);
+            // setIsLoading(false);
+        // });
     };
     
 
@@ -195,7 +190,7 @@ const WorkDayView = () => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>                        
-                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -203,12 +198,12 @@ const WorkDayView = () => {
                                     id="workGroup"
                                     label="Work Group"
                                     value={selectedWorkGroup}
-                                    onChange={(event) => setSelectedWorkGroup(event.target.value)}
+                                    onChange={(event) => handleGroupChange}
                                 >
                                     <MenuItem key={0} value={0}> Select Work Group </MenuItem>
-                                    {/* {workGroups.map((workGroup) => (
+                                    {workGroups.map((workGroup) => (
                                         <MenuItem key={workGroup.id} value={workGroup.id}> {workGroup.name} </MenuItem>
-                                    ))} */}
+                                    ))}
                                 </TextField>
                             </FormControl>
                         </FormGroup>
@@ -217,16 +212,16 @@ const WorkDayView = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                     
                         {selectedWorkGroup === '0' ? (
-                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                                <h5 className='pt-3'>Select Work Group</h5>
-                            </div>
+                            <Box sx={{ my: 5, py: 5, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Select Work Group </Typography>
+                            </Box>
                         ) : (
                             <>
                                 {isLoading ? (
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                                    <Box sx={{ my: 5, py: 5, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                         <CircularProgress />
-                                        <h5 className='pt-3'>Loading...</h5>
-                                    </div>
+                                        <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Loading </Typography>
+                                    </Box>
                                 ) : (
                                     <FullCalendar
                                         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}

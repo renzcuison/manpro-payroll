@@ -16,7 +16,6 @@ import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
 import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
 
-import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
 
