@@ -8,6 +8,8 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
+import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
+
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
 import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
@@ -42,9 +44,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="workgroup/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
             <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
-
-
-            <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
+            <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
 
 
             {/* <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} /> */}
