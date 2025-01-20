@@ -305,12 +305,10 @@ class WorkScheduleController extends Controller
 
         $validated = $request->validate([ 'groupName' => 'required' ]);
 
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
         if ($this->checkUser() && $validated) {
-
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-
-            log::info($request);
 
             try {
                 DB::beginTransaction();
@@ -388,19 +386,54 @@ class WorkScheduleController extends Controller
 
     public function saveWorkDay(Request $request)
     {
-        // log::info("WorkScheduleController::saveWorkDay");
+        log::info("WorkScheduleController::saveWorkDay");
+        log::info($request);
 
-        $validated = $request->validate(['workGroupId' => 'required']);
+        $validated = $request->validate([
+            'selectedWorkGroup' => 'required',
+            'startDate' => 'required',
+            'endDate' => 'required',
+            'color' => 'required',
+        ]);
 
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
+        $workGroup = WorkGroupsModel::find($request->selectedWorkGroup);
+        $workShift = WorkShiftsModel::find($workGroup->work_shift_id);
+
+        log::info($workShift);
 
         if ($this->checkUser() && $validated && $user->user_type == "Admin") {
-            $workDays = WorkDaysModel::where('client_id', $client->id)->where('work_group_id', $request->workGroupId)->where('deleted_at', null)->get();
 
-            return response()->json(['status' => 200, 'workDays' => $workDays]);   
+            try {
+                DB::beginTransaction();
+
+                $workDay = WorkDaysModel::create([
+                    "title" => "Work Day",
+                    "start_date" => $request->startDate,
+                    "end_date" => $request->endDate,
+    
+                    "client_id" => $client->id,
+                    "work_group_id" => $request->selectedWorkGroup,
+                    
+                    "name" => $request->groupName,
+                    "client_id" => $client->id,
+                ]);
+    
+                DB::commit();
+                
+                return response()->json(['status' => 200, 'workDay' => $workDay]);   
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+
         } 
 
-        return response()->json(['status' => 200, 'workDays' => null]);   
+        return response()->json(['status' => 200, 'workDay' => null]);   
     }
 }

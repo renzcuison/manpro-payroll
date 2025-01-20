@@ -14,14 +14,13 @@ import HrWorkhoursModal from '../../../components/Modals/HrWorkhoursModal';
 
 const WorkDayView = () => {
     const [searchParams, setSearchParams] = useSearchParams()
-    const empID = searchParams.get('employeeID')
-    const [workDays, setWorkDays] = useState([]);
-    const [workHours, setWorkHours] = useState();
-
-    const [currentEvents, setCurrentEvents] = useState([]);
-    const [workshifts, setWorkshifts] = useState([]);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const [workDays, setWorkDays] = useState([]);
+
+    const [currentEvents, setCurrentEvents] = useState([]);
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [openWorkhoursData, setOpenWorkhoursData] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -135,16 +134,10 @@ const WorkDayView = () => {
             });
             
             const data = {
-                id: employee.id,
-                selectedRole: selectedRole,
-                selectedBranch: selectedBranch,
-                selectedJobTitle: selectedJobTitle,
-                selectedDepartment: selectedDepartment,
                 selectedWorkGroup: selectedWorkGroup,
-                selectedType: selectedType,
-                selectedStatus: selectedStatus,
-                startDate: startDate,
-                endDate: endDate,
+                startDate: start_dates,
+                endDate: end_dates,
+                color: color,
             };
 
             if (moment(selectInfo.startStr).format('YYYY-MM-DD') >= moment(currentDate).format('YYYY-MM-DD')) {
@@ -155,10 +148,10 @@ const WorkDayView = () => {
                     showCancelButton: true,
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        axiosInstance.post(`/add_event`, { title: 'Work Day', start: start_dates, end: end_dates, color: color, shiftId: shiftId }, { headers })
+                        axiosInstance.post('/workshedule/saveWorkDay', data, { headers })
                             .then((response) => {
                                 if (response.data.message === 'Success') {
-                                    handleGroupChange({ target: { value: shiftId } });
+                                    handleGroupChange({ target: { value: selectedWorkGroup } });
                                 } else {
                                     alert('Please Try Again');
                                 }
