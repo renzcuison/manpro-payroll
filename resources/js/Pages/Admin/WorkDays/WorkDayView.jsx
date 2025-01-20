@@ -38,82 +38,6 @@ const WorkDayView = () => {
             });
     }, []);
 
-    const handleDateSelect = (selectInfo) => {
-        let startDate = selectInfo.startStr;
-        let endDate = selectInfo.endStr;
-        let start_dates = []
-        let end_dates = []
-        const color = 'rgb(0, 128, 24)';
-
-        let exist = false;
-
-        workDays.map((item) => {
-            const formattedStartDate = moment(item.start).format('YYYY-MM-DD');
-            const formattedSelectDate = moment(selectInfo.startStr).format('YYYY-MM-DD');
-
-            if (formattedStartDate === formattedSelectDate) {
-                exist = true;
-            }
-
-        });
-
-        if (exist) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Error',
-                text: 'Work day already existed',
-            });
-        } else {
-            while (moment(startDate) < moment(endDate)) {
-                start_dates.push(startDate);
-                startDate = moment(startDate).add(1, 'days').format("YYYY-MM-DD");
-            }
-
-            start_dates.forEach(endDates => {
-                end_dates.push(moment(endDates).add(1, 'days').format("YYYY-MM-DD"));
-            });
-
-            if (moment(selectInfo.startStr).format('YYYY-MM-DD') >= moment(currentDate).format('YYYY-MM-DD')) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Confirm to Add this to Work Day?',
-                    icon: 'warning',
-                    allowOutsideClick: false,
-                    showCancelButton: true,
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        axiosInstance
-                            .post(`/add_event`, {
-                                title: 'Work Day',
-                                start: start_dates,
-                                end: end_dates,
-                                color: color,
-                                shiftId: shiftId,
-                            }, { headers })
-                            .then((response) => {
-                                if (response.data.message === 'Success') {
-                                    // location.reload();
-                                    handleGroupChange({ target: { value: shiftId } });
-                                } else {
-                                    alert('Please Try Again');
-                                    // location.reload();
-                                }
-                            })
-                            .catch((error) => {
-                                console.error('Error:', error);
-                            });
-                    }
-                });
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Error',
-                    text: 'Can\'t add work day in past date',
-                });
-            }
-        }
-    }
-
     const handleEventClick = (clickInfo) => {
         const selectedDate = clickInfo.event.start;
 
@@ -168,14 +92,92 @@ const WorkDayView = () => {
 
         axiosInstance.get('/workshedule/getWorkDays', { params: data, headers })
             .then((response) => {
-                // setRoles(response.data.roles);
-                // setSelectedRole(employee.role_id);
-
+                setWorkDays(response.data.workDays);
                 setIsLoading(false);
             }).catch((error) => {
                 console.error('Error fetching work days:', error);
             });
     };
+
+    const handleDateSelect = (selectInfo) => {
+        let startDate = selectInfo.startStr;
+        let endDate = selectInfo.endStr;
+        let start_dates = []
+        let end_dates = []
+        const color = 'rgb(0, 128, 24)';
+
+        let exist = false;
+
+        workDays.map((item) => {
+            const formattedStartDate = moment(item.start).format('YYYY-MM-DD');
+            const formattedSelectDate = moment(selectInfo.startStr).format('YYYY-MM-DD');
+
+            if (formattedStartDate === formattedSelectDate) {
+                exist = true;
+            }
+
+        });
+
+        if (exist) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Error',
+                text: 'Work day already existed',
+            });
+        } else {
+            while (moment(startDate) < moment(endDate)) {
+                start_dates.push(startDate);
+                startDate = moment(startDate).add(1, 'days').format("YYYY-MM-DD");
+            }
+
+            start_dates.forEach(endDates => {
+                end_dates.push(moment(endDates).add(1, 'days').format("YYYY-MM-DD"));
+            });
+            
+            const data = {
+                id: employee.id,
+                selectedRole: selectedRole,
+                selectedBranch: selectedBranch,
+                selectedJobTitle: selectedJobTitle,
+                selectedDepartment: selectedDepartment,
+                selectedWorkGroup: selectedWorkGroup,
+                selectedType: selectedType,
+                selectedStatus: selectedStatus,
+                startDate: startDate,
+                endDate: endDate,
+            };
+
+            if (moment(selectInfo.startStr).format('YYYY-MM-DD') >= moment(currentDate).format('YYYY-MM-DD')) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Confirm to Add this to Work Day?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        axiosInstance.post(`/add_event`, { title: 'Work Day', start: start_dates, end: end_dates, color: color, shiftId: shiftId }, { headers })
+                            .then((response) => {
+                                if (response.data.message === 'Success') {
+                                    handleGroupChange({ target: { value: shiftId } });
+                                } else {
+                                    alert('Please Try Again');
+                                }
+                            })
+                            .catch((error) => {
+                                console.error('Error:', error);
+                            });
+                    }
+                });
+            } else {
+                Swal.fire({ 
+                    title: 'Error',
+                    text: 'Can\'t add work day in past date',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+            }
+        }
+    }
     
 
     return (

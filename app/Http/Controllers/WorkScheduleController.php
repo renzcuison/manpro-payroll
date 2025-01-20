@@ -385,4 +385,22 @@ class WorkScheduleController extends Controller
 
         return response()->json(['status' => 200, 'workDays' => null]);   
     }
+
+    public function saveWorkDay(Request $request)
+    {
+        // log::info("WorkScheduleController::saveWorkDay");
+
+        $validated = $request->validate(['workGroupId' => 'required']);
+
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
+        if ($this->checkUser() && $validated && $user->user_type == "Admin") {
+            $workDays = WorkDaysModel::where('client_id', $client->id)->where('work_group_id', $request->workGroupId)->where('deleted_at', null)->get();
+
+            return response()->json(['status' => 200, 'workDays' => $workDays]);   
+        } 
+
+        return response()->json(['status' => 200, 'workDays' => null]);   
+    }
 }
