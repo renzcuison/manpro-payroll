@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClientsModel;
 use App\Models\UsersModel;
+use App\Models\WorkDaysModel;
 use App\Models\WorkGroupsModel;
 use App\Models\WorkShiftsModel;
 use App\Models\BranchesModel;
@@ -302,9 +303,7 @@ class WorkScheduleController extends Controller
     {
         // log::info("WorkScheduleController::saveWorkGroup");
 
-        $validated = $request->validate([
-            'groupName' => 'required',
-        ]);
+        $validated = $request->validate([ 'groupName' => 'required' ]);
 
         if ($this->checkUser() && $validated) {
 
@@ -367,5 +366,23 @@ class WorkScheduleController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function getWorkDays(Request $request)
+    {
+        // log::info("WorkScheduleController::getWorkDays");
+
+        $validated = $request->validate(['workGroupId' => 'required']);
+
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
+        if ($this->checkUser() && $validated && $user->user_type == "Admin") {
+            $workDays = WorkDaysModel::where('client_id', $client->id)->where('work_group_id', $request->workGroupId)->where('deleted_at', null)->get();
+
+            return response()->json(['status' => 200, 'workDays' => $workDays]);   
+        } 
+
+        return response()->json(['status' => 200, 'workDays' => null]);   
     }
 }

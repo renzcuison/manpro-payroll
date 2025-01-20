@@ -15,9 +15,9 @@ import HrWorkhoursModal from '../../../components/Modals/HrWorkhoursModal';
 const WorkDayView = () => {
     const [searchParams, setSearchParams] = useSearchParams()
     const empID = searchParams.get('employeeID')
-    const [getEvents, setGetEvents] = useState([]);
-    const [getHours, setGetHours] = useState();
-    const [shiftType , setShiftType ] = useState();
+    const [workDays, setWorkDays] = useState([]);
+    const [workHours, setWorkHours] = useState();
+
     const [currentEvents, setCurrentEvents] = useState([]);
     const [workshifts, setWorkshifts] = useState([]);
     const storedUser = localStorage.getItem("nasya_user");
@@ -47,7 +47,7 @@ const WorkDayView = () => {
 
         let exist = false;
 
-        getEvents.map((item) => {
+        workDays.map((item) => {
             const formattedStartDate = moment(item.start).format('YYYY-MM-DD');
             const formattedSelectDate = moment(selectInfo.startStr).format('YYYY-MM-DD');
 
@@ -160,26 +160,26 @@ const WorkDayView = () => {
         setOpenWorkhoursData(false)
     }
 
-    const handleGroupChange = (event) => {
-        setIsLoading(true);   
-
-        const groupId = event.target.value;
-    
+    const handleGroupChange = (groupId) => {
+        setIsLoading(true);
         setSelectedWorkGroup(groupId);
     
-        console.log("groupId:", groupId);
-    
-        // setCurrentDate(new Date());
-        // axiosInstance.get(`/get_events/${empID}/` + shiftId, { headers }).then((response) => {
-            // setGetEvents(response.data.events);
-            // setGetHours(response.data.hours);
-            // setIsLoading(false);
-        // });
+        const data = { workGroupId: groupId };
+
+        axiosInstance.get('/workshedule/getWorkDays', { params: data, headers })
+            .then((response) => {
+                // setRoles(response.data.roles);
+                // setSelectedRole(employee.role_id);
+
+                setIsLoading(false);
+            }).catch((error) => {
+                console.error('Error fetching work days:', error);
+            });
     };
     
 
     return (
-        <Layout title={"EmployeeView"}>
+        <Layout title={"WorkDayView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}}>
 
@@ -198,7 +198,8 @@ const WorkDayView = () => {
                                     id="workGroup"
                                     label="Work Group"
                                     value={selectedWorkGroup}
-                                    onChange={(event) => handleGroupChange}
+                                    onChange={(event) => handleGroupChange(event.target.value)}
+                                    sx={{ minWidth: '150px' }}
                                 >
                                     <MenuItem key={0} value={0}> Select Work Group </MenuItem>
                                     {workGroups.map((workGroup) => (
@@ -237,7 +238,7 @@ const WorkDayView = () => {
                                         // selectAllow={function (select) {
                                         //     return moment().diff(select.start, 'days') <= 0
                                         // }}
-                                        events={getEvents}
+                                        events={workDays}
                                         select={handleDateSelect}
                                         eventClick={handleEventClick}
                                         eventsSet={handleEvents}
