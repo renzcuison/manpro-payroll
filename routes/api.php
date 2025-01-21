@@ -132,6 +132,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getWorkDays', [WorkScheduleController::class, 'getWorkDays']);
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
+
+        Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
     });
 
 

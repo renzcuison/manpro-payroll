@@ -436,4 +436,22 @@ class WorkScheduleController extends Controller
 
         return response()->json(['status' => 200, 'workDay' => null]);   
     }
+
+    public function getHolidays(Request $request)
+    {
+        // log::info("WorkScheduleController::getHolidays");
+
+        $validated = $request->validate(['workGroupId' => 'required']);
+
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
+        if ($this->checkUser() && $user->user_type == "Admin") {
+            $workDays = WorkDaysModel::where('client_id', $client->id)->where('work_group_id', $request->workGroupId)->where('deleted_at', null)->get();
+
+            return response()->json(['status' => 200, 'workDays' => $workDays]);   
+        } 
+
+        return response()->json(['status' => 200, 'workDays' => null]);   
+    }
 }

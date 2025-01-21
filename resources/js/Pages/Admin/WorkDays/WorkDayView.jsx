@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Layout from '../../../components/Layout/Layout'
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem } from '@mui/material';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import axios from 'axios'; 
 import Swal from 'sweetalert2';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -28,6 +29,10 @@ const WorkDayView = () => {
     const [workGroups, setWorkGroups] = useState([]);
     const [selectedWorkGroup, setSelectedWorkGroup] = useState('0');
 
+    const [holidays, setHolidays] = useState([]);
+    const apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
+    const calendarId = 'en.philippines#holiday@group.v.calendar.google.com';
+
     useEffect(() => {  
         axiosInstance.get('/workshedule/getWorkGroups', { headers })
             .then((response) => {
@@ -35,6 +40,19 @@ const WorkDayView = () => {
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
+    }, []);
+
+    // https://testing--175a5ce1-3806-45aa-ae84-a51984d18d45.app.getlazy.ai/holidays/en.philippines/2025
+
+    useEffect(() => {
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+        const url = 'http://testing--175a5ce1-3806-45aa-ae84-a51984d18d45.app.getlazy.ai/holidays/en.philippines/2025';
+
+        fetch(corsProxy + url)
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error('Error:', error));
+
     }, []);
 
     const handleEventClick = (clickInfo) => {
@@ -172,7 +190,6 @@ const WorkDayView = () => {
         }
     }
     
-
     return (
         <Layout title={"WorkDayView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
