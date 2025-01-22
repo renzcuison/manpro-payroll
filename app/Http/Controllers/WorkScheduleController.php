@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClientsModel;
 use App\Models\UsersModel;
 use App\Models\WorkDaysModel;
+use App\Models\WorkHoursModel;
 use App\Models\WorkGroupsModel;
 use App\Models\WorkShiftsModel;
 use App\Models\BranchesModel;
@@ -36,6 +37,68 @@ class WorkScheduleController extends Controller
         return false;
     }
 
+    public function checkWorkHour(Request $request)
+    {
+        // Log::info("WorkScheduleController::checkWorkHour");
+
+        if ($this->checkUser()){
+            $existing = WorkHoursModel::
+                where('first_time_in', $request->firstTimeIn)->
+                where('first_time_out', $request->firstTimeOut)->
+                where('second_time_in', $request->secondTimeIn)->
+                where('second_time_out', $request->secondTimeOut)->
+                where('over_time_in', $request->overTimeIn)->
+                where('over_time_out', $request->overTimeOut)->
+                first();
+
+            if ($existing) {
+                $workHour = $existing;
+            } else {
+                try {
+                    DB::beginTransaction();
+    
+                    $workHour = WorkHoursModel::create([
+                        "first_time_in" => $request->firstTimeIn,
+                        "first_time_out" => $request->firstTimeOut,
+    
+                        "second_time_in" => $request->secondTimeIn,
+                        "second_time_out" => $request->secondTimeOut,
+    
+                        "over_time_in" => $request->overTimeIn,
+                        "over_time_out" => $request->overTimeOut,
+                    ]);
+                    
+                    DB::commit();
+    
+                } catch (\Exception $e) {
+                    DB::rollBack();
+    
+                    Log::error("Error saving: " . $e->getMessage());
+    
+                    throw $e;
+                }
+
+            }
+
+            return $workHour;
+        }
+
+        return false;
+    }
+
+    public function getWorkShift(Request $request)
+    {
+        log::info("WorkScheduleController::getWorkShift");
+
+        $user = Auth::user();
+
+        $group = WorkGroupsModel::find($user->work_group_id);
+        $shift = WorkShiftsModel::find($group->work_shift_id);
+        $hour = WorkHoursModel::find($shift->work_hour_id);
+
+        return response()->json(['status' => 200, 'shift' => $shift, 'hour' => $hour]);
+    }
+    
     public function getWorkShifts(Request $request)
     {
         // log::info("WorkScheduleController::getWorkShifts");
@@ -101,18 +164,20 @@ class WorkScheduleController extends Controller
             'shiftType' => 'required',
 
             'firstLabel' => 'required',
-            'splitFirstTimeIn' => 'required',
-            'splitFirstTimeOut' => 'required',
+            'firstTimeIn' => 'required',
+            'firstTimeOut' => 'required',
 
             'secondLabel' => 'required',
-            'splitSecondTimeIn' => 'required',
-            'splitSecondTimeOut' => 'required',
+            'secondTimeIn' => 'required',
+            'secondTimeOut' => 'required',
             
             'overTimeIn' => 'required',
             'overTimeOut' => 'required',
         ]);
 
-        if ($this->checkUser() && $validated) {
+        $workHour  = $this->checkWorkHour($request);
+
+        if ($this->checkUser() && $validated && $workHour) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
@@ -123,18 +188,9 @@ class WorkScheduleController extends Controller
                 $shift = WorkShiftsModel::create([
                     "name" => $request->shiftName,
                     "shift_type" => $request->shiftType,
-
                     "first_label" => $request->firstLabel,
-                    "first_time_in" => $request->splitFirstTimeIn,
-                    "first_time_out" => $request->splitFirstTimeOut,
-
                     "second_label" => $request->secondLabel,
-                    "second_time_in" => $request->splitSecondTimeIn,
-                    "second_time_out" => $request->splitSecondTimeOut,
-
-                    "over_time_in" => $request->overTimeIn,
-                    "over_time_out" => $request->overTimeOut,
-
+                    "work_hour_id" => $workHour->id,
                     "client_id" => $client->id,
                 ]);
                 
@@ -161,13 +217,18 @@ class WorkScheduleController extends Controller
         $validated = $request->validate([
             'shiftName' => 'required',
             'shiftType' => 'required',
-            'regularTimeIn' => 'required',
-            'regularTimeOut' => 'required',
+
+            'firstLabel' => 'required',
+            'firstTimeIn' => 'required',
+            'firstTimeOut' => 'required',
+            
             'overTimeIn' => 'required',
             'overTimeOut' => 'required',
         ]);
 
-        if ($this->checkUser() && $validated) {
+        $workHour  = $this->checkWorkHour($request);
+
+        if ($this->checkUser() && $validated && $workHour) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
@@ -178,14 +239,8 @@ class WorkScheduleController extends Controller
                 $shift = WorkShiftsModel::create([
                     "name" => $request->shiftName,
                     "shift_type" => $request->shiftType,
-
                     "first_label" => "Attendance",
-                    "first_time_in" => $request->regularTimeIn,
-                    "first_time_out" => $request->regularTimeOut,
-
-                    "over_time_in" => $request->overTimeIn,
-                    "over_time_out" => $request->overTimeOut,
-
+                    "work_hour_id" => $workHour->id,
                     "client_id" => $client->id,
                 ]);
                 

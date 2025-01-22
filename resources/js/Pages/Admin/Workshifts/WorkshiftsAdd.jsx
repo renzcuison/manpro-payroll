@@ -258,8 +258,8 @@ const WorkshiftAdd = () => {
         const data = {
             shiftName: shiftName,
             shiftType: shiftType,
-            regularTimeIn: regularTimeIn.format('HH:mm:ss'),
-            regularTimeOut: regularTimeOut.format('HH:mm:ss'),
+            firstTimeIn: regularTimeIn.format('HH:mm:ss'),
+            firstTimeOut: regularTimeOut.format('HH:mm:ss'),
             overTimeIn: overTimeIn.format('HH:mm:ss'),
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
@@ -293,12 +293,12 @@ const WorkshiftAdd = () => {
             shiftType: shiftType,
 
             firstLabel: firstLabel,
-            splitFirstTimeIn: splitFirstTimeIn.format('HH:mm:ss'),
-            splitFirstTimeOut: splitFirstTimeOut.format('HH:mm:ss'),
+            firstTimeIn: splitFirstTimeIn.format('HH:mm:ss'),
+            firstTimeOut: splitFirstTimeOut.format('HH:mm:ss'),
 
             secondLabel: secondLabel,
-            splitSecondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
-            splitSecondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
+            secondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
+            secondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
 
             overTimeIn: overTimeIn.format('HH:mm:ss'),
             overTimeOut: overTimeOut.format('HH:mm:ss'),

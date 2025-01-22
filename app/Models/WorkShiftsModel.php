@@ -18,17 +18,11 @@ class WorkShiftsModel extends Model
         'shift_type',
 
         'first_label',
-        'first_time_in',
-        'first_time_out',
-
         'second_label',
-        'second_time_in',
-        'second_time_out',
 
-        'over_time_in',
-        'over_time_out',
-
+        'work_hour_id',
         'client_id',
+
         'deleted_at',
     ];
 }
