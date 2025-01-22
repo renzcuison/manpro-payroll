@@ -19,15 +19,7 @@ class CreateWorkshiftsTable extends Migration
             $table->enum('shift_type', ['Regular', 'Split'])->nullable();
 
             $table->string('first_label', 128)->nullable();
-            $table->time('first_time_in')->nullable();
-            $table->time('first_time_out')->nullable();
-
             $table->string('second_label', 128)->nullable();
-            $table->time('second_time_in')->nullable();
-            $table->time('second_time_out')->nullable();
-
-            $table->time('over_time_in')->nullable();
-            $table->time('over_time_out')->nullable();
 
             $table->unsignedBigInteger('client_id');
 

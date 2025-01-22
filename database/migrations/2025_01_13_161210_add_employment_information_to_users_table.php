@@ -14,26 +14,30 @@ class AddEmploymentInformationToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('salary_type', ['Hourly', 'Daily', 'Weekly', 'Bi-Monthly', 'Monthly'])->default('Monthly')->nullable()->after('user_type');
-            $table->decimal('salary', 10, 2)->default(0.00)->after('salary_type');
-
             $table->enum('gender', ['Male', 'Female'])->nullable()->after('birth_date');
 
-            $table->enum('employment_type', ['Probationary', 'Regular', 'Full-Time', 'Part-Time'])->nullable()->after('is_verified');
-            $table->enum('employment_status', ['Active', 'Resigned', 'Terminated'])->nullable()->after('employment_type');
+            $table->enum('salary_type', ['Hourly', 'Daily', 'Weekly', 'Bi-Monthly', 'Monthly'])->default('Monthly')->nullable()->after('user_type');
+            $table->decimal('salary', 10, 2)->default(0.00)->after('salary_type');
 
             $table->date('date_start')->nullable()->after('is_verified');
             $table->date('date_end')->nullable()->after('date_start');
 
+            $table->enum('employment_type', ['Probationary', 'Regular', 'Full-Time', 'Part-Time'])->nullable()->after('is_verified');
+            $table->enum('employment_status', ['Active', 'Resigned', 'Terminated'])->nullable()->after('employment_type');
+
+            $table->unsignedBigInteger('client_id')->nullable()->after('employment_status');
             $table->unsignedBigInteger('branch_id')->nullable()->after('client_id');
             $table->unsignedBigInteger('department_id')->nullable()->after('branch_id');
             $table->unsignedBigInteger('role_id')->nullable()->after('department_id');
             $table->unsignedBigInteger('job_title_id')->nullable()->after('role_id');
+            $table->unsignedBigInteger('work_group_id')->nullable()->after('job_title_id');
 
+            $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('branch_id')->references('id')->on('branches');
             $table->foreign('department_id')->references('id')->on('departments');
             $table->foreign('role_id')->references('id')->on('employee_roles');
             $table->foreign('job_title_id')->references('id')->on('job_titles');
+            $table->foreign('work_group_id')->references('id')->on('work_groups');
         });
     }
 
@@ -49,6 +53,7 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->dropForeign(['department_id']);
             $table->dropForeign(['role_id']);
             $table->dropForeign(['job_title_id']);
+            $table->dropForeign(['work_group_id']);
 
             $table->dropColumn('salary_type');
             $table->dropColumn('salary');
@@ -65,6 +70,7 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->dropColumn('department_id');
             $table->dropColumn('role_id');
             $table->dropColumn('job_title_id');
+            $table->dropColumn('work_group_id');
         });
     }
 }
