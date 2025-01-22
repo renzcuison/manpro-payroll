@@ -15,7 +15,6 @@ class CreateWorkHoursTable extends Migration
     {
         Schema::create('work_hours', function (Blueprint $table) {
             $table->id();
-            $table->enum('shift_type', ['Regular', 'Split'])->nullable();
 
             $table->time('first_time_in')->nullable();
             $table->time('first_time_out')->nullable();
