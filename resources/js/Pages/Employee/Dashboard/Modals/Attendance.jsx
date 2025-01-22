@@ -32,6 +32,22 @@ const Attendance = ({ open, close }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    // (workShift.)
+    const [workShift, setWorkShift] = useState([]);
+    const [workHour, setWorkHour] = useState([]);
+    useEffect(() => {
+        axiosInstance
+            .get(`/workshedule/getWorkShift`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setWorkShift(response.data.shift);
+                setWorkHour(response.data.hour);
+            })
+            .catch((error) => {
+                console.error("Error fetching employee:", error);
+            });
+    }, []);
+
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const formattedDateTime = currentDateTime.toLocaleTimeString();
     useEffect(() => {
@@ -174,7 +190,7 @@ const Attendance = ({ open, close }) => {
                                     variant="h6"
                                     sx={{ fontWeight: "medium" }}
                                 >
-                                    Regular Shift
+                                    Attendance
                                 </Typography>
                             </Grid>
                             <Grid
@@ -222,7 +238,7 @@ const Attendance = ({ open, close }) => {
                                     variant="h6"
                                     sx={{ fontWeight: "medium" }}
                                 >
-                                    First Shift
+                                    {workShift.first_label}
                                 </Typography>
                             </Grid>
                             <Grid
@@ -270,7 +286,7 @@ const Attendance = ({ open, close }) => {
                                     variant="h6"
                                     sx={{ fontWeight: "medium" }}
                                 >
-                                    Second Shift
+                                    {workShift.second_label}
                                 </Typography>
                             </Grid>
                             <Grid
