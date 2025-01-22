@@ -11,6 +11,8 @@ import { getComparator, stableSort } from "../../../components/utils/tableUtils"
 import Swal from "sweetalert2";
 import { useMediaQuery } from '@mui/material';
 
+import Attendance from '../Dashboard/Modals/Attendance';
+
 const headCells = [
     { id: " ", sortable: false, label: "Date" },
     { id: " ", sortable: false, label: "Time Arrived" },
@@ -33,6 +35,8 @@ const Dashboard = () => {
     const [recentApplication, setRecentApplication] = useState([]);
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
     const [isApplicationLoading, setIsApplicationLoading] = useState(false);
+
+    const [openAttedanceModal, setOpenAttendanceModal] = useState(false);
 
     const [order, setOrder] = useState("asc");
     const [orderBy, setOrderBy] = useState("calories");
@@ -65,8 +69,12 @@ const Dashboard = () => {
         navigate(path);
     };
 
-    const openAttendanceModal = () => {
+    const handleOpenAttendanceModal = () => {
+        setOpenAttendanceModal(true);
+    }
 
+    const handleCloseAttendanceModal = () => {
+        setOpenAttendanceModal(false);
     }
 
     return (
@@ -84,7 +92,7 @@ const Dashboard = () => {
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid item xs={12} lg={4}>
                             <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
-                                <Link onClick={openAttendanceModal} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <Link onClick={handleOpenAttendanceModal} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a800f', borderRadius: '50%', width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
                                             <AccessTime sx={{ color: 'white', fontSize: 30 }} />
@@ -246,8 +254,16 @@ const Dashboard = () => {
                     </Grid>
 
                 </Box>
-            </Box>
+                
+                {openAttedanceModal &&
+                    <Attendance
+                        open={openAttedanceModal}
+                        close={handleCloseAttendanceModal}
+                        // employee={employee} onUpdateEmployee={getEmployeeDetails}
+                    />
+                }
 
+            </Box>
         </Layout>
     );
 };
