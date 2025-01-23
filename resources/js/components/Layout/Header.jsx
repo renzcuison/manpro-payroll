@@ -1,19 +1,25 @@
 import React, { useState } from 'react'
 import { useAuth } from "../../hooks/useAuth";
 import { useUser } from '../../hooks/useUser';
+import { useNavigate } from 'react-router-dom';
 import { Button, Menu, MenuItem } from '@mui/material';
 
 const Header = ({ toogleSidebar }) => {
+	const navigate = useNavigate();
 	const { user } = useUser();
 	const { logout } = useAuth();
 	const [isDisabled, setIsDisabled] = useState(false);
 	
 	const handlePersonalDetails = async () => {
-		window.location.href = "http://127.0.0.1:8080/personal-details?";
+		// window.location.href = "http://127.0.0.1:8080/personal-details?";
+
+		navigate(`/personal-details`);
     };
 
 	const handleChangePassword = async () => {
-		window.location.href = "http://127.0.0.1:8080/change-password?";
+		// window.location.href = "http://127.0.0.1:8080/change-password?";
+
+		navigate(`/change-password`);
     };
 
 	const handleLogout = async () => {
