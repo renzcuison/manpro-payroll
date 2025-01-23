@@ -5,8 +5,8 @@ use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\WorkScheduleController;
+use App\Http\Controllers\AttendanceController;
 
-// use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
@@ -136,6 +136,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
     });
+
+    Route::prefix('attendance')->group(function () {
+        Route::post('/saveFirstTimeIn', [AttendanceController::class, 'saveFirstTimeIn']);
+    });
+
+
+
 
 
 

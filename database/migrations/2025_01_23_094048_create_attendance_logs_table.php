@@ -19,7 +19,7 @@ class CreateAttendanceLogsTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('work_hour_id');
 
-            $table->enum('action', ['Duty In', 'Duy Out', 'Overtime In', 'Overtime Out']);
+            $table->enum('action', ['Duty In', 'Duty Out', 'Overtime In', 'Overtime Out']);
 
             $table->integer('method');
             $table->timestamp('timestamp');

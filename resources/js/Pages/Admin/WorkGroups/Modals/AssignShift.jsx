@@ -25,6 +25,7 @@ const AssignShift = ({ open, close, workGroup, onUpdateWorkGroupDetails }) => {
 
     useEffect(() => {
         console.log(workGroup);
+        // console.log(workShift);
 
         axiosInstance.get(`/workshedule/getWorkShifts`, { headers })
             .then((response) => {

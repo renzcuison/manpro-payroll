@@ -344,8 +344,6 @@ class WorkScheduleController extends Controller
                 'over_time_out',
             )->find($workShift->work_hour_id);
 
-            unset($workShift->work_hour_id);
-
             $employees = UsersModel::where('work_group_id', $workGroup->id)
                 ->select('user_name', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id', 'job_title_id')
                 ->get()
