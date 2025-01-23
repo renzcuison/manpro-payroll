@@ -46,6 +46,17 @@ class AttendanceController extends Controller
     
         return response()->json(['status' => 200,'latest_attendance' => $latest_attendance,]);
     }
+
+    public function getEmployeeWorkDayAttendance()
+    {
+        $user = Auth::user();
+
+        log::info($user->workHours);
+    
+        $attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
+    
+        return response()->json(['status' => 200,'attendance' => $attendance,]);
+    }
     
     public function saveEmployeeAttendance(Request $request)
     {
@@ -55,7 +66,7 @@ class AttendanceController extends Controller
 
         $user = Auth::user();
 
-        if ($validated) {
+        if (!$validated) {
             try {
                 DB::beginTransaction();
 
