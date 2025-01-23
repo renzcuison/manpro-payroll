@@ -26,14 +26,32 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
 import dayjs from "dayjs";
+import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    // (workShift.)
+    const [workShift, setWorkShift] = useState([]);
+    const [workHour, setWorkHour] = useState([]);
+    useEffect(() => {
+        axiosInstance
+            .get(`/workshedule/getWorkShift`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setWorkShift(response.data.workShift);
+                setWorkHour(response.data.workHours);
+            })
+            .catch((error) => {
+                console.error("Error fetching employee:", error);
+            });
+    }, []);
+
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
-    const formattedDateTime = currentDateTime.toLocaleTimeString();
+    const formattedDate = currentDateTime.toDateString();
+    const formattedTime = currentDateTime.toLocaleTimeString();
     useEffect(() => {
         const intervalId = setInterval(() => {
             setCurrentDateTime(new Date());
@@ -65,54 +83,107 @@ const Attendance = ({ open, close }) => {
         });
     };
 
-    const handleRegularTimeInChange = () => {
-        console.log("Regular Time In: " + formattedDateTime);
+    const handleTimeInOut = (shift, timeIn) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `${timeIn ? "Time in" : "Time out"}`,
+            text: `Are you sure you want to ${
+                timeIn ? "time in" : "time out"
+            }?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: `${timeIn ? "Time in" : "Time out"}`,
+            confirmButtonColor: `${timeIn ? "#177604" : "#f44336"}`,
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                console.log(
+                    shift +
+                        ` ${timeIn == 0 ? "Timed out: " : "Timed in: "}` +
+                        formattedDate +
+                        ", " +
+                        formattedTime
+                );
+                handleAttendance(shift, timeIn);
+            }
+        });
+    };
+
+    const handleAttendance = (shift, timeIn) => {
+        console.log("testing handleAttendance: " + shift + " " + timeIn);
+        if (timeIn) {
+            const data = {
+                date: formattedDate,
+                time: formattedTime,
+                action: `${timeIn ? "Duty In" : "Duty Out"}`,
+            };
+
+            axiosInstance
+                .post("/attendance/saveFirstTimeIn", data, {
+                    headers,
+                })
+                .then((response) => {})
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        }
+    };
+    const handleSplitFirstTimeInChange = () => {
+        console.log("First Time In: " + formattedTime);
+        setSplitFirstTimeIn(true);
+    };
+
+    {
+        /* const handleRegularTimeInChange = () => {
+        console.log("Regular Time In: " + formattedTime);
         setRegularTimeIn(true);
     };
     const handleRegularTimeOutChange = () => {
         if (regularTimeIn) {
-            console.log("Regular Time Out: " + formattedDateTime);
+            console.log("Regular Time Out: " + formattedTime);
             setRegularTimeOut(true);
         } else {
             handleTimeOutError();
         }
     };
     const handleSplitFirstTimeInChange = () => {
-        console.log("First Time In: " + formattedDateTime);
+        console.log("First Time In: " + formattedTime);
         setSplitFirstTimeIn(true);
     };
     const handleSplitFirstTimeOutChange = () => {
         if (splitFirstTimeIn) {
-            console.log("First Time Out: " + formattedDateTime);
+            console.log("First Time Out: " + formattedTime);
             setSplitFirstTimeOut(true);
         } else {
             handleTimeOutError();
         }
     };
     const handleSplitSecondTimeInChange = () => {
-        console.log("Second Time In: " + formattedDateTime);
+        console.log("Second Time In: " + formattedTime);
         setSplitSecondTimeIn(true);
     };
     const handleSplitSecondTimeOutChange = () => {
         if (splitSecondTimeIn) {
-            console.log("Second Time Out: " + formattedDateTime);
+            console.log("Second Time Out: " + formattedTime);
             setSplitSecondTimeOut(true);
         } else {
             handleTimeOutError();
         }
     };
     const handleOverTimeInChange = () => {
-        console.log("OverTime In: " + formattedDateTime);
+        console.log("OverTime In: " + formattedTime);
         setOverTimeIn(true);
     };
     const handleOverTimeOutChange = () => {
         if (overTimeIn) {
-            console.log("First Time Out: " + formattedDateTime);
+            console.log("First Time Out: " + formattedTime);
             setOverTimeOut(true);
         } else {
             handleTimeOutError();
         }
-    };
+    };*/
+    }
 
     return (
         <>
@@ -122,7 +193,7 @@ const Attendance = ({ open, close }) => {
                 maxWidth="md"
                 PaperProps={{
                     style: {
-                        padding: "4px",
+                        padding: "5px",
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
@@ -162,150 +233,197 @@ const Attendance = ({ open, close }) => {
                             alignItems: "flex-start",
                         }}
                     >
+                        {/*Current Date and Time-------------------------------*/}
+                        <Grid
+                            container
+                            direction="row"
+                            alignItems="flex-start"
+                            sx={{ my: 1 }}
+                        >
+                            <Grid item xs={5}>
+                                <Typography sx={{ fontWeight: "regular" }}>
+                                    Date/Time:
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={7}>
+                                <Typography
+                                    sx={{
+                                        fontWeight: "bold",
+                                        textAlign: "right",
+                                    }}
+                                >
+                                    {formattedDate + ", " + formattedTime}
+                                </Typography>
+                            </Grid>
+                        </Grid>
                         {/*Regular Shift-------------------------------*/}
-                        <Grid
-                            container
-                            direction="row"
-                            alignItems="flex-start"
-                            sx={{ my: 1 }}
-                        >
-                            <Grid item xs={4}>
-                                <Typography
-                                    variant="h6"
-                                    sx={{ fontWeight: "medium" }}
-                                >
-                                    Regular Shift
-                                </Typography>
-                            </Grid>
+                        {workShift.shift_type == "Regular" ? (
                             <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
+                                container
+                                direction="row"
+                                alignItems="flex-start"
+                                sx={{ my: 1 }}
                             >
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleRegularTimeInChange}
+                                <Grid item xs={4}>
+                                    <Typography
+                                        variant="h6"
+                                        sx={{ fontWeight: "medium" }}
+                                    >
+                                        Attendance
+                                    </Typography>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
-                                    Time In
-                                </Button>
+                                    <Button
+                                        variant="contained"
+                                        sx={{ backgroundColor: "#177604" }}
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("Regular", true)
+                                        }
+                                    >
+                                        Time In
+                                    </Button>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
+                                >
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("Regular", false)
+                                        }
+                                    >
+                                        Time Out
+                                    </Button>
+                                </Grid>
                             </Grid>
+                        ) : (
+                            /*Split-First Shift---------------------------*/
                             <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
+                                container
+                                direction="row"
+                                alignItems="flex-start"
+                                sx={{ my: 1 }}
                             >
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    onClick={handleRegularTimeOutChange}
+                                <Grid item xs={4}>
+                                    <Typography
+                                        variant="h6"
+                                        sx={{ fontWeight: "medium" }}
+                                    >
+                                        {workShift.first_label}
+                                    </Typography>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
-                                    Time Out
-                                </Button>
-                            </Grid>
-                        </Grid>
-                        {/*Split-First Shift---------------------------*/}
-                        <Grid
-                            container
-                            direction="row"
-                            alignItems="flex-start"
-                            sx={{ my: 1 }}
-                        >
-                            <Grid item xs={4}>
-                                <Typography
-                                    variant="h6"
-                                    sx={{ fontWeight: "medium" }}
+                                    <Button
+                                        variant="contained"
+                                        sx={{ backgroundColor: "#177604" }}
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("First", true)
+                                        }
+                                    >
+                                        Time In
+                                    </Button>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
-                                    First Shift
-                                </Typography>
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("First", false)
+                                        }
+                                    >
+                                        Time Out
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
-                            >
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleSplitFirstTimeInChange}
-                                >
-                                    Time In
-                                </Button>
-                            </Grid>
-                            <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
-                            >
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    onClick={handleSplitFirstTimeOutChange}
-                                >
-                                    Time Out
-                                </Button>
-                            </Grid>
-                        </Grid>
+                        )}
                         {/*Split Second Shift--------------------------*/}
-                        <Grid
-                            container
-                            direction="row"
-                            alignItems="flex-start"
-                            sx={{ my: 1 }}
-                        >
-                            <Grid item xs={4}>
-                                <Typography
-                                    variant="h6"
-                                    sx={{ fontWeight: "medium" }}
-                                >
-                                    Second Shift
-                                </Typography>
-                            </Grid>
+                        {workShift.shift_type == "Split" ? (
                             <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
+                                container
+                                direction="row"
+                                alignItems="flex-start"
+                                sx={{ my: 1 }}
                             >
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleSplitSecondTimeInChange}
+                                <Grid item xs={4}>
+                                    <Typography
+                                        variant="h6"
+                                        sx={{ fontWeight: "medium" }}
+                                    >
+                                        {workShift.second_label}
+                                    </Typography>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
-                                    Time In
-                                </Button>
-                            </Grid>
-                            <Grid
-                                item
-                                xs={4}
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                }}
-                            >
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    onClick={handleSplitSecondTimeOutChange}
+                                    <Button
+                                        variant="contained"
+                                        sx={{ backgroundColor: "#177604" }}
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("Second", true)
+                                        }
+                                    >
+                                        Time In
+                                    </Button>
+                                </Grid>
+                                <Grid
+                                    item
+                                    xs={4}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
-                                    Time Out
-                                </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        startIcon={<AccessTime />}
+                                        onClick={() =>
+                                            handleTimeInOut("Second", false)
+                                        }
+                                    >
+                                        Time Out
+                                    </Button>
+                                </Grid>
                             </Grid>
-                        </Grid>
+                        ) : null}
+
                         {/*Overtime Shift------------------------------*/}
                         <Grid
                             container
@@ -331,8 +449,11 @@ const Attendance = ({ open, close }) => {
                             >
                                 <Button
                                     variant="contained"
-                                    color="primary"
-                                    onClick={handleOverTimeInChange}
+                                    sx={{ backgroundColor: "#177604" }}
+                                    startIcon={<AccessTime />}
+                                    onClick={() =>
+                                        handleTimeInOut("Overtime", true)
+                                    }
                                 >
                                     Time In
                                 </Button>
@@ -348,7 +469,10 @@ const Attendance = ({ open, close }) => {
                                 <Button
                                     variant="contained"
                                     color="error"
-                                    onClick={handleOverTimeOutChange}
+                                    startIcon={<AccessTime />}
+                                    onClick={() =>
+                                        handleTimeInOut("Overtime", true)
+                                    }
                                 >
                                     Time Out
                                 </Button>
