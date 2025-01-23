@@ -33,7 +33,7 @@ const Attendance = ({ open, close }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    // (workShift.)
+    //--------------------- Work Shift API
     const [workShift, setWorkShift] = useState([]);
     const [workHour, setWorkHour] = useState([]);
     useEffect(() => {
@@ -49,9 +49,25 @@ const Attendance = ({ open, close }) => {
             });
     }, []);
 
+    //---------------------- Attendance API
+    const [employeeAttendance, setEmployeeAttendance] = useState([]);
+    useEffect(() => {
+        axiosInstance
+            .get(`attendance/getEmployeeLatestAttendance`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setEmployeeAttendance(response.data.latest_attendance);
+            })
+            .catch((error) => {
+                console.error("Error fetching employee:", error);
+            });
+    }, []);
+
+    //---------------------- Date and Time
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const formattedDate = currentDateTime.toDateString();
     const formattedTime = currentDateTime.toLocaleTimeString();
+    const formattedDateTime = currentDateTime.toString();
     useEffect(() => {
         const intervalId = setInterval(() => {
             setCurrentDateTime(new Date());
@@ -60,7 +76,9 @@ const Attendance = ({ open, close }) => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const [regularTimeIn, setRegularTimeIn] = useState(null);
+    // button states
+    {
+        /*const [regularTimeIn, setRegularTimeIn] = useState(null);
     const [regularTimeOut, setRegularTimeOut] = useState(null);
 
     const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
@@ -81,8 +99,10 @@ const Attendance = ({ open, close }) => {
             confirmButtonText: "Save",
             confirmButtonColor: "#177604",
         });
-    };
+    }; */
+    }
 
+    // ---------------------- Time In/Out
     const handleTimeInOut = (shift, timeIn) => {
         Swal.fire({
             customClass: { container: "my-swal" },
@@ -98,93 +118,24 @@ const Attendance = ({ open, close }) => {
             cancelButtonText: "Cancel",
         }).then((res) => {
             if (res.isConfirmed) {
-                console.log(
-                    shift +
-                        ` ${timeIn == 0 ? "Timed out: " : "Timed in: "}` +
-                        formattedDate +
-                        ", " +
-                        formattedTime
-                );
-                handleAttendance(shift, timeIn);
+                console.log(formattedDateTime);
+                const data = {
+                    datetime: formattedDateTime,
+                    action: `${timeIn ? "Duty In" : "Duty Out"}`,
+                };
+                axiosInstance
+                    .post("/attendance/saveEmployeeAttendance", data, {
+                        headers,
+                    })
+                    .then((response) => {})
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
             }
         });
     };
 
-    const handleAttendance = (shift, timeIn) => {
-        console.log("testing handleAttendance: " + shift + " " + timeIn);
-        if (timeIn) {
-            const data = {
-                date: formattedDate,
-                time: formattedTime,
-                action: `${timeIn ? "Duty In" : "Duty Out"}`,
-            };
-
-            axiosInstance
-                .post("/attendance/saveFirstTimeIn", data, {
-                    headers,
-                })
-                .then((response) => {})
-                .catch((error) => {
-                    console.error("Error:", error);
-                });
-        }
-    };
-    const handleSplitFirstTimeInChange = () => {
-        console.log("First Time In: " + formattedTime);
-        setSplitFirstTimeIn(true);
-    };
-
-    {
-        /* const handleRegularTimeInChange = () => {
-        console.log("Regular Time In: " + formattedTime);
-        setRegularTimeIn(true);
-    };
-    const handleRegularTimeOutChange = () => {
-        if (regularTimeIn) {
-            console.log("Regular Time Out: " + formattedTime);
-            setRegularTimeOut(true);
-        } else {
-            handleTimeOutError();
-        }
-    };
-    const handleSplitFirstTimeInChange = () => {
-        console.log("First Time In: " + formattedTime);
-        setSplitFirstTimeIn(true);
-    };
-    const handleSplitFirstTimeOutChange = () => {
-        if (splitFirstTimeIn) {
-            console.log("First Time Out: " + formattedTime);
-            setSplitFirstTimeOut(true);
-        } else {
-            handleTimeOutError();
-        }
-    };
-    const handleSplitSecondTimeInChange = () => {
-        console.log("Second Time In: " + formattedTime);
-        setSplitSecondTimeIn(true);
-    };
-    const handleSplitSecondTimeOutChange = () => {
-        if (splitSecondTimeIn) {
-            console.log("Second Time Out: " + formattedTime);
-            setSplitSecondTimeOut(true);
-        } else {
-            handleTimeOutError();
-        }
-    };
-    const handleOverTimeInChange = () => {
-        console.log("OverTime In: " + formattedTime);
-        setOverTimeIn(true);
-    };
-    const handleOverTimeOutChange = () => {
-        if (overTimeIn) {
-            console.log("First Time Out: " + formattedTime);
-            setOverTimeOut(true);
-        } else {
-            handleTimeOutError();
-        }
-    };*/
-    }
-
+    // ----------------------- Modal Rendering
     return (
         <>
             <Dialog
@@ -479,6 +430,60 @@ const Attendance = ({ open, close }) => {
                             </Grid>
                         </Grid>
                     </Grid>
+                    {/*Attendance Logs------------------------------*/}
+                    {/*
+                    <Grid
+                        container
+                        direction="column"
+                        sx={{
+                            justifyContent: "flex-start",
+                            alignItems: "flex-start",
+                            borderTop: "1px solid #e0e0e0",
+                            mt: 2,
+                            pt: 2,
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{ fontWeight: "medium", mb: 1 }}
+                        >
+                            Attendance Logs
+                        </Typography>
+
+                        {attendanceLogs.length > 0 ? (
+                            attendanceLogs.map((log, index) => (
+                                <Grid
+                                    key={index}
+                                    container
+                                    direction="row"
+                                    alignItems="center"
+                                    sx={{ my: 1 }}
+                                >
+                                    <Grid item xs={6}>
+                                        <Typography>
+                                            {log.type === "IN"
+                                                ? "Time In"
+                                                : "Time Out"}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid
+                                        item
+                                        xs={6}
+                                        sx={{ textAlign: "right" }}
+                                    >
+                                        <Typography>
+                                            {log.time || "N/A"}
+                                        </Typography>
+                                    </Grid>
+                                </Grid>
+                            ))
+                        ) : (
+                            <Typography sx={{ color: "text.secondary", m: 1 }}>
+                                -- no attendance logs for this shift --
+                            </Typography>
+                        )}
+                    </Grid>
+                     */}
                 </DialogContent>
             </Dialog>
         </>
