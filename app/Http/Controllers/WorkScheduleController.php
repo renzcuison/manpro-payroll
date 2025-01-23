@@ -88,7 +88,7 @@ class WorkScheduleController extends Controller
 
     public function getWorkShift(Request $request)
     {
-        log::info("WorkScheduleController::getWorkShift");
+        // log::info("WorkScheduleController::getWorkShift");
 
         $user = Auth::user();
 
@@ -311,17 +311,23 @@ class WorkScheduleController extends Controller
             $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $group)->first();
 
             $workShift = WorkShiftsModel::select(
-                    'name',
-                    'shift_type',
-                    'first_label',
-                    'first_time_in',
-                    'first_time_out',
-                    'second_label',
-                    'second_time_in',
-                    'second_time_out',
-                    'over_time_in',
-                    'over_time_out'
-                )->find($workGroup->work_shift_id);
+                'name',
+                'shift_type',
+                'first_label',
+                'second_label',
+                'work_hour_id',
+            )->find($workGroup->work_shift_id);
+    
+            $workHour = WorkHoursModel::select(
+                'first_time_in',
+                'first_time_out',
+                'second_time_in',
+                'second_time_out',
+                'over_time_in',
+                'over_time_out',
+            )->find($workShift->work_hour_id);
+
+            unset($workShift->work_hour_id);
 
             $employees = UsersModel::where('work_group_id', $workGroup->id)
                 ->select('user_name', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id', 'job_title_id')
@@ -348,7 +354,7 @@ class WorkScheduleController extends Controller
                     ];
                 });
         
-            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'employees' => $employees]);   
+            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'workHour' => $workHour, 'employees' => $employees]);   
         } 
 
         return response()->json(['status' => 200, 'workSGroup' => null]);   
