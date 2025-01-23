@@ -37,36 +37,44 @@ class AttendanceController extends Controller
 
         return false;
     }
-    
-    public function saveFirstTimeIn(Request $request)
+
+    public function getEmployeeLatestAttendance()
     {
-        // log::info("WorkScheduleController::saveFirstTimeIn");
+        $user = Auth::user();
+    
+        $latest_attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
+    
+        return response()->json(['status' => 200,'latest_attendance' => $latest_attendance,]);
+    }
 
-        log::info($request);
+    public function getEmployeeWorkDayAttendance()
+    {
+        $user = Auth::user();
 
-        // [2025-01-23 11:10:30] local.INFO: array (
-            // 'date' => 'Thu Jan 23 2025',
-            // 'time' => '11:10:28 AM',
-            // 'action' => 'Duty In',
-        // ) 
+        log::info($user->workHours);
+    
+        $attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
+    
+        return response()->json(['status' => 200,'attendance' => $attendance,]);
+    }
+    
+    public function saveEmployeeAttendance(Request $request)
+    {
+        // log::info("WorkScheduleController::saveEmployeeAttendance");
 
-        $validated = $request->validate([
-            'date' => 'required',
-            'time' => 'required',
-            'action' => 'required',
-        ]);
+        $validated = $request->validate([ 'action' => 'required' ]);
 
         $user = Auth::user();
-        $client = ClientsModel::find($user->client_id);
 
-        if ($this->checkUser() && $validated) {
-
+        if (!$validated) {
             try {
                 DB::beginTransaction();
 
                 AttendanceLogsModel::create([
                     "user_id" => $user->id,
-                    "work_hour_id" => $client->id,
+                    "work_hour_id" => $user->workHours->id,
+                    "action" => $request->action,
+                    "method" => 1,
                 ]);
                 
                 DB::commit();
@@ -80,10 +88,6 @@ class AttendanceController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
-
-
-
-
 }

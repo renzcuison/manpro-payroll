@@ -51,4 +51,34 @@ class UsersModel extends Authenticatable
         'job_title_id',
         'work_group_id',
     ];
+    
+    public function workGroup()
+    {
+        return $this->belongsTo(WorkGroupsModel::class, 'work_group_id');
+    }
+    
+    public function workShift()
+    {
+        return $this->hasOneThrough(
+            WorkShiftsModel::class,
+            WorkGroupsModel::class,
+            'id',            // Foreign key on work_groups table (local key)
+            'id',            // Foreign key on work_shifts table
+            'work_group_id', // Local key on users table
+            'work_shift_id'  // Local key on work_groups table
+        );
+    }
+    
+    public function workHours()
+    {
+        return $this->hasOneThrough(
+            WorkHoursModel::class,
+            WorkShiftsModel::class,
+            'id',            // Foreign key on work_shifts table (local key)
+            'id',            // Foreign key on work_hours table
+            'work_group_id', // Foreign key on users table
+            'work_hour_id'   // Local key on work_shifts table
+        );
+    }
+    
 }
