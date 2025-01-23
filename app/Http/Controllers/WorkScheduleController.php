@@ -92,11 +92,28 @@ class WorkScheduleController extends Controller
 
         $user = Auth::user();
 
-        $group = WorkGroupsModel::find($user->work_group_id);
-        $shift = WorkShiftsModel::find($group->work_shift_id);
-        $hour = WorkHoursModel::find($shift->work_hour_id);
+        $workGroup = WorkGroupsModel::find($user->work_group_id);
 
-        return response()->json(['status' => 200, 'shift' => $shift, 'hour' => $hour]);
+        $workShift = WorkShiftsModel::select(
+            'name',
+            'shift_type',
+            'first_label',
+            'second_label',
+            'work_hour_id',
+        )->find($workGroup->work_shift_id);
+
+        $workHours = WorkHoursModel::select(
+            'first_time_in',
+            'first_time_out',
+            'second_time_in',
+            'second_time_out',
+            'over_time_in',
+            'over_time_out',
+        )->find($workShift->work_hour_id);
+
+        unset($workShift->work_hour_id);
+
+        return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
     }
     
     public function getWorkShifts(Request $request)
