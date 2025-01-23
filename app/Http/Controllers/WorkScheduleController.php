@@ -318,7 +318,7 @@ class WorkScheduleController extends Controller
                 'work_hour_id',
             )->find($workGroup->work_shift_id);
     
-            $workHour = WorkHoursModel::select(
+            $workHours = WorkHoursModel::select(
                 'first_time_in',
                 'first_time_out',
                 'second_time_in',
@@ -354,7 +354,7 @@ class WorkScheduleController extends Controller
                     ];
                 });
         
-            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'workHour' => $workHour, 'employees' => $employees]);   
+            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'workHours' => $workHours, 'employees' => $employees]);   
         } 
 
         return response()->json(['status' => 200, 'workSGroup' => null]);   

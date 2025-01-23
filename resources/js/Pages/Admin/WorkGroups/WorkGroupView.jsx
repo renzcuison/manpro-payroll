@@ -23,6 +23,7 @@ const WorkGroupView = () => {
 
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
+    const [workHours, setWorkHours] = useState([]);
     const [employees, setEmployees] = useState([]);
 
     const [openAssignShiftModal, setOpenAssignShiftModal] = useState(false);
@@ -38,6 +39,7 @@ const WorkGroupView = () => {
             .then((response) => {
                 setWorkGroup(response.data.workGroup);
                 setWorkShift(response.data.workShift);
+                setWorkHours(response.data.workHours);
                 setEmployees(response.data.employees);
                 setIsLoading(false);
             })
@@ -72,7 +74,7 @@ const WorkGroupView = () => {
     }
 
     return (
-        <Layout title={"Clients"}>
+        <Layout title={"WorkGroupView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
@@ -96,39 +98,43 @@ const WorkGroupView = () => {
                         <Grid item xs={4}>
                             {workShift ? (
                                 <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                                                            
-                                    <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Assigned Shift </Grid>
-                                        <Grid item xs={8}> {workShift.name} </Grid>
-                                    </Grid>
 
-                                    <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Shift Type </Grid>
-                                        <Grid item xs={8}> {workShift.shift_type} </Grid>
-                                    </Grid>
-
-                                    {workShift.shift_type === "Regular" ? (
-                                        <Grid container spacing={4} sx={{ p: 1 }}>
-                                            <Grid item xs={4}> Attendance </Grid>
-                                            <Grid item xs={8}> {formatTime(workShift.first_time_in)} - {formatTime(workShift.first_time_out)} </Grid>
-                                        </Grid>
-                                    ) : workShift.shift_type === "Split" ? (
+                                    {isLoading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : (
                                         <>
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> {workShift.first_label} </Grid>
-                                                <Grid item xs={8}> {formatTime(workShift.first_time_in)} - {formatTime(workShift.first_time_out)} </Grid>
+                                                <Grid item xs={4}> Assigned Shift </Grid>
+                                                <Grid item xs={8}> {workShift.name} </Grid>
                                             </Grid>
+
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> {workShift.second_label} </Grid>
-                                                <Grid item xs={8}> {formatTime(workShift.second_time_in)} - {formatTime(workShift.second_time_out)} </Grid>
+                                                <Grid item xs={4}> Shift Type </Grid>
+                                                <Grid item xs={8}> {workShift.shift_type} </Grid>
+                                            </Grid>
+
+                                            <Grid container spacing={4} sx={{ p: 1 }}>
+                                                <Grid item xs={4}> {workShift.first_label} </Grid>
+                                                <Grid item xs={8}> {formatTime(workHours.first_time_in)} - {formatTime(workHours.first_time_out)} </Grid>
+                                            </Grid>
+
+                                            {workShift?.shift_type === "Split" && (
+                                                <Grid container spacing={4} sx={{ p: 1 }}>
+                                                    <Grid item xs={4}>{workShift.second_label}</Grid>
+                                                    <Grid item xs={8}>
+                                                    {formatTime(workHours.second_time_in)} - {formatTime(workHours.second_time_out)}
+                                                    </Grid>
+                                                </Grid>
+                                            )}
+
+                                            <Grid container spacing={4} sx={{ p: 1 }}>
+                                                <Grid item xs={4}> Overtime </Grid>
+                                                <Grid item xs={8}> {formatTime(workHours.over_time_in)} - {formatTime(workHours.over_time_out)} </Grid>
                                             </Grid>
                                         </>
-                                    ) : null}
-
-                                    <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Overtime </Grid>
-                                        <Grid item xs={8}> {formatTime(workShift.over_time_in)} - {formatTime(workShift.over_time_out)} </Grid>
-                                    </Grid>
+                                    )}
 
                                 </Box>
                             ) : <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
