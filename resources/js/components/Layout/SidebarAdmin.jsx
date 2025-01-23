@@ -114,7 +114,7 @@ const Sidebar = ({ children, closeMini }) => {
         text: 'Work Schedule',
         icon: 'fa fa-calendar',
         children: [
-            { href: `/admin/workdays`, text: 'Workdays' },
+            // { href: `/admin/workdays`, text: 'Workdays' },
             // { href: `/admin/workhours`, text: 'Work Hours' },
             {
                 text: 'Work Shifts',
