@@ -50,11 +50,11 @@ const WorkshiftAdd = () => {
     const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
     const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
 
-    const [overTimeIn, setOverTimeIn] = useState(null);
-    const [overTimeOut, setOverTimeOut] = useState(null);
-
     const [breakStart, setBreakStart] = useState(null);
     const [breakEnd, setBreakEnd] = useState(null);
+    
+    const [overTimeIn, setOverTimeIn] = useState(null);
+    const [overTimeOut, setOverTimeOut] = useState(null);
 
     const handleRegularTimeInChange = (newValue) => {
         setRegularTimeIn(newValue);
@@ -127,6 +127,9 @@ const WorkshiftAdd = () => {
         setSplitFirstTimeOut(null);
         setSplitSecondTimeIn(null);
         setSplitSecondTimeOut(null);
+
+        setBreakStart(null);
+        setBreakEnd(null);
 
         setOverTimeIn(null);
         setOverTimeOut(null);
@@ -204,7 +207,7 @@ const WorkshiftAdd = () => {
             setOverTimeOutError(false);
         }
 
-        if ( regularTimeIn === null || regularTimeOut === null || overTimeIn === null || overTimeOut === null || overTimeIn === null || overTimeOut === null ) {
+        if ( regularTimeIn === null || regularTimeOut === null || breakStart === null || breakEnd === null || overTimeIn === null || overTimeOut === null ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -303,10 +306,15 @@ const WorkshiftAdd = () => {
         const data = {
             shiftName: shiftName,
             shiftType: shiftType,
+
             firstTimeIn: regularTimeIn.format('HH:mm:ss'),
             firstTimeOut: regularTimeOut.format('HH:mm:ss'),
+
+            breakStart: breakStart.format('HH:mm:ss'),
+            breakEnd: breakEnd.format('HH:mm:ss'),
+
             overTimeIn: overTimeIn.format('HH:mm:ss'),
-            overTimeOut: overTimeOut.format('HH:mm:ss'),
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
         };
 
         axiosInstance.post('/workshedule/saveRegularWorkShift', data, { headers })
@@ -345,7 +353,10 @@ const WorkshiftAdd = () => {
             secondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
             secondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
 
-            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            breakStart: breakStart.format('HH:mm:ss'),
+            breakEnd: breakEnd.format('HH:mm:ss'),
+
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
