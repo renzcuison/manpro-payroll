@@ -6,37 +6,24 @@ import {
     DialogTitle,
     DialogContent,
     Grid,
-    TextField,
     Typography,
-    CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
-    MenuItem,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
-import moment from "moment";
-import dayjs from "dayjs";
 import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
 
     //--------------------- Work Shift API
     const [workShift, setWorkShift] = useState([]);
     const [workHour, setWorkHour] = useState([]);
     const [firstShiftExpired, setFirstShiftExpired] = useState(false);
+    const [secondShiftExpired, setSecondShiftExpired] = useState(false);
     useEffect(() => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
@@ -48,19 +35,25 @@ const Attendance = ({ open, close }) => {
             .catch((error) => {
                 // console.error("Error fetching employee:", error);
             });
-    }, []);
+    }, [refreshTrigger]);
 
+    //--------------------- Work Shift Expiration Checks
     useEffect(() => {
         console.log(exactTime);
         console.log(workHour.first_time_out);
+        // Ends First Shift Period
         if (exactTime > workHour.first_time_out) {
             setFirstShiftExpired(true);
+        }
+        // End Second Shift Period for Split
+        if (exactTime > workHour.second_time_out) {
+            setSecondShiftExpired(true);
         }
     }, [workHour]);
 
     //---------------------- Attendance API
     const [employeeAttendance, setEmployeeAttendance] = useState([]);
-    const [dutyIn, setDutyIn] = useState(false);
+    const [onDuty, setOnDuty] = useState(false);
     const [firstDutyFinished, setFirstDutyFinished] = useState(false);
     useEffect(() => {
         axiosInstance
@@ -82,7 +75,9 @@ const Attendance = ({ open, close }) => {
                             response.data.attendance.length - 1
                         ];
                     if (latestAttendance.action == "Duty In") {
-                        setDutyIn(true);
+                        setOnDuty(true);
+                    } else {
+                        setOnDuty(false);
                     }
                     // console.log(latestAttendance);
                 } else {
@@ -92,7 +87,7 @@ const Attendance = ({ open, close }) => {
             .catch((error) => {
                 // console.error("Error fetching employee:", error);
             });
-    }, []);
+    }, [refreshTrigger]);
     //---------------------- Date and Time
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const formattedDate = currentDateTime.toDateString();
@@ -115,47 +110,31 @@ const Attendance = ({ open, close }) => {
         return () => clearInterval(intervalId);
     }, []);
 
-    // button states
-    {
-        /*const [regularTimeIn, setRegularTimeIn] = useState(null);
-    const [regularTimeOut, setRegularTimeOut] = useState(null);
-
-    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
-    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
-    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
-    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
-
-    const [overTimeIn, setOverTimeIn] = useState(null);
-    const [overTimeOut, setOverTimeOut] = useState(null);*/
-    }
-
     // ---------------------- Time In/Out
     const handleTimeInOut = (shift, timeIn) => {
-        // is Second Shift, first shift has not yet expired, nor the first duty has been finished yet
-        if (shift == "Second" && firstShiftExpired && !firstDutyFinished) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid Action",
-                text: "You must complete the first shift before accessing the second shift.",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            });
-        } else if (!dutyIn && !timeIn) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid Action",
-                text: "You have to Time In first!",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            });
+        // The employee attempts to 'Time In' for the second shift when the first shift is still available --
+        if (shift == "Second" && !firstShiftExpired) {
+            //(title, text, icon, confButton, confButtonText, confButtonColor, cancelButton, cancelButtonText, cancelButtonColor)
+            handleInvalidAction(
+                "Invalid Action",
+                "The Second Shift is not yet available.",
+                "warning",
+                true,
+                "Okay",
+                "#177604"
+            );
+            // The employee attempts to 'Time Out' when they are not timed in yet -------------------------------
+        } else if (!onDuty && !timeIn) {
+            handleInvalidAction(
+                "Invalid Action",
+                "You have to Time In first.",
+                "warning",
+                true,
+                "Okay",
+                "#177604"
+            );
+            // The user makes a valid Time In/Out attempt -------------------------------------------------------
         } else {
-            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: `${timeIn ? "Time in" : "Time out"}`,
@@ -179,15 +158,38 @@ const Attendance = ({ open, close }) => {
                         .post("/attendance/saveEmployeeAttendance", data, {
                             headers,
                         })
-                        .then((response) => {})
+                        .then((response) => {
+                            // Trigger refresh by toggling refreshTrigger
+                            setRefreshTrigger((prev) => !prev);
+                        })
                         .catch((error) => {
-                            // console.error("Error:", error);
+                            console.error("Error:", error);
                         });
                 }
             });
         }
     };
 
+    const handleInvalidAction = (
+        title,
+        text,
+        icon,
+        cancelButton,
+        cancelButtonText,
+        cancelButtonColor
+    ) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: title,
+            text: text,
+            icon: icon,
+            showConfirmButton: false,
+            showCancelButton: cancelButton,
+            cancelButtonText: cancelButtonText,
+            cancelButtonColor: cancelButtonColor,
+        });
+    };
     // ----------------------- Modal Rendering
     return (
         <>
@@ -265,18 +267,52 @@ const Attendance = ({ open, close }) => {
                                 </Typography>
                             </Grid>
                         </Grid>
+                        {/*Current Duty Status-------------------------------*/}
+                        <Grid
+                            container
+                            direction="row"
+                            alignItems="flex-start"
+                            sx={{ my: 1 }}
+                        >
+                            <Grid item xs={7}>
+                                <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: "medium" }}
+                                >
+                                    Current Status:
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={5}>
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: "bold",
+                                        textAlign: "right",
+                                        color: onDuty ? "#177604" : "#f44336",
+                                    }}
+                                >
+                                    {onDuty ? "On Duty" : "Off Duty"}
+                                </Typography>
+                            </Grid>
+                        </Grid>
                         {/*Regular Shift-------------------------------*/}
                         {workShift.shift_type == "Regular" ? (
                             <Grid
                                 container
                                 direction="row"
                                 alignItems="flex-start"
-                                sx={{ my: 1 }}
+                                sx={{
+                                    my: 1,
+                                    pt: 1.5,
+                                    borderTop: "1px solid #e0e0e0",
+                                }}
                             >
                                 <Grid item xs={4}>
                                     <Typography
                                         variant="h6"
-                                        sx={{ fontWeight: "medium" }}
+                                        sx={{
+                                            fontWeight: "medium",
+                                        }}
                                     >
                                         Attendance
                                     </Typography>
@@ -291,7 +327,7 @@ const Attendance = ({ open, close }) => {
                                 >
                                     <Button
                                         variant="contained"
-                                        disabled={dutyIn}
+                                        disabled={onDuty}
                                         sx={{ backgroundColor: "#177604" }}
                                         startIcon={<AccessTime />}
                                         onClick={() =>
@@ -328,7 +364,11 @@ const Attendance = ({ open, close }) => {
                                 container
                                 direction="row"
                                 alignItems="flex-start"
-                                sx={{ my: 1 }}
+                                sx={{
+                                    my: 1,
+                                    pt: 2,
+                                    borderTop: "1px solid #e0e0e0",
+                                }}
                             >
                                 <Grid item xs={4}>
                                     <Typography
@@ -348,11 +388,7 @@ const Attendance = ({ open, close }) => {
                                 >
                                     <Button
                                         variant="contained"
-                                        disabled={
-                                            dutyIn ||
-                                            firstDutyFinished ||
-                                            firstShiftExpired
-                                        }
+                                        disabled={onDuty || firstShiftExpired}
                                         sx={{ backgroundColor: "#177604" }}
                                         startIcon={<AccessTime />}
                                         onClick={() =>
@@ -372,10 +408,7 @@ const Attendance = ({ open, close }) => {
                                 >
                                     <Button
                                         variant="contained"
-                                        disabled={
-                                            firstDutyFinished ||
-                                            (!dutyIn && firstShiftExpired)
-                                        }
+                                        disabled={!onDuty && firstShiftExpired}
                                         color="error"
                                         startIcon={<AccessTime />}
                                         onClick={() =>
@@ -413,7 +446,7 @@ const Attendance = ({ open, close }) => {
                                 >
                                     <Button
                                         variant="contained"
-                                        disabled={dutyIn}
+                                        disabled={firstShiftExpired && onDuty}
                                         sx={{ backgroundColor: "#177604" }}
                                         startIcon={<AccessTime />}
                                         onClick={() =>
@@ -445,7 +478,11 @@ const Attendance = ({ open, close }) => {
                             </Grid>
                         ) : null}
                         {/*Overtime Shift------------------------------*/}
-                        {firstDutyFinished ? (
+                        {firstDutyFinished &&
+                        ((workShift.shift_type == "Regular" &&
+                            firstShiftExpired) ||
+                            (workShift.shift_type == "Split" &&
+                                secondShiftExpired)) ? (
                             <Grid
                                 container
                                 direction="row"
@@ -470,7 +507,7 @@ const Attendance = ({ open, close }) => {
                                 >
                                     <Button
                                         variant="contained"
-                                        disabled={dutyIn}
+                                        disabled={onDuty}
                                         sx={{ backgroundColor: "#177604" }}
                                         startIcon={<AccessTime />}
                                         onClick={() =>
@@ -510,7 +547,7 @@ const Attendance = ({ open, close }) => {
                             justifyContent: "flex-start",
                             alignItems: "flex-start",
                             borderTop: "1px solid #e0e0e0",
-                            mt: 2,
+                            mt: 1,
                             pt: 2,
                         }}
                     >
@@ -520,57 +557,75 @@ const Attendance = ({ open, close }) => {
                         >
                             Attendance Logs
                         </Typography>
-
-                        {employeeAttendance.length > 0 ? (
-                            employeeAttendance.map((log, index) => (
-                                <Grid
-                                    key={index}
-                                    container
-                                    direction="row"
-                                    alignItems="center"
-                                    sx={{
-                                        p: 1,
-                                        backgroundColor:
-                                            index % 2 === 0
-                                                ? "#f5f5f5"
-                                                : "#e0e0e0",
-                                    }}
-                                >
-                                    <Grid item xs={6}>
-                                        <Typography>{log.action}</Typography>
-                                    </Grid>
+                        <Grid
+                            container
+                            direction="column"
+                            sx={{
+                                maxHeight: {
+                                    xs: "150px",
+                                    lg: "200px",
+                                },
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                flexWrap: "nowrap",
+                            }}
+                        >
+                            {employeeAttendance.length > 0 ? (
+                                employeeAttendance.map((log, index) => (
                                     <Grid
-                                        item
-                                        xs={6}
+                                        key={index}
+                                        container
+                                        direction="row"
+                                        alignItems="center"
                                         sx={{
-                                            textAlign: "right",
+                                            p: 1,
+                                            backgroundColor:
+                                                index % 2 === 0
+                                                    ? "#f5f5f5"
+                                                    : "#e0e0e0",
                                         }}
                                     >
-                                        <Typography>{log.timestamp}</Typography>
+                                        <Grid item xs={6}>
+                                            <Typography>
+                                                {log.action}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid
+                                            item
+                                            xs={6}
+                                            sx={{
+                                                textAlign: "right",
+                                            }}
+                                        >
+                                            <Typography>
+                                                {log.timestamp}
+                                            </Typography>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            ))
-                        ) : (
-                            <Grid
-                                item
-                                container
-                                xs={12}
-                                sx={{
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Typography
+                                ))
+                            ) : (
+                                <Grid
+                                    item
+                                    container
+                                    xs={12}
                                     sx={{
-                                        color: "text.secondary",
-                                        p: 1,
-                                        textAlign: "center",
+                                        justifyContent: "center",
+                                        alignItems: "center",
                                     }}
                                 >
-                                    You have no attendance logs for this shift
-                                </Typography>
-                            </Grid>
-                        )}
+                                    <Typography
+                                        sx={{
+                                            color: "text.secondary",
+                                            p: 1,
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        You have no attendance logs for this
+                                        shift
+                                    </Typography>
+                                </Grid>
+                            )}
+                        </Grid>
                     </Grid>
                 </DialogContent>
             </Dialog>
