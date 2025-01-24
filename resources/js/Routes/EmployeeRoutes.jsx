@@ -29,98 +29,21 @@ const EmployeeRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route
-                path="dashboard"
-                element={<ProtectedRoute element={<Dashboard />} user={user} />}
-            />
-
-            <Route
-                path="attendance-logs"
-                element={
-                    <ProtectedRoute element={<AttendanceLogs />} user={user} />
-                }
-            />
+            <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} user={user} />} />
+            <Route path="attendance-logs" element={ <ProtectedRoute element={<AttendanceLogs />} user={user} /> } />
 
             {/* Old Routes ------------------------------------------------ */}
-            <Route
-                path="member-attendance"
-                element={
-                    <ProtectedRoute
-                        element={<MemberAttendance />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="member-application"
-                element={
-                    <ProtectedRoute
-                        element={<MemberApplication />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="member-payroll-details"
-                element={
-                    <ProtectedRoute
-                        element={<MemberPayrollDetails />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="announcements"
-                element={
-                    <ProtectedRoute
-                        element={<MemberAnnouncements />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="trainings"
-                element={
-                    <ProtectedRoute element={<MemberTrainings />} user={user} />
-                }
-            />
+            <Route path="member-attendance" element={ <ProtectedRoute element={<MemberAttendance />} user={user} /> } />
+            <Route path="member-application" element={ <ProtectedRoute element={<MemberApplication />} user={user} /> } />
+            <Route path="member-payroll-details" element={ <ProtectedRoute element={<MemberPayrollDetails />} user={user} /> } />
+            <Route path="announcements" element={ <ProtectedRoute element={<MemberAnnouncements />} user={user} /> } />
+            <Route path="trainings" element={ <ProtectedRoute element={<MemberTrainings />} user={user} /> } />
 
             {/* <Route path="evaluation" element={<ProtectedRoute element={<MemberEvaluation />} user={user} />} /> */}
-
-            <Route
-                path="evaluate"
-                element={
-                    <ProtectedRoute
-                        element={<MemberForEvaluation />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="evaluate/:id"
-                element={
-                    <ProtectedRoute element={<MemberEvaluate />} user={user} />
-                }
-            />
-            <Route
-                path="evaluation"
-                element={
-                    <ProtectedRoute
-                        element={<MemberMyEvaluation />}
-                        user={user}
-                    />
-                }
-            />
-
-            <Route
-                path="incident-reports"
-                element={
-                    <ProtectedRoute
-                        element={<MemberIncidentReports />}
-                        user={user}
-                    />
-                }
-            />
+            <Route path="evaluate" element={ <ProtectedRoute element={<MemberForEvaluation />} user={user} /> } />
+            <Route path="evaluate/:id" element={ <ProtectedRoute element={<MemberEvaluate />} user={user} /> } />
+            <Route path="evaluation" element={ <ProtectedRoute element={<MemberMyEvaluation />} user={user} /> } />
+            <Route path="incident-reports" element={ <ProtectedRoute element={<MemberIncidentReports />} user={user} /> } />
         </Routes>
     );
 };
