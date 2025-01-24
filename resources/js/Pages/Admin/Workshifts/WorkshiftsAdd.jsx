@@ -30,8 +30,11 @@ const WorkshiftAdd = () => {
     const [splitFirstTimeOutError, setSplitFirstTimeOutError] = useState(false);
     const [splitSecondTimeInError, setSplitSecondTimeInError] = useState(false);
     const [splitSecondTimeOutError, setSplitSecondTimeOutError] = useState(false);
+
     const [overTimeInError, setOverTimeInError] = useState(false);
     const [overTimeOutError, setOverTimeOutError] = useState(false);
+    const [breakStartError, setBreakStartError] = useState(false);
+    const [breakEndError, setBreakEndError] = useState(false);
 
     const [shiftName, setShiftName] = useState('');
     const [shiftType, setShiftType] = useState('');
@@ -50,6 +53,9 @@ const WorkshiftAdd = () => {
     const [overTimeIn, setOverTimeIn] = useState(null);
     const [overTimeOut, setOverTimeOut] = useState(null);
 
+    const [breakStart, setBreakStart] = useState(null);
+    const [breakEnd, setBreakEnd] = useState(null);
+
     const handleRegularTimeInChange = (newValue) => {
         setRegularTimeIn(newValue);
     };
@@ -64,10 +70,18 @@ const WorkshiftAdd = () => {
 
     const handleSplitFirstTimeOutChange = (newValue) => {
         setSplitFirstTimeOut(newValue);
+
+        if (shiftType == "split" ) {
+            handleBreakStartChange(newValue);
+        }
     };
 
     const handleSplitSecondTimeInChange = (newValue) => {
         setSplitSecondTimeIn(newValue);
+
+        if (shiftType == "split" ) {
+            handleBreakEndChange(newValue);
+        }
     };
 
     const handleSplitSecondTimeOutChange = (newValue) => {
@@ -82,6 +96,13 @@ const WorkshiftAdd = () => {
         setOverTimeOut(newValue);
     };
 
+    const handleBreakStartChange = (newValue) => {
+        setBreakStart(newValue);
+    };
+
+    const handleBreakEndChange = (newValue) => {
+        setBreakEnd(newValue);
+    };
 
     const handleShiftTypeChange = (newValue) => {
         
@@ -159,7 +180,31 @@ const WorkshiftAdd = () => {
             setRegularTimeOutError(false);
         }
 
-        if ( regularTimeIn === null || regularTimeOut === null || overTimeIn === null || overTimeOut === null ) {
+        if (breakStart === null) {
+            setBreakStartError(true);
+        } else {
+            setBreakStartError(false);
+        }
+    
+        if (breakEnd === null) {
+            setBreakEndError(true);
+        } else {
+            setBreakEndError(false);
+        }
+
+        if (overTimeIn === null) {
+            setOverTimeInError(true);
+        } else {
+            setOverTimeInError(false);
+        }
+
+        if (overTimeOut === null) {
+            setOverTimeOutError(true);
+        } else {
+            setOverTimeOutError(false);
+        }
+
+        if ( regularTimeIn === null || regularTimeOut === null || overTimeIn === null || overTimeOut === null || overTimeIn === null || overTimeOut === null ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -368,9 +413,9 @@ const WorkshiftAdd = () => {
                             </FormControl>
                         </FormGroup>
 
-                        {shiftType === 'regular' && (
+                        {shiftType === "regular" && (
                             <>
-                                <Typography>Attendance</Typography>
+                                <Typography>Work Hours</Typography>
                                 <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                     '& label.Mui-focused': {color: '#97a5ba'},
                                     '& .MuiOutlinedInput-root': {
@@ -443,10 +488,10 @@ const WorkshiftAdd = () => {
                                     }}>
                                         <TextField
                                             required
-                                            id="overTimeLabel"
-                                            label="Over Time"
+                                            id="breakTimeLabel"
+                                            label="Break Time"
                                             variant="outlined"
-                                            value="Over Time"
+                                            value="Break Time"
                                         />
                                     </FormControl>
 
@@ -458,11 +503,12 @@ const WorkshiftAdd = () => {
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                             <DemoContainer components={['TimePicker']}>
                                                 <TimePicker
-                                                    label="Time In"
+                                                    required
+                                                    label="Break Start"
                                                     views={['hours', 'minutes']}
-                                                    value={overTimeIn}
-                                                    onChange={handleOverTimeInChange}
-                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
+                                                    value={breakStart}
+                                                    onChange={handleBreakStartChange}
+                                                    slotProps={{ textField: { error: breakStartError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -476,28 +522,23 @@ const WorkshiftAdd = () => {
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                             <DemoContainer components={['TimePicker']}>
                                                 <TimePicker
-                                                    label="Time Out"
+                                                    requireds
+                                                    label="Break End"
                                                     views={['hours', 'minutes']}
-                                                    value={overTimeOut}
-                                                    onChange={handleOverTimeOutChange}
-                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
+                                                    value={breakEnd}
+                                                    onChange={handleBreakEndChange}
+                                                    slotProps={{ textField: { error: breakEndError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
-
-                                <div className="d-flex justify-content-center" id="buttons" style={{ marginTop: '20px' }}>
-                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                        <p className='m-0'><i className="fa fa-plus mr-2 mt-1"></i>Save Shift</p>
-                                    </Button>
-                                </div>
                             </>
                         )}
 
-                        {shiftType === 'split' && (
+                        {shiftType === "split" && (
                             <>
-                                <Typography>Attendance</Typography>
+                                <Typography>Work Hours</Typography>
                                 <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                     '& label.Mui-focused': {color: '#97a5ba'},
                                     '& .MuiOutlinedInput-root': {
@@ -533,7 +574,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitFirstTimeIn}
                                                     onChange={handleSplitFirstTimeInChange}
-                                                    slotProps={{ textField: { error: splitFirstTimeInError } }}
+                                                    slotProps={{ textField: { error: splitFirstTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -552,7 +593,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitFirstTimeOut}
                                                     onChange={handleSplitFirstTimeOutChange}
-                                                    slotProps={{ textField: { error: splitFirstTimeOutError } }}
+                                                    slotProps={{ textField: { error: splitFirstTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -594,7 +635,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitSecondTimeIn}
                                                     onChange={handleSplitSecondTimeInChange}
-                                                    slotProps={{ textField: { error: splitSecondTimeInError } }}
+                                                    slotProps={{ textField: { error: splitSecondTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -613,13 +654,17 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitSecondTimeOut}
                                                     onChange={handleSplitSecondTimeOutChange}
-                                                    slotProps={{ textField: { error: splitSecondTimeOutError } }}
+                                                    slotProps={{ textField: { error: splitSecondTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
+                            </>
+                        )}
 
+                        {shiftType && (
+                            <>
                                 <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                     '& label.Mui-focused': {color: '#97a5ba'},
                                     '& .MuiOutlinedInput-root': {
