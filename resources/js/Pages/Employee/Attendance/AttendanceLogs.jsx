@@ -135,7 +135,9 @@ const AttendanceLogs = () => {
                                             </TableRow>
                                         </TableHead>
 
-                                        <TableBody></TableBody>
+                                        <TableBody>
+                                            {/* Data Goes Here */}
+                                        </TableBody>
                                     </Table>
                                 </TableContainer>
                             </>

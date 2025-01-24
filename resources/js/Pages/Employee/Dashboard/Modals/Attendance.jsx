@@ -11,6 +11,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import AttendanceButtons from "./Components/AttendanceButtons";
 import Swal from "sweetalert2";
+import moment from "moment";
 import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
@@ -28,7 +29,7 @@ const Attendance = ({ open, close }) => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
             .then((response) => {
-                console.log(response.data);
+                //console.log(response.data);
                 setWorkShift(response.data.workShift);
                 setWorkHour(response.data.workHours);
             })
@@ -39,8 +40,8 @@ const Attendance = ({ open, close }) => {
 
     //--------------------- Work Shift Expiration Checks
     useEffect(() => {
-        console.log(exactTime);
-        console.log(workHour.first_time_out);
+        //console.log(exactTime);
+        //console.log(workHour.first_time_out);
         // Ends First Shift Period
         if (exactTime > workHour.first_time_out) {
             setFirstShiftExpired(true);
@@ -55,6 +56,7 @@ const Attendance = ({ open, close }) => {
     const [employeeAttendance, setEmployeeAttendance] = useState([]);
     const [onDuty, setOnDuty] = useState(false);
     const [firstDutyFinished, setFirstDutyFinished] = useState(false);
+    const [latestAttendanceTime, setlatestAttendanceTime] = useState();
     useEffect(() => {
         axiosInstance
             .get(`attendance/getEmployeeWorkDayAttendance`, { headers })
@@ -79,7 +81,7 @@ const Attendance = ({ open, close }) => {
                     } else {
                         setOnDuty(false);
                     }
-                    // console.log(latestAttendance);
+                    setlatestAttendanceTime(latestAttendance.timestamp);
                 } else {
                     // console.log("No attendance records found.");
                 }
@@ -101,6 +103,22 @@ const Attendance = ({ open, close }) => {
 
     const exactTime = `${hours}:${minutes}:${seconds}`;
 
+    //--------------------- Latest Attendance Time
+    const [latestTime, setLatestTime] = useState();
+
+    useEffect(() => {
+        if (latestAttendanceTime) {
+            // Parse the string into a moment object
+            const momentTime = moment(
+                latestAttendanceTime,
+                "YYYY-MM-DD HH:mm:ss"
+            );
+            // Format the time to extract only the time part
+            const timePart = momentTime.format("HH:mm:ss");
+            // Set the extracted time to latestTime
+            setLatestTime(timePart);
+        }
+    }, [latestAttendanceTime]);
     //--------------------- Time Interval (second)
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -113,7 +131,11 @@ const Attendance = ({ open, close }) => {
     // ---------------------- Time In/Out
     const handleTimeInOut = (shift, timeIn) => {
         // The employee attempts to 'Time In' for the second shift when the first shift is still available --
-        if (shift == "Second" && !firstShiftExpired) {
+        if (
+            shift == "Second" &&
+            (!firstShiftExpired ||
+                (onDuty && latestTime < workHour.first_time_out))
+        ) {
             //(title, text, icon, confButton, confButtonText, confButtonColor, cancelButton, cancelButtonText, cancelButtonColor)
             handleInvalidAction(
                 "Invalid Action",
@@ -135,6 +157,7 @@ const Attendance = ({ open, close }) => {
             );
             // The user makes a valid Time In/Out attempt -------------------------------------------------------
         } else {
+            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: `${timeIn ? "Time in" : "Time out"}`,
@@ -346,7 +369,8 @@ const Attendance = ({ open, close }) => {
                                     onTimeOut={handleTimeInOut}
                                     disableTimeIn={onDuty || firstShiftExpired}
                                     disableTimeOut={
-                                        !onDuty && firstShiftExpired
+                                        (!onDuty && firstShiftExpired) ||
+                                        latestTime > workHour.first_time_out
                                     }
                                     shiftType="First"
                                 />
