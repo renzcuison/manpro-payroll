@@ -44,7 +44,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
-            <Route path="workgroup/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
+            <Route path="workgroup/:client/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
             <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
             <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />

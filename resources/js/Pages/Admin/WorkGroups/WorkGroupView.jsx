@@ -9,9 +9,12 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import AssignShift from '../WorkGroups/Modals/AssignShift';
+// import Error404 from "../Pages/Errors/Error404";
+
+import Error404 from "../../Errors/Error404";
 
 const WorkGroupView = () => {
-    const { group } = useParams();
+    const { client, group } = useParams();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -20,6 +23,7 @@ const WorkGroupView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
+    const [showError, setShowError] = useState(false);
 
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
@@ -33,14 +37,22 @@ const WorkGroupView = () => {
     }, []);
 
     const getWorkGroupDetails = () => {
-        const data = { group };
+
+        const data = { client: client, group: group };
 
         axiosInstance.get(`/workshedule/getWorkGroupDetails`, { params: data, headers })
             .then((response) => {
-                setWorkGroup(response.data.workGroup);
-                setWorkShift(response.data.workShift);
-                setWorkHours(response.data.workHours);
-                setEmployees(response.data.employees);
+                const { workGroup, workShift, workHours, employees } = response.data;
+
+                if (!workGroup && !workShift && !workHours && !employees) {
+                    setShowError(true);
+                    return;
+                }
+
+                setWorkGroup(workGroup);
+                setWorkShift(workShift);
+                setWorkHours(workHours);
+                setEmployees(employees);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -71,6 +83,10 @@ const WorkGroupView = () => {
 
     const handleCloseAssignShiftModal = () => {
         setOpenAssignShiftModal(false);
+    }
+
+    if (showError) {
+        return <Error404 />;
     }
 
     return (

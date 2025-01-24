@@ -329,15 +329,14 @@ class WorkScheduleController extends Controller
 
     public function getWorkGroupDetails(Request $request)
     {
-        // log::info("WorkScheduleController::getWorkGroupDetails");
+        log::info("WorkScheduleController::getWorkGroupDetails");
 
-        if ($this->checkUser()) {
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
 
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $group = str_replace('_', ' ', $request->group);
+        if ($this->checkUser() && ($client->id == $request->client) ) {
 
-            $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $group)->first();
+            $workGroup = WorkGroupsModel::where('id', $request->group)->where('client_id', $client->id)->where('deleted_at', null)->first();
 
             $workShift = WorkShiftsModel::select(
                 'name',
@@ -386,7 +385,7 @@ class WorkScheduleController extends Controller
             return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'workHours' => $workHours, 'employees' => $employees]);   
         } 
 
-        return response()->json(['status' => 200, 'workSGroup' => null]);   
+        return response()->json(['status' => 200, 'workGroup' => null, 'workShift' => null, 'workHours' => null, 'employees' => null]);
     }
 
     public function saveWorkGroup(Request $request)
