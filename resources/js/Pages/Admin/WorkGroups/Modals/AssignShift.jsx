@@ -17,9 +17,6 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
     const [selectedShift, setSelectedShift] = useState("");
 
     useEffect(() => {
-        console.log(workGroup);
-        // console.log(workShift);
-
         setSelectedShift(currentShift ? currentShift : '');
 
         axiosInstance.get(`/workshedule/getWorkShifts`, { headers })

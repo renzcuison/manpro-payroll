@@ -383,7 +383,7 @@ class WorkScheduleController extends Controller
                     ];
                 });
         
-            return response()->json(['status' => 200, 'workGroup' => $workGroup->name, 'workShift' => $workShift, 'workHours' => $workHours, 'employees' => $employees]);   
+            return response()->json(['status' => 200, 'workGroup' => $workGroup, 'workShift' => $workShift, 'workHours' => $workHours, 'employees' => $employees]);   
         } 
 
         return response()->json(['status' => 200, 'workGroup' => null, 'workShift' => null, 'workHours' => null, 'employees' => null]);

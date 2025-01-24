@@ -9,6 +9,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import AssignShift from '../WorkGroups/Modals/AssignShift';
+import EditWorkGroup from '../WorkGroups/Modals/EditWorkGroup';
 // import Error404 from "../Pages/Errors/Error404";
 
 import Error404 from "../../Errors/Error404";
@@ -31,6 +32,7 @@ const WorkGroupView = () => {
     const [employees, setEmployees] = useState([]);
 
     const [openAssignShiftModal, setOpenAssignShiftModal] = useState(false);
+    const [openEditWorkGroupModal, setOpenEditWorkGroupModal] = useState(false);
 
     useEffect(() => {
         getWorkGroupDetails();
@@ -85,6 +87,14 @@ const WorkGroupView = () => {
         setOpenAssignShiftModal(false);
     }
 
+    const handleOpenEditWorkGroupModal = () => {
+        setOpenEditWorkGroupModal(true);
+    }
+
+    const handleCloseEditWorkGroupModal = () => {
+        setOpenEditWorkGroupModal(false);
+    }
+
     if (showError404) {
         return <Error404 />;
     }
@@ -103,8 +113,8 @@ const WorkGroupView = () => {
                         
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions}>
                             <MenuItem onClick={handleOpenAssignShiftModal}>Assign Shift</MenuItem>
-                            <MenuItem>Edit Work Group</MenuItem>
-                            <MenuItem>Delete Work Group</MenuItem>
+                            <MenuItem onClick={handleOpenEditWorkGroupModal}>Edit Work Group</MenuItem>
+                            <MenuItem onClick={handleOpenAssignShiftModal}>Delete Work Group</MenuItem>
                         </Menu>
 
                     </Box>
@@ -223,13 +233,17 @@ const WorkGroupView = () => {
                             </Box>
                         </Grid>
 
-
                     </Grid>
                 </Box>
 
                 {openAssignShiftModal &&
                     <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={workShift.id} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
                 }
+
+                {openEditWorkGroupModal &&
+                    <EditWorkGroup open={openEditWorkGroupModal} close={handleCloseEditWorkGroupModal} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                }
+
             </Box>
         </Layout >
     )
