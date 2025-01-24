@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
+use Carbon\Carbon;
+
 class AttendanceController extends Controller
 {
     public function checkUser()
@@ -40,6 +42,8 @@ class AttendanceController extends Controller
 
     public function getEmployeeLatestAttendance()
     {
+        // log::info("WorkScheduleController::getEmployeeLatestAttendance");
+
         $user = Auth::user();
     
         $latest_attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
@@ -49,13 +53,13 @@ class AttendanceController extends Controller
 
     public function getEmployeeWorkDayAttendance()
     {
+        // Log::info("WorkScheduleController::getEmployeeWorkDayAttendance");
+    
         $user = Auth::user();
+        $currentDate = Carbon::now()->toDateString();
+        $attendance = AttendanceLogsModel::where('user_id', $user->id)->whereDate('timestamp', $currentDate)->get();
 
-        log::info($user->workHours);
-    
-        $attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
-    
-        return response()->json(['status' => 200,'attendance' => $attendance,]);
+        return response()->json([ 'status' => 200, 'attendance' => $attendance ]);
     }
     
     public function saveEmployeeAttendance(Request $request)
@@ -66,7 +70,7 @@ class AttendanceController extends Controller
 
         $user = Auth::user();
 
-        if (!$validated) {
+        if ($validated) {
             try {
                 DB::beginTransaction();
 
@@ -90,4 +94,23 @@ class AttendanceController extends Controller
             }
         }
     }
+
+    public function getAttendanceLogs()
+    {
+        // Log::info("WorkScheduleController::getAttendanceLogs");
+    
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $clientId = $user->client_id;
+    
+            $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+                $query->where('client_id', $clientId);
+            })->get();
+    
+            return response()->json(['status' => 200, 'attendances' => $attendances]);
+        }
+    
+        return response()->json(['status' => 200, 'attendances' => null]);
+    }
+    
 }

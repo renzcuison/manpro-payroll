@@ -14,14 +14,18 @@ class WorkHoursModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name',
+        'shift_type',
 
         'first_time_in',
         'first_time_out',
         'second_time_in',
         'second_time_out',
+
+        'break_start',
+        'break_end',
         'over_time_in',
         'over_time_out',
+
         'break_duration',
     ];
 }

@@ -43,10 +43,13 @@ class WorkScheduleController extends Controller
 
         if ($this->checkUser()){
             $existing = WorkHoursModel::
+                where('first_time_in', $request->shiftType)->
                 where('first_time_in', $request->firstTimeIn)->
                 where('first_time_out', $request->firstTimeOut)->
                 where('second_time_in', $request->secondTimeIn)->
                 where('second_time_out', $request->secondTimeOut)->
+                where('break_start', $request->breakStart)->
+                where('break_end', $request->breakEnd)->
                 where('over_time_in', $request->overTimeIn)->
                 where('over_time_out', $request->overTimeOut)->
                 first();
@@ -58,11 +61,16 @@ class WorkScheduleController extends Controller
                     DB::beginTransaction();
     
                     $workHour = WorkHoursModel::create([
+                        "shift_type" => $request->shiftType,
+                        
                         "first_time_in" => $request->firstTimeIn,
                         "first_time_out" => $request->firstTimeOut,
     
                         "second_time_in" => $request->secondTimeIn,
                         "second_time_out" => $request->secondTimeOut,
+
+                        "break_start" => $request->breakStart,
+                        "break_end" => $request->breakEnd,
     
                         "over_time_in" => $request->overTimeIn,
                         "over_time_out" => $request->overTimeOut,
@@ -229,7 +237,9 @@ class WorkScheduleController extends Controller
 
     public function saveRegularWorkShift(Request $request)
     {
-        // log::info("WorkScheduleController::saveRegularWorkShift");
+        log::info("WorkScheduleController::saveRegularWorkShift");
+
+        log::info($request);
 
         $validated = $request->validate([
             'shiftName' => 'required',
@@ -239,13 +249,15 @@ class WorkScheduleController extends Controller
             'firstTimeIn' => 'required',
             'firstTimeOut' => 'required',
             
+            'breakStart' => 'required',
+            'breakEnd' => 'required',
             'overTimeIn' => 'required',
             'overTimeOut' => 'required',
         ]);
 
         $workHour  = $this->checkWorkHour($request);
 
-        if ($this->checkUser() && $validated && $workHour) {
+        if ($this->checkUser() && !$validated && $workHour) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);

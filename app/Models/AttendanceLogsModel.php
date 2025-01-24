@@ -27,4 +27,10 @@ class AttendanceLogsModel extends Model
 
         'deleted_at',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
 }

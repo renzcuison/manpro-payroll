@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
 import { useAuth } from "../../hooks/useAuth";
 import { useUser } from '../../hooks/useUser';
+import { useNavigate } from 'react-router-dom';
 import { Button, Menu, MenuItem } from '@mui/material';
 
 const Header = ({ toogleSidebar }) => {
+	const navigate = useNavigate();
 	const { user } = useUser();
 	const { logout } = useAuth();
 	const [isDisabled, setIsDisabled] = useState(false);
 	
 	const handlePersonalDetails = async () => {
-		window.location.href = "http://127.0.0.1:8080/personal-details?";
+		navigate(`/personal-details`);
     };
 
 	const handleChangePassword = async () => {
-		window.location.href = "http://127.0.0.1:8080/change-password?";
+		navigate(`/change-password`);
     };
 
 	const handleLogout = async () => {
@@ -26,12 +28,15 @@ const Header = ({ toogleSidebar }) => {
 
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
+
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
+	
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
+	
 	return (
 		<header id="page-header">
 			<div className="content-header" style={{ backgroundColor: '#f8f9fa' }}>
