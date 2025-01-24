@@ -1,6 +1,5 @@
 import {
     Box,
-    Button,
     IconButton,
     Dialog,
     DialogTitle,
@@ -10,11 +9,12 @@ import {
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import AttendanceButtons from "./Components/AttendanceButtons";
 import Swal from "sweetalert2";
 import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [refreshTrigger, setRefreshTrigger] = useState(false);
@@ -190,6 +190,7 @@ const Attendance = ({ open, close }) => {
             cancelButtonColor: cancelButtonColor,
         });
     };
+
     // ----------------------- Modal Rendering
     return (
         <>
@@ -203,7 +204,7 @@ const Attendance = ({ open, close }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
-                        minWidth: "400px",
+                        minWidth: { xs: "100%", sm: "400px" },
                         maxWidth: "450px",
                         marginBottom: "5%",
                     },
@@ -242,28 +243,53 @@ const Attendance = ({ open, close }) => {
                         {/*Current Date and Time-------------------------------*/}
                         <Grid
                             container
-                            direction="row"
-                            alignItems="flex-start"
+                            direction={{ xs: "column", sm: "row" }}
+                            alignItems={{ xs: "flex-start", sm: "flex-start" }}
                             sx={{ my: 1 }}
                         >
-                            <Grid item xs={4}>
+                            <Grid item xs={12} sm={4}>
                                 <Typography
                                     variant="h6"
-                                    sx={{ fontWeight: "medium" }}
+                                    sx={{
+                                        fontWeight: "medium",
+                                    }}
                                 >
-                                    Date & Time:
+                                    Date:
                                 </Typography>
                             </Grid>
 
-                            <Grid item xs={8}>
+                            <Grid item xs={12} sm={8}>
                                 <Typography
                                     variant="h6"
                                     sx={{
                                         fontWeight: "bold",
-                                        textAlign: "right",
+                                        textAlign: { xs: "left", sm: "right" },
                                     }}
                                 >
-                                    {formattedDate + ", " + formattedTime}
+                                    {formattedDate}
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12} sm={4}>
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: "medium",
+                                    }}
+                                >
+                                    Time:
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12} sm={8}>
+                                <Typography
+                                    variant="h6" // Adjusts font size
+                                    sx={{
+                                        fontWeight: "bold",
+                                        textAlign: { xs: "left", sm: "right" },
+                                    }}
+                                >
+                                    {formattedTime}
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -272,14 +298,14 @@ const Attendance = ({ open, close }) => {
                             container
                             direction="row"
                             alignItems="flex-start"
-                            sx={{ my: 1 }}
+                            sx={{ my: 1, borderBottom: "1px solid #e0e0e0" }}
                         >
                             <Grid item xs={7}>
                                 <Typography
                                     variant="h6"
                                     sx={{ fontWeight: "medium" }}
                                 >
-                                    Current Status:
+                                    Status:
                                 </Typography>
                             </Grid>
                             <Grid item xs={5}>
@@ -297,185 +323,45 @@ const Attendance = ({ open, close }) => {
                         </Grid>
                         {/*Regular Shift-------------------------------*/}
                         {workShift.shift_type == "Regular" ? (
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="flex-start"
-                                sx={{
-                                    my: 1,
-                                    pt: 1.5,
-                                    borderTop: "1px solid #e0e0e0",
-                                }}
-                            >
-                                <Grid item xs={4}>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontWeight: "medium",
-                                        }}
-                                    >
-                                        Attendance
-                                    </Typography>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        disabled={onDuty}
-                                        sx={{ backgroundColor: "#177604" }}
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Regular", true)
-                                        }
-                                    >
-                                        Time In
-                                    </Button>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Regular", false)
-                                        }
-                                    >
-                                        Time Out
-                                    </Button>
-                                </Grid>
-                            </Grid>
+                            <AttendanceButtons
+                                label="Attendance"
+                                timeInLabel="Time In"
+                                timeOutLabel="Time Out"
+                                onTimeIn={handleTimeInOut}
+                                onTimeOut={handleTimeInOut}
+                                disableTimeIn={onDuty}
+                                disableTimeOut={false}
+                                shiftType="Regular"
+                            />
                         ) : null}
-                        {/*Split First Shift--------------------------*/}
+                        {/*Split Shift--------------------------*/}
                         {workShift.shift_type == "Split" ? (
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="flex-start"
-                                sx={{
-                                    my: 1,
-                                    pt: 2,
-                                    borderTop: "1px solid #e0e0e0",
-                                }}
-                            >
-                                <Grid item xs={4}>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ fontWeight: "medium" }}
-                                    >
-                                        {workShift.first_label}
-                                    </Typography>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        disabled={onDuty || firstShiftExpired}
-                                        sx={{ backgroundColor: "#177604" }}
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("First", true)
-                                        }
-                                    >
-                                        Time In
-                                    </Button>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        disabled={!onDuty && firstShiftExpired}
-                                        color="error"
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("First", false)
-                                        }
-                                    >
-                                        Time Out
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        ) : null}
-                        {/*Split Second Shift--------------------------*/}
-                        {workShift.shift_type == "Split" ? (
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="flex-start"
-                                sx={{ my: 1 }}
-                            >
-                                <Grid item xs={4}>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ fontWeight: "medium" }}
-                                    >
-                                        {workShift.second_label}
-                                    </Typography>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        disabled={firstShiftExpired && onDuty}
-                                        sx={{ backgroundColor: "#177604" }}
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Second", true)
-                                        }
-                                    >
-                                        Time In
-                                    </Button>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Second", false)
-                                        }
-                                    >
-                                        Time Out
-                                    </Button>
-                                </Grid>
-                            </Grid>
+                            <>
+                                {/*First Shift */}
+                                <AttendanceButtons
+                                    label={workShift.first_label}
+                                    timeInLabel="Time In"
+                                    timeOutLabel="Time Out"
+                                    onTimeIn={handleTimeInOut}
+                                    onTimeOut={handleTimeInOut}
+                                    disableTimeIn={onDuty || firstShiftExpired}
+                                    disableTimeOut={
+                                        !onDuty && firstShiftExpired
+                                    }
+                                    shiftType="First"
+                                />
+                                {/*Second Shift */}
+                                <AttendanceButtons
+                                    label={workShift.second_label}
+                                    timeInLabel="Time In"
+                                    timeOutLabel="Time Out"
+                                    onTimeIn={handleTimeInOut}
+                                    onTimeOut={handleTimeInOut}
+                                    disableTimeIn={firstShiftExpired && onDuty}
+                                    disableTimeOut={false}
+                                    shiftType="Second"
+                                />
+                            </>
                         ) : null}
                         {/*Overtime Shift------------------------------*/}
                         {firstDutyFinished &&
@@ -483,60 +369,16 @@ const Attendance = ({ open, close }) => {
                             firstShiftExpired) ||
                             (workShift.shift_type == "Split" &&
                                 secondShiftExpired)) ? (
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="flex-start"
-                                sx={{ my: 1 }}
-                            >
-                                <Grid item xs={4}>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ fontWeight: "medium" }}
-                                    >
-                                        Overtime
-                                    </Typography>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        disabled={onDuty}
-                                        sx={{ backgroundColor: "#177604" }}
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Overtime", true)
-                                        }
-                                    >
-                                        Time In
-                                    </Button>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={4}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        startIcon={<AccessTime />}
-                                        onClick={() =>
-                                            handleTimeInOut("Overtime", false)
-                                        }
-                                    >
-                                        Time Out
-                                    </Button>
-                                </Grid>
-                            </Grid>
+                            <AttendanceButtons
+                                label="Overtime"
+                                timeInLabel="Time In"
+                                timeOutLabel="Time Out"
+                                onTimeIn={handleTimeInOut}
+                                onTimeOut={handleTimeInOut}
+                                disableTimeIn={onDuty}
+                                disableTimeOut={false}
+                                shiftType="Overtime"
+                            />
                         ) : null}
                     </Grid>
                     {/*Attendance Logs------------------------------*/}
@@ -555,7 +397,7 @@ const Attendance = ({ open, close }) => {
                             variant="h6"
                             sx={{ fontWeight: "medium", mb: 1 }}
                         >
-                            Attendance Logs
+                            Today's Attendance
                         </Typography>
                         <Grid
                             container
