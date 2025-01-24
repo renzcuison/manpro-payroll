@@ -38,18 +38,19 @@ const AttendanceLogs = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
+    const [attendanceLogs, setAttendanceLogs] = useState([]);
 
     useEffect(() => {
         axiosInstance
-            .get("/employee/getEmployees", { headers })
+            .get(`/attendance/getEmployeeAttendanceLogs`, { headers })
             .then((response) => {
-                setEmployees(response.data.employees);
+                console.log(response.data);
+                console.log(response.data.attendances[0]);
+                setAttendanceLogs(response.data.attendances);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error("Error fetching clients:", error);
-                setIsLoading(false);
+                // console.error("Error fetching employee:", error);
             });
     }, []);
 
@@ -62,7 +63,7 @@ const AttendanceLogs = () => {
                     whiteSpace: "nowrap",
                 }}
             >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box
                         sx={{
                             mt: 5,
@@ -115,28 +116,53 @@ const AttendanceLogs = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">
-                                                    Name
+                                                    Action
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    Branch
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    Department
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    Role
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    Status
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    Type
+                                                    Timestamp
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {/* Data Goes Here */}
+                                            {attendanceLogs.length > 0 ? (
+                                                attendanceLogs.map(
+                                                    (log, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                                p: 1,
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f5f5f5"
+                                                                        : "#e0e0e0",
+                                                            }}
+                                                        >
+                                                            <TableCell align="left">
+                                                                {log.action}
+                                                            </TableCell>
+                                                            <TableCell align="left">
+                                                                {log.timestamp}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={2}
+                                                        align="center"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            p: 1,
+                                                        }}
+                                                    >
+                                                        No Attendance Data Found
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

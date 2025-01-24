@@ -112,5 +112,14 @@ class AttendanceController extends Controller
     
         return response()->json(['status' => 200, 'attendances' => null]);
     }
+
+    public function getEmployeeAttendanceLogs()
+    {
+        // Log::info("WorkScheduleController::getAttendanceLogs");
+        $user = Auth::user();
+        $attendances = AttendanceLogsModel::where('user_id', $user->id)->get();
+
+        return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
     
 }
