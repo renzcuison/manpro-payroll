@@ -17,6 +17,8 @@ import {
     Grid,
     CircularProgress,
 } from "@mui/material";
+import moment from "moment";
+
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
@@ -115,11 +117,32 @@ const AttendanceLogs = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">
-                                                    Action
+                                                <TableCell align="left">
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "bold",
+                                                        }}
+                                                    >
+                                                        Date
+                                                    </Typography>
                                                 </TableCell>
-                                                <TableCell align="center">
-                                                    Timestamp
+                                                <TableCell align="left">
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "bold",
+                                                        }}
+                                                    >
+                                                        Time
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell align="left">
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "bold",
+                                                        }}
+                                                    >
+                                                        Action
+                                                    </Typography>
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -136,15 +159,64 @@ const AttendanceLogs = () => {
                                                                     index %
                                                                         2 ===
                                                                     0
-                                                                        ? "#f5f5f5"
-                                                                        : "#e0e0e0",
+                                                                        ? "#f9f9f9"
+                                                                        : "#f0f0f0",
                                                             }}
                                                         >
                                                             <TableCell align="left">
-                                                                {log.action}
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight:
+                                                                            "medium",
+                                                                    }}
+                                                                >
+                                                                    {moment(
+                                                                        log.timestamp,
+                                                                        "YYYY-MM-DD HH:mm:ss"
+                                                                    ).format(
+                                                                        "MMMM D, YYYY"
+                                                                    )}
+                                                                </Typography>
                                                             </TableCell>
                                                             <TableCell align="left">
-                                                                {log.timestamp}
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight:
+                                                                            "medium",
+                                                                    }}
+                                                                >
+                                                                    {moment(
+                                                                        log.timestamp,
+                                                                        "YYYY-MM-DD HH:mm:ss"
+                                                                    ).format(
+                                                                        "hh:mm:ss A"
+                                                                    )}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="left">
+                                                                {" "}
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight:
+                                                                            "bold",
+                                                                        color:
+                                                                            log.action ===
+                                                                            "Duty In"
+                                                                                ? "#177604"
+                                                                                : log.action ===
+                                                                                  "Duty Out"
+                                                                                ? "#f44336"
+                                                                                : log.action ===
+                                                                                  "Overtime Start"
+                                                                                ? "#e9ae20"
+                                                                                : log.action ===
+                                                                                  "Overtime End"
+                                                                                ? "#f57c00"
+                                                                                : "#000000",
+                                                                    }}
+                                                                >
+                                                                    {log.action}
+                                                                </Typography>
                                                             </TableCell>
                                                         </TableRow>
                                                     )
@@ -152,7 +224,7 @@ const AttendanceLogs = () => {
                                             ) : (
                                                 <TableRow>
                                                     <TableCell
-                                                        colSpan={2}
+                                                        colSpan={3}
                                                         align="center"
                                                         sx={{
                                                             color: "text.secondary",
