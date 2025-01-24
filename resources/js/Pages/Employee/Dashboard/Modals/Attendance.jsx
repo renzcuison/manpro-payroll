@@ -188,6 +188,18 @@ const Attendance = ({ open, close }) => {
                         .catch((error) => {
                             console.error("Error:", error);
                         });
+                    document.activeElement.blur();
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: `${
+                            timeIn ? "Timed In" : "Timed Out"
+                        } Successfully!`,
+                        text: "Your attendance has been recorded",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
                 }
             });
         }
@@ -381,8 +393,14 @@ const Attendance = ({ open, close }) => {
                                     timeOutLabel="Time Out"
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
-                                    disableTimeIn={firstShiftExpired && onDuty}
-                                    disableTimeOut={false}
+                                    disableTimeIn={
+                                        (firstShiftExpired && onDuty) ||
+                                        secondShiftExpired
+                                    }
+                                    disableTimeOut={
+                                        (!onDuty && secondShiftExpired) ||
+                                        latestTime > workHour.second_time_out
+                                    }
                                     shiftType="Second"
                                 />
                             </>
