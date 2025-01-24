@@ -352,6 +352,8 @@ class WorkScheduleController extends Controller
                 'first_time_out',
                 'second_time_in',
                 'second_time_out',
+                'break_start',
+                'break_end',
                 'over_time_in',
                 'over_time_out',
             )->find($workShift->work_hour_id);

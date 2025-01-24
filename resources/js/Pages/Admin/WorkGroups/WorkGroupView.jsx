@@ -120,6 +120,11 @@ const WorkGroupView = () => {
                                                 <Grid item xs={8}> {formatTime(workHours.first_time_in)} - {formatTime(workHours.first_time_out)} </Grid>
                                             </Grid>
 
+                                            <Grid container spacing={4} sx={{ p: 1 }}>
+                                                <Grid item xs={4}> Break </Grid>
+                                                <Grid item xs={8}> {formatTime(workHours.break_start)} - {formatTime(workHours.break_end)} </Grid>
+                                            </Grid>
+
                                             {workShift?.shift_type === "Split" && (
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
                                                     <Grid item xs={4}>{workShift.second_label}</Grid>

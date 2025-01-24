@@ -8,7 +8,7 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
-import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
+import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
@@ -37,7 +37,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
-            <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
+            <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
