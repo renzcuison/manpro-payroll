@@ -389,6 +389,35 @@ class WorkScheduleController extends Controller
         return response()->json(['status' => 200, 'workGroup' => null, 'workShift' => null, 'workHours' => null, 'employees' => null]);
     }
 
+    public function editWorkGroup(Request $request)
+    {
+        // log::info("WorkScheduleController::editWorkGroup");
+
+        $validated = $request->validate([ 'groupName' => 'required', 'groupId' => 'required' ]);
+
+        if ($this->checkUser() && $validated ) {
+
+            try {
+                DB::beginTransaction();
+
+                $group = WorkGroupsModel::find($request->groupId);
+                $group->name = $request->groupName;
+                $group->save();
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200 ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
     public function saveWorkGroup(Request $request)
     {
         // log::info("WorkScheduleController::saveWorkGroup");

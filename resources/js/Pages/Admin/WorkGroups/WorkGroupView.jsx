@@ -7,6 +7,7 @@ import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import Swal from 'sweetalert2';
 
 import AssignShift from '../WorkGroups/Modals/AssignShift';
 import EditWorkGroup from '../WorkGroups/Modals/EditWorkGroup';
@@ -95,6 +96,28 @@ const WorkGroupView = () => {
         setOpenEditWorkGroupModal(false);
     }
 
+    const handleDeleteWorkGroup = () => {
+        Swal.fire({
+            customClass: { container: 'my-swal' },
+            text: "Delete Work Group",
+            text: "Are you sure you want to delete this group?",
+            icon: "warning",
+            timer: 1000,
+            showConfirmButton: true,
+            confirmButtonText: 'Proceed',
+            confirmButtonColor: '#177604',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = { groupId: workGroup.id };
+
+                console.log("Delete Work Group");
+                console.log(data);
+            }
+        });
+    }
+
     if (showError404) {
         return <Error404 />;
     }
@@ -114,7 +137,7 @@ const WorkGroupView = () => {
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions}>
                             <MenuItem onClick={handleOpenAssignShiftModal}>Assign Shift</MenuItem>
                             <MenuItem onClick={handleOpenEditWorkGroupModal}>Edit Work Group</MenuItem>
-                            <MenuItem onClick={handleOpenAssignShiftModal}>Delete Work Group</MenuItem>
+                            <MenuItem onClick={handleDeleteWorkGroup}>Delete Work Group</MenuItem>
                         </Menu>
 
                     </Box>
@@ -131,6 +154,11 @@ const WorkGroupView = () => {
                                         </Box>
                                     ) : (
                                         <>
+                                            <Grid container spacing={4} sx={{ p: 1 }}>
+                                                <Grid item xs={4}> Group Name </Grid>
+                                                <Grid item xs={8}> {workGroup.name} </Grid>
+                                            </Grid>
+
                                             <Grid container spacing={4} sx={{ p: 1 }}>
                                                 <Grid item xs={4}> Assigned Shift </Grid>
                                                 <Grid item xs={8}> {workShift.name} </Grid>
@@ -169,6 +197,12 @@ const WorkGroupView = () => {
 
                                 </Box>
                             ) : <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
+
+                                    <Grid container spacing={4} sx={{ p: 1 }}>
+                                        <Grid item xs={4}> Group Name </Grid>
+                                        <Grid item xs={8}></Grid>
+                                    </Grid>
+
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Assigned Shift </Grid>
                                         <Grid item xs={8}></Grid>
