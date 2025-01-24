@@ -18,7 +18,10 @@ import {
     CircularProgress,
 } from "@mui/material";
 import moment from "moment";
-
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
@@ -42,6 +45,7 @@ const AttendanceLogs = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [attendanceLogs, setAttendanceLogs] = useState([]);
 
+    // ---------------- Attendance Logs API
     useEffect(() => {
         axiosInstance
             .get(`/attendance/getEmployeeAttendanceLogs`, { headers })
@@ -55,6 +59,12 @@ const AttendanceLogs = () => {
                 // console.error("Error fetching employee:", error);
             });
     }, []);
+
+    // ---------------- Date Filter
+    const [filterDate, setFilterDate] = useState(dayjs().format("YYYY-MM-DD"));
+    const filteredLogs = attendanceLogs.filter(
+        (log) => dayjs(log.timestamp).format("YYYY-MM-DD") === filterDate
+    );
 
     return (
         <Layout title={"EmployeesList"}>
@@ -110,6 +120,22 @@ const AttendanceLogs = () => {
                             </Box>
                         ) : (
                             <>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
+                                    <DatePicker
+                                        label="Filter by Date"
+                                        value={dayjs(filterDate)}
+                                        onChange={(newValue) =>
+                                            setFilterDate(
+                                                newValue.format("YYYY-MM-DD")
+                                            )
+                                        }
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                    />
+                                </LocalizationProvider>
                                 <TableContainer
                                     style={{ overflowX: "auto" }}
                                     sx={{ minHeight: 400 }}
@@ -117,7 +143,10 @@ const AttendanceLogs = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left">
+                                                <TableCell
+                                                    align="left"
+                                                    sx={{ width: "40%" }}
+                                                >
                                                     <Typography
                                                         sx={{
                                                             fontWeight: "bold",
@@ -126,7 +155,10 @@ const AttendanceLogs = () => {
                                                         Date
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell align="left">
+                                                <TableCell
+                                                    align="left"
+                                                    sx={{ width: "40%" }}
+                                                >
                                                     <Typography
                                                         sx={{
                                                             fontWeight: "bold",
@@ -135,7 +167,10 @@ const AttendanceLogs = () => {
                                                         Time
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell align="left">
+                                                <TableCell
+                                                    align="left"
+                                                    sx={{ width: "20%" }}
+                                                >
                                                     <Typography
                                                         sx={{
                                                             fontWeight: "bold",
@@ -148,8 +183,8 @@ const AttendanceLogs = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            {attendanceLogs.length > 0 ? (
-                                                attendanceLogs.map(
+                                            {filteredLogs.length > 0 ? (
+                                                filteredLogs.map(
                                                     (log, index) => (
                                                         <TableRow
                                                             key={index}
