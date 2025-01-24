@@ -9,9 +9,13 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import AssignShift from '../WorkGroups/Modals/AssignShift';
+import EditWorkGroup from '../WorkGroups/Modals/EditWorkGroup';
+// import Error404 from "../Pages/Errors/Error404";
+
+import Error404 from "../../Errors/Error404";
 
 const WorkGroupView = () => {
-    const { group } = useParams();
+    const { client, group } = useParams();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -20,6 +24,7 @@ const WorkGroupView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
+    const [showError404, setShowError404] = useState(false);
 
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
@@ -27,20 +32,29 @@ const WorkGroupView = () => {
     const [employees, setEmployees] = useState([]);
 
     const [openAssignShiftModal, setOpenAssignShiftModal] = useState(false);
+    const [openEditWorkGroupModal, setOpenEditWorkGroupModal] = useState(false);
 
     useEffect(() => {
         getWorkGroupDetails();
     }, []);
 
     const getWorkGroupDetails = () => {
-        const data = { group };
+
+        const data = { client: client, group: group };
 
         axiosInstance.get(`/workshedule/getWorkGroupDetails`, { params: data, headers })
             .then((response) => {
-                setWorkGroup(response.data.workGroup);
-                setWorkShift(response.data.workShift);
-                setWorkHours(response.data.workHours);
-                setEmployees(response.data.employees);
+                const { workGroup, workShift, workHours, employees } = response.data;
+
+                if (!workGroup && !workShift && !workHours && !employees) {
+                    setShowError404(true);
+                    return;
+                }
+
+                setWorkGroup(workGroup);
+                setWorkShift(workShift);
+                setWorkHours(workHours);
+                setEmployees(employees);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -73,6 +87,18 @@ const WorkGroupView = () => {
         setOpenAssignShiftModal(false);
     }
 
+    const handleOpenEditWorkGroupModal = () => {
+        setOpenEditWorkGroupModal(true);
+    }
+
+    const handleCloseEditWorkGroupModal = () => {
+        setOpenEditWorkGroupModal(false);
+    }
+
+    if (showError404) {
+        return <Error404 />;
+    }
+
     return (
         <Layout title={"WorkGroupView"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -87,8 +113,8 @@ const WorkGroupView = () => {
                         
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions}>
                             <MenuItem onClick={handleOpenAssignShiftModal}>Assign Shift</MenuItem>
-                            <MenuItem>Edit Work Group</MenuItem>
-                            <MenuItem>Delete Work Group</MenuItem>
+                            <MenuItem onClick={handleOpenEditWorkGroupModal}>Edit Work Group</MenuItem>
+                            <MenuItem onClick={handleOpenAssignShiftModal}>Delete Work Group</MenuItem>
                         </Menu>
 
                     </Box>
@@ -118,6 +144,11 @@ const WorkGroupView = () => {
                                             <Grid container spacing={4} sx={{ p: 1 }}>
                                                 <Grid item xs={4}> {workShift.first_label} </Grid>
                                                 <Grid item xs={8}> {formatTime(workHours.first_time_in)} - {formatTime(workHours.first_time_out)} </Grid>
+                                            </Grid>
+
+                                            <Grid container spacing={4} sx={{ p: 1 }}>
+                                                <Grid item xs={4}> Break </Grid>
+                                                <Grid item xs={8}> {formatTime(workHours.break_start)} - {formatTime(workHours.break_end)} </Grid>
                                             </Grid>
 
                                             {workShift?.shift_type === "Split" && (
@@ -202,13 +233,17 @@ const WorkGroupView = () => {
                             </Box>
                         </Grid>
 
-
                     </Grid>
                 </Box>
 
                 {openAssignShiftModal &&
-                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={workShift.id} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
                 }
+
+                {openEditWorkGroupModal &&
+                    <EditWorkGroup open={openEditWorkGroupModal} close={handleCloseEditWorkGroupModal} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                }
+
             </Box>
         </Layout >
     )

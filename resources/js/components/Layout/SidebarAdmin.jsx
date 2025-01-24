@@ -59,7 +59,7 @@ const Sidebar = ({ children, closeMini }) => {
                 console.error('Error fetching work shifts:', error);
             });
 
-        axiosInstance.get(`/workshedule/getWorkGroupLinks`, { headers })
+        axiosInstance.get(`/workshedule/getWorkGroups`, { headers })
             .then((response) => {
                 setWorkgroups(response.data.workGroups);
             })
@@ -155,7 +155,7 @@ const Sidebar = ({ children, closeMini }) => {
                 text: 'Work Groups',
                 children: workgroups.map(group => ({
                     // id: group.id,
-                    href: `/admin/workgroup/${group.link}`,
+                    href: `/admin/workgroup/${group.client_id}/${group.id}`,
                     text: group.name,
                 })).concat({
                     // id: 'add-group',

@@ -8,7 +8,7 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
-import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
+import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
@@ -37,14 +37,14 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
-            <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
+            <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
             <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
             <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
-            <Route path="workgroup/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
+            <Route path="workgroup/:client/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
             <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
             <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
