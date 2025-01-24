@@ -5,14 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 
-import dayjs, { Dayjs } from 'dayjs';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-
-const AssignShift = ({ open, close, workGroup, onUpdateWorkGroupDetails }) => {
+const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDetails }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -26,6 +19,8 @@ const AssignShift = ({ open, close, workGroup, onUpdateWorkGroupDetails }) => {
     useEffect(() => {
         console.log(workGroup);
         // console.log(workShift);
+
+        setSelectedShift(currentShift ? currentShift : '');
 
         axiosInstance.get(`/workshedule/getWorkShifts`, { headers })
             .then((response) => {

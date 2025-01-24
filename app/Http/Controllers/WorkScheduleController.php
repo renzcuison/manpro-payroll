@@ -339,6 +339,7 @@ class WorkScheduleController extends Controller
             $workGroup = WorkGroupsModel::where('id', $request->group)->where('client_id', $client->id)->where('deleted_at', null)->first();
 
             $workShift = WorkShiftsModel::select(
+                'id',
                 'name',
                 'shift_type',
                 'first_label',

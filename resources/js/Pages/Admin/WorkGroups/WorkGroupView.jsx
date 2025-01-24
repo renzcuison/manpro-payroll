@@ -23,7 +23,7 @@ const WorkGroupView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
-    const [showError, setShowError] = useState(false);
+    const [showError404, setShowError404] = useState(false);
 
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
@@ -45,7 +45,7 @@ const WorkGroupView = () => {
                 const { workGroup, workShift, workHours, employees } = response.data;
 
                 if (!workGroup && !workShift && !workHours && !employees) {
-                    setShowError(true);
+                    setShowError404(true);
                     return;
                 }
 
@@ -85,7 +85,7 @@ const WorkGroupView = () => {
         setOpenAssignShiftModal(false);
     }
 
-    if (showError) {
+    if (showError404) {
         return <Error404 />;
     }
 
@@ -228,7 +228,7 @@ const WorkGroupView = () => {
                 </Box>
 
                 {openAssignShiftModal &&
-                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={workShift.id} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
                 }
             </Box>
         </Layout >
