@@ -109,8 +109,31 @@ const Sidebar = ({ children, closeMini }) => {
         ]
     }]
 
-    const workDays = [{
+    const payrollItems = [{
         id: 3,
+        text: 'Payroll',
+        icon: 'fa fa-money',
+        children: [
+            {
+                href: `/hr/payroll-process?`,
+                text: 'Process',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Records',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Summary',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }]
+
+    const workDays = [{
+        id: 4,
         text: 'Work Schedule',
         icon: 'fa fa-calendar',
         children: [
@@ -170,29 +193,6 @@ const Sidebar = ({ children, closeMini }) => {
             }
         ]
     }];
-
-    const payrollItems = [{
-        id: 3,
-        text: 'Payroll',
-        icon: 'fa fa-money',
-        children: [
-            {
-                href: `/hr/payroll-process?`,
-                text: 'Process',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                text: 'Records',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                text: 'Summary',
-                icon: 'fa fa-cogs',
-            }
-        ]
-    }]
     
     const settingsItems = [{
         id: 4,
@@ -288,14 +288,15 @@ const Sidebar = ({ children, closeMini }) => {
                                 {workDays.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
+                                {payrollItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
                                 
                                 {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
                                 </StyledNav>
 
-                                {payrollItems.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })}
 
                                 <StyledNav to={`/hr/summary-reports?month=${moment().format('MM')}&year=${moment().year()}`} >
                                     <i className="fa fa-file" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Summary Reports</span>
