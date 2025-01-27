@@ -113,11 +113,19 @@ class AttendanceController extends Controller
         return response()->json(['status' => 200, 'attendances' => null]);
     }
 
-    public function getEmployeeAttendanceLogs()
+    public function getEmployeeAttendanceLogs(Request $request)
     {
         // Log::info("WorkScheduleController::getAttendanceLogs");
+
+        log::info($request);
+
         $user = Auth::user();
-        $attendances = AttendanceLogsModel::where('user_id', $user->id)->get();
+        $fromDate = $request->input('from_date'); 
+        $toDate = $request->input('to_date'); 
+        
+        $attendances = AttendanceLogsModel::where('user_id', $user->id)
+            ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
+            ->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
     }

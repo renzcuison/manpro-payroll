@@ -47,24 +47,80 @@ const AttendanceLogs = () => {
 
     // ---------------- Attendance Logs API
     useEffect(() => {
-        axiosInstance
-            .get(`/attendance/getEmployeeAttendanceLogs`, { headers })
-            .then((response) => {
-                console.log(response.data);
-                console.log(response.data.attendances[0]);
+        const fetchInitialData = async () => {
+            try {
+                const response = await axiosInstance.get(
+                    `/attendance/getEmployeeAttendanceLogs`,
+                    {
+                        headers,
+                        params: {
+                            from_date: fromDate.format("YYYY-MM-DD"),
+                            to_date: toDate.format("YYYY-MM-DD"),
+                        },
+                    }
+                );
+                console.log("Initial fetch:", response.data);
                 setAttendanceLogs(response.data.attendances);
                 setIsLoading(false);
-            })
-            .catch((error) => {
-                // console.error("Error fetching employee:", error);
-            });
+            } catch (error) {
+                console.error("Error fetching initial attendance logs:", error);
+                setIsLoading(false);
+            }
+        };
+
+        fetchInitialData();
     }, []);
 
     // ---------------- Date Filter
-    const [filterDate, setFilterDate] = useState(dayjs().format("YYYY-MM-DD"));
-    const filteredLogs = attendanceLogs.filter(
-        (log) => dayjs(log.timestamp).format("YYYY-MM-DD") === filterDate
-    );
+    const [fromDate, setFromDate] = useState(dayjs());
+    const [toDate, setToDate] = useState(dayjs());
+
+    // Date Filter: Update Handler
+    const handleDateChange = (type, newValue) => {
+        let newFromDate = fromDate;
+        let newToDate = toDate;
+        //console.log(`setting ${type} date to ${newValue}`);
+        if (type == "from") {
+            newFromDate = newValue;
+            setFromDate(newValue);
+            if (newValue.isAfter(toDate)) {
+                newToDate = newValue;
+                setToDate(newValue);
+            }
+        } else {
+            newToDate = newValue;
+            setToDate(newValue);
+        }
+        //console.log(`new date set!`);
+        //console.log(`from date: ${newFromDate.format("YYYY-MM-DD")}`);
+        //console.log(`to date: ${newToDate.format("YYYY-MM-DD")}`);
+
+        const fetchData = async () => {
+            try {
+                const response = await axiosInstance.get(
+                    `/attendance/getEmployeeAttendanceLogs`,
+                    {
+                        headers,
+                        params: {
+                            from_date: newFromDate.format("YYYY-MM-DD"),
+                            to_date: newToDate.format("YYYY-MM-DD"),
+                        },
+                    }
+                );
+                //console.log("Fetch after date change:", response.data);
+                setAttendanceLogs(response.data.attendances);
+                setIsLoading(false);
+            } catch (error) {
+                console.error(
+                    "Error fetching attendance logs after date change:",
+                    error
+                );
+                setIsLoading(false);
+            }
+        };
+
+        setTimeout(fetchData, 0);
+    };
 
     return (
         <Layout title={"EmployeesList"}>
@@ -124,13 +180,23 @@ const AttendanceLogs = () => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DatePicker
-                                        label="Filter by Date"
-                                        value={dayjs(filterDate)}
-                                        onChange={(newValue) =>
-                                            setFilterDate(
-                                                newValue.format("YYYY-MM-DD")
-                                            )
-                                        }
+                                        label="From Date"
+                                        value={fromDate}
+                                        onChange={(newValue) => {
+                                            handleDateChange("from", newValue);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                        sx={{ marginRight: 2 }}
+                                    />
+                                    <DatePicker
+                                        label="To Date"
+                                        value={toDate}
+                                        onChange={(newValue) => {
+                                            handleDateChange("to", newValue);
+                                        }}
+                                        minDate={fromDate}
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
@@ -183,8 +249,8 @@ const AttendanceLogs = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            {filteredLogs.length > 0 ? (
-                                                filteredLogs.map(
+                                            {attendanceLogs.length > 0 ? (
+                                                attendanceLogs.map(
                                                     (log, index) => (
                                                         <TableRow
                                                             key={index}
