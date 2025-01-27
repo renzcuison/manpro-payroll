@@ -18,6 +18,8 @@ import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
 import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
 
+import PayrollProcess from "../Pages/Admin/Payroll/PayrollProcess";
+
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 
 
@@ -48,6 +50,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
             <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
+
+
+            <Route path="payroll-process" element={<ProtectedRoute element={<PayrollProcess />} user={user} />} />
 
 
             {/* <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} /> */}

@@ -115,8 +115,13 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-money',
         children: [
             {
-                href: `/hr/payroll-process?`,
+                href: `/admin/payroll-process?`,
                 text: 'Process',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-process?`,
+                text: 'Process Old',
                 icon: 'fa fa-cogs',
             },
             {
