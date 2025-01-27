@@ -47,170 +47,45 @@ const AttendanceSummary = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [attendanceLogs, setAttendanceLogs] = useState([]);
 
     // ---------------- Attendance Logs API
+    const [summaryFromDate, setSummaryFromDate] = useState(
+        dayjs().startOf("month")
+    );
+    const [summaryToDate, setSummaryToDate] = useState(dayjs());
+    const [summaryData, setSummaryData] = useState([]);
+
+    const fetchAttendanceSummary = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axiosInstance.get(
+                "/attendance/getEmployeeAttendanceSummary",
+                {
+                    headers,
+                    params: {
+                        summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
+                        summary_to_date: summaryToDate.format("YYYY-MM-DD"),
+                    },
+                }
+            );
+            setSummaryData(response.data.summary);
+            console.log(response.data);
+        } catch (error) {
+            console.error("Error fetching attendance summary:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const response = await axiosInstance.get(
-                    `/attendance/getEmployeeAttendanceLogs`,
-                    {
-                        headers,
-                        params: {
-                            from_date: fromDate.format("YYYY-MM-DD"),
-                            to_date: toDate.format("YYYY-MM-DD"),
-                            action: "All",
-                        },
-                    }
-                );
-                console.log("Initial fetch:", response.data);
-                setAttendanceLogs(response.data.attendances);
-                setIsLoading(false);
-            } catch (error) {
-                console.error("Error fetching initial attendance logs:", error);
-                setIsLoading(false);
-            }
-        };
-
-        fetchInitialData();
+        fetchAttendanceSummary();
     }, []);
-
-    // ---------------- Date Filter
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
-    const [selectedRange, setSelectedRange] = useState("today");
-    const [selectedAttendanceType, setSelectedAttendanceType] = useState("All");
-
-    // Date Filter: Preset Filters
-    const setPredefinedDates = (range) => {
-        const today = dayjs();
-        switch (range) {
-            case "today":
-                handleFilterChange("range", today, today);
-                break;
-            case "yesterday":
-                handleFilterChange(
-                    "range",
-                    today.subtract(1, "day"),
-                    today.subtract(1, "day")
-                );
-                break;
-            case "last7days":
-                handleFilterChange("range", today.subtract(6, "day"), today);
-                setFromDate(today.subtract(6, "day"));
-                setToDate(today);
-                break;
-            case "last30days":
-                handleFilterChange("range", today.subtract(29, "day"), today);
-                break;
-            case "thisMonth":
-                handleFilterChange("range", today.startOf("month"), today);
-                setFromDate(today.startOf("month"));
-                setToDate(today);
-                break;
-            case "lastMonth":
-                handleFilterChange(
-                    "range",
-                    today.subtract(1, "month").startOf("month"),
-                    today.subtract(1, "month").endOf("month")
-                );
-                break;
-            case "custom":
-            default:
-                // Custom range will be handled by the DatePickers directly
-                break;
-        }
-        setSelectedRange(range);
-    };
-
-    const setAttendanceType = (type) => {
-        switch (type) {
-            case "All":
-                handleFilterChange("type", null, null, "All");
-                break;
-            case "Duty In":
-                handleFilterChange("type", null, null, "Duty In");
-                break;
-            case "Duty Out":
-                handleFilterChange("type", null, null, "Duty Out");
-                break;
-            case "Overtime In":
-                handleFilterChange("type", null, null, "Overtime In");
-                break;
-            case "Overtime Out":
-                handleFilterChange("type", null, null, "Overtime Out");
-                break;
-        }
-    };
-
-    // Filters: Update Handler
-    const handleFilterChange = (
-        type,
-        newDate,
-        rangeEnd = null,
-        newSelectType = null
-    ) => {
-        // Control variables
-        let newFromDate = fromDate;
-        let newToDate = toDate;
-        let newType = selectedAttendanceType;
-        //Filter Change Type
-        if (type == "from") {
-            newFromDate = newDate;
-            setFromDate(newDate);
-            if (newDate.isAfter(toDate)) {
-                newToDate = newDate;
-                setToDate(newDate);
-            }
-        } else if (type == "to") {
-            newToDate = newDate;
-            setToDate(newDate);
-        } else if (type == "range") {
-            newFromDate = newDate;
-            setFromDate(newDate);
-            newToDate = rangeEnd;
-            setToDate(rangeEnd);
-        } else if (type == "type") {
-            newType = newSelectType;
-            setSelectedAttendanceType(newType);
-            console.log(newType);
-        }
-
-        // New API Fetch
-        const fetchData = async () => {
-            try {
-                const response = await axiosInstance.get(
-                    `/attendance/getEmployeeAttendanceLogs`,
-                    {
-                        headers,
-                        params: {
-                            from_date: newFromDate.format("YYYY-MM-DD"),
-                            to_date: newToDate.format("YYYY-MM-DD"),
-                            action: newType,
-                        },
-                    }
-                );
-                //console.log("Fetch after date change:", response.data);
-                setAttendanceLogs(response.data.attendances);
-                setIsLoading(false);
-            } catch (error) {
-                console.error(
-                    "Error fetching attendance logs after date change:",
-                    error
-                );
-                setIsLoading(false);
-            }
-        };
-
-        setTimeout(fetchData, 0);
-    };
 
     return (
         <Layout title={"EmployeesList"}>
             <Box
                 sx={{
-                    overflowX: "scroll",
+                    overflowX: "auto",
                     width: "100%",
                     whiteSpace: "nowrap",
                 }}
@@ -260,241 +135,122 @@ const AttendanceSummary = () => {
                             </Box>
                         ) : (
                             <>
-                                <FormControl
-                                    sx={{ mb: 2, mr: 2, width: "15%" }}
-                                >
-                                    <InputLabel id="attendance-type-select-label">
-                                        Attendance Type
-                                    </InputLabel>
-                                    <Select
-                                        labelId="attendance-type-select-label"
-                                        id="attendance-type-select"
-                                        value={selectedAttendanceType}
-                                        label="Attendance Type"
-                                        onChange={(event) =>
-                                            setAttendanceType(
-                                                event.target.value
-                                            )
-                                        }
-                                    >
-                                        <MenuItem value="All">All</MenuItem>
-                                        <MenuItem value="Duty In">
-                                            Duty In
-                                        </MenuItem>
-                                        <MenuItem value="Duty Out">
-                                            Duty Out
-                                        </MenuItem>
-                                        <MenuItem value="Overtime In">
-                                            Overtime In
-                                        </MenuItem>
-                                        <MenuItem value="Overtime Out">
-                                            Overtime Out
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <FormControl
-                                    sx={{ mb: 2, mr: 2, width: "15%" }}
-                                >
-                                    <InputLabel id="date-range-select-label">
-                                        Date Range
-                                    </InputLabel>
-                                    <Select
-                                        labelId="date-range-select-label"
-                                        id="date-range-select"
-                                        value={selectedRange}
-                                        label="Date Range"
-                                        onChange={(event) =>
-                                            setPredefinedDates(
-                                                event.target.value
-                                            )
-                                        }
-                                    >
-                                        <MenuItem value="today">Today</MenuItem>
-                                        <MenuItem value="yesterday">
-                                            Yesterday
-                                        </MenuItem>
-                                        <MenuItem value="last7days">
-                                            Last 7 Days
-                                        </MenuItem>
-                                        <MenuItem value="last30days">
-                                            Last 30 Days
-                                        </MenuItem>
-                                        <MenuItem value="thisMonth">
-                                            This Month
-                                        </MenuItem>
-                                        <MenuItem value="lastMonth">
-                                            Last Month
-                                        </MenuItem>
-                                        <MenuItem value="custom">
-                                            Custom Range
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
+                                {" "}
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DatePicker
                                         label="From Date"
-                                        value={fromDate}
-                                        onChange={(newValue) => {
-                                            setSelectedRange("custom");
-                                            handleFilterChange(
-                                                "from",
-                                                newValue
-                                            );
-                                        }}
+                                        value={summaryFromDate}
+                                        onChange={(newValue) =>
+                                            setSummaryFromDate(newValue)
+                                        }
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
-                                        sx={{ mr: 2, width: "25%" }}
                                     />
                                     <DatePicker
                                         label="To Date"
-                                        value={toDate}
-                                        onChange={(newValue) => {
-                                            setSelectedRange("custom");
-                                            handleFilterChange("to", newValue);
-                                        }}
-                                        minDate={fromDate}
+                                        value={summaryToDate}
+                                        onChange={(newValue) =>
+                                            setSummaryToDate(newValue)
+                                        }
+                                        minDate={summaryFromDate}
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
-                                        sx={{ width: "25%" }}
                                     />
+                                    <Button
+                                        onClick={fetchAttendanceSummary}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading
+                                            ? "Loading..."
+                                            : "Fetch Summary"}
+                                    </Button>
                                 </LocalizationProvider>
-                                <TableContainer
-                                    style={{ overflowX: "auto" }}
-                                    sx={{ minHeight: 400 }}
-                                >
-                                    <Table aria-label="simple table">
+                                <TableContainer>
+                                    <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell
-                                                    align="left"
-                                                    sx={{ width: "40%" }}
-                                                >
-                                                    <Typography
-                                                        sx={{
-                                                            fontWeight: "bold",
-                                                        }}
-                                                    >
-                                                        Date
-                                                    </Typography>
+                                                <TableCell>Date</TableCell>
+                                                <TableCell>Time In</TableCell>
+                                                <TableCell>Time Out</TableCell>
+                                                <TableCell>
+                                                    Overtime In
                                                 </TableCell>
-                                                <TableCell
-                                                    align="left"
-                                                    sx={{ width: "40%" }}
-                                                >
-                                                    <Typography
-                                                        sx={{
-                                                            fontWeight: "bold",
-                                                        }}
-                                                    >
-                                                        Time
-                                                    </Typography>
+                                                <TableCell>
+                                                    Overtime Out
                                                 </TableCell>
-                                                <TableCell
-                                                    align="left"
-                                                    sx={{ width: "20%" }}
-                                                >
-                                                    <Typography
-                                                        sx={{
-                                                            fontWeight: "bold",
-                                                        }}
-                                                    >
-                                                        Action
-                                                    </Typography>
+                                                <TableCell>
+                                                    Total Hours
                                                 </TableCell>
+                                                <TableCell>Total OT</TableCell>
+                                                <TableCell>Late</TableCell>
                                             </TableRow>
                                         </TableHead>
-
                                         <TableBody>
-                                            {attendanceLogs.length > 0 ? (
-                                                attendanceLogs.map(
-                                                    (log, index) => (
-                                                        <TableRow
-                                                            key={index}
-                                                            sx={{
-                                                                p: 1,
-                                                                backgroundColor:
-                                                                    index %
-                                                                        2 ===
-                                                                    0
-                                                                        ? "#f9f9f9"
-                                                                        : "#f0f0f0",
-                                                            }}
-                                                        >
-                                                            <TableCell align="left">
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight:
-                                                                            "medium",
-                                                                    }}
-                                                                >
-                                                                    {moment(
-                                                                        log.timestamp,
-                                                                        "YYYY-MM-DD HH:mm:ss"
-                                                                    ).format(
-                                                                        "MMMM D, YYYY"
-                                                                    )}
-                                                                </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="left">
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight:
-                                                                            "medium",
-                                                                    }}
-                                                                >
-                                                                    {moment(
-                                                                        log.timestamp,
-                                                                        "YYYY-MM-DD HH:mm:ss"
-                                                                    ).format(
-                                                                        "hh:mm:ss A"
-                                                                    )}
-                                                                </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="left">
-                                                                {" "}
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight:
-                                                                            "bold",
-                                                                        color:
-                                                                            log.action ===
-                                                                            "Duty In"
-                                                                                ? "#177604"
-                                                                                : log.action ===
-                                                                                  "Duty Out"
-                                                                                ? "#f44336"
-                                                                                : log.action ===
-                                                                                  "Overtime Start"
-                                                                                ? "#e9ae20"
-                                                                                : log.action ===
-                                                                                  "Overtime End"
-                                                                                ? "#f57c00"
-                                                                                : "#000000",
-                                                                    }}
-                                                                >
-                                                                    {log.action}
-                                                                </Typography>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )
+                                            {summaryData.map(
+                                                (summary, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>
+                                                            {dayjs(
+                                                                summary.date
+                                                            ).format(
+                                                                "MMMM D, YYYY"
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.time_in
+                                                                ? dayjs(
+                                                                      summary.time_in
+                                                                  ).format(
+                                                                      "hh:mm:ss A"
+                                                                  )
+                                                                : "N/A"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.time_out
+                                                                ? dayjs(
+                                                                      summary.time_out
+                                                                  ).format(
+                                                                      "hh:mm:ss A"
+                                                                  )
+                                                                : "N/A"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.overtime_in
+                                                                ? dayjs(
+                                                                      summary.overtime_in
+                                                                  ).format(
+                                                                      "hh:mm:ss A"
+                                                                  )
+                                                                : "N/A"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.overtime_out
+                                                                ? dayjs(
+                                                                      summary.overtime_out
+                                                                  ).format(
+                                                                      "hh:mm:ss A"
+                                                                  )
+                                                                : "N/A"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {
+                                                                summary.total_hours
+                                                            }{" "}
+                                                            hours
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.total_ot}{" "}
+                                                            hours
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {summary.is_late}
+                                                        </TableCell>
+                                                    </TableRow>
                                                 )
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={3}
-                                                        align="center"
-                                                        sx={{
-                                                            color: "text.secondary",
-                                                            p: 1,
-                                                        }}
-                                                    >
-                                                        No Attendance Data Found
-                                                    </TableCell>
-                                                </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>

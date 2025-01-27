@@ -22,11 +22,6 @@ const Layout = ({ children, title, differentSidebar = true }) => {
         setShowSidebarMini(!showSidebarMini);
     };
 
-    useEffect(() => {
-        console.log("Layout.jsx: ");
-        console.log(user);
-    }, []);
-
     return (
         <div
             id="page-container"
