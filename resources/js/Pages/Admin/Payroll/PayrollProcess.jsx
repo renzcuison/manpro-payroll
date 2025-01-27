@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination } from '@mui/material'
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
@@ -10,8 +11,9 @@ import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
+import ProcessPayroll from '../Payroll/Modals/ProcessPayroll';
 
 const PayrollProcess = () => {
     const { user } = useUser();
@@ -19,17 +21,9 @@ const PayrollProcess = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [isLoading, setIsLoading] = useState(false);
 
-    const [branches, setBranches] = useState([]);
-    const [departments, setDepartments] = useState([]);
-
-
-    const [startDateError, setStartDateError] = useState(false);
-    const [endDateError, setEndDateError] = useState(false);
-    const [selectedBranchError, setSelectedBranchError] = useState(false);
-    const [selectedDepartmentError, setSelectedDepartmentError] = useState(false);
-    const [selectedCutOffError, setSelectedCutOffError] = useState(false);
-
+    const [openProcessPayrollModal, setOpenProcessPayrollModal] = useState(false);
 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -37,278 +31,89 @@ const PayrollProcess = () => {
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedCutOff, setSelectedCutOff] = useState('');
 
-
-    useEffect(() => {
-        axiosInstance
-        .get('/settings/getBranches', { headers })
-            .then((response) => {
-                const fetchedBranches = response.data.branches;
-                setBranches(fetchedBranches);
-
-                const allBranchIds = fetchedBranches.map((branch) => branch.id);
-                setSelectedBranches(allBranchIds);
-            })
-            .catch((error) => {
-                console.error('Error fetching branches:', error);
-            });
-
-        axiosInstance.get('/settings/getDepartments', { headers })
-            .then((response) => {
-                const fetchedDepartments = response.data.departments;
-                setDepartments(fetchedDepartments);
-                const allDepartmentIds = fetchedDepartments.map((department) => department.id);
-                setSelectedDepartments(allDepartmentIds);
-            })
-            .catch((error) => {
-                console.error('Error fetching departments:', error);
-            });
-    }, []);
-
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        console.log(selectedBranches);
-        console.log(selectedDepartments);
-
-        if (selectedBranches.length == 0) {
-            setSelectedBranchError(true);
-        } else {
-            setSelectedBranchError(false);
-        }
-
-        if (selectedDepartments.length == 0) {
-            setSelectedDepartmentError(true);
-        } else {
-            setSelectedDepartmentError(false);
-        }
-
-        if (!startDate) {
-            setStartDateError(true);
-        } else {
-            setStartDateError(false);
-        }
-
-        if (!endDate) {
-            setEndDateError(true);
-        } else {
-            setEndDateError(false);setEndDateError
-        }
-
-        if (!selectedCutOff) {
-            setSelectedCutOffError(true);
-        } else {
-            setSelectedCutOffError(false);
-        }
-
-
-        if ( selectedDepartmentError || selectedBranchError || startDateError || endDateError || selectedCutOffError ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to process this payroll?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
+    const getProcessedPayroll = (data) => {
+        console.log("Processed Payroll Data:", data);
+    
+        // Example usage:
+        const { startDate, endDate, selectedBranches, selectedDepartments, selectedCutOff } = data;
+        console.log("Start Date:", startDate);
+        console.log("End Date:", endDate);
+        console.log("Selected Branches:", selectedBranches);
+        console.log("Selected Departments:", selectedDepartments);
+        console.log("Selected Cut-Off:", selectedCutOff);
     };
+    
 
-    const saveInput = (event) => {
-        event.preventDefault();
+    const handleOpenProcessPayrollModal = () => {
+        setOpenProcessPayrollModal(true);
+    }
 
-        const data = {
-            // firstName: firstName,
-            // middleName: middleName,
-            // lastName: lastName,
-            // suffix: suffix,
-            // userName: userName,
-            // emailAddress: emailAddress,
-            // birthdate: birthdate,
-            // phoneNumber: phoneNumber,
-            // address: address,
-            // password: password,
-        };
-
-        axiosInstance.post('/employee/saveEmployee', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        navigate(`/admin/employees`);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    };
+    const handleCloseProcessPayrollModal = () => {
+        setOpenProcessPayrollModal(false);
+    }
 
     return (
-        <Layout title={"AddEmployee"}>
-            <Box sx={{ mx: 10, pt: 12 }}>
-                <div className='px-4 block-content bg-light' style={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}>
-                    <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+        <Layout title={"PayrollProcess"}>
+            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
-                        <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }} > Process Payroll </Typography>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    select
-                                    id="department"
-                                    label="Department"
-                                    error={selectedDepartmentError}
-                                    value={selectedDepartments}
-                                    SelectProps={{
-                                        multiple: true, // Enable multiple selections
-                                        renderValue: (selected) =>
-                                            departments
-                                                .filter((department) => selected.includes(department.id))
-                                                .map((department) => department.name)
-                                                .join(', '), // Customize how selected values appear
-                                    }}
-                                >
-                                    {departments.map((department) => (
-                                        <MenuItem
-                                            key={department.id}
-                                            value={department.id}
-                                            onClick={() => {
-                                                setSelectedDepartments((prevSelected) =>
-                                                    prevSelected.includes(department.id)
-                                                        ? prevSelected.filter((id) => id !== department.id)
-                                                        : [...prevSelected, department.id]
-                                                );
-                                            }}
-                                        >
-                                            <Checkbox checked={selectedDepartments.includes(department.id)} />
-                                            <ListItemText primary={`${department.name} (${department.acronym})`} />
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    select
-                                    id="branch"
-                                    label="Branch"
-                                    error={selectedBranchError}
-                                    value={selectedBranches}
-                                    SelectProps={{
-                                        multiple: true, // Enable multiple selections
-                                        renderValue: (selected) =>
-                                            branches
-                                                .filter((branch) => selected.includes(branch.id))
-                                                .map((branch) => branch.name)
-                                                .join(', '), // Customize how selected values appear
-                                    }}
-                                    onChange={(event) => setSelectedBranches(event.target.value)}
-                                >
-                                    {branches.map((branch) => (
-                                        <MenuItem key={branch.id} value={branch.id}>
-                                            {branch.name} ({branch.acronym})
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </FormControl>
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        id="startDate"
-                                        label="Start Date"
-                                        variant="outlined"
-                                        onChange={(newValue) => setStartDate(newValue)}
-                                        slotProps={{
-                                            textField: { required: true, error: startDateError }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        id="endDate"
-                                        label="End Date"
-                                        variant="outlined"
-                                        onChange={(newValue) => setEndDate(newValue)}
-                                        // minDate={startDate}
-                                        slotProps={{
-                                            textField: { required: true, error: endDateError }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    select
-                                    id="cutOff"
-                                    label="Cut Off"
-                                    error={selectedCutOffError}
-                                    value={selectedCutOff}
-                                    onChange={(event) => setSelectedCutOff(event.target.value)}
-                                >
-                                    <MenuItem key="first" value="first"> First </MenuItem>
-                                    <MenuItem key="second" value="second"> Second </MenuItem>
-                                </TextField>
-                            </FormControl>
-                        </FormGroup>
-
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Process </p>
-                            </Button>
-                        </Box>
-
+                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Process Payroll </Typography>
+                        
+                        <Button variant="contained" color="primary" onClick={handleOpenProcessPayrollModal}>
+                            <p className='m-0'><i className="fa fa-plus"></i> Process </p>
+                        </Button>
                     </Box>
-                </div>
+
+                    <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                        
+                        {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <>
+                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <Table aria-label="simple table">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="center">Select</TableCell>
+                                                <TableCell align="center">Name</TableCell>
+                                                <TableCell align="center">Branch</TableCell>
+                                                <TableCell align="center">Department</TableCell>
+                                                <TableCell align="center">Role</TableCell>
+                                                <TableCell align="center">Payroll Date</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+
+                                        <TableBody>
+                                            {/* {employees.map((employee) => (
+                                                <TableRow
+                                                    key={employee.id}
+                                                    component={Link}
+                                                    to={`/admin/employee/${employee.user_name}`}
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
+                                                >
+                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
+                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
+                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
+                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
+                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
+                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                                </TableRow>
+                                            ))} */}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </>
+                        )}
+                    </Box>
+
+                </Box>
+
+                {openProcessPayrollModal &&
+                    <ProcessPayroll open={openProcessPayrollModal} close={handleCloseProcessPayrollModal} onUpdateProcessedPayroll={getProcessedPayroll} />
+                }
 
             </Box>
         </Layout >
