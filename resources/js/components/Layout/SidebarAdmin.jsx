@@ -165,6 +165,34 @@ const Sidebar = ({ children, closeMini }) => {
             },
         ]
     }];
+
+    const workShifts = [{
+        text: 'Work Shifts',
+        icon: 'fa fa-calendar',
+        children: workshifts.map(shift => ({
+            // id: shift.id,
+            href: `/admin/workshift/${shift.link}`,
+            text: shift.name,
+        })).concat({
+            // id: 'add-shift',
+            href: '/admin/workshifts-add',
+            text: '+ Add Shift',
+        }),
+    }];
+
+    const workGroups = [{
+        text: 'Work Groups',
+        icon: 'fa fa-calendar',
+        children: workgroups.map(group => ({
+            // id: group.id,
+            href: `/admin/workgroup/${group.client_id}/${group.id}`,
+            text: group.name,
+        })).concat({
+            // id: 'add-group',
+            href: '/admin/workgroups-add',
+            text: '+ Add Group',
+        }),
+    }];
     
     const applicationsItems = [{
         id: 2,
@@ -285,10 +313,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     return <SideItem key={index} items={items} />
                                 })}
 
-                                {workDays.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })}
-
                                 {payrollItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
@@ -313,6 +337,22 @@ const Sidebar = ({ children, closeMini }) => {
                                 <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav> */}
+
+                                <li className="nav-main-heading">
+                                    <span className="sidebar-mini-hidden text-dark">Schedules</span>
+                                </li>
+
+                                {workShifts.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                                {workGroups.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                                <li className="nav-main-heading">
+                                    <span className="sidebar-mini-hidden text-dark">Settings</span>
+                                </li>
 
                                 {settingsItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />

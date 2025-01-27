@@ -329,7 +329,7 @@ class WorkScheduleController extends Controller
 
     public function getWorkGroupDetails(Request $request)
     {
-        log::info("WorkScheduleController::getWorkGroupDetails");
+        // log::info("WorkScheduleController::getWorkGroupDetails");
 
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
