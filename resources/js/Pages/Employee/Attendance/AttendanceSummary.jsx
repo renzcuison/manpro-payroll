@@ -41,7 +41,7 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 
-const AttendanceLogs = () => {
+const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -227,7 +227,7 @@ const AttendanceLogs = () => {
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             {" "}
-                            Attendance Logs{" "}
+                            Attendance Summary{" "}
                         </Typography>
 
                         <Link to="/admin/employees-add">
@@ -508,4 +508,4 @@ const AttendanceLogs = () => {
     );
 };
 
-export default AttendanceLogs;
+export default AttendanceSummary;
