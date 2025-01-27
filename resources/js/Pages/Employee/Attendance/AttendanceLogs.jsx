@@ -19,6 +19,7 @@ import {
     FormControl,
     InputLabel,
     Select,
+    breadcrumbsClasses,
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -59,6 +60,7 @@ const AttendanceLogs = () => {
                         params: {
                             from_date: fromDate.format("YYYY-MM-DD"),
                             to_date: toDate.format("YYYY-MM-DD"),
+                            action: "All",
                         },
                     }
                 );
@@ -78,37 +80,38 @@ const AttendanceLogs = () => {
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
     const [selectedRange, setSelectedRange] = useState("today");
+    const [selectedAttendanceType, setSelectedAttendanceType] = useState("All");
 
     // Date Filter: Preset Filters
     const setPredefinedDates = (range) => {
         const today = dayjs();
         switch (range) {
             case "today":
-                handleDateChange("", today, today);
+                handleFilterChange("range", today, today);
                 break;
             case "yesterday":
-                handleDateChange(
-                    "",
+                handleFilterChange(
+                    "range",
                     today.subtract(1, "day"),
                     today.subtract(1, "day")
                 );
                 break;
             case "last7days":
-                handleDateChange("", today.subtract(6, "day"), today);
+                handleFilterChange("range", today.subtract(6, "day"), today);
                 setFromDate(today.subtract(6, "day"));
                 setToDate(today);
                 break;
             case "last30days":
-                handleDateChange("", today.subtract(29, "day"), today);
+                handleFilterChange("range", today.subtract(29, "day"), today);
                 break;
             case "thisMonth":
-                handleDateChange("", today.startOf("month"), today);
+                handleFilterChange("range", today.startOf("month"), today);
                 setFromDate(today.startOf("month"));
                 setToDate(today);
                 break;
             case "lastMonth":
-                handleDateChange(
-                    "",
+                handleFilterChange(
+                    "range",
                     today.subtract(1, "month").startOf("month"),
                     today.subtract(1, "month").endOf("month")
                 );
@@ -121,10 +124,38 @@ const AttendanceLogs = () => {
         setSelectedRange(range);
     };
 
-    // Date Filter: Update Handler
-    const handleDateChange = (type, newDate, rangeEnd = null) => {
+    const setAttendanceType = (type) => {
+        switch (type) {
+            case "All":
+                handleFilterChange("type", null, null, "All");
+                break;
+            case "Duty In":
+                handleFilterChange("type", null, null, "Duty In");
+                break;
+            case "Duty Out":
+                handleFilterChange("type", null, null, "Duty Out");
+                break;
+            case "Overtime In":
+                handleFilterChange("type", null, null, "Overtime In");
+                break;
+            case "Overtime Out":
+                handleFilterChange("type", null, null, "Overtime Out");
+                break;
+        }
+    };
+
+    // Filters: Update Handler
+    const handleFilterChange = (
+        type,
+        newDate,
+        rangeEnd = null,
+        newSelectType = null
+    ) => {
+        // Control variables
         let newFromDate = fromDate;
         let newToDate = toDate;
+        let newType = selectedAttendanceType;
+        //Filter Change Type
         if (type == "from") {
             newFromDate = newDate;
             setFromDate(newDate);
@@ -135,15 +166,18 @@ const AttendanceLogs = () => {
         } else if (type == "to") {
             newToDate = newDate;
             setToDate(newDate);
-        } else {
+        } else if (type == "range") {
             newFromDate = newDate;
             setFromDate(newDate);
             newToDate = rangeEnd;
             setToDate(rangeEnd);
+        } else if (type == "type") {
+            newType = newSelectType;
+            setSelectedAttendanceType(newType);
+            console.log(newType);
         }
-        //console.log(`new date set!`);
-        //console.log(`from date: ${newFromDate.format("YYYY-MM-DD")}`);
-        //console.log(`to date: ${newToDate.format("YYYY-MM-DD")}`);
+
+        // New API Fetch
         const fetchData = async () => {
             try {
                 const response = await axiosInstance.get(
@@ -153,6 +187,7 @@ const AttendanceLogs = () => {
                         params: {
                             from_date: newFromDate.format("YYYY-MM-DD"),
                             to_date: newToDate.format("YYYY-MM-DD"),
+                            action: newType,
                         },
                     }
                 );
@@ -229,6 +264,38 @@ const AttendanceLogs = () => {
                                     sx={{ mb: 2, mr: 2, width: "15%" }}
                                 >
                                     <InputLabel id="date-range-select-label">
+                                        Attendance Type
+                                    </InputLabel>
+                                    <Select
+                                        labelId="attendance-type-select-label"
+                                        id="attendance-type-select"
+                                        value={selectedAttendanceType}
+                                        label="Date Range"
+                                        onChange={(event) =>
+                                            setAttendanceType(
+                                                event.target.value
+                                            )
+                                        }
+                                    >
+                                        <MenuItem value="All">All</MenuItem>
+                                        <MenuItem value="Duty In">
+                                            Duty In
+                                        </MenuItem>
+                                        <MenuItem value="Duty Out">
+                                            Duty Out
+                                        </MenuItem>
+                                        <MenuItem value="Overtime In">
+                                            Overtime In
+                                        </MenuItem>
+                                        <MenuItem value="Overtime Out">
+                                            Overtime Out
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <FormControl
+                                    sx={{ mb: 2, mr: 2, width: "15%" }}
+                                >
+                                    <InputLabel id="date-range-select-label">
                                         Date Range
                                     </InputLabel>
                                     <Select
@@ -269,26 +336,30 @@ const AttendanceLogs = () => {
                                     <DatePicker
                                         label="From Date"
                                         value={fromDate}
-                                        disabled={selectedRange !== "custom"}
                                         onChange={(newValue) => {
-                                            handleDateChange("from", newValue);
+                                            setSelectedRange("custom");
+                                            handleFilterChange(
+                                                "from",
+                                                newValue
+                                            );
                                         }}
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
-                                        sx={{ mr: 2 }}
+                                        sx={{ mr: 2, width: "25%" }}
                                     />
                                     <DatePicker
                                         label="To Date"
                                         value={toDate}
-                                        disabled={selectedRange !== "custom"}
                                         onChange={(newValue) => {
-                                            handleDateChange("to", newValue);
+                                            setSelectedRange("custom");
+                                            handleFilterChange("to", newValue);
                                         }}
                                         minDate={fromDate}
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
+                                        sx={{ width: "25%" }}
                                     />
                                 </LocalizationProvider>
                                 <TableContainer
