@@ -177,14 +177,10 @@ const AttendanceSummary = () => {
                                                 <TableCell>Time In</TableCell>
                                                 <TableCell>Time Out</TableCell>
                                                 <TableCell>
-                                                    Overtime In
-                                                </TableCell>
-                                                <TableCell>
-                                                    Overtime Out
-                                                </TableCell>
-                                                <TableCell>
                                                     Total Hours
                                                 </TableCell>
+                                                <TableCell>OT In</TableCell>
+                                                <TableCell>OT Out</TableCell>
                                                 <TableCell>Total OT</TableCell>
                                                 <TableCell>Late</TableCell>
                                             </TableRow>
@@ -219,6 +215,32 @@ const AttendanceSummary = () => {
                                                                 : "N/A"}
                                                         </TableCell>
                                                         <TableCell>
+                                                            {(() => {
+                                                                const totalMinutes =
+                                                                    summary.total_time;
+                                                                const hours =
+                                                                    Math.floor(
+                                                                        totalMinutes /
+                                                                            60
+                                                                    );
+                                                                const minutes =
+                                                                    totalMinutes %
+                                                                    60;
+                                                                if (
+                                                                    hours > 0 &&
+                                                                    minutes > 0
+                                                                ) {
+                                                                    return `${hours} hours, ${minutes} minutes`;
+                                                                } else if (
+                                                                    hours > 0
+                                                                ) {
+                                                                    return `${hours} hours`;
+                                                                } else {
+                                                                    return `${minutes} minutes`;
+                                                                }
+                                                            })()}
+                                                        </TableCell>
+                                                        <TableCell>
                                                             {summary.overtime_in
                                                                 ? dayjs(
                                                                       summary.overtime_in
@@ -236,15 +258,32 @@ const AttendanceSummary = () => {
                                                                   )
                                                                 : "N/A"}
                                                         </TableCell>
+
                                                         <TableCell>
-                                                            {
-                                                                summary.total_hours
-                                                            }{" "}
-                                                            hours
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {summary.total_ot}{" "}
-                                                            hours
+                                                            {(() => {
+                                                                const totalOT =
+                                                                    summary.total_ot;
+                                                                const hours =
+                                                                    Math.floor(
+                                                                        totalOT /
+                                                                            60
+                                                                    );
+                                                                const minutes =
+                                                                    totalOT %
+                                                                    60;
+                                                                if (
+                                                                    hours > 0 &&
+                                                                    minutes > 0
+                                                                ) {
+                                                                    return `${hours} hours, ${minutes} minutes`;
+                                                                } else if (
+                                                                    hours > 0
+                                                                ) {
+                                                                    return `${hours} hours`;
+                                                                } else {
+                                                                    return `${minutes} minutes`;
+                                                                }
+                                                            })()}
                                                         </TableCell>
                                                         <TableCell>
                                                             {summary.is_late}

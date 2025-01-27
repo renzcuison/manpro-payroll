@@ -76,7 +76,7 @@ class AttendanceController extends Controller
 
                 AttendanceLogsModel::create([
                     "user_id" => $user->id,
-                    "work_hour_id" => $user->workHours->id,
+                    "work_hour_id" => $user->workShift->work_hour_id,
                     "action" => $request->action,
                     "method" => 1,
                 ]);
@@ -173,56 +173,80 @@ class AttendanceController extends Controller
                 });
 
                 // Attendance Counters
-                $totalHours = 0;
+                $totalTime = 0;
                 $totalOT = 0;
                 $count = $logs->count();
-
-                //For Breaks
-                /*
-                $breakStart = Carbon::parse($logs->break_start);
-                $breakEnd = Carbon::parse($logs->break_end);
-                */
+                $overtimeInFound = false;
                 
                 foreach ($logs as $log) {
-                    if($log->action == "Duty In"){ //Save Recorded Duty In
-                        $workStart = Carbon::parse($log->timestamp);
-                        $dutyInFound = true;
-                    } elseif ($dutyInFound && $log->action == "Duty Out") { // Recorded Duty Out & Calculations
+                    if ($log->action == "Duty In" || $log->action == "Overtime In") {
+                        if ($log->action == "Duty In") {
+                            $workStart = Carbon::parse($log->timestamp);
+                            $dutyInFound = true;
+                            $overtimeInFound = false; 
+                        } else {
+                            $workStart = Carbon::parse($log->timestamp);
+                            $overtimeInFound = true;
+                            $dutyInFound = false;
+                        }
+                    } elseif (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) { // Recorded Duty Out & Calculations
                         $workEnd = Carbon::parse($log->timestamp);
                         $dutyInFound = false;
+                        $overtimeInFound = false;
 
                         // Total Hours Calculation [PREP]
                         $workHoursStart = null;
                         $workHoursEnd = null;
-                        switch ($log->shift_type) {
-                            case 'Regular':
-                                $workHoursStart = Carbon::parse($log->first_time_in);
-                                $workHoursEnd = Carbon::parse($log->first_time_out);
-                                break;
-                            case 'Split':
-                                if ($workStart->isBefore(Carbon::parse($log->first_time_out))){
+                        if ($log->action == "Duty Out") {
+                            switch ($log->shift_type) {
+                                case 'Regular':
                                     $workHoursStart = Carbon::parse($log->first_time_in);
                                     $workHoursEnd = Carbon::parse($log->first_time_out);
-                                } else {
-                                    $workHoursStart = Carbon::parse($log->second_time_in);
-                                    $workHoursEnd = Carbon::parse($log->second_time_out);
-                                }
-                                break;
-                            default:
-                                $workHoursStart = $workStart;
-                                $workHoursEnd = $workEnd;
+                                    $breakStart = Carbon::parse($log->break_start);
+                                    $breakEnd = Carbon::parse($log->break_end);
+                                    break;
+                                case 'Split':
+                                    if ($workStart->isBefore(Carbon::parse($log->first_time_out))){
+                                        $workHoursStart = Carbon::parse($log->first_time_in);
+                                        $workHoursEnd = Carbon::parse($log->first_time_out);
+                                    } else {
+                                        $workHoursStart = Carbon::parse($log->second_time_in);
+                                        $workHoursEnd = Carbon::parse($log->second_time_out);
+                                    }
+                                    break;
+                                default:
+                                    $workHoursStart = $workStart;
+                                    $workHoursEnd = $workEnd;
+                            }
+                        } else {
+                            $workHoursStart = Carbon::parse($workHour->over_time_in);
+                            $workHoursEnd = Carbon::parse($workHour->over_time_out);
                         }
 
                         // Total Hours Calculation [MAIN]
                         if($workStart->isBefore($workHoursEnd) && $workEnd->isAfter($workHoursStart)) {
-                            $startWithinWorkHours = max($workStart,$workHoursStart);
-                            $endWithinWorkHours = $workEnd;
-                            if ($endWithinWorkHours->eq($workHoursEnd)) {
-                                $endWithinWorkHours = $endWithinWorkHours->addSecond();
+                            $startWithinWorkHours = max($workStart, $workHoursStart);
+                            $endWithinWorkHours = min($workEnd, $workHoursEnd);
+                            
+                            $timeWorked = $startWithinWorkHours->diffInMinutes($endWithinWorkHours);
+                            
+                            if ($log->action == "Duty Out" && $log->shift_type == 'Regular') {
+                                $breakOverlapStart = max($startWithinWorkHours, $breakStart);
+                                $breakOverlapEnd = min($endWithinWorkHours, $breakEnd);
+                                
+                                if ($breakOverlapStart->isBefore($breakOverlapEnd)) {
+                                    $breakOverlap = $breakOverlapStart->diffInMinutes($breakOverlapEnd);
+                                    $timeWorked -= $breakOverlap;
+                                }
+                                
+                                $timeWorked = max($timeWorked, 0); 
                             }
-                            $hoursWorked = $startWithinWorkHours->diffInMinutes($endWithinWorkHours);
-
-                            $totalHours += $hoursWorked;
+                        
+                            if ($log->action == "Duty Out") {
+                                $totalTime += $timeWorked;
+                            } else {
+                                $totalOT += $timeWorked;
+                            }
                         }
                     }
 
@@ -235,7 +259,7 @@ class AttendanceController extends Controller
                     'time_out' => $timeOut ? $timeOut->timestamp : null,
                     'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
                     'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
-                    'total_hours' => $totalHours,
+                    'total_time' => $totalTime,
                     'total_ot' => $totalOT,
                     'is_late' => $count
                 ];
