@@ -64,27 +64,30 @@ const EditWorkGroup = ({ open, close, workGroup, onUpdateWorkGroupDetails }) => 
             groupName: groupName,
         };
 
-        // axiosInstance.post('/workshedule/saveWorkGroupShift', data, { headers })
-        //     .then(response => {
-        //         if (response.data.status === 200) {
-        //             onUpdateWorkGroupDetails(onUpdateWorkGroupDetails);
+        console.log("saveInput");
+        console.log(data);
 
-        //             Swal.fire({
-        //                 customClass: { container: 'my-swal' },
-        //                 text: "Role saved successfully!",
-        //                 icon: "success",
-        //                 timer: 1000,
-        //                 showConfirmButton: true,
-        //                 confirmButtonText: 'Proceed',
-        //                 confirmButtonColor: '#177604',
-        //             }).then(() => {
-        //                 close();
-        //             });
-        //         }
-        //     })
-        //     .catch(error => {
-        //         console.error('Error:', error);
-        //     });
+        axiosInstance.patch('/workshedule/editWorkGroup', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    onUpdateWorkGroupDetails(onUpdateWorkGroupDetails);
+
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Group edited successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
 
     return (

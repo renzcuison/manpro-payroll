@@ -115,119 +115,136 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const payrollItems = [
-        {
-            id: 3,
-            text: "Payroll",
-            icon: "fa fa-money",
-            children: [
-                {
-                    href: `/hr/payroll-process?`,
-                    text: "Process",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/hr/payroll-records?month=${moment().format(
-                        "M"
-                    )}&cutoff=${1}&year=${moment().year()}&`,
-                    text: "Records",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/hr/payroll-summary?month=${moment().format(
-                        "M"
-                    )}&cutoff=${1}&year=${moment().year()}&`,
-                    text: "Summary",
-                    icon: "fa fa-cogs",
-                },
-            ],
-        },
-    ];
+    const payrollItems = [{
+        id: 3,
+        text: 'Payroll',
+        icon: 'fa fa-money',
+        children: [
+            {
+                href: `/admin/payroll-process?`,
+                text: 'Process',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-process?`,
+                text: 'Process Old',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Records',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+                text: 'Summary',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }]
 
-    const workDays = [
-        {
-            id: 4,
-            text: "Work Schedule",
-            icon: "fa fa-calendar",
-            children: [
-                // { href: `/admin/workdays`, text: 'Workdays' },
-                // { href: `/admin/workhours`, text: 'Work Hours' },
-                {
-                    text: "Work Shifts",
-                    children: workshifts
-                        .map((shift) => ({
-                            // id: shift.id,
-                            href: `/admin/workshift/${shift.link}`,
-                            text: shift.name,
-                        }))
-                        .concat({
-                            // id: 'add-shift',
-                            href: "/admin/workshifts-add",
-                            text: "+ Add Shift",
-                        }),
-                },
-                {
-                    text: "Work Groups",
-                    children: workgroups
-                        .map((group) => ({
-                            // id: group.id,
-                            href: `/admin/workgroup/${group.client_id}/${group.id}`,
-                            text: group.name,
-                        }))
-                        .concat({
-                            // id: 'add-group',
-                            href: "/admin/workgroups-add",
-                            text: "+ Add Group",
-                        }),
-                },
-            ],
-        },
-    ];
+    const workDays = [{
+        id: 4,
+        text: 'Work Schedule',
+        icon: 'fa fa-calendar',
+        children: [
+            // { href: `/admin/workdays`, text: 'Workdays' },
+            // { href: `/admin/workhours`, text: 'Work Hours' },
+            {
+                text: 'Work Shifts',
+                children: workshifts.map(shift => ({
+                    // id: shift.id,
+                    href: `/admin/workshift/${shift.link}`,
+                    text: shift.name,
+                })).concat({
+                    // id: 'add-shift',
+                    href: '/admin/workshifts-add',
+                    text: '+ Add Shift',
+                }),
+            },
+            {
+                text: 'Work Groups',
+                children: workgroups.map(group => ({
+                    // id: group.id,
+                    href: `/admin/workgroup/${group.client_id}/${group.id}`,
+                    text: group.name,
+                })).concat({
+                    // id: 'add-group',
+                    href: '/admin/workgroups-add',
+                    text: '+ Add Group',
+                }),
+            },
+        ]
+    }];
 
-    const applicationsItems = [
-        {
-            id: 2,
-            text: "Applications",
-            icon: "fa fa-pencil-square-o",
-            children: [
-                {
-                    href: `/hr/applications?`,
-                    text: "Request",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/hr/applications-list?`,
-                    text: "List",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/hr/applications-leave?`,
-                    text: "Leave Credit",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/hr/applications-overtime?`,
-                    text: "Overtime",
-                    icon: "fa fa-cogs",
-                },
-            ],
-        },
-    ];
+    const workShifts = [{
+        text: 'Work Shifts',
+        icon: 'fa fa-calendar',
+        children: workshifts.map(shift => ({
+            // id: shift.id,
+            href: `/admin/workshift/${shift.link}`,
+            text: shift.name,
+        })).concat({
+            // id: 'add-shift',
+            href: '/admin/workshifts-add',
+            text: '+ Add Shift',
+        }),
+    }];
 
-    const settingsItems = [
-        {
-            id: 4,
-            text: "Settings",
-            icon: "fa fa-gear",
-            children: [
-                {
-                    href: `/admin/settings/general?`,
-                    text: "General",
-                    icon: "fa fa-cogs",
-                },
-            ],
-        },
-    ];
+    const workGroups = [{
+        text: 'Work Groups',
+        icon: 'fa fa-calendar',
+        children: workgroups.map(group => ({
+            // id: group.id,
+            href: `/admin/workgroup/${group.client_id}/${group.id}`,
+            text: group.name,
+        })).concat({
+            // id: 'add-group',
+            href: '/admin/workgroups-add',
+            text: '+ Add Group',
+        }),
+    }];
+    
+    const applicationsItems = [{
+        id: 2,
+        text: 'Applications',
+        icon: 'fa fa-pencil-square-o',
+        children: [
+            {
+                href: `/hr/applications?`,
+                text: 'Request',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-list?`,
+                text: 'List',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-leave?`,
+                text: 'Leave Credit',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-overtime?`,
+                text: 'Overtime',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }];
+    
+    const settingsItems = [{
+        id: 4,
+        text: 'Settings',
+        icon: 'fa fa-gear',
+        children: [
+            {
+                href: `/admin/settings/general?`,
+                text: 'General',
+                icon: 'fa fa-cogs',
+            },
+        ]
+    }]
 
     const evaluationItems = [
         {
@@ -374,24 +391,10 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* {applicationsItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })} */}
-
-                                    {attendanceLogs.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
-
-                                    {workDays.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
+                                
+                                {attendanceLogs.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
 
                                     {payrollItems.map((items, index) => {
                                         return (
@@ -423,18 +426,27 @@ const Sidebar = ({ children, closeMini }) => {
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav> */}
 
-                                    {settingsItems.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
-                                </>
-                            ) : (
-                                <> </>
-                            )}
+                                <li className="nav-main-heading">
+                                    <span className="sidebar-mini-hidden text-dark">Schedules</span>
+                                </li>
+
+                                {workShifts.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                                {workGroups.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                                <li className="nav-main-heading">
+                                    <span className="sidebar-mini-hidden text-dark">Settings</span>
+                                </li>
+
+                                {settingsItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                            </> : <> </>}
                         </ul>
                     </div>
                 </div>
