@@ -82,7 +82,11 @@ const Attendance = ({ open, close }) => {
                         response.data.attendance[
                             response.data.attendance.length - 1
                         ];
-                    if (latestAttendance.action == "Duty In") {
+                    if (
+                        ["Duty In", "Overtime In"].includes(
+                            latestAttendance.action
+                        )
+                    ) {
                         setOnDuty(true);
                     } else {
                         setOnDuty(false);
@@ -181,7 +185,15 @@ const Attendance = ({ open, close }) => {
                     // console.log(formattedDateTime);
                     const data = {
                         datetime: formattedDateTime,
-                        action: `${timeIn ? "Duty In" : "Duty Out"}`,
+                        action: `${
+                            shift == "Overtime"
+                                ? timeIn
+                                    ? "Overtime In"
+                                    : "Overtime Out"
+                                : timeIn
+                                ? "Duty In"
+                                : "Duty Out"
+                        }`,
                     };
                     axiosInstance
                         .post("/attendance/saveEmployeeAttendance", data, {
@@ -366,8 +378,6 @@ const Attendance = ({ open, close }) => {
                         {workShift.shift_type == "Regular" ? (
                             <AttendanceButtons
                                 label="Attendance"
-                                timeInLabel="Time In"
-                                timeOutLabel="Time Out"
                                 onTimeIn={handleTimeInOut}
                                 onTimeOut={handleTimeInOut}
                                 disableTimeIn={onDuty}
@@ -381,8 +391,6 @@ const Attendance = ({ open, close }) => {
                                 {/*First Shift */}
                                 <AttendanceButtons
                                     label={workShift.first_label}
-                                    timeInLabel="Time In"
-                                    timeOutLabel="Time Out"
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
                                     disableTimeIn={onDuty || firstShiftExpired}
@@ -395,8 +403,6 @@ const Attendance = ({ open, close }) => {
                                 {/*Second Shift */}
                                 <AttendanceButtons
                                     label={workShift.second_label}
-                                    timeInLabel="Time In"
-                                    timeOutLabel="Time Out"
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
                                     disableTimeIn={
@@ -419,8 +425,6 @@ const Attendance = ({ open, close }) => {
                                 secondShiftExpired)) ? (
                             <AttendanceButtons
                                 label="Overtime"
-                                timeInLabel="Time In"
-                                timeOutLabel="Time Out"
                                 onTimeIn={handleTimeInOut}
                                 onTimeOut={handleTimeInOut}
                                 disableTimeIn={onDuty}
@@ -449,6 +453,31 @@ const Attendance = ({ open, close }) => {
                         </Typography>
                         <Grid
                             container
+                            direction="row"
+                            alignItems="center"
+                            sx={{
+                                p: 1,
+                            }}
+                        >
+                            <Grid item xs={6}>
+                                <Typography
+                                    variant="body1"
+                                    sx={{ fontWeight: "medium" }}
+                                >
+                                    Action
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Typography
+                                    variant="body1"
+                                    sx={{ fontWeight: "medium" }}
+                                >
+                                    Timestamp
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                        <Grid
+                            container
                             direction="column"
                             sx={{
                                 maxHeight: {
@@ -471,8 +500,8 @@ const Attendance = ({ open, close }) => {
                                             p: 1,
                                             backgroundColor:
                                                 index % 2 === 0
-                                                    ? "#f5f5f5"
-                                                    : "#e0e0e0",
+                                                    ? "#f8f8f8"
+                                                    : "#efefef",
                                         }}
                                     >
                                         <Grid item xs={6}>
@@ -480,13 +509,7 @@ const Attendance = ({ open, close }) => {
                                                 {log.action}
                                             </Typography>
                                         </Grid>
-                                        <Grid
-                                            item
-                                            xs={6}
-                                            sx={{
-                                                textAlign: "right",
-                                            }}
-                                        >
+                                        <Grid item xs={6}>
                                             <Typography>
                                                 {log.timestamp}
                                             </Typography>
@@ -510,8 +533,7 @@ const Attendance = ({ open, close }) => {
                                             textAlign: "center",
                                         }}
                                     >
-                                        You have no attendance logs for this
-                                        shift
+                                        No Attendance Found
                                     </Typography>
                                 </Grid>
                             )}

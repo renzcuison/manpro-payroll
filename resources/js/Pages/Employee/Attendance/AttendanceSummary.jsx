@@ -56,6 +56,7 @@ const AttendanceSummary = () => {
     );
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [summaryData, setSummaryData] = useState([]);
+    const currentDate = dayjs().format("YYYY-MM-DD");
 
     // ---------------- Attendance Summary API
     const fetchAttendanceSummary = async () => {
@@ -145,7 +146,11 @@ const AttendanceSummary = () => {
                                 <Grid
                                     container
                                     direction="row"
-                                    justifyContent="flex-end"
+                                    justifyContent="flex-start"
+                                    sx={{
+                                        pb: 2,
+                                        borderBottom: "1px solid #e0e0e0",
+                                    }}
                                 >
                                     <LocalizationProvider
                                         dateAdapter={AdapterDayjs}
@@ -210,6 +215,14 @@ const AttendanceSummary = () => {
                                                                     summary.date
                                                                 )
                                                             }
+                                                            sx={{
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f8f8f8"
+                                                                        : "#efefef",
+                                                            }}
                                                         >
                                                             <TableCell>
                                                                 {dayjs(
@@ -354,53 +367,79 @@ const AttendanceSummary = () => {
                                                                 })()}
                                                             </TableCell>
                                                             <TableCell>
-                                                                {(() => {
-                                                                    const totalLate =
-                                                                        summary.late_time;
-                                                                    const hoursLate =
-                                                                        Math.floor(
-                                                                            totalLate /
-                                                                                60
-                                                                        );
-                                                                    const minutesLate =
-                                                                        totalLate %
-                                                                        60;
-                                                                    if (
-                                                                        hoursLate >
-                                                                            0 &&
-                                                                        minutesLate >
-                                                                            0
-                                                                    ) {
-                                                                        return `${hoursLate} hour${
-                                                                            hoursLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }, ${minutesLate} minute${
-                                                                            minutesLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else if (
-                                                                        hoursLate >
-                                                                        0
-                                                                    ) {
-                                                                        return `${hoursLate} hour${
-                                                                            hoursLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else {
-                                                                        return `${minutesLate} minute${
-                                                                            minutesLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    }
-                                                                })()}
+                                                                <Typography
+                                                                    sx={{
+                                                                        color:
+                                                                            summary.date ===
+                                                                            currentDate
+                                                                                ? "#177604"
+                                                                                : summary.late_time >
+                                                                                  0
+                                                                                ? "#f44336"
+                                                                                : null,
+                                                                    }}
+                                                                >
+                                                                    {(() => {
+                                                                        if (
+                                                                            summary.date ===
+                                                                            currentDate
+                                                                        ) {
+                                                                            return "Day Ongoing";
+                                                                        } else {
+                                                                            const totalLate =
+                                                                                summary.late_time;
+                                                                            const hoursLate =
+                                                                                Math.floor(
+                                                                                    totalLate /
+                                                                                        60
+                                                                                );
+                                                                            const minutesLate =
+                                                                                totalLate %
+                                                                                60;
+
+                                                                            if (
+                                                                                hoursLate >
+                                                                                    0 &&
+                                                                                minutesLate >
+                                                                                    0
+                                                                            ) {
+                                                                                return `${hoursLate} hour${
+                                                                                    hoursLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }, ${minutesLate} minute${
+                                                                                    minutesLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else if (
+                                                                                hoursLate >
+                                                                                0
+                                                                            ) {
+                                                                                return `${hoursLate} hour${
+                                                                                    hoursLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else if (
+                                                                                minutesLate >
+                                                                                0
+                                                                            ) {
+                                                                                return `${minutesLate} minute${
+                                                                                    minutesLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else {
+                                                                                return "None";
+                                                                            }
+                                                                        }
+                                                                    })()}
+                                                                </Typography>
                                                             </TableCell>
                                                         </TableRow>
                                                     )

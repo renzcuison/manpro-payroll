@@ -132,7 +132,7 @@ class AttendanceController extends Controller
             $query->where('action', $action);
         }
 
-        $attendances = $query->get();
+        $attendances = $query->orderBy('timestamp', 'desc')->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
     }
@@ -156,6 +156,7 @@ class AttendanceController extends Controller
             ->groupBy(function($log) {
                 return Carbon::parse($log->timestamp)->format('Y-m-d');
             })
+            ->sortKeysDesc()
             ->map(function($logs, $date) {
                 // Find first time in
                 $timeIn = $logs->firstWhere('action', 'Duty In');

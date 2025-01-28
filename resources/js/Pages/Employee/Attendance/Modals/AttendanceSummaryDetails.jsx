@@ -61,7 +61,6 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                 maxWidth="md"
                 PaperProps={{
                     style: {
-                        padding: "1px",
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
@@ -84,7 +83,7 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                             sx={{ marginLeft: 2, fontWeight: "bold" }}
                         >
                             {" "}
-                            Logs for {date}
+                            Attendance Logs for {date}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -92,7 +91,7 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 4, paddingBottom: 5 }}>
+                <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
                     {isLoading ? (
                         <Box
                             sx={{
@@ -106,6 +105,32 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                         </Box>
                     ) : (
                         <>
+                            {" "}
+                            <Grid
+                                container
+                                direction="row"
+                                alignItems="center"
+                                sx={{
+                                    p: 1,
+                                }}
+                            >
+                                <Grid item xs={6}>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{ fontWeight: "medium" }}
+                                    >
+                                        Action
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{ fontWeight: "medium" }}
+                                    >
+                                        Timestamp
+                                    </Typography>
+                                </Grid>
+                            </Grid>
                             <Grid
                                 container
                                 direction="column"
@@ -120,7 +145,6 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                     overflowY: "auto",
                                     overflowX: "hidden",
                                     flexWrap: "nowrap",
-                                    pt: 2,
                                 }}
                             >
                                 {todaysAttendance.map((log, index) => (
@@ -133,8 +157,8 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                             p: 1,
                                             backgroundColor:
                                                 index % 2 === 0
-                                                    ? "#f5f5f5"
-                                                    : "#e0e0e0",
+                                                    ? "#f8f8f8"
+                                                    : "#efefef",
                                         }}
                                     >
                                         <Grid item xs={6}>
@@ -142,13 +166,7 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                                 {log.action}
                                             </Typography>
                                         </Grid>
-                                        <Grid
-                                            item
-                                            xs={6}
-                                            sx={{
-                                                textAlign: "right",
-                                            }}
-                                        >
+                                        <Grid item xs={6}>
                                             <Typography>
                                                 {log.timestamp}
                                             </Typography>
