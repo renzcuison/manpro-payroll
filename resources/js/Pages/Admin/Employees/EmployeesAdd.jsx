@@ -42,8 +42,6 @@ const EmployeesAdd = () => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        console.log("checkInput");
-
         if (!firstName) {
             setFirstNameError(true);
         } else {
