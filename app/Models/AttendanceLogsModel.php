@@ -33,4 +33,9 @@ class AttendanceLogsModel extends Model
         return $this->belongsTo(UsersModel::class, 'user_id');
     }
 
+    public function workHour()
+    {
+        return $this->belongsTo(WorkHoursModel::class, 'work_hour_id');
+    }
+
 }

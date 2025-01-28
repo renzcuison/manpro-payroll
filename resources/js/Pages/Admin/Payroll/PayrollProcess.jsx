@@ -13,7 +13,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import ProcessPayroll from '../Payroll/Modals/ProcessPayroll';
+import PayrollProcessFilter from './Modals/PayrollProcessFilter';
 
 const PayrollProcess = () => {
     const { user } = useUser();
@@ -22,34 +22,80 @@ const PayrollProcess = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(false);
+    const [dataUpdated, setDataUpdated] = useState(false);
 
-    const [openProcessPayrollModal, setOpenProcessPayrollModal] = useState(false);
+    const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
+    const [payrolls, setPayrolls] = useState([]);
+
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [selectedBranches, setSelectedBranches] = useState([]);
-    const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedCutOff, setSelectedCutOff] = useState('');
+    const [cutOff, setCutOff] = useState('');
 
-    const getProcessedPayroll = (data) => {
-        console.log("Processed Payroll Data:", data);
-    
-        // Example usage:
-        const { startDate, endDate, selectedBranches, selectedDepartments, selectedCutOff } = data;
-        console.log("Start Date:", startDate);
-        console.log("End Date:", endDate);
-        console.log("Selected Branches:", selectedBranches);
-        console.log("Selected Departments:", selectedDepartments);
-        console.log("Selected Cut-Off:", selectedCutOff);
+    const getFilter = (data) => {
+        const { selectedStartDate, selectedEndDate, selectedBranches, selectedDepartments, selectedCutOff } = data;
+
+        setStartDate(selectedStartDate);
+        setEndDate(selectedEndDate);
+        setBranches(selectedBranches);
+        setDepartments(selectedDepartments);
+        setCutOff(selectedCutOff);
+
+        setDataUpdated(true);
+
+        setOpenPayrollProcessFilterModal(false);
+    };
+
+    useEffect(() => {
+        if (dataUpdated) {
+            getProcessedPayroll();
+            setDataUpdated(false);
+        }
+    }, [startDate, endDate, branches, departments, cutOff, dataUpdated]);
+
+    const formattedStartDate = dayjs(startDate).startOf("day").format("YYYY-MM-DD HH:mm:ss");
+    const formattedEndDate = dayjs(endDate).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+
+    const getProcessedPayroll = () => {
+        console.log("\n");
+        console.log("getProcessedPayroll()");
+
+        console.log("Start Date:", formattedStartDate);
+        console.log("End Date:", formattedEndDate);
+        console.log("Selected Branches:", branches);
+        console.log("Selected Departments:", departments);
+        console.log("Selected Cut-Off:", cutOff);
+        
+        setIsLoading(true);
+
+        const data = {
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+            branches: branches,
+            departments: departments,
+            cutOff: cutOff,
+        };
+
+        axiosInstance.get(`/payroll/payrollProcess`, { params: data, headers })
+            .then((response) => {
+                console.log(response);
+                setPayrolls(response.data.payrolls);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching work group:', error);
+            });
+
     };
     
-
-    const handleOpenProcessPayrollModal = () => {
-        setOpenProcessPayrollModal(true);
+    const handleOpenPayrollProcessFilterModal = () => {
+        setOpenPayrollProcessFilterModal(true);
     }
 
-    const handleCloseProcessPayrollModal = () => {
-        setOpenProcessPayrollModal(false);
+    const handleClosePayrollProcessFilterModal = () => {
+        setOpenPayrollProcessFilterModal(false);
     }
 
     return (
@@ -60,7 +106,7 @@ const PayrollProcess = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Process Payroll </Typography>
                         
-                        <Button variant="contained" color="primary" onClick={handleOpenProcessPayrollModal}>
+                        <Button variant="contained" color="primary" onClick={handleOpenPayrollProcessFilterModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Process </p>
                         </Button>
                     </Box>
@@ -82,26 +128,23 @@ const PayrollProcess = () => {
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
                                                 <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Payroll Date</TableCell>
+                                                <TableCell align="center">Date</TableCell>
+                                                <TableCell align="center">Gross Pay</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {/* {employees.map((employee) => (
-                                                <TableRow
-                                                    key={employee.id}
-                                                    component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                            {payrolls.map((payroll) => (
+                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                    <TableCell align="center"></TableCell>
+                                                    <TableCell align="left">{payroll.employeeName}</TableCell>
+                                                    <TableCell align="center">{payroll.employeeBranch}</TableCell>
+                                                    <TableCell align="center">{payroll.employeeDepartment}</TableCell>
+                                                    <TableCell align="center">{payroll.role}</TableCell>
+                                                    <TableCell align="center">{payroll.payrollDates}</TableCell>
+                                                    <TableCell align="center"></TableCell>
                                                 </TableRow>
-                                            ))} */}
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -111,8 +154,17 @@ const PayrollProcess = () => {
 
                 </Box>
 
-                {openProcessPayrollModal &&
-                    <ProcessPayroll open={openProcessPayrollModal} close={handleCloseProcessPayrollModal} onUpdateProcessedPayroll={getProcessedPayroll} />
+                {openPayrollProcessFilterModal &&
+                    <PayrollProcessFilter 
+                        open={openPayrollProcessFilterModal}
+                        close={handleClosePayrollProcessFilterModal}
+                        passFilter={getFilter}
+                        currentStartDate={startDate}
+                        currentEndDate={endDate}
+                        currentSelectedBranches={branches}
+                        currentSelectedDepartments={departments}
+                        currentSelectedCutOff={cutOff}
+                    />
                 }
 
             </Box>

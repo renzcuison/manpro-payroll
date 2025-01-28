@@ -27,7 +27,7 @@ class AttendanceController extends Controller
 {
     public function checkUser()
     {
-        // Log::info("WorkScheduleController::checkUser");
+        // Log::info("AttendanceController::checkUser");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -42,7 +42,7 @@ class AttendanceController extends Controller
 
     public function getEmployeeLatestAttendance()
     {
-        // log::info("WorkScheduleController::getEmployeeLatestAttendance");
+        // log::info("AttendanceController::getEmployeeLatestAttendance");
 
         $user = Auth::user();
     
@@ -53,7 +53,7 @@ class AttendanceController extends Controller
 
     public function getEmployeeWorkDayAttendance()
     {
-        // Log::info("WorkScheduleController::getEmployeeWorkDayAttendance");
+        // Log::info("AttendanceController::getEmployeeWorkDayAttendance");
     
         $user = Auth::user();
         $currentDate = Carbon::now()->toDateString();
@@ -64,7 +64,7 @@ class AttendanceController extends Controller
     
     public function saveEmployeeAttendance(Request $request)
     {
-        // log::info("WorkScheduleController::saveEmployeeAttendance");
+        // log::info("AttendanceController::saveEmployeeAttendance");
 
         $validated = $request->validate([ 'action' => 'required' ]);
 
@@ -97,7 +97,7 @@ class AttendanceController extends Controller
 
     public function getAttendanceLogs()
     {
-        // Log::info("WorkScheduleController::getAttendanceLogs");
+        // Log::info("AttendanceController::getAttendanceLogs");
     
         if ($this->checkUser()) {
             $user = Auth::user();
@@ -115,7 +115,7 @@ class AttendanceController extends Controller
 
     public function getEmployeeAttendanceLogs(Request $request) 
     {
-        // Log::info("WorkScheduleController::getAttendanceLogs");
+        // Log::info("AttendanceController::getAttendanceLogs");
 
         Log::info($request);
 

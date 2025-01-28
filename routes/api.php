@@ -6,6 +6,9 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\PayrollController;
+
+
 
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
@@ -146,6 +149,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeWorkDayAttendance', [AttendanceController::class, 'getEmployeeWorkDayAttendance']);
         
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
+    });
+
+    Route::prefix('payroll')->group(function () {
+        Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
     });
 
 
