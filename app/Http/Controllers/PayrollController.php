@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+
+use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
@@ -38,45 +41,138 @@ class PayrollController extends Controller
         return false;
     }
 
+    public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
+    {
+        log::info("PayrollController::getNumberOfDays");
+
+        // Initialize counters
+        $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
+        $numberOfSaturday = 0;
+        $numberOfSunday = 0;
+        $numberOfHoliday = 0;
+
+        // Fetch Philippine holidays from Google Calendar API
+        $holidays = $this->getGoogleCalendarHolidays($startDate, $endDate);
+
+        $currentDate = $startDate->copy();
+
+        while ($currentDate <= $endDate) {
+            // Check for Saturday or Sunday
+            if ($currentDate->isSaturday()) {
+                $numberOfSaturday++;
+            } elseif ($currentDate->isSunday()) {
+                $numberOfSunday++;
+            }
+
+            // Check if it's a holiday
+            $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
+            if (in_array($holidayDate, $holidays)) {
+                $numberOfHoliday++;
+            }
+
+            // Move to the next day
+            $currentDate->addDay();
+        }
+
+        // Return the results
+        return [
+            'numberOfDays' => $numberOfDays,
+            'numberOfSaturday' => $numberOfSaturday,
+            'numberOfSunday' => $numberOfSunday,
+            'numberOfHoliday' => $numberOfHoliday,
+        ];
+    }
+
+    public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
+    {
+        log::info("PayrollController::getGoogleCalendarHolidays");
+
+        $apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
+        $calendarId = 'en.philippines#holiday@group.v.calendar.google.com';
+
+        // Prepare the API endpoint to fetch holidays within the date range
+        $startDateFormatted = $startDate->toIso8601String();
+        $endDateFormatted = $endDate->toIso8601String();
+
+        $url = "https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events";
+        $url .= "?key={$apiKey}&timeMin={$startDateFormatted}&timeMax={$endDateFormatted}&singleEvents=true";
+
+        // Make the API request
+        $response = Http::get($url);
+
+        if ($response->successful()) {
+            $events = $response->json()['items'];
+            $holidays = [];
+
+            foreach ($events as $event) {
+                // Extract the date of the holiday and add to the holidays array
+                $holidayDate = Carbon::parse($event['start']['date'])->format('Y-m-d');
+                $holidays[] = $holidayDate;
+            }
+
+            return $holidays;
+        } else {
+            Log::error("Failed to fetch Google Calendar holidays: " . $response->status());
+            return [];
+        }
+    }
+
     public function payrollProcess(Request $request)
     {
-        // log::info("PayrollController::payrollProcess");
-        // log::info($request);
-    
+        log::info("PayrollController::payrollProcess");
+        log::info($request);
+
         $user = Auth::user();
-    
+
         if ($this->checkUser()) {
 
-            $logs = AttendanceLogsModel::whereHas('user', function ($query) use ($user) {
-                $query->where('client_id', $user->client_id);
-            })->get();
+            $request->validate([
+                'startDate' => 'required|date',
+                'endDate' => 'required|date|after_or_equal:startDate',
+            ]);
     
-            $groupedLogs = $logs->groupBy(function ($log) {
-                return \Carbon\Carbon::parse($log->timestamp)->toDateString();
-            })->map(function ($logs, $date) {
-                $totalMinutes = 0;
+            $startDate = $request->startDate;
+            $endDate = $request->endDate;
     
-                $sortedLogs = $logs->sortBy('timestamp');
+            $employees = UsersModel::whereHas('attendanceLogs', function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('timestamp', [$startDate, $endDate]);
+            })->where('client_id', $user->client_id)->get();
     
-                for ($i = 0; $i < $sortedLogs->count() - 1; $i++) {
-                    $currentLog = $sortedLogs[$i];
-                    $nextLog = $sortedLogs[$i + 1];
+            $payrolls = [];
     
-                    if ($currentLog->action === 'Duty In' && $nextLog->action === 'Duty Out') {
-                        $start = \Carbon\Carbon::parse($currentLog->timestamp);
-                        $end = \Carbon\Carbon::parse($nextLog->timestamp);
-                        $totalMinutes += $start->diffInMinutes($end);
-                    }
-                }
+            foreach ($employees as $employee) {
+
+                $payrollLateAndAbsent = 0;
+
+                $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
+
+                log::info($logs);
+
+                $distinctDays = $logs->groupBy(function ($log) {
+                    return \Carbon\Carbon::parse($log->timestamp)->toDateString();
+                });
+                
+                $payrollDaysPresent = $distinctDays->count();
+
+                $payrollData = $this->getNumberOfDays(Carbon::parse($startDate), Carbon::parse($endDate));
+
+                log::info($payrollData);
+
+                $payrolls[] = [
+                    'id' => $employee->id,
+                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeBranch' => $employee->branch->name ?? '-',
+                    'employeeDepartment' => $employee->department->name ?? '-',
+                    'employeeRole' => $employee->role->name ?? '-',
+                    'employeeSalary' => $employee->salary,
+                    'payrollDates' => $startDate  . ' - ' . $endDate,
+                    'payrollDaysPresent' => $payrollDaysPresent,
+                ];
+            }
     
-                return [ 'date' => $date, 'totalMinutes' => $totalMinutes ];
-            })->values();
-    
-            return response()->json(['status' => 200, 'logs' => $groupedLogs]);
+            return response()->json(['status' => 200, 'payrolls' => $payrolls]);
         }
-    
-        return response()->json(['status' => 200, 'logs' => null]);
+
+        return response()->json(['status' => 200, 'payrolls' => null]);
     }
-    
-    
 }

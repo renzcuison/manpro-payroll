@@ -26,6 +26,8 @@ const PayrollProcess = () => {
 
     const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
+    const [payrolls, setPayrolls] = useState([]);
+
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [startDate, setStartDate] = useState('');
@@ -53,19 +55,24 @@ const PayrollProcess = () => {
         }
     }, [startDate, endDate, branches, departments, cutOff, dataUpdated]);
 
+    const formattedStartDate = dayjs(startDate).startOf("day").format("YYYY-MM-DD HH:mm:ss");
+    const formattedEndDate = dayjs(endDate).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+
     const getProcessedPayroll = () => {
         console.log("\n");
         console.log("getProcessedPayroll()");
 
-        console.log("Start Date:", startDate);
-        console.log("End Date:", endDate);
+        console.log("Start Date:", formattedStartDate);
+        console.log("End Date:", formattedEndDate);
         console.log("Selected Branches:", branches);
         console.log("Selected Departments:", departments);
         console.log("Selected Cut-Off:", cutOff);
+        
+        setIsLoading(true);
 
         const data = {
-            startDate: startDate,
-            endDate: endDate,
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
             branches: branches,
             departments: departments,
             cutOff: cutOff,
@@ -74,17 +81,14 @@ const PayrollProcess = () => {
         axiosInstance.get(`/payroll/payrollProcess`, { params: data, headers })
             .then((response) => {
                 console.log(response);
+                setPayrolls(response.data.payrolls);
+                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching work group:', error);
             });
 
     };
-
-
-
-
-
     
     const handleOpenPayrollProcessFilterModal = () => {
         setOpenPayrollProcessFilterModal(true);
@@ -124,26 +128,23 @@ const PayrollProcess = () => {
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
                                                 <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Payroll Date</TableCell>
+                                                <TableCell align="center">Date</TableCell>
+                                                <TableCell align="center">Gross Pay</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {/* {employees.map((employee) => (
-                                                <TableRow
-                                                    key={employee.id}
-                                                    component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                            {payrolls.map((payroll) => (
+                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                    <TableCell align="center"></TableCell>
+                                                    <TableCell align="left">{payroll.employeeName}</TableCell>
+                                                    <TableCell align="center">{payroll.employeeBranch}</TableCell>
+                                                    <TableCell align="center">{payroll.employeeDepartment}</TableCell>
+                                                    <TableCell align="center">{payroll.role}</TableCell>
+                                                    <TableCell align="center">{payroll.payrollDates}</TableCell>
+                                                    <TableCell align="center"></TableCell>
                                                 </TableRow>
-                                            ))} */}
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

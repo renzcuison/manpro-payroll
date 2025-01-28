@@ -51,10 +51,30 @@ class UsersModel extends Authenticatable
         'job_title_id',
         'work_group_id',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(EmployeeRolesModel::class, 'role_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(BranchesModel::class, 'branch_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(DepartmentsModel::class, 'department_id');
+    }
     
     public function workGroup()
     {
         return $this->belongsTo(WorkGroupsModel::class, 'work_group_id');
+    }
+
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
     
     public function workShift()
