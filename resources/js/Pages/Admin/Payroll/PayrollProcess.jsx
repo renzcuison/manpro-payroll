@@ -13,7 +13,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import ProcessPayroll from '../Payroll/Modals/ProcessPayroll';
+import PayrollProcessFilter from './Modals/PayrollProcessFilter';
 
 const PayrollProcess = () => {
     const { user } = useUser();
@@ -23,7 +23,7 @@ const PayrollProcess = () => {
 
     const [isLoading, setIsLoading] = useState(false);
 
-    const [openProcessPayrollModal, setOpenProcessPayrollModal] = useState(false);
+    const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -43,13 +43,12 @@ const PayrollProcess = () => {
         console.log("Selected Cut-Off:", selectedCutOff);
     };
     
-
-    const handleOpenProcessPayrollModal = () => {
-        setOpenProcessPayrollModal(true);
+    const handleOpenPayrollProcessFilterModal = () => {
+        setOpenPayrollProcessFilterModal(true);
     }
 
-    const handleCloseProcessPayrollModal = () => {
-        setOpenProcessPayrollModal(false);
+    const handleClosePayrollProcessFilterModal = () => {
+        setOpenPayrollProcessFilterModal(false);
     }
 
     return (
@@ -60,7 +59,7 @@ const PayrollProcess = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Process Payroll </Typography>
                         
-                        <Button variant="contained" color="primary" onClick={handleOpenProcessPayrollModal}>
+                        <Button variant="contained" color="primary" onClick={handleOpenPayrollProcessFilterModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Process </p>
                         </Button>
                     </Box>
@@ -111,8 +110,17 @@ const PayrollProcess = () => {
 
                 </Box>
 
-                {openProcessPayrollModal &&
-                    <ProcessPayroll open={openProcessPayrollModal} close={handleCloseProcessPayrollModal} onUpdateProcessedPayroll={getProcessedPayroll} />
+                {openPayrollProcessFilterModal &&
+                    <PayrollProcessFilter 
+                        open={openPayrollProcessFilterModal}
+                        close={handleClosePayrollProcessFilterModal}
+                        onUpdateProcessedPayroll={getProcessedPayroll}
+                        currentStartDate={startDate}
+                        currentEndDate={endDate}
+                        currentSelectedBranches={selectedBranches}
+                        currentSelectedDepartments={selectedDepartments}
+                        currentSelectedCutOff={selectedCutOff}
+                    />
                 }
 
             </Box>

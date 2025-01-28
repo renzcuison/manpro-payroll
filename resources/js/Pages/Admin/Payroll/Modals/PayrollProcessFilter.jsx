@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
+const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -33,8 +33,7 @@ const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
     const [selectedCutOff, setSelectedCutOff] = useState('');
 
     useEffect(() => {
-        axiosInstance
-        .get('/settings/getBranches', { headers })
+        axiosInstance.get('/settings/getBranches', { headers })
             .then((response) => {
                 const fetchedBranches = response.data.branches;
                 setBranches(fetchedBranches);
@@ -73,26 +72,25 @@ const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
             setSelectedDepartmentError(false);
         }
 
-        if (!startDate) {
+        if (startDate == "") {
             setStartDateError(true);
         } else {
             setStartDateError(false);
         }
 
-        if (!endDate) {
+        if (endDate == "") {
             setEndDateError(true);
         } else {
-            setEndDateError(false);setEndDateError
+            setEndDateError(false);
         }
 
-        if (!selectedCutOff) {
+        if (selectedCutOff == "") {
             setSelectedCutOffError(true);
         } else {
             setSelectedCutOffError(false);
         }
 
-
-        if ( selectedDepartmentError || selectedBranchError || startDateError || endDateError || selectedCutOffError ) {
+        if ( selectedBranches.length == 0 || selectedDepartments.length == 0 || startDate == "" || endDate == "" || selectedCutOff == "" ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -113,13 +111,7 @@ const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
                 cancelButtonText: 'Cancel',
             }).then((res) => {
                 if (res.isConfirmed) {
-                    onUpdateProcessedPayroll({
-                        startDate,
-                        endDate,
-                        selectedBranches,
-                        selectedDepartments,
-                        selectedCutOff,
-                    });
+                    onUpdateProcessedPayroll({ startDate, endDate, selectedBranches, selectedDepartments, selectedCutOff });
                 }
             });
         }
@@ -200,8 +192,19 @@ const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
                                     onChange={(event) => setSelectedBranches(event.target.value)}
                                 >
                                     {branches.map((branch) => (
-                                        <MenuItem key={branch.id} value={branch.id}>
-                                            {branch.name} ({branch.acronym})
+                                        <MenuItem
+                                            key={branch.id}
+                                            value={branch.id}
+                                            onClick={() => {
+                                                setSelectedDepartments((prevSelected) =>
+                                                    prevSelected.includes(branch.id)
+                                                        ? prevSelected.filter((id) => id !== branch.id)
+                                                        : [...prevSelected, branch.id]
+                                                );
+                                            }}
+                                        >
+                                            <Checkbox checked={selectedDepartments.includes(branch.id)} />
+                                            <ListItemText primary={`${branch.name} (${branch.acronym})`} />
                                         </MenuItem>
                                     ))}
                                 </TextField>
@@ -278,4 +281,4 @@ const ProcessPayroll = ({ open, close, onUpdateProcessedPayroll }) => {
     )
 }
 
-export default ProcessPayroll;
+export default PayrollProcessFilter;
