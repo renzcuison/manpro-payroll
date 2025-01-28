@@ -22,26 +22,69 @@ const PayrollProcess = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(false);
+    const [dataUpdated, setDataUpdated] = useState(false);
 
     const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [selectedBranches, setSelectedBranches] = useState([]);
-    const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedCutOff, setSelectedCutOff] = useState('');
+    const [cutOff, setCutOff] = useState('');
 
-    const getProcessedPayroll = (data) => {
-        console.log("Processed Payroll Data:", data);
-    
-        // Example usage:
-        const { startDate, endDate, selectedBranches, selectedDepartments, selectedCutOff } = data;
+    const getFilter = (data) => {
+        const { selectedStartDate, selectedEndDate, selectedBranches, selectedDepartments, selectedCutOff } = data;
+
+        setStartDate(selectedStartDate);
+        setEndDate(selectedEndDate);
+        setBranches(selectedBranches);
+        setDepartments(selectedDepartments);
+        setCutOff(selectedCutOff);
+
+        setDataUpdated(true);
+
+        setOpenPayrollProcessFilterModal(false);
+    };
+
+    useEffect(() => {
+        if (dataUpdated) {
+            getProcessedPayroll();
+            setDataUpdated(false);
+        }
+    }, [startDate, endDate, branches, departments, cutOff, dataUpdated]);
+
+    const getProcessedPayroll = () => {
+        console.log("\n");
+        console.log("getProcessedPayroll()");
+
         console.log("Start Date:", startDate);
         console.log("End Date:", endDate);
-        console.log("Selected Branches:", selectedBranches);
-        console.log("Selected Departments:", selectedDepartments);
-        console.log("Selected Cut-Off:", selectedCutOff);
+        console.log("Selected Branches:", branches);
+        console.log("Selected Departments:", departments);
+        console.log("Selected Cut-Off:", cutOff);
+
+        const data = {
+            startDate: startDate,
+            endDate: endDate,
+            branches: branches,
+            departments: departments,
+            cutOff: cutOff,
+        };
+
+        axiosInstance.get(`/payroll/payrollProcess`, { params: data, headers })
+            .then((response) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                console.error('Error fetching work group:', error);
+            });
+
     };
+
+
+
+
+
     
     const handleOpenPayrollProcessFilterModal = () => {
         setOpenPayrollProcessFilterModal(true);
@@ -114,12 +157,12 @@ const PayrollProcess = () => {
                     <PayrollProcessFilter 
                         open={openPayrollProcessFilterModal}
                         close={handleClosePayrollProcessFilterModal}
-                        onUpdateProcessedPayroll={getProcessedPayroll}
+                        passFilter={getFilter}
                         currentStartDate={startDate}
                         currentEndDate={endDate}
-                        currentSelectedBranches={selectedBranches}
-                        currentSelectedDepartments={selectedDepartments}
-                        currentSelectedCutOff={selectedCutOff}
+                        currentSelectedBranches={branches}
+                        currentSelectedDepartments={departments}
+                        currentSelectedCutOff={cutOff}
                     />
                 }
 

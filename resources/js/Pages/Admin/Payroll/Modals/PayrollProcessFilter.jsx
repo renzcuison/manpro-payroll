@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
+const PayrollProcessFilter = ({ open, close, passFilter , currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -19,20 +19,32 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
     const [departments, setDepartments] = useState([]);
 
 
-    const [startDateError, setStartDateError] = useState(false);
-    const [endDateError, setEndDateError] = useState(false);
+    const [selectedStartDateError, setSelectedStartDateError] = useState(false);
+    const [selectedEndDateError, setSelectedEndDateError] = useState(false);
     const [selectedBranchError, setSelectedBranchError] = useState(false);
     const [selectedDepartmentError, setSelectedDepartmentError] = useState(false);
     const [selectedCutOffError, setSelectedCutOffError] = useState(false);
 
 
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [selectedStartDate, setStartDate] = useState('');
+    const [selectedEndDate, setEndDate] = useState('');
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedCutOff, setSelectedCutOff] = useState('');
 
     useEffect(() => {
+
+        // console.log("================================");
+        // console.log("currentStartDate   : " + currentStartDate);
+        // console.log("currentEndDate     : " + currentEndDate);
+
+        setStartDate(currentStartDate);
+        setEndDate(currentEndDate);
+
+        console.log("selectedStartDate      : " + selectedStartDate);
+        console.log("selectedEndDate        : " + selectedEndDate);
+
+
         axiosInstance.get('/settings/getBranches', { headers })
             .then((response) => {
                 const fetchedBranches = response.data.branches;
@@ -72,16 +84,16 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
             setSelectedDepartmentError(false);
         }
 
-        if (startDate == "") {
-            setStartDateError(true);
+        if (selectedStartDate == "") {
+            setSelectedStartDateError(true);
         } else {
-            setStartDateError(false);
+            setSelectedStartDateError(false);
         }
 
-        if (endDate == "") {
-            setEndDateError(true);
+        if (selectedEndDate == "") {
+            setSelectedEndDateError(true);
         } else {
-            setEndDateError(false);
+            setSelectedEndDateError(false);
         }
 
         if (selectedCutOff == "") {
@@ -90,7 +102,7 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
             setSelectedCutOffError(false);
         }
 
-        if ( selectedBranches.length == 0 || selectedDepartments.length == 0 || startDate == "" || endDate == "" || selectedCutOff == "" ) {
+        if ( selectedBranches.length == 0 || selectedDepartments.length == 0 || selectedStartDate == "" || selectedEndDate == "" || selectedCutOff == "" ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -111,7 +123,7 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
                 cancelButtonText: 'Cancel',
             }).then((res) => {
                 if (res.isConfirmed) {
-                    onUpdateProcessedPayroll({ startDate, endDate, selectedBranches, selectedDepartments, selectedCutOff });
+                    passFilter({ selectedStartDate, selectedEndDate, selectedBranches, selectedDepartments, selectedCutOff });
                 }
             });
         }
@@ -226,7 +238,7 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
                                         variant="outlined"
                                         onChange={(newValue) => setStartDate(newValue)}
                                         slotProps={{
-                                            textField: { required: true, error: startDateError }
+                                            textField: { required: true, error: selectedStartDateError }
                                         }}
                                     />
                                 </LocalizationProvider>
@@ -242,9 +254,8 @@ const PayrollProcessFilter = ({ open, close, onUpdateProcessedPayroll, currentSt
                                         label="End Date"
                                         variant="outlined"
                                         onChange={(newValue) => setEndDate(newValue)}
-                                        // minDate={startDate}
                                         slotProps={{
-                                            textField: { required: true, error: endDateError }
+                                            textField: { required: true, error: selectedEndDateError }
                                         }}
                                     />
                                 </LocalizationProvider>
