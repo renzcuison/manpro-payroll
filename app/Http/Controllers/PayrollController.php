@@ -43,19 +43,22 @@ class PayrollController extends Controller
 
     public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
     {
-        log::info("PayrollController::getNumberOfDays");
-
+        Log::info("PayrollController::getNumberOfDays");
+    
         // Initialize counters
         $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
         $numberOfSaturday = 0;
         $numberOfSunday = 0;
         $numberOfHoliday = 0;
+    
+        // Fetch Philippine holidays from Nager.Date API
+        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
 
         // Fetch Philippine holidays from Google Calendar API
         $holidays = $this->getGoogleCalendarHolidays($startDate, $endDate);
-
+    
         $currentDate = $startDate->copy();
-
+    
         while ($currentDate <= $endDate) {
             // Check for Saturday or Sunday
             if ($currentDate->isSaturday()) {
@@ -63,17 +66,17 @@ class PayrollController extends Controller
             } elseif ($currentDate->isSunday()) {
                 $numberOfSunday++;
             }
-
+    
             // Check if it's a holiday
             $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
             if (in_array($holidayDate, $holidays)) {
                 $numberOfHoliday++;
             }
-
+    
             // Move to the next day
             $currentDate->addDay();
         }
-
+    
         // Return the results
         return [
             'numberOfDays' => $numberOfDays,
@@ -81,6 +84,31 @@ class PayrollController extends Controller
             'numberOfSunday' => $numberOfSunday,
             'numberOfHoliday' => $numberOfHoliday,
         ];
+    }
+
+    public function getNagerHolidays($startYear, $endYear)
+    {
+        $holidays = [];
+        $countryCode = 'PH';
+
+        // Fetch holidays for each year in the range
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $url = "https://date.nager.at/api/v2/PublicHolidays/{$year}/{$countryCode}";
+
+            $response = Http::get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                foreach ($data as $holiday) {
+                    $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                }
+            } else {
+                Log::error("Failed to fetch holidays from Nager.Date API: " . $response->status());
+                Log::error($response);
+            }
+        }
+
+        return $holidays;
     }
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
@@ -113,6 +141,7 @@ class PayrollController extends Controller
             return $holidays;
         } else {
             Log::error("Failed to fetch Google Calendar holidays: " . $response->status());
+            log::error($response);
             return [];
         }
     }
@@ -120,7 +149,6 @@ class PayrollController extends Controller
     public function payrollProcess(Request $request)
     {
         log::info("PayrollController::payrollProcess");
-        log::info($request);
 
         $user = Auth::user();
 
@@ -142,21 +170,20 @@ class PayrollController extends Controller
     
             foreach ($employees as $employee) {
 
-                $payrollLateAndAbsent = 0;
-
                 $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
-
-                log::info($logs);
 
                 $distinctDays = $logs->groupBy(function ($log) {
                     return \Carbon\Carbon::parse($log->timestamp)->toDateString();
                 });
                 
-                $payrollDaysPresent = $distinctDays->count();
+                $numberOfPresent = $distinctDays->count();
 
                 $payrollData = $this->getNumberOfDays(Carbon::parse($startDate), Carbon::parse($endDate));
 
-                log::info($payrollData);
+                $numberOfDays = $payrollData['numberOfDays'];
+                $numberOfSaturday = $payrollData['numberOfSaturday'];
+                $numberOfSunday = $payrollData['numberOfSunday'];
+                $numberOfHoliday = $payrollData['numberOfHoliday'];
 
                 $payrolls[] = [
                     'id' => $employee->id,
@@ -166,7 +193,11 @@ class PayrollController extends Controller
                     'employeeRole' => $employee->role->name ?? '-',
                     'employeeSalary' => $employee->salary,
                     'payrollDates' => $startDate  . ' - ' . $endDate,
-                    'payrollDaysPresent' => $payrollDaysPresent,
+                    'numberOfPresent' => $numberOfPresent,
+                    'numberOfDays' => $numberOfDays,
+                    'numberOfSaturday' => $numberOfSaturday,
+                    'numberOfSunday' => $numberOfSunday,
+                    'numberOfHoliday' => $numberOfHoliday,
                 ];
             }
     
