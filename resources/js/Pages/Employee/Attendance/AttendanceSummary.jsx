@@ -41,6 +41,8 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 
+import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
+
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -48,13 +50,14 @@ const AttendanceSummary = () => {
 
     const [isLoading, setIsLoading] = useState(true);
 
-    // ---------------- Attendance Logs API
+    // ---------------- Attendance Summary Date
     const [summaryFromDate, setSummaryFromDate] = useState(
         dayjs().startOf("month")
     );
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [summaryData, setSummaryData] = useState([]);
 
+    // ---------------- Attendance Summary API
     const fetchAttendanceSummary = async () => {
         console.log("oh hi");
         try {
@@ -78,10 +81,19 @@ const AttendanceSummary = () => {
     };
 
     useEffect(() => {
-        console.log("Updated summaryFromDate:", summaryFromDate);
-        console.log("Updated summaryToDate:", summaryToDate);
         fetchAttendanceSummary();
     }, [summaryFromDate, summaryToDate]);
+
+    // ---------------- Summary Details
+    const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
+
+    const handleOpenAttendanceDetails = (date) => {
+        setOpenAttendanceDetails(date);
+    };
+
+    const handleCloseAttendanceDetails = () => {
+        setOpenAttendanceDetails(null);
+    };
 
     return (
         <Layout title={"EmployeesList"}>
@@ -194,8 +206,8 @@ const AttendanceSummary = () => {
                                                         <TableRow
                                                             key={index}
                                                             onClick={() =>
-                                                                console.log(
-                                                                    `${summary.date} entry clicked!`
+                                                                handleOpenAttendanceDetails(
+                                                                    summary.date
                                                                 )
                                                             }
                                                         >
@@ -415,6 +427,14 @@ const AttendanceSummary = () => {
                     </Box>
                 </Box>
             </Box>
+            {openAttendanceDetails && (
+                <AttendanceSummaryDetails
+                    open={true}
+                    close={handleCloseAttendanceDetails}
+                    date={openAttendanceDetails}
+                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
+                />
+            )}
         </Layout>
     );
 };

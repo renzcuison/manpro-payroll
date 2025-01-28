@@ -13,6 +13,7 @@ import AttendanceButtons from "./Components/AttendanceButtons";
 import Swal from "sweetalert2";
 import moment from "moment";
 import { AccessTime } from "@mui/icons-material";
+import dayjs from "dayjs";
 
 const Attendance = ({ open, close }) => {
     //const navigate = useNavigate();
@@ -59,7 +60,12 @@ const Attendance = ({ open, close }) => {
     const [latestAttendanceTime, setlatestAttendanceTime] = useState();
     useEffect(() => {
         axiosInstance
-            .get(`attendance/getEmployeeWorkDayAttendance`, { headers })
+            .get(`attendance/getEmployeeWorkDayAttendance`, {
+                headers,
+                params: {
+                    work_date: dayjs().format("YYYY-MM-DD"),
+                },
+            })
             .then((response) => {
                 // console.log(response.data);
                 setEmployeeAttendance(response.data.attendance);
