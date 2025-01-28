@@ -229,14 +229,6 @@ const AttendanceLogs = () => {
                             {" "}
                             Attendance Logs{" "}
                         </Typography>
-
-                        <Link to="/admin/employees-add">
-                            <Button variant="contained" color="primary">
-                                <p className="m-0">
-                                    <i className="fa fa-plus"></i> Add{" "}
-                                </p>
-                            </Button>
-                        </Link>
                     </Box>
 
                     <Box
