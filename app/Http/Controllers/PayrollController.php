@@ -53,9 +53,6 @@ class PayrollController extends Controller
     
         // Fetch Philippine holidays from Nager.Date API
         $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-
-        // Fetch Philippine holidays from Google Calendar API
-        $holidays = $this->getGoogleCalendarHolidays($startDate, $endDate);
     
         $currentDate = $startDate->copy();
     
@@ -90,24 +87,33 @@ class PayrollController extends Controller
     {
         $holidays = [];
         $countryCode = 'PH';
-
+    
         // Fetch holidays for each year in the range
         for ($year = $startYear; $year <= $endYear; $year++) {
-            $url = "https://date.nager.at/api/v2/PublicHolidays/{$year}/{$countryCode}";
-
+            $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
+    
             $response = Http::get($url);
-
+    
             if ($response->successful()) {
                 $data = $response->json();
-                foreach ($data as $holiday) {
-                    $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+    
+                // Log the API response for debugging
+                Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
+    
+                // Ensure $data is an array before iterating
+                if (is_array($data)) {
+                    foreach ($data as $holiday) {
+                        $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                    }
+                } else {
+                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
                 }
             } else {
-                Log::error("Failed to fetch holidays from Nager.Date API: " . $response->status());
-                Log::error($response);
+                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+                Log::error($response->body());
             }
         }
-
+    
         return $holidays;
     }
 

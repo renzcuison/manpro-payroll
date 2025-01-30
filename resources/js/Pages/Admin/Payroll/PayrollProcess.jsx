@@ -85,7 +85,7 @@ const PayrollProcess = () => {
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching work group:', error);
+                console.error('Error fetching payroll calculations:', error);
             });
 
     };
