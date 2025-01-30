@@ -137,6 +137,93 @@ const Sidebar = ({ children, closeMini }) => {
         ]
     }]
 
+    const applicationsItems = [{
+        id: 4,
+        text: 'Applications',
+        icon: 'fa fa-pencil-square-o',
+        children: [
+            {
+                href: `/hr/applications?`,
+                text: 'Request',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-list?`,
+                text: 'List',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-leave?`,
+                text: 'Leave Credit',
+                icon: 'fa fa-cogs',
+            },
+            {
+                href: `/hr/applications-overtime?`,
+                text: 'Overtime',
+                icon: 'fa fa-cogs',
+            }
+        ]
+    }];
+
+    const workShifts = [{
+        id: 5,
+        text: 'Work Shifts',
+        icon: 'fa fa-calendar',
+        children: workshifts.map(shift => ({
+            id: shift.id,
+            href: `/admin/workshift/${shift.link}`,
+            text: shift.name,
+        })).concat({
+            id: 'add-shift',
+            href: '/admin/workshifts-add',
+            text: '+ Add Shift',
+        }),
+    }];
+
+    const workGroups = [{
+        id: 6,
+        text: 'Work Groups',
+        icon: 'fa fa-calendar',
+        children: workgroups.map(group => ({
+            id: group.id,
+            href: `/admin/workgroup/${group.client_id}/${group.id}`,
+            text: group.name,
+        })).concat({
+            id: 'add-group',
+            href: '/admin/workgroups-add',
+            text: '+ Add Group',
+        }),
+    }];
+    
+    const settingsItems = [{
+        id: 7,
+        text: 'Settings',
+        icon: 'fa fa-gear',
+        children: [
+            {
+                href: `/admin/settings/general?`,
+                text: 'General',
+                icon: 'fa fa-cogs',
+            },
+        ]
+    }]
+
+    const evaluationItems = [{
+        id: 8,
+        text: 'Performance Evaluation',
+        icon: 'fa fa-check',
+        children: [
+            {
+                href: `/member/evaluate`,
+                text: 'Evaluate',
+            },
+            {
+                href: `/member/evaluation`,
+                text: 'My Evaluation',
+            }
+        ]
+    }]
+
     const workDays = [{
         id: 4,
         text: 'Work Schedule',
@@ -170,91 +257,6 @@ const Sidebar = ({ children, closeMini }) => {
             },
         ]
     }];
-
-    const workShifts = [{
-        text: 'Work Shifts',
-        icon: 'fa fa-calendar',
-        children: workshifts.map(shift => ({
-            // id: shift.id,
-            href: `/admin/workshift/${shift.link}`,
-            text: shift.name,
-        })).concat({
-            // id: 'add-shift',
-            href: '/admin/workshifts-add',
-            text: '+ Add Shift',
-        }),
-    }];
-
-    const workGroups = [{
-        text: 'Work Groups',
-        icon: 'fa fa-calendar',
-        children: workgroups.map(group => ({
-            // id: group.id,
-            href: `/admin/workgroup/${group.client_id}/${group.id}`,
-            text: group.name,
-        })).concat({
-            // id: 'add-group',
-            href: '/admin/workgroups-add',
-            text: '+ Add Group',
-        }),
-    }];
-    
-    const applicationsItems = [{
-        id: 2,
-        text: 'Applications',
-        icon: 'fa fa-pencil-square-o',
-        children: [
-            {
-                href: `/hr/applications?`,
-                text: 'Request',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/applications-list?`,
-                text: 'List',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/applications-leave?`,
-                text: 'Leave Credit',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/applications-overtime?`,
-                text: 'Overtime',
-                icon: 'fa fa-cogs',
-            }
-        ]
-    }];
-    
-    const settingsItems = [{
-        id: 4,
-        text: 'Settings',
-        icon: 'fa fa-gear',
-        children: [
-            {
-                href: `/admin/settings/general?`,
-                text: 'General',
-                icon: 'fa fa-cogs',
-            },
-        ]
-    }]
-
-    const evaluationItems = [{
-        id: 6,
-        text: 'Performance Evaluation',
-        icon: 'fa fa-check',
-        children: [
-            {
-                href: `/member/evaluate`,
-                text: 'Evaluate',
-            },
-            {
-                href: `/member/evaluation`,
-                text: 'My Evaluation',
-            }
-        ]
-    }]
 
     return (
         <nav id="sidebar" style={{ zIndex: 1, height: '100vh', overflow: 'hidden' }}>
