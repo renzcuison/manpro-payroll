@@ -51,13 +51,14 @@ class AttendanceController extends Controller
         return response()->json(['status' => 200,'latest_attendance' => $latest_attendance,]);
     }
 
-    public function getEmployeeWorkDayAttendance()
+    public function getEmployeeWorkDayAttendance(Request $request)
     {
         // Log::info("AttendanceController::getEmployeeWorkDayAttendance");
+        $workDate = $request->input('work_date');
     
         $user = Auth::user();
         $currentDate = Carbon::now()->toDateString();
-        $attendance = AttendanceLogsModel::where('user_id', $user->id)->whereDate('timestamp', $currentDate)->get();
+        $attendance = AttendanceLogsModel::where('user_id', $user->id)->whereDate('timestamp', $workDate)->get();
 
         return response()->json([ 'status' => 200, 'attendance' => $attendance ]);
     }
@@ -117,7 +118,7 @@ class AttendanceController extends Controller
     {
         // Log::info("AttendanceController::getAttendanceLogs");
 
-        Log::info($request);
+        // Log::info($request);
 
         $user = Auth::user();
         $fromDate = $request->input('from_date'); 
@@ -131,7 +132,7 @@ class AttendanceController extends Controller
             $query->where('action', $action);
         }
 
-        $attendances = $query->get();
+        $attendances = $query->orderBy('timestamp', 'desc')->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
     }
@@ -155,6 +156,7 @@ class AttendanceController extends Controller
             ->groupBy(function($log) {
                 return Carbon::parse($log->timestamp)->format('Y-m-d');
             })
+            ->sortKeysDesc()
             ->map(function($logs, $date) {
                 // Find first time in
                 $timeIn = $logs->firstWhere('action', 'Duty In');

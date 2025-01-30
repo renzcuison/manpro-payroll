@@ -41,6 +41,8 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 
+import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
+
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -48,13 +50,15 @@ const AttendanceSummary = () => {
 
     const [isLoading, setIsLoading] = useState(true);
 
-    // ---------------- Attendance Logs API
+    // ---------------- Attendance Summary Date
     const [summaryFromDate, setSummaryFromDate] = useState(
         dayjs().startOf("month")
     );
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [summaryData, setSummaryData] = useState([]);
+    const currentDate = dayjs().format("YYYY-MM-DD");
 
+    // ---------------- Attendance Summary API
     const fetchAttendanceSummary = async () => {
         console.log("oh hi");
         try {
@@ -78,13 +82,22 @@ const AttendanceSummary = () => {
     };
 
     useEffect(() => {
-        console.log("Updated summaryFromDate:", summaryFromDate);
-        console.log("Updated summaryToDate:", summaryToDate);
         fetchAttendanceSummary();
     }, [summaryFromDate, summaryToDate]);
 
+    // ---------------- Summary Details
+    const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
+
+    const handleOpenAttendanceDetails = (date) => {
+        setOpenAttendanceDetails(date);
+    };
+
+    const handleCloseAttendanceDetails = () => {
+        setOpenAttendanceDetails(null);
+    };
+
     return (
-        <Layout title={"EmployeesList"}>
+        <Layout title={"AttendanceSummary"}>
             <Box
                 sx={{
                     overflowX: "auto",
@@ -133,7 +146,11 @@ const AttendanceSummary = () => {
                                 <Grid
                                     container
                                     direction="row"
-                                    justifyContent="flex-end"
+                                    justifyContent="flex-start"
+                                    sx={{
+                                        pb: 2,
+                                        borderBottom: "1px solid #e0e0e0",
+                                    }}
                                 >
                                     <LocalizationProvider
                                         dateAdapter={AdapterDayjs}
@@ -173,16 +190,52 @@ const AttendanceSummary = () => {
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Date</TableCell>
-                                                <TableCell>Time In</TableCell>
-                                                <TableCell>Time Out</TableCell>
-                                                <TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Date
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Time In
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Time Out
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
                                                     Total Hours
                                                 </TableCell>
-                                                <TableCell>OT In</TableCell>
-                                                <TableCell>OT Out</TableCell>
-                                                <TableCell>Total OT</TableCell>
-                                                <TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    OT In
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    OT Out
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Total OT
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
                                                     Late/Absences
                                                 </TableCell>
                                             </TableRow>
@@ -194,19 +247,27 @@ const AttendanceSummary = () => {
                                                         <TableRow
                                                             key={index}
                                                             onClick={() =>
-                                                                console.log(
-                                                                    `${summary.date} entry clicked!`
+                                                                handleOpenAttendanceDetails(
+                                                                    summary.date
                                                                 )
                                                             }
+                                                            sx={{
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                            }}
                                                         >
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {dayjs(
                                                                     summary.date
                                                                 ).format(
                                                                     "MMMM D, YYYY"
                                                                 )}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.time_in
                                                                     ? dayjs(
                                                                           summary.time_in
@@ -215,7 +276,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.time_out
                                                                     ? dayjs(
                                                                           summary.time_out
@@ -224,7 +285,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {(() => {
                                                                     const totalMinutes =
                                                                         summary.total_time;
@@ -273,7 +334,7 @@ const AttendanceSummary = () => {
                                                                     }
                                                                 })()}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.overtime_in
                                                                     ? dayjs(
                                                                           summary.overtime_in
@@ -282,7 +343,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.overtime_out
                                                                     ? dayjs(
                                                                           summary.overtime_out
@@ -292,7 +353,7 @@ const AttendanceSummary = () => {
                                                                     : "N/A"}
                                                             </TableCell>
 
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {(() => {
                                                                     const totalOT =
                                                                         summary.total_ot;
@@ -341,54 +402,80 @@ const AttendanceSummary = () => {
                                                                     }
                                                                 })()}
                                                             </TableCell>
-                                                            <TableCell>
-                                                                {(() => {
-                                                                    const totalLate =
-                                                                        summary.late_time;
-                                                                    const hoursLate =
-                                                                        Math.floor(
-                                                                            totalLate /
-                                                                                60
-                                                                        );
-                                                                    const minutesLate =
-                                                                        totalLate %
-                                                                        60;
-                                                                    if (
-                                                                        hoursLate >
-                                                                            0 &&
-                                                                        minutesLate >
-                                                                            0
-                                                                    ) {
-                                                                        return `${hoursLate} hour${
-                                                                            hoursLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }, ${minutesLate} minute${
-                                                                            minutesLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else if (
-                                                                        hoursLate >
-                                                                        0
-                                                                    ) {
-                                                                        return `${hoursLate} hour${
-                                                                            hoursLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else {
-                                                                        return `${minutesLate} minute${
-                                                                            minutesLate >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    }
-                                                                })()}
+                                                            <TableCell align="center">
+                                                                <Typography
+                                                                    sx={{
+                                                                        color:
+                                                                            summary.date ===
+                                                                            currentDate
+                                                                                ? "#177604"
+                                                                                : summary.late_time >
+                                                                                  0
+                                                                                ? "#f44336"
+                                                                                : null,
+                                                                    }}
+                                                                >
+                                                                    {(() => {
+                                                                        if (
+                                                                            summary.date ===
+                                                                            currentDate
+                                                                        ) {
+                                                                            return "Day Ongoing";
+                                                                        } else {
+                                                                            const totalLate =
+                                                                                summary.late_time;
+                                                                            const hoursLate =
+                                                                                Math.floor(
+                                                                                    totalLate /
+                                                                                        60
+                                                                                );
+                                                                            const minutesLate =
+                                                                                totalLate %
+                                                                                60;
+
+                                                                            if (
+                                                                                hoursLate >
+                                                                                    0 &&
+                                                                                minutesLate >
+                                                                                    0
+                                                                            ) {
+                                                                                return `${hoursLate} hour${
+                                                                                    hoursLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }, ${minutesLate} minute${
+                                                                                    minutesLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else if (
+                                                                                hoursLate >
+                                                                                0
+                                                                            ) {
+                                                                                return `${hoursLate} hour${
+                                                                                    hoursLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else if (
+                                                                                minutesLate >
+                                                                                0
+                                                                            ) {
+                                                                                return `${minutesLate} minute${
+                                                                                    minutesLate >
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""
+                                                                                }`;
+                                                                            } else {
+                                                                                return "None";
+                                                                            }
+                                                                        }
+                                                                    })()}
+                                                                </Typography>
                                                             </TableCell>
                                                         </TableRow>
                                                     )
@@ -415,6 +502,14 @@ const AttendanceSummary = () => {
                     </Box>
                 </Box>
             </Box>
+            {openAttendanceDetails && (
+                <AttendanceSummaryDetails
+                    open={true}
+                    close={handleCloseAttendanceDetails}
+                    date={openAttendanceDetails}
+                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
+                />
+            )}
         </Layout>
     );
 };
