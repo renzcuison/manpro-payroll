@@ -272,8 +272,8 @@ const Attendance = ({ open, close }) => {
                         }}
                     >
                         <Typography
-                            variant="h4"
-                            sx={{ marginLeft: 1, fontWeight: "bold" }}
+                            variant="h5"
+                            sx={{ marginLeft: 2, fontWeight: "bold" }}
                         >
                             {" "}
                             Attendance{" "}

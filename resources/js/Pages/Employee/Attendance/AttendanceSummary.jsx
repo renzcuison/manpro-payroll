@@ -97,7 +97,7 @@ const AttendanceSummary = () => {
     };
 
     return (
-        <Layout title={"EmployeesList"}>
+        <Layout title={"AttendanceSummary"}>
             <Box
                 sx={{
                     overflowX: "auto",
@@ -190,16 +190,52 @@ const AttendanceSummary = () => {
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Date</TableCell>
-                                                <TableCell>Time In</TableCell>
-                                                <TableCell>Time Out</TableCell>
-                                                <TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Date
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Time In
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Time Out
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
                                                     Total Hours
                                                 </TableCell>
-                                                <TableCell>OT In</TableCell>
-                                                <TableCell>OT Out</TableCell>
-                                                <TableCell>Total OT</TableCell>
-                                                <TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    OT In
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    OT Out
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
+                                                    Total OT
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "12.5%" }}
+                                                >
                                                     Late/Absences
                                                 </TableCell>
                                             </TableRow>
@@ -221,17 +257,17 @@ const AttendanceSummary = () => {
                                                                         2 ===
                                                                     0
                                                                         ? "#f8f8f8"
-                                                                        : "#efefef",
+                                                                        : "#ffffff",
                                                             }}
                                                         >
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {dayjs(
                                                                     summary.date
                                                                 ).format(
                                                                     "MMMM D, YYYY"
                                                                 )}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.time_in
                                                                     ? dayjs(
                                                                           summary.time_in
@@ -240,7 +276,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.time_out
                                                                     ? dayjs(
                                                                           summary.time_out
@@ -249,7 +285,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {(() => {
                                                                     const totalMinutes =
                                                                         summary.total_time;
@@ -298,7 +334,7 @@ const AttendanceSummary = () => {
                                                                     }
                                                                 })()}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.overtime_in
                                                                     ? dayjs(
                                                                           summary.overtime_in
@@ -307,7 +343,7 @@ const AttendanceSummary = () => {
                                                                       )
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {summary.overtime_out
                                                                     ? dayjs(
                                                                           summary.overtime_out
@@ -317,7 +353,7 @@ const AttendanceSummary = () => {
                                                                     : "N/A"}
                                                             </TableCell>
 
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 {(() => {
                                                                     const totalOT =
                                                                         summary.total_ot;
@@ -366,7 +402,7 @@ const AttendanceSummary = () => {
                                                                     }
                                                                 })()}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell align="center">
                                                                 <Typography
                                                                     sx={{
                                                                         color:

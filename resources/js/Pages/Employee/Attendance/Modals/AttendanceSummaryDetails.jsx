@@ -176,7 +176,6 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                             </Grid>
                         </>
                     )}
-                    {/*Attendance Logs------------------------------*/}
                 </DialogContent>
             </Dialog>
         </>

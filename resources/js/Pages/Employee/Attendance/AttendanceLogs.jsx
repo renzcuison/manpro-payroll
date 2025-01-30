@@ -207,7 +207,7 @@ const AttendanceLogs = () => {
     };
 
     return (
-        <Layout title={"EmployeesList"}>
+        <Layout title={"AttendanceLogs"}>
             <Box
                 sx={{
                     overflowX: "auto",
@@ -419,20 +419,20 @@ const AttendanceLogs = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell
-                                                    align="left"
-                                                    sx={{ width: "40%" }}
+                                                    align="center"
+                                                    sx={{ width: "33%" }}
                                                 >
                                                     Date
                                                 </TableCell>
                                                 <TableCell
-                                                    align="left"
-                                                    sx={{ width: "40%" }}
+                                                    align="center"
+                                                    sx={{ width: "33%" }}
                                                 >
                                                     Time
                                                 </TableCell>
                                                 <TableCell
-                                                    align="left"
-                                                    sx={{ width: "20%" }}
+                                                    align="center"
+                                                    sx={{ width: "34%" }}
                                                 >
                                                     Action
                                                 </TableCell>
@@ -452,26 +452,26 @@ const AttendanceLogs = () => {
                                                                         2 ===
                                                                     0
                                                                         ? "#f8f8f8"
-                                                                        : "#efefef",
+                                                                        : "#ffffff",
                                                             }}
                                                         >
-                                                            <TableCell align="left">
+                                                            <TableCell align="center">
                                                                 {moment(
                                                                     log.timestamp,
                                                                     "YYYY-MM-DD HH:mm:ss"
                                                                 ).format(
                                                                     "MMMM D, YYYY"
-                                                                )}
+                                                                ) || "-"}
                                                             </TableCell>
-                                                            <TableCell align="left">
+                                                            <TableCell align="center">
                                                                 {moment(
                                                                     log.timestamp,
                                                                     "YYYY-MM-DD HH:mm:ss"
                                                                 ).format(
                                                                     "hh:mm:ss A"
-                                                                )}
+                                                                ) || "-"}
                                                             </TableCell>
-                                                            <TableCell align="left">
+                                                            <TableCell align="center">
                                                                 {" "}
                                                                 <Typography
                                                                     sx={{
@@ -493,7 +493,8 @@ const AttendanceLogs = () => {
                                                                                 : "#000000",
                                                                     }}
                                                                 >
-                                                                    {log.action}
+                                                                    {log.action ||
+                                                                        "-"}
                                                                 </Typography>
                                                             </TableCell>
                                                         </TableRow>

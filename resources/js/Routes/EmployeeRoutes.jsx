@@ -7,7 +7,7 @@ import Error404 from "../Pages/Errors/Error404";
 import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
-import ApplicationList from "../Pages/Employee/Applications/AppllicationList";
+import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 
 import MemberAttendance from "../Pages/Member/MemberAttendance";
 import MemberApplication from "../Pages/Member/MemberApplication";

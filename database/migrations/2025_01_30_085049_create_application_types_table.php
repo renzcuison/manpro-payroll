@@ -18,7 +18,7 @@ class CreateApplicationTypesTable extends Migration
             $table->string('name', 128);
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
-            $table->unsignedBigInteger('deleted_by');
+            $table->unsignedBigInteger('deleted_by')->nullable();
 
             $table->timestamps();
 
