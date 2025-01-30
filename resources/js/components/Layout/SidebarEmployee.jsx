@@ -300,7 +300,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 return <SideItem key={index} items={items} />;
                             })}
 
-                            <StyledNav to={`/member/member-application`}>
+                            <StyledNav to={`/employee/application-list`}>
                                 <i
                                     className="fa fa-pencil-square-o"
                                     style={{ color: "#2a800f" }}

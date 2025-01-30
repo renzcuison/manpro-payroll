@@ -7,6 +7,7 @@ import Error404 from "../Pages/Errors/Error404";
 import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
+import ApplicationList from "../Pages/Employee/Applications/AppllicationList";
 
 import MemberAttendance from "../Pages/Member/MemberAttendance";
 import MemberApplication from "../Pages/Member/MemberApplication";
@@ -34,6 +35,7 @@ const EmployeeRoutes = ({ user }) => {
                 path="dashboard"
                 element={<ProtectedRoute element={<Dashboard />} user={user} />}
             />
+            {/* Attendance Routes ------------------------------------------ */}
             <Route
                 path="attendance-logs"
                 element={
@@ -49,8 +51,16 @@ const EmployeeRoutes = ({ user }) => {
                     />
                 }
             />
+            {/* Application Routes ----------------------------------------- */}
+            <Route
+                path="application-list"
+                element={
+                    <ProtectedRoute element={<ApplicationList />} user={user} />
+                }
+            />
 
             {/* Old Routes ------------------------------------------------ */}
+            {/* ----------------------------------------------------------- */}
             <Route
                 path="member-attendance"
                 element={
