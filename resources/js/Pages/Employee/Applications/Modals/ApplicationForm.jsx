@@ -55,6 +55,10 @@ const ApplicationForm = ({ open, close }) => {
     };
     const fileInput = useRef(null);
 
+    const handleTypeChange = (value) => {
+        setAppType(value);
+    };
+
     const getFileSize = (size) => {
         if (size === 0) return "0 Bytes";
         const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
@@ -77,10 +81,11 @@ const ApplicationForm = ({ open, close }) => {
 
     const handleApplicationSubmit = async (event) => {
         event.preventDefault();
+        // Form Submission Details
         console.log("Submitted Form!");
         console.log(`Application Type: ${appType}`);
-        console.log(`From ${fromDate}`);
-        console.log(`To: ${toDate}`);
+        console.log(`From ${fromDate.format("YYYY-MM-DD HH:mm:ss")}`);
+        console.log(`To: ${toDate.format("YYYY-MM-DD HH:mm:ss")}`);
         console.log(`Duration ${applicationDuration}`);
         console.log(`Uploaded File: ${file}`);
         console.log(`Description:`);
@@ -88,8 +93,8 @@ const ApplicationForm = ({ open, close }) => {
 
         const data = {
             type_id: appType,
-            from_date: fromDate,
-            to_date: toDate,
+            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
+            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
             attachment: "path_here",
             description: description,
         };
@@ -97,10 +102,7 @@ const ApplicationForm = ({ open, close }) => {
             .post("/applications/saveApplication", data, {
                 headers,
             })
-            .then((response) => {
-                // Trigger refresh by toggling refreshTrigger
-                setRefreshTrigger((prev) => !prev);
-            })
+            .then((response) => {})
             .catch((error) => {
                 console.error("Error:", error);
             });
@@ -191,9 +193,6 @@ const ApplicationForm = ({ open, close }) => {
                                         id="application-type-select"
                                         value={appType}
                                         label="Application Type"
-                                        // onChange={(event) =>
-                                        // setAppType()
-                                        // }
                                         onChange={(event) =>
                                             handleTypeChange(event.target.value)
                                         }

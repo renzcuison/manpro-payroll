@@ -157,7 +157,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('applications')->group(function () {
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
+        Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
+
     });
 
 

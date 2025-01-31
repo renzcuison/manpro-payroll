@@ -20,5 +20,7 @@ class ApplicationsModel extends Model
         'attachment',
         'description',
         'status',
+        'user_id',
+        'client_id',
     ];
 }

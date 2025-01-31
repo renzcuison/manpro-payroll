@@ -31,12 +31,12 @@ class ApplicationsController extends Controller
 
     public function getApplicationTypes()
     {
-        Log::info("ApplicationsController::getApplicationTypes");
+        //Log::info("ApplicationsController::getApplicationTypes");
 
         $user = Auth::user();
         $clientId = $user->client_id;
 
-        log::info("clientId: " . $clientId);
+        //log::info("clientId: " . $clientId);
 
         $types = ApplicationTypesModel::where('client_id', $clientId)
             ->select('id', 'name')
@@ -50,11 +50,8 @@ class ApplicationsController extends Controller
     public function saveApplication(Request $request)
     {
 
-        Log::info("ApplicationsController::saveApplication");
-
+        //Log::info("ApplicationsController::saveApplication");
         Log::info($request);
-
-        //$validated = $request->validate([ 'type_id' => 'required' ]);
 
         $user = Auth::user();
 
@@ -66,33 +63,51 @@ class ApplicationsController extends Controller
         attachment
         description
         */
-        Log::info($request->input('from_date'));
-        /*
-        if (!$validated) {
-            try {
-                DB::beginTransaction();
 
-                ApplicationsModel::create([
-                    "type_id" => $request->input('type_id'),
-                    "duration_start" => " ",
-                    "duration_end" => " ",
-                    "attachment" => $request->input('attachment'),
-                    "description" => $request->input('description'),
-                    "status" => "Pending",
-                ]);
-                
-                DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
+        try {
+            DB::beginTransaction();
 
-            } catch (\Exception $e) {
-                DB::rollBack();
+            ApplicationsModel::create([
+                "type_id" => $request->input('type_id'),
+                "duration_start" => $request->input('from_date'),
+                "duration_end" => $request->input('to_date'),
+                "attachment" => $request->input('attachment') ?? "",
+                "description" => $request->input('description') ?? "",
+                "status" => "Pending",
+                "user_id" => $user->id,
+                "client_id" => $user->client_id,
+            ]);
+            
+            DB::commit();
+            
+            return response()->json([ 'status' => 200 ]);
 
-                Log::error("Error saving: " . $e->getMessage());
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-                throw $e;
-            }
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
         }
-            */
+            
+    }
+
+    public function getMyApplications()
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+
+        log::info("clientId: " . $clientId);
+        log::info("userId:   " . $user->id);
+        
+        $applications = ApplicationsModel::where('client_id', $clientId)
+                                 ->where('user_id', $user->id)
+                                 ->select('id','type_id','created_at','duration_start','duration_end','status')
+                                 ->get();
+        
+        return response()->json(['status' => 200, 'applications' => $applications]);
+        
     }
 }

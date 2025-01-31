@@ -21,9 +21,13 @@ class CreateApplicationsTable extends Migration
             $table->string('attachment', 256);
             $table->string('description', 512);
             $table->enum('status',['pending', 'approved', 'declined']);
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('client_id');
             $table->timestamps();
 
             $table->foreign('type_id')->references('id')->on('application_types');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('client_id')->references('id')->on('clients');
         });
     }
 
