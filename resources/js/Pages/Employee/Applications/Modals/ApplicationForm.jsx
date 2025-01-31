@@ -45,6 +45,13 @@ const ApplicationForm = ({ open, close }) => {
     const [applicationDuration, setApplicationDuration] = useState("");
     const [applicationTypes, setApplicationTypes] = useState([]);
 
+    // Form Requirement Sets
+    const [appTypeError, setAppTypeError] = useState(false);
+    const [fromDateError, setFromDateError] = useState(false);
+    const [toDateError, setToDateError] = useState(false);
+    const [descriptionError, setDescriptionError] = useState(false);
+    const [fileError, setFileError] = useState(false);
+
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
         setFile(selectedFile);
@@ -79,18 +86,64 @@ const ApplicationForm = ({ open, close }) => {
             });
     }, []);
 
-    const handleApplicationSubmit = async (event) => {
+    const handleApplicationSubmit = (event) => {
         event.preventDefault();
-        // Form Submission Details
-        console.log("Submitted Form!");
-        console.log(`Application Type: ${appType}`);
-        console.log(`From ${fromDate.format("YYYY-MM-DD HH:mm:ss")}`);
-        console.log(`To: ${toDate.format("YYYY-MM-DD HH:mm:ss")}`);
-        console.log(`Duration ${applicationDuration}`);
-        console.log(`Uploaded File: ${file}`);
-        console.log(`Description:`);
-        console.log(description);
 
+        if (!appType) {
+            setAppTypeError(true);
+        } else {
+            setAppTypeError(false);
+        }
+        if (!fromDate) {
+            setFromDateError(true);
+        } else {
+            setFromDateError(false);
+        }
+        if (!toDate) {
+            setToDateError(true);
+        } else {
+            setToDateError(false);
+        }
+        if (!description) {
+            setDescriptionError(true);
+        } else {
+            setDescriptionError(false);
+        }
+        if (!file) {
+            setFileError(true);
+        } else {
+            setFileError(false);
+        }
+
+        if (!appType || !fromDate || !toDate || !description || !file) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            new Swal({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "Do you want to submit this application?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveApplication(event);
+                }
+            });
+        }
+    };
+
+    const saveApplication = (event) => {
+        event.preventDefault();
         const data = {
             type_id: appType,
             from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
@@ -102,12 +155,33 @@ const ApplicationForm = ({ open, close }) => {
             .post("/applications/saveApplication", data, {
                 headers,
             })
-            .then((response) => {})
+            .then((response) => {
+                document.activeElement.blur();
+                document.body.removeAttribute("aria-hidden");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `You application has been submitted!`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        close();
+                        document.body.setAttribute("aria-hidden", "true");
+                    } else {
+                        document.body.setAttribute("aria-hidden", "true");
+                    }
+                });
+            })
             .catch((error) => {
                 console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
             });
     };
 
+    // Duration Calculation
     useEffect(() => {
         const duration = toDate.diff(fromDate);
         const totalMinutes = Math.floor(duration / 60000);
@@ -180,19 +254,35 @@ const ApplicationForm = ({ open, close }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ paddingBottom: 5 }}>
-                    <Box component="form" onSubmit={handleApplicationSubmit}>
+                    <Box
+                        component="form"
+                        onSubmit={handleApplicationSubmit}
+                        noValidate
+                        autoComplete="off"
+                    >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="application-type-select-label">
-                                        Type of Application
-                                    </InputLabel>
-                                    <Select
-                                        labelId="application-type-select-label"
-                                        id="application-type-select"
-                                        value={appType}
+                                <FormControl
+                                    fullWidth
+                                    sx={{
+                                        "& label.Mui-focused": {
+                                            color: "#97a5ba",
+                                        },
+                                        "& .MuiOutlinedInput-root": {
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: "#97a5ba",
+                                            },
+                                        },
+                                    }}
+                                >
+                                    <TextField
+                                        required
+                                        select
+                                        id="application-type"
                                         label="Application Type"
+                                        value={appType}
+                                        error={appTypeError}
                                         onChange={(event) =>
                                             handleTypeChange(event.target.value)
                                         }
@@ -205,7 +295,7 @@ const ApplicationForm = ({ open, close }) => {
                                                 {log.name}
                                             </MenuItem>
                                         ))}
-                                    </Select>
+                                    </TextField>
                                 </FormControl>
                             </Grid>
                             {/* From Date */}
@@ -216,6 +306,7 @@ const ApplicationForm = ({ open, close }) => {
                                     <DateTimePicker
                                         label="From Date"
                                         value={fromDate}
+                                        error={fromDateError}
                                         minDate={dayjs()}
                                         onChange={(newValue) => {
                                             setFromDate(newValue);
@@ -237,6 +328,7 @@ const ApplicationForm = ({ open, close }) => {
                                     <DateTimePicker
                                         label="To Date"
                                         value={toDate}
+                                        error={toDateError}
                                         minDateTime={fromDate}
                                         onChange={(newValue) => {
                                             setToDate(newValue);
@@ -270,6 +362,7 @@ const ApplicationForm = ({ open, close }) => {
                                                   )}`
                                                 : ""
                                         }
+                                        error={fileError}
                                         onClick={handleTextFieldClick}
                                         InputProps={{
                                             readOnly: true,
@@ -304,6 +397,7 @@ const ApplicationForm = ({ open, close }) => {
                                         label="Description"
                                         variant="outlined"
                                         value={description}
+                                        error={descriptionError}
                                         onChange={(event) =>
                                             setDescription(event.target.value)
                                         }

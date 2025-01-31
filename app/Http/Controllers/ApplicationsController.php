@@ -110,4 +110,16 @@ class ApplicationsController extends Controller
         return response()->json(['status' => 200, 'applications' => $applications]);
         
     }
+
+    public function getApplicationDetails(Request $request)
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+        $applicationId = $request->input('app_id');
+        
+        $application = ApplicationsModel::where('id',$applicationId)
+                                 ->get();
+        
+        return response()->json(['status' => 200, 'application' => $application]);
+        
+    }
 }
