@@ -21,11 +21,13 @@ class CreateWorkshiftsTable extends Migration
             $table->string('first_label', 128)->nullable();
             $table->string('second_label', 128)->nullable();
 
+            $table->unsignedBigInteger('work_hour_id')->nullable();
             $table->unsignedBigInteger('client_id');
 
             $table->softDeletes();
             $table->timestamps();
 
+            $table->foreign('work_hour_id')->references('id')->on('work_hours');
             $table->foreign('client_id')->references('id')->on('clients');
         });
     }
