@@ -1,4 +1,8 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+import FilledInput from '@mui/material/FilledInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputAdornment from '@mui/material/InputAdornment';
+
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -15,58 +19,52 @@ const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [branches, setBranches] = useState([]);
-    const [departments, setDepartments] = useState([]);
+    const [benefitNameError, setBenefitNameError] = useState(false);
+    const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
+    const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
+    const [employeePercentageShareError, setEmployeePercentageShareError] = useState(false);
+    const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
 
-
-    const [selectedStartDateError, setSelectedStartDateError] = useState(false);
-    const [selectedEndDateError, setSelectedEndDateError] = useState(false);
-    const [selectedBranchError, setSelectedBranchError] = useState(false);
-    const [selectedDepartmentError, setSelectedDepartmentError] = useState(false);
-    const [selectedCutOffError, setSelectedCutOffError] = useState(false);
-
-
-    const [selectedStartDate, setStartDate] = useState('');
-    const [selectedEndDate, setEndDate] = useState('');
-    const [selectedBranches, setSelectedBranches] = useState([]);
-    const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedCutOff, setSelectedCutOff] = useState('');
-    
+    const [benefitName, setBenefitName] = useState('');
+    const [benefitType, setBenefitType] = useState('');
+    const [employeeAmountShare, setEmployeeAmountShare] = useState('');
+    const [employerAmountShare, setEmployerAmountShare] = useState('');
+    const [employeePercentageShare, setEmployeePercentageShare] = useState('');
+    const [employerPercentageShare, setEmployerPercentageShare] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (selectedBranches.length == 0) {
-            setSelectedBranchError(true);
-        } else {
-            setSelectedBranchError(false);
+        if ( benefitType == "Amount" ) {
+            checkInputAmount(event);
         }
 
-        if (selectedDepartments.length == 0) {
-            setSelectedDepartmentError(true);
+        if ( benefitType == "Percentage" ) {
+            checkInputPercentage(event);
+        }
+    };
+
+    const checkInputAmount = () => {
+        
+        if (!benefitName) {
+            setBenefitNameError(true);
         } else {
-            setSelectedDepartmentError(false);
+            setBenefitNameError(false);
         }
 
-        if (selectedStartDate == "") {
-            setSelectedStartDateError(true);
+        if (!employeeAmountShare) {
+            setEmployeeAmountShareError(true);
         } else {
-            setSelectedStartDateError(false);
+            setEmployeeAmountShareError(false);
         }
 
-        if (selectedEndDate == "") {
-            setSelectedEndDateError(true);
+        if (!employerAmountShare) {
+            setEmployerAmountShareError(true);
         } else {
-            setSelectedEndDateError(false);
+            setEmployerAmountShareError(false);
         }
 
-        if (selectedCutOff == "") {
-            setSelectedCutOffError(true);
-        } else {
-            setSelectedCutOffError(false);
-        }
-
-        if ( selectedBranches.length == 0 || selectedDepartments.length == 0 || selectedStartDate == "" || selectedEndDate == "" || selectedCutOff == "" ) {
+        if ( benefitName == '' || employeeAmountShare == '' || employerAmountShare == '' ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -87,11 +85,123 @@ const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate
                 cancelButtonText: 'Cancel',
             }).then((res) => {
                 if (res.isConfirmed) {
-                    passFilter({ selectedStartDate, selectedEndDate, selectedBranches, selectedDepartments, selectedCutOff });
+                    saveInput(event);
                 }
             });
         }
+    }
+
+    const checkInputPercentage = () => {
+
+        if (!benefitName) {
+            setBenefitNameError(true);
+        } else {
+            setBenefitNameError(false);
+        }
+
+        if (!employeePercentageShare) {
+            setEmployeePercentageShareError(true);
+        } else {
+            setEmployeePercentageShareError(false);
+        }
+
+        if (!employerPercentageShare) {
+            setEmployerPercentageShareError(true);
+        } else {
+            setEmployerPercentageShareError(false);
+        }
+
+        if ( benefitName == '' || employeePercentageShare == '' || employerPercentageShare == '' ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            new Swal({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to process this payroll?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInput(event);
+                }
+            });
+        }
+    }
+
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const employeeAmount = parseFloat(employeeAmountShare.replace(/,/g, "")) || 0;
+        const employerAmount = parseFloat(employerAmountShare.replace(/,/g, "")) || 0;
+        const employeePercentage = parseFloat(employeePercentageShare.replace(/,/g, "")) || 0;
+        const employerPercentage = parseFloat(employerPercentageShare.replace(/,/g, "")) || 0;
+
+        const data = {
+            benefitName: benefitName,
+            benefitType: benefitType,
+            employeeAmount: employeeAmount,
+            employerAmount: employerAmount,
+            employeePercentage: employeePercentage,
+            employerPercentage: employerPercentage,
+        };
+
+        axiosInstance.post('/employee/saveBenefit', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Role saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
+
+    const formatCurrency = (value) => {
+        if (!value) return "";
+
+        let sanitizedValue = value.replace(/[^0-9.]/g, "");
+
+        const parts = sanitizedValue.split(".");
+        if (parts.length > 2) {
+            sanitizedValue = parts[0] + "." + parts.slice(1).join("");
+        }
+
+        let [integerPart, decimalPart] = sanitizedValue.split(".");
+        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        if (decimalPart !== undefined) {
+            decimalPart = decimalPart.slice(0, 2);
+            return decimalPart.length > 0 ? `${integerPart}.${decimalPart}` : integerPart + ".";
+        }
+
+        return integerPart;
+    };
+
+    const handleInputChange = (e, setValue) => {
+        const formattedValue = formatCurrency(e.target.value);
+        setValue(formattedValue);
+    };
+
 
     return (
         <>
@@ -105,149 +215,134 @@ const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    select
-                                    id="department"
-                                    label="Department"
-                                    error={selectedDepartmentError}
-                                    value={selectedDepartments}
-                                    SelectProps={{
-                                        multiple: true, // Enable multiple selections
-                                        renderValue: (selected) =>
-                                            departments
-                                                .filter((department) => selected.includes(department.id))
-                                                .map((department) => department.acronym)
-                                                .join(', '), // Customize how selected values appear
-                                    }}
-                                >
-                                    {departments.map((department) => (
-                                        <MenuItem
-                                            key={department.id}
-                                            value={department.id}
-                                            onClick={() => {
-                                                setSelectedDepartments((prevSelected) =>
-                                                    prevSelected.includes(department.id)
-                                                        ? prevSelected.filter((id) => id !== department.id)
-                                                        : [...prevSelected, department.id]
-                                                );
-                                            }}
-                                        >
-                                            <Checkbox checked={selectedDepartments.includes(department.id)} />
-                                            <ListItemText primary={`${department.name} (${department.acronym})`} />
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    select
-                                    id="branch"
-                                    label="Branch"
-                                    error={selectedBranchError}
-                                    value={selectedBranches}
-                                    SelectProps={{
-                                        multiple: true, // Enable multiple selections
-                                        renderValue: (selected) =>
-                                            branches
-                                                .filter((branch) => selected.includes(branch.id))
-                                                .map((branch) => branch.acronym)
-                                                .join(', '), // Customize how selected values appear
-                                    }}
-                                    onChange={(event) => setSelectedBranches(event.target.value)}
-                                >
-                                    {branches.map((branch) => (
-                                        <MenuItem
-                                            key={branch.id}
-                                            value={branch.id}
-                                            onClick={() => {
-                                                setSelectedDepartments((prevSelected) =>
-                                                    prevSelected.includes(branch.id)
-                                                        ? prevSelected.filter((id) => id !== branch.id)
-                                                        : [...prevSelected, branch.id]
-                                                );
-                                            }}
-                                        >
-                                            <Checkbox checked={selectedDepartments.includes(branch.id)} />
-                                            <ListItemText primary={`${branch.name} (${branch.acronym})`} />
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </FormControl>
-                        </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        id="startDate"
-                                        label="Start Date"
-                                        variant="outlined"
-                                        onChange={(newValue) => setStartDate(newValue)}
-                                        slotProps={{
-                                            textField: { required: true, error: selectedStartDateError }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        id="endDate"
-                                        label="End Date"
-                                        variant="outlined"
-                                        onChange={(newValue) => setEndDate(newValue)}
-                                        slotProps={{
-                                            textField: { required: true, error: selectedEndDateError }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
+                                    required
+                                    id="benefitName"
+                                    label="Benefit Name"
+                                    variant="outlined"
+                                    value={benefitName}
+                                    error={benefitNameError}
+                                    onChange={(e) => setBenefitName(e.target.value)}
+                                />
+                            </FormControl>
+
+                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            }}>
+                                <TextField
+                                    required
                                     select
-                                    id="cutOff"
-                                    label="Cut Off"
-                                    error={selectedCutOffError}
-                                    value={selectedCutOff}
-                                    onChange={(event) => setSelectedCutOff(event.target.value)}
+                                    id="benefitType"
+                                    label="Type"
+                                    value={benefitType}
+                                    onChange={(event) => setBenefitType(event.target.value)}
                                 >
-                                    <MenuItem key="first" value="first"> First </MenuItem>
-                                    <MenuItem key="second" value="second"> Second </MenuItem>
+                                    <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
+                                    <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
+                                    {/* <MenuItem key="Bracket" value="Bracket"> Bracket </MenuItem> */}
                                 </TextField>
                             </FormControl>
                         </FormGroup>
 
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Process </p>
-                            </Button>
-                        </Box>
+                        {benefitType === "Amount" && (
+                            <>
+                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                    '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
+                                        <OutlinedInput
+                                            required
+                                            id="employeeAmountShare"
+                                            label="Employee Share"
+                                            value={employeeAmountShare}
+                                            error={employeeAmountShareError}
+                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                            onChange={(e) => handleInputChange(e, setEmployeeAmountShare)}
+                                        />
+                                    </FormControl>
+
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
+                                        <OutlinedInput
+                                            required
+                                            id="employerAmountShare"
+                                            label="Employer Share"
+                                            value={employerAmountShare}
+                                            error={employerAmountShareError}
+                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                            onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
+                                        />
+                                    </FormControl>
+                                </FormGroup>
+                            </>
+                        )}
+
+                        {benefitType === "Percentage" && (
+                            <>
+                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                    '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <InputLabel htmlFor="employeePercentageShare">Employee Share</InputLabel>
+                                        <OutlinedInput
+                                            required
+                                            id="employeePercentageShare"
+                                            label="Employee Share"
+                                            value={employeePercentageShare}
+                                            error={employeePercentageShareError}
+                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                            onChange={(e) => handleInputChange(e, setEmployeePercentageShare)}
+                                        />
+                                    </FormControl>
+
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <InputLabel htmlFor="employerPercentageShare">Employer Share</InputLabel>
+                                        <OutlinedInput
+                                            required
+                                            id="employerPercentageShare"
+                                            label="Employer Share"
+                                            value={employerPercentageShare}
+                                            error={employerPercentageShareError}
+                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                            onChange={(e) => handleInputChange(e, setEmployerPercentageShare)}
+                                        />
+                                    </FormControl>
+                                </FormGroup>
+                            </>
+                        )}
+
+                        {benefitType && (
+                            <>
+                                <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Benefit </p>
+                                    </Button>
+                                </Box>
+                            </>
+                        )}
 
                     </Box>
                 </DialogContent>

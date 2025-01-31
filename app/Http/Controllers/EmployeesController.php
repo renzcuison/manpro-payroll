@@ -9,6 +9,13 @@ use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\WorkGroupsModel;
+use App\Models\BenefitsModel;
+
+
+// use App\Models\NewModel;
+// use App\Models\NewModel;
+// use App\Models\NewModel;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -182,6 +189,56 @@ class EmployeesController extends Controller
                 $employee->date_start = $request->startDate;
                 $employee->date_end = $request->endDate;
                 $employee->save();
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200 ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function saveBenefit(Request $request)
+    {
+        log::info("EmployeesController::saveBenefit");
+        log::info($request);
+
+        $validated = $request->validate([
+            'benefitName' => 'required',
+            'benefitType' => 'required',
+            'employeeAmount' => 'required',
+            'employerAmount' => 'required',
+            'employeePercentage' => 'required',
+            'employerPercentage' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            log::info($request);
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $password = Hash::make($request->password);
+        
+                BenefitsModel::create([
+                    "name" => $request->benefitName,
+                    "type" => $request->benefitType,
+                    "employee_percentage" => $request->employeeAmount,
+                    "employee_amount" => $request->employerAmount,
+                    "employer_percentage" => $request->employeePercentage,
+                    "employer_amount" => $request->employerPercentage,
+                    "client_id" => $client->id,
+                ]);
                 
                 DB::commit();
             

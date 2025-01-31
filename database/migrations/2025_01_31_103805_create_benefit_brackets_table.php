@@ -18,8 +18,10 @@ class CreateBenefitBracketsTable extends Migration
             $table->unsignedBigInteger('benefit_id');
             $table->decimal('range_start', 10, 2);
             $table->decimal('range_end', 10, 2);
-            $table->decimal('percentage', 10, 2)->nullable();
-            $table->decimal('amount', 10, 2)->nullable();
+            $table->decimal('employee_percentage', 10, 2)->nullable();
+            $table->decimal('employee_amount', 10, 2)->nullable();
+            $table->decimal('employer_percentage', 10, 2)->nullable();
+            $table->decimal('employer_amount', 10, 2)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
