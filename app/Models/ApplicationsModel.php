@@ -5,18 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ApplicationTypesModel extends Model
+class ApplicationsModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'application_types';
+    protected $table = 'applications';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name',
+        'type_id',
+        'duration_start',
+        'duration_end',
+        'attachment',
+        'description',
+        'status',
+        'user_id',
         'client_id',
-        'deleted_at',
-        'deleted_by',
     ];
 }

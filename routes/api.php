@@ -7,10 +7,10 @@ use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\ApplicationsController;
 
 
 
-// use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
@@ -153,6 +153,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('payroll')->group(function () {
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
+    });
+
+    Route::prefix('applications')->group(function () {
+        Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
+        Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
+        Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
+
     });
 
 

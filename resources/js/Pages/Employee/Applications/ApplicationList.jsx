@@ -52,9 +52,10 @@ const ApplicationList = () => {
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
 
-    // ---------------- Summary Details
-    const [isLoading, setIsLoading] = useState(false);
+    // ---------------- Details
+    const [isLoading, setIsLoading] = useState(true);
     const [openApplicationForm, setOpenApplicationForm] = useState(false);
+    const [applicationTypes, setApplicationTypes] = useState([]);
 
     const handleOpenApplicationForm = () => {
         setOpenApplicationForm(true);
@@ -63,6 +64,33 @@ const ApplicationList = () => {
     const handleCloseApplicationForm = () => {
         setOpenApplicationForm(false);
     };
+
+    const [applicationList, setApplicationList] = useState([]);
+
+    useEffect(() => {
+        axiosInstance
+            .get(`applications/getMyApplications`, { headers })
+            .then((response) => {
+                setApplicationList(response.data.applications);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching application list:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        axiosInstance
+            .get(`applications/getApplicationTypes`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setApplicationTypes(response.data.types);
+                console.log(response.data.types[2]);
+            })
+            .catch((error) => {
+                console.error("Error fetching application types:", error);
+            });
+    }, []);
 
     return (
         <Layout title={"ApplicationList"}>
@@ -161,23 +189,43 @@ const ApplicationList = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            <TableRow>
-                                                <TableCell align="center">
-                                                    app_type_data
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    app_date_data
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    app_start_data
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    app_duration_data
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    app_status_data
-                                                </TableCell>
-                                            </TableRow>
+                                            {applicationList.length > 0 ? (
+                                                applicationList.map(
+                                                    (log, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                                p: 1,
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                            }}
+                                                        >
+                                                            <TableCell align="center"></TableCell>
+                                                            <TableCell align="center"></TableCell>
+                                                            <TableCell align="center"></TableCell>
+                                                            <TableCell align="center"></TableCell>
+                                                            <TableCell align="center"></TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={5}
+                                                        align="center"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            p: 1,
+                                                        }}
+                                                    >
+                                                        No Applications Found
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

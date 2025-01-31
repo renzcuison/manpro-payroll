@@ -8,6 +8,7 @@ import {
     Grid,
     TextField,
     Typography,
+    InputAdornment,
     CircularProgress,
     FormGroup,
     FormControl,
@@ -18,15 +19,16 @@ import {
     Select,
     MenuItem,
 } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Form, useLocation, useNavigate } from "react-router-dom";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
 import dayjs from "dayjs";
+
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 const ApplicationForm = ({ open, close }) => {
@@ -40,10 +42,21 @@ const ApplicationForm = ({ open, close }) => {
     const [toDate, setToDate] = useState(dayjs());
     const [description, setDescription] = useState("");
     const [file, setFile] = useState(null);
+    const [applicationDuration, setApplicationDuration] = useState("");
+    const [applicationTypes, setApplicationTypes] = useState([]);
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
         setFile(selectedFile);
+    };
+
+    const handleTextFieldClick = (event) => {
+        fileInput.current.click();
+    };
+    const fileInput = useRef(null);
+
+    const handleTypeChange = (value) => {
+        setAppType(value);
     };
 
     const getFileSize = (size) => {
@@ -54,9 +67,80 @@ const ApplicationForm = ({ open, close }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
+    useEffect(() => {
+        axiosInstance
+            .get(`applications/getApplicationTypes`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setApplicationTypes(response.data.types);
+            })
+            .catch((error) => {
+                console.error("Error fetching application types:", error);
+            });
+    }, []);
+
     const handleApplicationSubmit = async (event) => {
         event.preventDefault();
+        // Form Submission Details
+        console.log("Submitted Form!");
+        console.log(`Application Type: ${appType}`);
+        console.log(`From ${fromDate.format("YYYY-MM-DD HH:mm:ss")}`);
+        console.log(`To: ${toDate.format("YYYY-MM-DD HH:mm:ss")}`);
+        console.log(`Duration ${applicationDuration}`);
+        console.log(`Uploaded File: ${file}`);
+        console.log(`Description:`);
+        console.log(description);
+
+        const data = {
+            type_id: appType,
+            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
+            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
+            attachment: "path_here",
+            description: description,
+        };
+        axiosInstance
+            .post("/applications/saveApplication", data, {
+                headers,
+            })
+            .then((response) => {})
+            .catch((error) => {
+                console.error("Error:", error);
+            });
     };
+
+    useEffect(() => {
+        const duration = toDate.diff(fromDate);
+        const totalMinutes = Math.floor(duration / 60000);
+        const totalHours = Math.floor(totalMinutes / 60);
+        const totalDays = Math.floor(totalHours / 24);
+
+        const remainingMinutes = totalMinutes % 60;
+        const remainingHours = totalHours % 24;
+
+        let durationInfo = "";
+
+        if (totalDays > 0) {
+            durationInfo += `${totalDays} day${totalDays > 1 ? "s" : ""}`;
+            if (remainingHours > 0 || remainingMinutes > 0)
+                durationInfo += ", ";
+        }
+        if (remainingHours > 0) {
+            durationInfo += `${remainingHours} hour${
+                remainingHours > 1 ? "s" : ""
+            }`;
+            if (remainingMinutes > 0) durationInfo += ", ";
+        }
+        if (remainingMinutes > 0) {
+            durationInfo += `${remainingMinutes} minute${
+                remainingMinutes > 1 ? "s" : ""
+            }`;
+        }
+        if (duration == 0) {
+            durationInfo += `None`;
+        }
+        setApplicationDuration(durationInfo);
+    }, [fromDate, toDate]);
+
     return (
         <>
             <Dialog
@@ -97,7 +181,7 @@ const ApplicationForm = ({ open, close }) => {
 
                 <DialogContent sx={{ paddingBottom: 5 }}>
                     <Box component="form" onSubmit={handleApplicationSubmit}>
-                        <Grid container spacing={2}>
+                        <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
@@ -110,24 +194,17 @@ const ApplicationForm = ({ open, close }) => {
                                         value={appType}
                                         label="Application Type"
                                         onChange={(event) =>
-                                            setAppType(event.target.value)
+                                            handleTypeChange(event.target.value)
                                         }
                                     >
-                                        <MenuItem value="overtime">
-                                            Overtime
-                                        </MenuItem>
-                                        <MenuItem value="sick leave">
-                                            Sick Leave
-                                        </MenuItem>
-                                        <MenuItem value="vacation leave">
-                                            Vacation Leave
-                                        </MenuItem>
-                                        <MenuItem value="paid leave">
-                                            Paid Leave
-                                        </MenuItem>
-                                        <MenuItem value="unpaid leave">
-                                            Unpaid Leave
-                                        </MenuItem>
+                                        {applicationTypes.map((log, index) => (
+                                            <MenuItem
+                                                key={index}
+                                                value={log.id}
+                                            >
+                                                {log.name}
+                                            </MenuItem>
+                                        ))}
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -140,10 +217,10 @@ const ApplicationForm = ({ open, close }) => {
                                         label="From Date"
                                         value={fromDate}
                                         minDate={dayjs()}
-                                        onChange={(event) => {
-                                            setFromDate(event);
-                                            if (event.isAfter(toDate)) {
-                                                setToDate(event);
+                                        onChange={(newValue) => {
+                                            setFromDate(newValue);
+                                            if (newValue.isAfter(toDate)) {
+                                                setToDate(newValue);
                                             }
                                         }}
                                         renderInput={(params) => (
@@ -160,59 +237,62 @@ const ApplicationForm = ({ open, close }) => {
                                     <DateTimePicker
                                         label="To Date"
                                         value={toDate}
-                                        minDate={fromDate}
-                                        onChange={(event) => setToDate(event)}
+                                        minDateTime={fromDate}
+                                        onChange={(newValue) => {
+                                            setToDate(newValue);
+                                        }}
                                         renderInput={(params) => (
                                             <TextField {...params} />
                                         )}
                                     />
                                 </LocalizationProvider>
                             </Grid>
-                            {/* Affected Time */}
+                            {/* Duration */}
                             <Grid item xs={4}>
-                                <Typography align="left">
-                                    Affected Time: {"???"}
-                                </Typography>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        label="Duration"
+                                        value={applicationDuration}
+                                        InputProps={{ readOnly: true }}
+                                    ></TextField>
+                                </FormControl>
                             </Grid>
                             {/* File Upload */}
-                            <Grid item container spacing={2} xs={12}>
-                                <Grid item xs={6}>
-                                    <FormControl fullWidth>
-                                        <Button
-                                            variant="contained"
-                                            component="label"
-                                        >
-                                            Upload File
-                                            <input
-                                                type="file"
-                                                hidden
-                                                onChange={handleFileChange}
-                                            />
-                                        </Button>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <FormControl fullWidth>
-                                        {file ? (
-                                            <Box
-                                                display="flex"
-                                                alignItems="center"
-                                            >
-                                                <InsertDriveFileIcon
-                                                    sx={{ marginRight: 1 }}
-                                                />
-                                                <Typography noWrap>
-                                                    {file.name},{" "}
-                                                    {getFileSize(file.size)}
-                                                </Typography>
-                                            </Box>
-                                        ) : (
-                                            <FormHelperText>
-                                                No file chosen
-                                            </FormHelperText>
-                                        )}
-                                    </FormControl>
-                                </Grid>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        fullWidth
+                                        label="Upload File"
+                                        value={
+                                            file
+                                                ? `${file.name}, ${getFileSize(
+                                                      file.size
+                                                  )}`
+                                                : ""
+                                        }
+                                        onClick={handleTextFieldClick}
+                                        InputProps={{
+                                            readOnly: true,
+                                            endAdornment: !file && (
+                                                <InputAdornment position="end">
+                                                    <InsertDriveFileIcon />
+                                                </InputAdornment>
+                                            ),
+                                            startAdornment: file && (
+                                                <InputAdornment position="start">
+                                                    <InsertDriveFileIcon />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        variant="outlined"
+                                    />
+                                    <input
+                                        type="file"
+                                        ref={fileInput}
+                                        style={{ display: "none" }}
+                                        onChange={handleFileChange}
+                                    />
+                                </FormControl>
                             </Grid>
                             {/* Description Field */}
                             <Grid item xs={12}>
@@ -229,6 +309,23 @@ const ApplicationForm = ({ open, close }) => {
                                         }
                                     />
                                 </FormControl>
+                            </Grid>
+                            {/* Submit Button */}
+                            <Grid
+                                item
+                                xs={12}
+                                sx={{
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    Submit
+                                </Button>
                             </Grid>
                         </Grid>
                     </Box>
