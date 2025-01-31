@@ -115,6 +115,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('benefits')->group(function () {
+        Route::get('/getBenefit', [BenefitsController::class, 'getBenefit']);
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
         Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
     });

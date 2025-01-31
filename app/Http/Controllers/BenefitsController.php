@@ -34,6 +34,20 @@ class BenefitsController extends Controller
         return false;
     }
 
+    public function getBenefit(Request $request)
+    {
+        // log::info("BenefitsController::getBenefit");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $benefit = BenefitsModel::where('client_id', $user->client_id)->where('name', $request->name)->first();
+    
+            return response()->json(['status' => 200, 'benefit' => $benefit]);
+        }    
+    
+        return response()->json(['status' => 200, 'benefit' => null]);
+    }
+
     public function getBenefits(Request $request)
     {
         // log::info("BenefitsController::getBenefits");
