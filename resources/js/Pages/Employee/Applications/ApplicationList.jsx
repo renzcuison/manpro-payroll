@@ -55,7 +55,6 @@ const ApplicationList = () => {
     // ---------------- Details
     const [isLoading, setIsLoading] = useState(true);
     const [openApplicationForm, setOpenApplicationForm] = useState(false);
-    const [applicationTypes, setApplicationTypes] = useState([]);
 
     const handleOpenApplicationForm = () => {
         setOpenApplicationForm(true);
@@ -66,12 +65,14 @@ const ApplicationList = () => {
     };
 
     const [applicationList, setApplicationList] = useState([]);
+    const [applicationTypes, setApplicationTypes] = useState([]);
 
     useEffect(() => {
         axiosInstance
             .get(`applications/getMyApplications`, { headers })
             .then((response) => {
                 setApplicationList(response.data.applications);
+                console.log(response.data.applications);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -85,7 +86,7 @@ const ApplicationList = () => {
             .then((response) => {
                 console.log(response.data);
                 setApplicationTypes(response.data.types);
-                console.log(response.data.types[2]);
+                console.log(response.data.types);
             })
             .catch((error) => {
                 console.error("Error fetching application types:", error);
@@ -191,26 +192,48 @@ const ApplicationList = () => {
                                         <TableBody>
                                             {applicationList.length > 0 ? (
                                                 applicationList.map(
-                                                    (log, index) => (
-                                                        <TableRow
-                                                            key={index}
-                                                            sx={{
-                                                                p: 1,
-                                                                backgroundColor:
-                                                                    index %
-                                                                        2 ===
-                                                                    0
-                                                                        ? "#f8f8f8"
-                                                                        : "#ffffff",
-                                                            }}
-                                                        >
-                                                            <TableCell align="center"></TableCell>
-                                                            <TableCell align="center"></TableCell>
-                                                            <TableCell align="center"></TableCell>
-                                                            <TableCell align="center"></TableCell>
-                                                            <TableCell align="center"></TableCell>
-                                                        </TableRow>
-                                                    )
+                                                    (log, index) => {
+                                                        const typeName =
+                                                            applicationTypes.find(
+                                                                (type) =>
+                                                                    type.id ===
+                                                                    log.type_id
+                                                            )?.name ||
+                                                            "Unknown Type";
+
+                                                        return (
+                                                            <TableRow
+                                                                key={index}
+                                                                sx={{
+                                                                    p: 1,
+                                                                    backgroundColor:
+                                                                        index %
+                                                                            2 ===
+                                                                        0
+                                                                            ? "#f8f8f8"
+                                                                            : "#ffffff",
+                                                                }}
+                                                            >
+                                                                <TableCell align="center">
+                                                                    {typeName}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {
+                                                                        log.created_at
+                                                                    }
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {
+                                                                        log.duration_start
+                                                                    }
+                                                                </TableCell>
+                                                                <TableCell align="center"></TableCell>
+                                                                <TableCell align="center">
+                                                                    {log.status}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    }
                                                 )
                                             ) : (
                                                 <TableRow>
