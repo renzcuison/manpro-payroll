@@ -8,7 +8,7 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
-import EmployeeBenefits from "../Pages/Admin/Employees/EmployeeBenefits";
+import EmployeeBenefits from "../Pages/Admin/Benefits/EmployeeBenefits";
 
 import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
