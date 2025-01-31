@@ -9,6 +9,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
+import EmployeeBenefitsEdit from '../Employees/Modals/EmployeeBenefitsEdit';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -22,6 +23,7 @@ const EmployeeView = () => {
     const [employee, setEmployee] = useState(''); 
 
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
+    const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
 
     useEffect(() => {
         getEmployeeDetails();
@@ -82,6 +84,14 @@ const EmployeeView = () => {
         setOpenEmploymentDetailsEditModal(false);
     }
 
+    const handleOpenEmploymentBenefitsEditModal = () => {
+        setOpenEmploymentBenefitsEditModal(true);
+    }
+
+    const handleCloseEmploymentBenefitsEditModal = () => {
+        setOpenEmploymentBenefitsEditModal(false);
+    }
+
     const renderAttendanceContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Typography variant="body1">Attendance Information will be displayed here</Typography>
@@ -115,6 +125,7 @@ const EmployeeView = () => {
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem>
                             <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
+                            <MenuItem onClick={handleOpenEmploymentBenefitsEditModal}>Edit Employment Benefits</MenuItem>
                         </Menu>
 
                     </Box>
@@ -321,6 +332,10 @@ const EmployeeView = () => {
 
                 {openEmploymentDetailsEditModal &&
                     <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} onUpdateEmployee={getEmployeeDetails} />
+                }
+                
+                {openEmploymentBenefitsEditModal &&
+                    <EmployeeBenefitsEdit open={openEmploymentBenefitsEditModal} close={handleCloseEmploymentBenefitsEditModal} employee={employee} onUpdateEmployee={getEmployeeDetails} />
                 }
             </Box>
         </Layout >

@@ -92,15 +92,15 @@ const EmployeeBenefits = () => {
 
                                                     {benefit.type === "Percentage" && (
                                                         <>
-                                                            <TableCell align="center">{benefit.employee_percentage}</TableCell>
-                                                            <TableCell align="center">{benefit.employer_percentage}</TableCell>
+                                                            <TableCell align="center">{benefit.employee_percentage}%</TableCell>
+                                                            <TableCell align="center">{benefit.employer_percentage}%</TableCell>
                                                         </>
                                                     )}
 
                                                     {benefit.type === "Amount" && (
                                                         <>
-                                                            <TableCell align="center">{benefit.employee_amount}</TableCell>
-                                                            <TableCell align="center">{benefit.employer_amount}</TableCell>
+                                                            <TableCell align="center">₱{benefit.employee_amount}</TableCell>
+                                                            <TableCell align="center">₱{benefit.employer_amount}</TableCell>
                                                         </>
                                                     )}
 
