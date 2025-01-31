@@ -20,6 +20,7 @@ class CreateBranchesTable extends Migration
             $table->string('address', 256)->nullable();
             $table->enum('status', ['Active', 'Inactive', 'Deleted'])->default('Active');
             $table->unsignedBigInteger('client_id');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients');

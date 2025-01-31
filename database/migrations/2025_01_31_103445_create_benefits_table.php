@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateApplicationTypesTable extends Migration
+class CreateBenefitsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateApplicationTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('application_types', function (Blueprint $table) {
+        Schema::create('benefits', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
+            $table->enum('type',['Amount', 'Percentage', 'Bracket']);
+            $table->decimal('percentage', 10, 2)->nullable();
+            $table->decimal('amount', 10, 2)->nullable();
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
-
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients');
@@ -32,6 +34,6 @@ class CreateApplicationTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('application_types');
+        Schema::dropIfExists('benefits');
     }
 }

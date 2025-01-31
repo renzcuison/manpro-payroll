@@ -20,6 +20,7 @@ class CreateDepartmentsTable extends Migration
             $table->text('description')->nullable();
             $table->enum('status', ['Active', 'Inactive', 'Deleted'])->default('Active');
             $table->unsignedBigInteger('client_id');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients');
