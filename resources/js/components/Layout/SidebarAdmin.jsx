@@ -76,13 +76,11 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 href: `/admin/employees?`,
                 text: 'List of Employees',
-                icon: 'si si-user',
             },
-            // {
-                // href: `/hr/employees-benefits?`,
-                // text: 'List of Benefits',
-                // icon: 'si si-user',
-            // },
+            {
+                href: `/admin/employee-benefits?`,
+                text: 'List of Benefits',
+            },
             // {
                 // href: `/hr/employees-deductions?`,
                 // text: 'List of Deductions',

@@ -8,6 +8,8 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
+import EmployeeBenefits from "../Pages/Admin/Employees/EmployeeBenefits";
+
 import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
@@ -38,6 +40,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
             <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
+
+            <Route path="employee-benefits" element={<ProtectedRoute element={<EmployeeBenefits />} user={user} />} />
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
 
