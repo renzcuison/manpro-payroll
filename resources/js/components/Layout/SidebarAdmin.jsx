@@ -78,7 +78,7 @@ const Sidebar = ({ children, closeMini }) => {
                 text: 'List of Employees',
             },
             {
-                href: `/admin/employee-benefits?`,
+                href: `/admin/employees/benefits?`,
                 text: 'List of Benefits',
             },
             // {
@@ -113,7 +113,7 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-money',
         children: [
             {
-                href: `/admin/payroll-process?`,
+                href: `/admin/payroll/process?`,
                 text: 'Process',
                 icon: 'fa fa-cogs',
             },

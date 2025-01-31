@@ -8,7 +8,7 @@ import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 
-import EmployeeBenefits from "../Pages/Admin/Benefits/EmployeeBenefits";
+import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 
 import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
@@ -39,9 +39,10 @@ const AdminRoutes = ({ user }) => {
         <Routes>
             <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
-            <Route path="employees-add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
+            <Route path="employees/add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
 
-            <Route path="employee-benefits" element={<ProtectedRoute element={<EmployeeBenefits />} user={user} />} />
+            <Route path="employees/benefits" element={<ProtectedRoute element={<BenefitsList />} user={user} />} />
+            <Route path="employees/benefit/:benefit" element={<ProtectedRoute element={<BenefitsList />} user={user} />} />
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
 
@@ -56,7 +57,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
 
 
-            <Route path="payroll-process" element={<ProtectedRoute element={<PayrollProcess />} user={user} />} />
+            <Route path="payroll/process" element={<ProtectedRoute element={<PayrollProcess />} user={user} />} />
 
 
             {/* <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} /> */}
