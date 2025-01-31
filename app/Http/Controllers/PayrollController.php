@@ -190,6 +190,17 @@ class PayrollController extends Controller
                 $numberOfSaturday = $payrollData['numberOfSaturday'];
                 $numberOfSunday = $payrollData['numberOfSunday'];
                 $numberOfHoliday = $payrollData['numberOfHoliday'];
+                
+                $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
+                $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+
+                $perDay = $employee->salary / $numberOfWorkingDays;
+                $perHour = $perDay / 8;
+                $perMin = $perHour / 60;
+
+                $deductionsForAbsent = $perDay * $numberOfAbsentDays;
+
+                $grossPay = $employee->salary - $deductionsForAbsent;
 
                 $payrolls[] = [
                     'id' => $employee->id,
@@ -200,10 +211,11 @@ class PayrollController extends Controller
                     'employeeSalary' => $employee->salary,
                     'payrollDates' => $startDate  . ' - ' . $endDate,
                     'numberOfPresent' => $numberOfPresent,
+                    'numberOfAbsentDays' => $numberOfAbsentDays,
+                    'numberOfWorkingDays' => $numberOfWorkingDays,
                     'numberOfDays' => $numberOfDays,
-                    'numberOfSaturday' => $numberOfSaturday,
-                    'numberOfSunday' => $numberOfSunday,
                     'numberOfHoliday' => $numberOfHoliday,
+                    'grossPay' => $grossPay,
                 ];
             }
     

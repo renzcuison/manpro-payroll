@@ -18,8 +18,8 @@ class CreateBenefitsTable extends Migration
             $table->string('name', 128);
             $table->enum('type',['Amount', 'Percentage', 'Bracket']);
             $table->decimal('employee_percentage', 10, 2)->nullable();
-            $table->decimal('employee_amount', 10, 2)->nullable();
             $table->decimal('employer_percentage', 10, 2)->nullable();
+            $table->decimal('employee_amount', 10, 2)->nullable();
             $table->decimal('employer_amount', 10, 2)->nullable();
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();

@@ -113,7 +113,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
 
-
+        Route::get('/getBenefits', [EmployeesController::class, 'getBenefits']);
         Route::post('/saveBenefit', [EmployeesController::class, 'saveBenefit']);
     });
 

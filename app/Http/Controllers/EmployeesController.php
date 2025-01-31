@@ -204,10 +204,23 @@ class EmployeesController extends Controller
         }    
     }
 
+    public function getBenefits(Request $request)
+    {
+        // log::info("EmployeesController::getBenefits");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $benefits = BenefitsModel::where('client_id', $user->client_id)->get();
+    
+            return response()->json(['status' => 200, 'benefits' => $benefits]);
+        }    
+    
+        return response()->json(['status' => 200, 'benefits' => null]);
+    }
+
     public function saveBenefit(Request $request)
     {
-        log::info("EmployeesController::saveBenefit");
-        log::info($request);
+        // log::info("EmployeesController::saveBenefit");
 
         $validated = $request->validate([
             'benefitName' => 'required',
@@ -220,8 +233,6 @@ class EmployeesController extends Controller
 
         if ($this->checkUser() && $validated) {
 
-            log::info($request);
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
@@ -230,19 +241,19 @@ class EmployeesController extends Controller
 
                 $password = Hash::make($request->password);
         
-                BenefitsModel::create([
+                $benefit = BenefitsModel::create([
                     "name" => $request->benefitName,
                     "type" => $request->benefitType,
-                    "employee_percentage" => $request->employeeAmount,
-                    "employee_amount" => $request->employerAmount,
-                    "employer_percentage" => $request->employeePercentage,
-                    "employer_amount" => $request->employerPercentage,
+                    "employee_percentage" => $request->employeePercentage,
+                    "employer_percentage" => $request->employerPercentage,
+                    "employee_amount" => $request->employeeAmount,
+                    "employer_amount" => $request->employerAmount,
                     "client_id" => $client->id,
                 ]);
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200 ]);
+                return response()->json([ 'status' => 200, 'benefit' => $benefit ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

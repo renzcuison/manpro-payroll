@@ -14,7 +14,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
+const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -158,6 +158,13 @@ const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate
         axiosInstance.post('/employee/saveBenefit', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
+
+                    const newBenefit = response.data.benefit;
+
+                    if (onUpdateBenefits) {
+                        onUpdateBenefits(newBenefit);
+                    }
+
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Role saved successfully!",
@@ -201,7 +208,6 @@ const BenefitAdd = ({ open, close, passFilter , currentStartDate, currentEndDate
         const formattedValue = formatCurrency(e.target.value);
         setValue(formattedValue);
     };
-
 
     return (
         <>

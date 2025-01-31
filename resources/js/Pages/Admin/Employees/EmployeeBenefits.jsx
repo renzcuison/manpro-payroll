@@ -21,12 +21,28 @@ const EmployeeBenefits = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [dataUpdated, setDataUpdated] = useState(false);
 
     const [openAddBenefitModal, setOpenAddBenefitModal] = useState(false);
 
     const [benefits, setBenefits] = useState([]);
+    
+    useEffect(() => {
+        axiosInstance.get('/employee/getBenefits', { headers })
+            .then((response) => {
+                setBenefits(response.data.benefits);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching clients:', error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const handleUpdateBenefits = (newBenefit) => {
+        setBenefits((prevBenefits) => [...prevBenefits, newBenefit]);
+    };
 
     const handleOpenAddBenefitModal = () => {
         setOpenAddBenefitModal(true);
@@ -62,24 +78,34 @@ const EmployeeBenefits = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">Name</TableCell>
+                                                <TableCell align="center">Type</TableCell>
                                                 <TableCell align="center">Employee Share</TableCell>
                                                 <TableCell align="center">Employer Share</TableCell>
-                                                <TableCell align="center">Date Added</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {/* {payrolls.map((payroll) => (
-                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="left">{payroll.employeeName}</TableCell>
-                                                    <TableCell align="center">{payroll.employeeBranch}</TableCell>
-                                                    <TableCell align="center">{payroll.employeeDepartment}</TableCell>
-                                                    <TableCell align="center">{payroll.role}</TableCell>
-                                                    <TableCell align="center">{payroll.payrollDates}</TableCell>
-                                                    <TableCell align="center"></TableCell>
+                                            {benefits.map((benefit) => (
+                                                <TableRow key={benefit.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                    <TableCell align="left">{benefit.name}</TableCell>
+                                                    <TableCell align="center">{benefit.type}</TableCell>
+
+                                                    {benefit.type === "Percentage" && (
+                                                        <>
+                                                            <TableCell align="center">{benefit.employee_percentage}</TableCell>
+                                                            <TableCell align="center">{benefit.employer_percentage}</TableCell>
+                                                        </>
+                                                    )}
+
+                                                    {benefit.type === "Amount" && (
+                                                        <>
+                                                            <TableCell align="center">{benefit.employee_amount}</TableCell>
+                                                            <TableCell align="center">{benefit.employer_amount}</TableCell>
+                                                        </>
+                                                    )}
+
                                                 </TableRow>
-                                            ))} */}
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -90,7 +116,7 @@ const EmployeeBenefits = () => {
                 </Box>
 
                 {openAddBenefitModal &&
-                    <BenefitAdd open={openAddBenefitModal} close={handleCloseAddBenefitModal} />
+                    <BenefitAdd open={openAddBenefitModal} close={handleCloseAddBenefitModal} onUpdateBenefits={handleUpdateBenefits} />
                 }
 
             </Box>
