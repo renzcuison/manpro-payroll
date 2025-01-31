@@ -71,8 +71,8 @@ const ApplicationList = () => {
 
     // ---------------- Application Details
     const [openApplicationDetails, setOpenApplicationDetails] = useState(null);
-    const handleOpenApplicationDetails = (id) => {
-        setOpenApplicationDetails(id);
+    const handleOpenApplicationDetails = (appDetails) => {
+        setOpenApplicationDetails(appDetails);
     };
     const handleCloseApplicationDetails = () => {
         setOpenApplicationDetails(null);
@@ -261,7 +261,7 @@ const ApplicationList = () => {
                                                                 key={index}
                                                                 onClick={() =>
                                                                     handleOpenApplicationDetails(
-                                                                        log.id
+                                                                        log
                                                                     )
                                                                 }
                                                                 sx={{
@@ -346,7 +346,7 @@ const ApplicationList = () => {
                 <ApplicationDetails
                     open={true}
                     close={handleCloseApplicationDetails}
-                    id={openApplicationDetails}
+                    appDetails={openApplicationDetails}
                     // employee={employee} onUpdateEmployee={getEmployeeDetails}
                 />
             )}

@@ -104,7 +104,6 @@ class ApplicationsController extends Controller
         
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)
-                                 ->select('id','type_id','created_at','duration_start','duration_end','status')
                                  ->get();
         
         return response()->json(['status' => 200, 'applications' => $applications]);
