@@ -39,11 +39,14 @@ import {
     getComparator,
     stableSort,
 } from "../../../components/utils/tableUtils";
+
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import duration from "dayjs/plugin/duration";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
+dayjs.extend(duration);
 
 import ApplicationForm from "./Modals/ApplicationForm";
 import ApplicationDetails from "./Modals/ApplicationDetails";
@@ -109,35 +112,20 @@ const ApplicationList = () => {
     const getDuration = (fromDate, toDate) => {
         const fromDateTime = dayjs(fromDate);
         const toDateTime = dayjs(toDate);
-        const duration = toDateTime.diff(fromDateTime);
-        const totalMinutes = Math.floor(duration / 60000);
-        const totalHours = Math.floor(totalMinutes / 60);
-        const totalDays = Math.floor(totalHours / 24);
+        const duration = dayjs.duration(toDateTime.diff(fromDateTime));
 
-        const remainingMinutes = totalMinutes % 60;
-        const remainingHours = totalHours % 24;
+        const days = duration.days();
+        const hours = duration.hours();
+        const minutes = duration.minutes();
 
-        let durationInfo = "";
+        let parts = [];
+        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+        if (minutes > 0)
+            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
 
-        if (totalDays > 0) {
-            durationInfo += `${totalDays} day${totalDays > 1 ? "s" : ""}`;
-            if (remainingHours > 0 || remainingMinutes > 0)
-                durationInfo += ", ";
-        }
-        if (remainingHours > 0) {
-            durationInfo += `${remainingHours} hour${
-                remainingHours > 1 ? "s" : ""
-            }`;
-            if (remainingMinutes > 0) durationInfo += ", ";
-        }
-        if (remainingMinutes > 0) {
-            durationInfo += `${remainingMinutes} minute${
-                remainingMinutes > 1 ? "s" : ""
-            }`;
-        }
-        if (duration == 0) {
-            durationInfo += `None`;
-        }
+        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
+
         return durationInfo;
     };
 
@@ -299,7 +287,27 @@ const ApplicationList = () => {
                                                                     {duration}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {log.status}
+                                                                    <Typography
+                                                                        sx={{
+                                                                            fontWeight:
+                                                                                "bold",
+                                                                            color:
+                                                                                log.status ===
+                                                                                "Accepted"
+                                                                                    ? "#177604"
+                                                                                    : log.status ===
+                                                                                      "Declined"
+                                                                                    ? "#f44336"
+                                                                                    : log.status ===
+                                                                                      "Pending"
+                                                                                    ? "#e9ae20"
+                                                                                    : "#000000",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            log.status
+                                                                        }
+                                                                    </Typography>
                                                                 </TableCell>
                                                             </TableRow>
                                                         );

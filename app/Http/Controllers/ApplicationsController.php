@@ -117,7 +117,7 @@ class ApplicationsController extends Controller
         $applicationId = $request->input('app_id');
         
         $application = ApplicationsModel::where('id',$applicationId)
-                                 ->get();
+                                 ->first();
         
         return response()->json(['status' => 200, 'application' => $application]);
         

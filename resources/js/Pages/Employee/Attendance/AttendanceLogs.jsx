@@ -145,7 +145,12 @@ const AttendanceLogs = () => {
     };
 
     // Filters: Update Handler
-    const handleFilterChange = ( type, newDate, rangeEnd = null, newSelectType = null ) => {
+    const handleFilterChange = (
+        type,
+        newDate,
+        rangeEnd = null,
+        newSelectType = null
+    ) => {
         // Control variables
         let newFromDate = fromDate;
         let newToDate = toDate;
@@ -204,75 +209,186 @@ const AttendanceLogs = () => {
 
     return (
         <Layout title={"AttendanceLogs"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
-
-                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
+            <Box
+                sx={{
+                    overflowX: "scroll",
+                    width: "100%",
+                    whiteSpace: "nowrap",
+                }}
+            >
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                    <Box
+                        sx={{
+                            mt: 5,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            px: 1,
+                            alignItems: "center",
+                        }}
+                    >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             {" "}
                             Attendance Logs{" "}
                         </Typography>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Box
+                        sx={{
+                            mt: 6,
+                            p: 3,
+                            bgcolor: "#ffffff",
+                            borderRadius: "8px",
+                        }}
+                    >
                         {isLoading ? (
-                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    minHeight: 200,
+                                }}
+                            >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                <Grid container direction="row" columnGap={1} justifyContent="space-between" sx={{ pb: 2, borderBottom: "1px solid #e0e0e0" }} >
+                                <Grid
+                                    container
+                                    direction="row"
+                                    columnGap={1}
+                                    justifyContent="space-between"
+                                    sx={{
+                                        pb: 2,
+                                        borderBottom: "1px solid #e0e0e0",
+                                    }}
+                                >
                                     <Grid item xs={2}>
-                                        <FormControl sx={{ mr: 2, width: "80%" }} >
-                                            <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
-                                            <Select labelId="attendance-type-select-label" id="attendance-type-select" value={selectedAttendanceType} label="Attendance Type" onChange={(event) => setAttendanceType( event.target.value )} >
-                                                <MenuItem value="All"> All </MenuItem>
-                                                <MenuItem value="Duty In"> Duty In </MenuItem>
-                                                <MenuItem value="Duty Out"> Duty Out </MenuItem>
-                                                <MenuItem value="Overtime In"> Overtime In </MenuItem>
-                                                <MenuItem value="Overtime Out"> Overtime Out </MenuItem>
+                                        <FormControl
+                                            sx={{ mr: 2, width: "80%" }}
+                                        >
+                                            <InputLabel id="attendance-type-select-label">
+                                                {" "}
+                                                Attendance Type{" "}
+                                            </InputLabel>
+                                            <Select
+                                                labelId="attendance-type-select-label"
+                                                id="attendance-type-select"
+                                                value={selectedAttendanceType}
+                                                label="Attendance Type"
+                                                onChange={(event) =>
+                                                    setAttendanceType(
+                                                        event.target.value
+                                                    )
+                                                }
+                                            >
+                                                <MenuItem value="All">
+                                                    {" "}
+                                                    All{" "}
+                                                </MenuItem>
+                                                <MenuItem value="Duty In">
+                                                    {" "}
+                                                    Duty In{" "}
+                                                </MenuItem>
+                                                <MenuItem value="Duty Out">
+                                                    {" "}
+                                                    Duty Out{" "}
+                                                </MenuItem>
+                                                <MenuItem value="Overtime In">
+                                                    {" "}
+                                                    Overtime In{" "}
+                                                </MenuItem>
+                                                <MenuItem value="Overtime Out">
+                                                    {" "}
+                                                    Overtime Out{" "}
+                                                </MenuItem>
                                             </Select>
                                         </FormControl>
                                     </Grid>
 
-                                    <Grid container item xs={8} direction="row" justifyContent="flex-end" >
-                                        <Grid item xs={3} sx={{ mr: 2 }} >
+                                    <Grid
+                                        container
+                                        item
+                                        xs={8}
+                                        direction="row"
+                                        justifyContent="flex-end"
+                                    >
+                                        <Grid item xs={3} sx={{ mr: 2 }}>
                                             <FormControl fullWidth>
-
-                                                <InputLabel id="date-range-select-label"> Date Range </InputLabel>
+                                                <InputLabel id="date-range-select-label">
+                                                    {" "}
+                                                    Date Range{" "}
+                                                </InputLabel>
 
                                                 <Select
                                                     labelId="date-range-select-label"
                                                     id="date-range-select"
                                                     value={selectedRange}
                                                     label="Date Range"
-                                                    onChange={(event) => setPredefinedDates( event.target.value ) }
+                                                    onChange={(event) =>
+                                                        setPredefinedDates(
+                                                            event.target.value
+                                                        )
+                                                    }
                                                 >
-                                                    <MenuItem value="today"> Today </MenuItem>
-                                                    <MenuItem value="yesterday"> Yesterday </MenuItem>
-                                                    <MenuItem value="last7days"> Last 7 Days </MenuItem>
-                                                    <MenuItem value="last30days"> Last 30 Days </MenuItem>
-                                                    <MenuItem value="thisMonth"> This Month </MenuItem>
-                                                    <MenuItem value="lastMonth"> Last Month </MenuItem>
-                                                    <MenuItem value="custom"> Custom Range </MenuItem>
+                                                    <MenuItem value="today">
+                                                        {" "}
+                                                        Today{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="yesterday">
+                                                        {" "}
+                                                        Yesterday{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="last7days">
+                                                        {" "}
+                                                        Last 7 Days{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="last30days">
+                                                        {" "}
+                                                        Last 30 Days{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="thisMonth">
+                                                        {" "}
+                                                        This Month{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="lastMonth">
+                                                        {" "}
+                                                        Last Month{" "}
+                                                    </MenuItem>
+                                                    <MenuItem value="custom">
+                                                        {" "}
+                                                        Custom Range{" "}
+                                                    </MenuItem>
                                                 </Select>
                                             </FormControl>
                                         </Grid>
 
                                         <Grid item xs={8}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                            <LocalizationProvider
+                                                dateAdapter={AdapterDayjs}
+                                            >
                                                 <Grid container spacing={2}>
                                                     <Grid item xs={6}>
                                                         <DatePicker
                                                             label="From Date"
                                                             value={fromDate}
-                                                            onChange={( newValue
+                                                            onChange={(
+                                                                newValue
                                                             ) => {
-                                                                setSelectedRange( "custom" );
-                                                                handleFilterChange( "from", newValue );
+                                                                setSelectedRange(
+                                                                    "custom"
+                                                                );
+                                                                handleFilterChange(
+                                                                    "from",
+                                                                    newValue
+                                                                );
                                                             }}
-                                                            renderInput={( params ) => (
-                                                                <TextField {...params} />
+                                                            renderInput={(
+                                                                params
+                                                            ) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                />
                                                             )}
                                                         />
                                                     </Grid>
@@ -281,13 +397,24 @@ const AttendanceLogs = () => {
                                                         <DatePicker
                                                             label="To Date"
                                                             value={toDate}
-                                                            onChange={( newValue ) => {
-                                                                setSelectedRange( "custom" );
-                                                                handleFilterChange( "to", newValue );
+                                                            onChange={(
+                                                                newValue
+                                                            ) => {
+                                                                setSelectedRange(
+                                                                    "custom"
+                                                                );
+                                                                handleFilterChange(
+                                                                    "to",
+                                                                    newValue
+                                                                );
                                                             }}
                                                             minDate={fromDate}
-                                                            renderInput={( params ) => (
-                                                                <TextField {...params} />
+                                                            renderInput={(
+                                                                params
+                                                            ) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                />
                                                             )}
                                                         />
                                                     </Grid>
@@ -296,17 +423,29 @@ const AttendanceLogs = () => {
                                         </Grid>
                                     </Grid>
                                 </Grid>
-                                <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }} >
+                                <TableContainer
+                                    style={{ overflowX: "auto" }}
+                                    sx={{ minHeight: 400 }}
+                                >
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "33%" }} >
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "33%" }}
+                                                >
                                                     Date
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "33%" }} >
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "33%" }}
+                                                >
                                                     Time
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "34%" }} >
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "34%" }}
+                                                >
                                                     Action
                                                 </TableCell>
                                             </TableRow>
@@ -316,22 +455,57 @@ const AttendanceLogs = () => {
                                             {attendanceLogs.length > 0 ? (
                                                 attendanceLogs.map(
                                                     (log, index) => (
-                                                        <TableRow key={index} sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", }} >
+                                                        <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                            }}
+                                                        >
                                                             <TableCell align="center">
-                                                                {moment( log.timestamp, "YYYY-MM-DD HH:mm:ss" ).format( "MMMM D, YYYY" ) || "-"}
+                                                                {moment(
+                                                                    log.timestamp,
+                                                                    "YYYY-MM-DD HH:mm:ss"
+                                                                ).format(
+                                                                    "MMMM D, YYYY"
+                                                                ) || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {moment( log.timestamp, "YYYY-MM-DD HH:mm:ss" ).format( "hh:mm:ss A" ) || "-"}
+                                                                {moment(
+                                                                    log.timestamp,
+                                                                    "YYYY-MM-DD HH:mm:ss"
+                                                                ).format(
+                                                                    "hh:mm:ss A"
+                                                                ) || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {" "}
                                                                 <Typography
                                                                     sx={{
-                                                                        fontWeight: "bold",
-                                                                        color: log.action === "Duty In" ? "#177604" : log.action === "Duty Out" ? "#f44336" : log.action === "Overtime In" ? "#e9ae20" : log.action === "Overtime Out" ? "#f57c00" : "#000000",
+                                                                        fontWeight:
+                                                                            "bold",
+                                                                        color:
+                                                                            log.action ===
+                                                                            "Duty In"
+                                                                                ? "#177604"
+                                                                                : log.action ===
+                                                                                  "Duty Out"
+                                                                                ? "#f44336"
+                                                                                : log.action ===
+                                                                                  "Overtime In"
+                                                                                ? "#e9ae20"
+                                                                                : log.action ===
+                                                                                  "Overtime Out"
+                                                                                ? "#f57c00"
+                                                                                : "#000000",
                                                                     }}
                                                                 >
-                                                                    {log.action || "-"}
+                                                                    {log.action ||
+                                                                        "-"}
                                                                 </Typography>
                                                             </TableCell>
                                                         </TableRow>
@@ -339,7 +513,14 @@ const AttendanceLogs = () => {
                                                 )
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1 }} >
+                                                    <TableCell
+                                                        colSpan={3}
+                                                        align="center"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            p: 1,
+                                                        }}
+                                                    >
                                                         No Attendance Data Found
                                                     </TableCell>
                                                 </TableRow>
