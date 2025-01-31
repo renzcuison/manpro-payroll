@@ -29,7 +29,7 @@ const EmployeeBenefits = () => {
     const [benefits, setBenefits] = useState([]);
     
     useEffect(() => {
-        axiosInstance.get('/employee/getBenefits', { headers })
+        axiosInstance.get('/benefits/getBenefits', { headers })
             .then((response) => {
                 setBenefits(response.data.benefits);
                 setIsLoading(false);

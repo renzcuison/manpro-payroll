@@ -155,7 +155,7 @@ const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
             employerPercentage: employerPercentage,
         };
 
-        axiosInstance.post('/employee/saveBenefit', data, { headers })
+        axiosInstance.post('/benefits/saveBenefit', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
 

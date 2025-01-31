@@ -8,7 +8,7 @@ use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ApplicationsController;
-
+use App\Http\Controllers\BenefitsController;
 
 
 // use App\Http\Controllers\NewControllerName;
@@ -112,9 +112,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);
 
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+    });
 
-        Route::get('/getBenefits', [EmployeesController::class, 'getBenefits']);
-        Route::post('/saveBenefit', [EmployeesController::class, 'saveBenefit']);
+    Route::prefix('benefits')->group(function () {
+        Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
+        Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
     });
 
     Route::prefix('workshedule')->group(function () {
