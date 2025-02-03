@@ -158,27 +158,22 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
     const updateApplication = (event) => {
         event.preventDefault();
-
-        const formData = new FormData();
-        formData.append("app_id", appDetails.id);
-        formData.append("type_id", appType);
-        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("description", description);
+        const data = {
+            app_id: appDetails.id,
+            type_id: appType,
+            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
+            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
+            description: description,
+        };
 
         if (attachment) {
-            formData.append("attachment", attachment, attachment.name);
+            data.attachment = attachment;
         }
 
-        console.log("Form Updated:");
-        for (var pair of formData.entries()) {
-            console.log(pair[0] + ", " + pair[1]);
-        }
-
-        console.log(formData);
+        console.log(data);
 
         axiosInstance
-            .patch(`/applications/updateApplication`, formData, {
+            .post(`/applications/updateApplication`, data, {
                 headers: {
                     ...headers,
                     "Content-Type": "multipart/form-data", // Ensure this header is set for FormData
@@ -259,7 +254,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             sx={{ marginLeft: 1, fontWeight: "bold" }}
                         >
                             {" "}
-                            Submit an Application{" "}
+                            Editing Application{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>

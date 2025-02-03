@@ -97,10 +97,6 @@ class ApplicationsController extends Controller
 
     public function updateApplication(Request $request)
     {
-        Log::info("Request Data:", $request->all());
-    // or
-    Log::info("Request Input:", $request->input());
-    
         Log::info("ApplicationsController::updateApplication");
         Log::info($request);
         Log::info($request->input('app_id'));
@@ -157,27 +153,9 @@ class ApplicationsController extends Controller
         
     }
 
-    public function getApplicationDetails(Request $request)
-    {
-        //Log::info("ApplicationsController::getApplicationTypes");
-        $applicationId = $request->input('app_id');
-        
-        $application = ApplicationsModel::where('id',$applicationId)
-                                 ->first();
-
-        if ($application && $application->attachment) {
-            $application->attachment_filename = basename($application->attachment);
-            unset($application->attachment); // Remove the full path
-        }
-
-                                
-        return response()->json(['status' => 200, 'application' => $application]);
-        
-    }
-
     public function downloadAttachment($id)
     {
-        //Log::info("ApplicationsController::downloadAttachment");
+        Log::info("ApplicationsController::downloadAttachment");
         $application = ApplicationsModel::find($id);
         //Log::info('Application Found');
 
@@ -187,6 +165,7 @@ class ApplicationsController extends Controller
 
         //Log::info($application->attachment);
         $filePath = storage_path('app/public/' . $application->attachment);
+        log::info($filePath);
 
         if (!file_exists($filePath)) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
