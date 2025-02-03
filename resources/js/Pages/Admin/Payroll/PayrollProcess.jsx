@@ -188,8 +188,8 @@ const PayrollProcess = () => {
                         open={openPayrollDetailsModal}
                         close={handleClosePayrollDetailsModal}
                         selectedPayroll={selectedPayroll}
-                        currentStartDate={startDate}
-                        currentEndDate={endDate}
+                        currentStartDate={formattedStartDate}
+                        currentEndDate={formattedEndDate}
                     />
                 }
 

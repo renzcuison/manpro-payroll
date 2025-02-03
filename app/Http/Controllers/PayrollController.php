@@ -13,6 +13,8 @@ use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
+use App\Models\BenefitsModel;
+use App\Models\EmployeeBenefitsModel;
 
 
 use Illuminate\Http\Request;
@@ -234,8 +236,46 @@ class PayrollController extends Controller
         $endDate = $request->currentEndDate;
 
         $employee = UsersModel::find($request->selectedPayroll);
+        $employeeBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->get();
         $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
 
+        $employeeShare = 0;
+        $employerShare = 0;
+
+        $benefits = [];
+
+        foreach ($employeeBenefits as $employeeBenefit) {
+
+            log::info("================================");
+
+            $benefit = $employeeBenefit->benefit;
+
+            if ( $benefit->type == "Percentage") {
+                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+            }
+
+            if ( $benefit->type == "Amount") {
+                $employeeAmount = $benefit->employee_amount * 1;
+                $employerAmount = $benefit->employer_amount * 1;
+            }
+
+            log::info("Type                     :" . $benefit->type);
+            log::info("Name                     :" . $benefit->name);
+            log::info("employeeShare            :" . $employeeAmount);
+            log::info("employerShare            :" . $employerAmount);
+
+            $employeeShare += $employeeAmount;
+            $employerShare += $employerAmount;
+
+            $benefits[] = [ 'name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount ];
+        }
+
+        log::info("================================");
+        log::info("Total Employee Share     :" . $employeeShare);
+        log::info("Total Employer Share     :" . $employerShare);
+        
+        // Getting Logs Data Per Day
         $distinctDays = $logs->groupBy(function ($log) {
             return \Carbon\Carbon::parse($log->timestamp)->toDateString();
         });
@@ -252,33 +292,33 @@ class PayrollController extends Controller
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
 
-        $perDay = $employee->salary / $numberOfWorkingDays;
+        $perCutOff = $employee->salary / 2;
+        $perDay = $perCutOff / $numberOfWorkingDays;
         $perHour = $perDay / 8;
         $perMin = $perHour / 60;
 
         $deductionsForAbsent = $perDay * $numberOfAbsentDays;
 
-        $grossPay = $employee->salary - $deductionsForAbsent;
-
         $payroll = [
-            'id' => $employee->id,
             'employeeId' => $employee->id,
-            'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
-            'employeeBranch' => $employee->branch->name ?? '-',
-            'employeeDepartment' => $employee->department->name ?? '-',
-            'employeeRole' => $employee->role->name ?? '-',
-            'employeeSalary' => $employee->salary,
-            'payrollDates' => $startDate  . ' - ' . $endDate,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
             'numberOfPresent' => $numberOfPresent,
             'numberOfAbsentDays' => $numberOfAbsentDays,
             'numberOfWorkingDays' => $numberOfWorkingDays,
             'numberOfDays' => $numberOfDays,
+            'numberOfSaturday' => $numberOfSaturday,
+            'numberOfSunday' => $numberOfSunday,
             'numberOfHoliday' => $numberOfHoliday,
-            'grossPay' => $grossPay,
+            'grossPay' => $employee->salary,
+            'perCutOff' => $perCutOff,
+            'perDay' => $perDay,
+            'perMin' => $perMin,
+            'employeeShare' => $employeeShare,
         ];
 
         log::info($payroll);
 
-        return response()->json(['status' => 200, 'payroll' => $payroll]);
+        return response()->json(['status' => 200, 'payroll' => $payroll, 'benefits' => $benefits]);
     }
 }
