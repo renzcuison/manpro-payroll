@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 
 class ApplicationsController extends Controller
 {
@@ -55,23 +55,26 @@ class ApplicationsController extends Controller
 
         $user = Auth::user();
 
-        //YYYY-MM-DD HH:MM:SS
-        /*
-        type_id
-        from_date
-        to_date
-        attachment
-        description
-        */
-
         try {
             DB::beginTransaction();
+
+            Log::info('Saving Application');
+
+            $path = '';
+            if ($request ->hasFile('attachment')) {
+                Log::info('File Detected!');
+                $file = $request->file('attachment');
+                $dateTime = now()->format('YmdHis');
+                $fileName = 'image_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                Log::info($fileName);
+                $filePath = $file->storeAs('applications/employees', $fileName, 'public');
+            }
 
             ApplicationsModel::create([
                 "type_id" => $request->input('type_id'),
                 "duration_start" => $request->input('from_date'),
                 "duration_end" => $request->input('to_date'),
-                "attachment" => $request->input('attachment') ?? "",
+                "attachment" => $filePath,
                 "description" => $request->input('description') ?? "",
                 "status" => "Pending",
                 "user_id" => $user->id,
@@ -99,8 +102,8 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
 
-        log::info("clientId: " . $clientId);
-        log::info("userId:   " . $user->id);
+        //log::info("clientId: " . $clientId);
+        //log::info("userId:   " . $user->id);
         
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)

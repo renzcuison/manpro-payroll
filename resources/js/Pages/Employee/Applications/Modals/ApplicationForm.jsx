@@ -48,7 +48,7 @@ const ApplicationForm = ({ open, close }) => {
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
     const [description, setDescription] = useState("");
-    const [file, setFile] = useState(null);
+    const [attachment, setAttachment] = useState(null);
     const [applicationDuration, setApplicationDuration] = useState("");
     const [applicationTypes, setApplicationTypes] = useState([]);
 
@@ -57,17 +57,17 @@ const ApplicationForm = ({ open, close }) => {
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
-    const [fileError, setFileError] = useState(false);
+    const [attachmentError, setAttachmentError] = useState(false);
 
-    const handleFileChange = (event) => {
-        const selectedFile = event.target.files[0];
-        setFile(selectedFile);
+    const handleAttachmentChange = (event) => {
+        const selectedAttachment = event.target.files[0];
+        setAttachment(selectedAttachment);
     };
 
     const handleTextFieldClick = (event) => {
-        fileInput.current.click();
+        attachmentInput.current.click();
     };
-    const fileInput = useRef(null);
+    const attachmentInput = useRef(null);
 
     const handleTypeChange = (value) => {
         setAppType(value);
@@ -85,7 +85,7 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                console.log(response.data);
+                //console.log(response.data);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -95,6 +95,14 @@ const ApplicationForm = ({ open, close }) => {
 
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
+
+        //Data Viewer
+        console.log(appType);
+        console.log(fromDate);
+        console.log(toDate);
+        console.log(applicationDuration);
+        console.log(description);
+        console.log(attachment);
 
         if (!appType) {
             setAppTypeError(true);
@@ -116,13 +124,15 @@ const ApplicationForm = ({ open, close }) => {
         } else {
             setDescriptionError(false);
         }
-        if (!file) {
-            setFileError(true);
+        if (!attachment) {
+            setAttachmentError(true);
         } else {
-            setFileError(false);
+            setAttachmentError(false);
         }
 
-        if (!appType || !fromDate || !toDate || !description || !file) {
+        if (!appType || !fromDate || !toDate || !description || !attachment) {
+            document.activeElement.blur();
+
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "All fields must be filled!",
@@ -131,6 +141,8 @@ const ApplicationForm = ({ open, close }) => {
                 confirmButtonColor: "#177604",
             });
         } else {
+            document.activeElement.blur();
+
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
@@ -155,11 +167,22 @@ const ApplicationForm = ({ open, close }) => {
             type_id: appType,
             from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
             to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
-            attachment: "path_here",
+            attachment: attachment,
             description: description,
         };
+
+        const formData = new FormData();
+        formData.append("type_id", appType);
+        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("description", description);
+        formData.append("attachment", attachment);
+
+        console.log("Form Created:");
+        console.log(formData);
+
         axiosInstance
-            .post("/applications/saveApplication", data, {
+            .post("/applications/saveApplication", formData, {
                 headers,
             })
             .then((response) => {
@@ -348,22 +371,24 @@ const ApplicationForm = ({ open, close }) => {
                                         fullWidth
                                         label="Upload File"
                                         value={
-                                            file
-                                                ? `${file.name}, ${getFileSize(
-                                                      file.size
+                                            attachment
+                                                ? `${
+                                                      attachment.name
+                                                  }, ${getFileSize(
+                                                      attachment.size
                                                   )}`
                                                 : ""
                                         }
-                                        error={fileError}
+                                        error={attachmentError}
                                         onClick={handleTextFieldClick}
                                         InputProps={{
                                             readOnly: true,
-                                            endAdornment: !file && (
+                                            endAdornment: !attachment && (
                                                 <InputAdornment position="end">
                                                     <InsertDriveFileIcon />
                                                 </InputAdornment>
                                             ),
-                                            startAdornment: file && (
+                                            startAdornment: attachment && (
                                                 <InputAdornment position="start">
                                                     <InsertDriveFileIcon />
                                                 </InputAdornment>
@@ -373,9 +398,10 @@ const ApplicationForm = ({ open, close }) => {
                                     />
                                     <input
                                         type="file"
-                                        ref={fileInput}
+                                        name="attachment"
+                                        ref={attachmentInput}
                                         style={{ display: "none" }}
-                                        onChange={handleFileChange}
+                                        onChange={handleAttachmentChange}
                                     />
                                 </FormControl>
                             </Grid>

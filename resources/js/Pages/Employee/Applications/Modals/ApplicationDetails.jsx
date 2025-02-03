@@ -17,6 +17,7 @@ import {
     Select,
     MenuItem,
 } from "@mui/material";
+import { PictureAsPdf, Description, InsertPhoto } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -30,6 +31,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
+import { icon } from "@fortawesome/fontawesome-svg-core";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -40,6 +42,35 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [applicationDuration, setApplicationDuration] = useState([]);
+    const [attachmentName, setAttachmentName] = useState("");
+    const [AttachmentIcon, setAttachmentIcon] = useState(null);
+    const [iconColor, setIconColor] = useState("#177604");
+
+    useEffect(() => {
+        if (appDetails && appDetails.attachment) {
+            const fileName = appDetails.attachment.split("/").pop();
+            const fileType = fileName.split(".").pop().toLowerCase();
+            setAttachmentName(fileName);
+
+            switch (fileType) {
+                case "png":
+                case "jpg":
+                case "jpeg":
+                    setAttachmentIcon(InsertPhoto);
+                    setIconColor("#177604");
+                    break;
+                case "doc":
+                case "docx":
+                    setAttachmentIcon(Description);
+                    setIconColor("blue");
+                    break;
+                case "pdf":
+                    setAttachmentIcon(PictureAsPdf);
+                    setIconColor("red");
+                    break;
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const fromDateTime = dayjs(appDetails.duration_start);
@@ -171,7 +202,39 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                             Attachment
                         </Grid>
                         <Grid item xs={7} align="left">
-                            {appDetails.attachment}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    padding: "2px 0px",
+                                    borderRadius: "4px",
+                                    "&:hover": {
+                                        backgroundColor: "rgba(0, 0, 0, 0.05)",
+                                        cursor: "pointer",
+                                    },
+                                }}
+                                onClick={() => console.log("Download Me!!!")}
+                            >
+                                {AttachmentIcon && (
+                                    <AttachmentIcon
+                                        fontSize="small"
+                                        sx={{
+                                            marginRight: "5px",
+                                            color: iconColor,
+                                        }}
+                                    />
+                                )}
+                                <Typography
+                                    sx={{ textDecoration: "underline" }}
+                                >
+                                    {attachmentName.length > 20
+                                        ? `${appDetails.attachment
+                                              .split("/")
+                                              .pop()
+                                              .slice(0, 20)}...`
+                                        : attachmentName}
+                                </Typography>
+                            </Box>
                         </Grid>
                         <Grid
                             container

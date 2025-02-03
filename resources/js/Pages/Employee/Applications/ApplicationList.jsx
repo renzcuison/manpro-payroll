@@ -88,7 +88,7 @@ const ApplicationList = () => {
             .get(`applications/getMyApplications`, { headers })
             .then((response) => {
                 setApplicationList(response.data.applications);
-                console.log(response.data.applications);
+                //console.log(response.data.applications);
                 setIsLoading(false);
             })
             .catch((error) => {
