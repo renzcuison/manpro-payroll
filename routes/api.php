@@ -118,6 +118,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getBenefit', [BenefitsController::class, 'getBenefit']);
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
         Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
+
+        Route::post('/addEmployeeBenefit', [BenefitsController::class, 'addEmployeeBenefit']);
+        Route::get('/getEmployeeBenefits', [BenefitsController::class, 'getEmployeeBenefits']);
     });
 
     Route::prefix('workshedule')->group(function () {

@@ -10,6 +10,8 @@ use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\WorkGroupsModel;
 use App\Models\BenefitsModel;
+use App\Models\EmployeeBenefitsModel;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -107,5 +109,68 @@ class BenefitsController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function addEmployeeBenefit(Request $request)
+    {
+        // log::info("BenefitsController::addEmployeeBenefit");
+
+        $validated = $request->validate([
+            'employee' => 'required',
+            'benefit' => 'required',
+            'number' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+        
+                $employeeBenefit = EmployeeBenefitsModel::create([
+                    "user_id" => $request->employee,
+                    "benefit_id" => $request->benefit,
+                    "number" => $request->number,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'employee_benefit' => $employeeBenefit]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function getEmployeeBenefits(Request $request)
+    {
+        // log::info("BenefitsController::getEmployeeBenefits");
+
+        $user = Auth::user();       
+        $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+    
+        if ($this->checkUser() && $user->client_id == $employee->client_id) {
+
+            $rawBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->where('deleted_at', null)->get();
+
+            foreach ($rawBenefits as $rawBenefit) {
+
+                $benefits[] = [
+                    'id' => $rawBenefit->id,
+                    'benefit' => $rawBenefit->benefit->name,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'benefits' => $benefits]);
+        }    
+    
+        return response()->json(['status' => 200, 'benefits' => null]);
     }
 }

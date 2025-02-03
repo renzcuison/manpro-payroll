@@ -8,6 +8,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import EmployeeAddBenefit from '../Employees/Modals/EmployeeAddBenefit';
 import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
 
 const EmployeeView = () => {
@@ -20,12 +21,15 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState(''); 
+    const [benefits, setBenefits] = useState([]); 
 
+    const [openEmployeeAddBenefitModal, setOpenEmployeeAddBenefitModal] = useState(false);
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
     const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
 
     useEffect(() => {
         getEmployeeDetails();
+        getEmployeeBenefits();
     }, []);
 
     const getEmployeeDetails = () => {
@@ -41,6 +45,19 @@ const EmployeeView = () => {
                 }
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
+            });
+    };
+
+    const getEmployeeBenefits = () => {
+        const data = { username: user };
+
+        axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
+            .then((response) => {
+                if ( response.data.status === 200 ) {
+                    setBenefits(response.data.benefits);
+                }
+            }).catch((error) => {
+                console.error('Error fetching benefits:', error);
             });
     };
 
@@ -83,6 +100,14 @@ const EmployeeView = () => {
         setOpenEmploymentDetailsEditModal(false);
     }
 
+    const handleOpenEmployeeAddBenefitModal = () => {
+        setOpenEmployeeAddBenefitModal(true);
+    }
+
+    const handleCloseEmployeeAddBenefitModal = () => {
+        setOpenEmployeeAddBenefitModal(false);
+    }
+
     const renderAttendanceContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Typography variant="body1">Attendance Information will be displayed here</Typography>
@@ -116,6 +141,7 @@ const EmployeeView = () => {
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
                             <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
+                            <MenuItem onClick={handleOpenEmployeeAddBenefitModal}> Add Benefit </MenuItem>
                         </Menu>
 
                     </Box>
@@ -320,9 +346,14 @@ const EmployeeView = () => {
                     </Grid>
                 </Box>
 
+                {openEmployeeAddBenefitModal &&
+                    <EmployeeAddBenefit open={openEmployeeAddBenefitModal} close={handleCloseEmployeeAddBenefitModal} employee={employee} />
+                }
+
                 {openEmploymentDetailsEditModal &&
                     <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} onUpdateEmployee={getEmployeeDetails} />
                 }
+
             </Box>
         </Layout >
     )
