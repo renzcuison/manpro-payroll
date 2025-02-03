@@ -10,6 +10,7 @@ import {
     Box,
     Typography,
     Button,
+    IconButton,
     Menu,
     MenuItem,
     TextField,
@@ -21,6 +22,8 @@ import {
     Select,
     breadcrumbsClasses,
 } from "@mui/material";
+import { MoreVert } from "@mui/icons-material";
+
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -82,6 +85,30 @@ const ApplicationList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [applicationList, setApplicationList] = useState([]);
     const [applicationTypes, setApplicationTypes] = useState([]);
+
+    // ---------------- Menu Item
+    const [menuStates, setMenuStates] = useState({});
+    const handleMenuOpen = (event, id) => {
+        setMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: true,
+                anchorEl: event.currentTarget,
+            },
+        }));
+    };
+
+    const handleMenuClose = (id) => {
+        setMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: false,
+                anchorEl: null,
+            },
+        }));
+    };
 
     useEffect(() => {
         axiosInstance
@@ -194,33 +221,39 @@ const ApplicationList = () => {
                                             <TableRow>
                                                 <TableCell
                                                     align="center"
-                                                    sx={{ width: "20%" }}
+                                                    sx={{ width: "19%" }}
                                                 >
                                                     Application Type
                                                 </TableCell>
                                                 <TableCell
                                                     align="center"
-                                                    sx={{ width: "20%" }}
+                                                    sx={{ width: "19%" }}
                                                 >
                                                     Date of Application
                                                 </TableCell>
                                                 <TableCell
                                                     align="center"
-                                                    sx={{ width: "20%" }}
+                                                    sx={{ width: "19%" }}
                                                 >
                                                     Date of Effectivity
                                                 </TableCell>
                                                 <TableCell
                                                     align="center"
-                                                    sx={{ width: "20%" }}
+                                                    sx={{ width: "19%" }}
                                                 >
                                                     Duration
                                                 </TableCell>
                                                 <TableCell
                                                     align="center"
-                                                    sx={{ width: "20%" }}
+                                                    sx={{ width: "19%" }}
                                                 >
                                                     Status
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "5%" }}
+                                                >
+                                                    Action
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -250,6 +283,17 @@ const ApplicationList = () => {
                                                             "MMM D, YYYY    h:mm A"
                                                         );
 
+                                                        if (
+                                                            !menuStates[log.id]
+                                                        ) {
+                                                            menuStates[log.id] =
+                                                                {
+                                                                    open: false,
+                                                                    anchorEl:
+                                                                        null,
+                                                                };
+                                                        }
+
                                                         const duration =
                                                             getDuration(
                                                                 log.duration_start,
@@ -258,7 +302,7 @@ const ApplicationList = () => {
 
                                                         return (
                                                             <TableRow
-                                                                key={index}
+                                                                key={log.id}
                                                                 onClick={() =>
                                                                     handleOpenApplicationDetails(
                                                                         log
@@ -272,6 +316,11 @@ const ApplicationList = () => {
                                                                         0
                                                                             ? "#f8f8f8"
                                                                             : "#ffffff",
+                                                                    "&:hover": {
+                                                                        backgroundColor:
+                                                                            "rgba(0, 0, 0, 0.1)",
+                                                                        cursor: "pointer",
+                                                                    },
                                                                 }}
                                                             >
                                                                 <TableCell align="center">
@@ -308,6 +357,91 @@ const ApplicationList = () => {
                                                                             log.status
                                                                         }
                                                                     </Typography>
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    <IconButton
+                                                                        aria-label="more"
+                                                                        aria-controls={
+                                                                            menuStates[
+                                                                                log
+                                                                                    .id
+                                                                            ]
+                                                                                ?.open
+                                                                                ? `application-menu-${log.id}`
+                                                                                : undefined
+                                                                        }
+                                                                        aria-haspopup="true"
+                                                                        onClick={(
+                                                                            event
+                                                                        ) => {
+                                                                            event.stopPropagation();
+                                                                            handleMenuOpen(
+                                                                                event,
+                                                                                log.id
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <MoreVert />
+                                                                    </IconButton>
+                                                                    <Menu
+                                                                        id={`application-menu-${log.id}`}
+                                                                        anchorEl={
+                                                                            menuStates[
+                                                                                log
+                                                                                    .id
+                                                                            ]
+                                                                                ?.anchorEl
+                                                                        }
+                                                                        open={
+                                                                            menuStates[
+                                                                                log
+                                                                                    .id
+                                                                            ]
+                                                                                ?.open ||
+                                                                            false
+                                                                        }
+                                                                        onClose={() =>
+                                                                            handleMenuClose(
+                                                                                log.id
+                                                                            )
+                                                                        }
+                                                                        MenuListProps={{
+                                                                            "aria-labelledby": `application-menu-${log.id}`,
+                                                                        }}
+                                                                    >
+                                                                        <MenuItem
+                                                                            onClick={(
+                                                                                event
+                                                                            ) => {
+                                                                                event.stopPropagation();
+                                                                                console.log(
+                                                                                    "Editing Application: " +
+                                                                                        log.id
+                                                                                );
+                                                                                handleMenuClose(
+                                                                                    log.id
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            Edit
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={(
+                                                                                event
+                                                                            ) => {
+                                                                                event.stopPropagation();
+                                                                                console.log(
+                                                                                    "Withdrawing Application: " +
+                                                                                        log.id
+                                                                                );
+                                                                                handleMenuClose(
+                                                                                    log.id
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            Withdraw
+                                                                        </MenuItem>
+                                                                    </Menu>
                                                                 </TableCell>
                                                             </TableRow>
                                                         );

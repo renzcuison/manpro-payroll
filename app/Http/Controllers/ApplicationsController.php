@@ -65,7 +65,7 @@ class ApplicationsController extends Controller
                 Log::info('File Detected!');
                 $file = $request->file('attachment');
                 $dateTime = now()->format('YmdHis');
-                $fileName = 'image_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                 Log::info($fileName);
                 $filePath = $file->storeAs('applications/employees', $fileName, 'public');
             }
@@ -108,6 +108,11 @@ class ApplicationsController extends Controller
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)
                                  ->get();
+
+        $applications = $applications->map(function($application) {
+            $application->attachment = basename($application->attachment);
+            return $application;
+        });
         
         return response()->json(['status' => 200, 'applications' => $applications]);
         
@@ -120,8 +125,35 @@ class ApplicationsController extends Controller
         
         $application = ApplicationsModel::where('id',$applicationId)
                                  ->first();
-        
+
+        if ($application && $application->attachment) {
+            $application->attachment_filename = basename($application->attachment);
+            unset($application->attachment); // Remove the full path
+        }
+
+                                
         return response()->json(['status' => 200, 'application' => $application]);
         
+    }
+
+    public function downloadAttachment($id)
+    {
+        $application = ApplicationsModel::find($id);
+        Log::info('Application Found');
+
+        if (!$application || !$application->attachment) {
+            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
+        }
+
+        Log::info($application->attachment);
+        $filePath = storage_path('app/public/' . $application->attachment);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        $fileName = basename($application->attachment);
+
+        return response()->download($filePath, $fileName);
     }
 }

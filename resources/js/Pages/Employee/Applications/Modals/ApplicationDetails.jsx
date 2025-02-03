@@ -48,9 +48,11 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
     useEffect(() => {
         if (appDetails && appDetails.attachment) {
-            const fileName = appDetails.attachment.split("/").pop();
-            const fileType = fileName.split(".").pop().toLowerCase();
-            setAttachmentName(fileName);
+            setAttachmentName(appDetails.attachment);
+            const fileType = appDetails.attachment
+                .split(".")
+                .pop()
+                .toLowerCase();
 
             switch (fileType) {
                 case "png":
@@ -91,6 +93,32 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
         setApplicationDuration(durationInfo);
     }, []);
+
+    const handleFileDownload = async () => {
+        try {
+            console.log(
+                "Downloading attachment for Application No. " + appDetails.id
+            );
+            const response = await axiosInstance.get(
+                `/applications/downloadAttachment/${appDetails.id}`,
+                {
+                    responseType: "blob",
+                    headers,
+                }
+            );
+            const blob = new Blob([response.data], {
+                type: response.headers["content-type"],
+            });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = attachmentName;
+            link.click();
+
+            window.URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error("Error downloading file:", error);
+        }
+    };
 
     return (
         <>
@@ -213,7 +241,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                         cursor: "pointer",
                                     },
                                 }}
-                                onClick={() => console.log("Download Me!!!")}
+                                onClick={handleFileDownload}
                             >
                                 {AttachmentIcon && (
                                     <AttachmentIcon
