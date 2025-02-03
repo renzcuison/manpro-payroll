@@ -32,6 +32,7 @@ import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
 import PageToolbar from "../../../components/Table/PageToolbar";
+import Swal from "sweetalert2";
 import {
     Link,
     useNavigate,
@@ -53,6 +54,7 @@ dayjs.extend(duration);
 
 import ApplicationForm from "./Modals/ApplicationForm";
 import ApplicationDetails from "./Modals/ApplicationDetails";
+import ApplicationEdit from "./Modals/ApplicationEdit";
 
 const ApplicationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -79,6 +81,15 @@ const ApplicationList = () => {
     };
     const handleCloseApplicationDetails = () => {
         setOpenApplicationDetails(null);
+    };
+
+    // ---------------- Application Edit
+    const [openApplicationEdit, setOpenApplicationEdit] = useState(null);
+    const handleEditApplication = (appDetails) => {
+        setOpenApplicationEdit(appDetails);
+    };
+    const handleCloseApplicationEdit = () => {
+        setOpenApplicationEdit(null);
     };
 
     // ---------------- Application List
@@ -108,6 +119,36 @@ const ApplicationList = () => {
                 anchorEl: null,
             },
         }));
+    };
+
+    // ---------------- Application Withdrawal
+    const handleWithdrawApplication = (id) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Withdraw Application?",
+            text: "This action cannot be undone",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Withdraw",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                console.log(`Withdrawing Application ${id}`);
+                axiosInstance
+                    .get(`applications/withdrawApplication/${id}`, {
+                        headers,
+                    })
+                    .then((response) => {
+                        console.log("Successful Withdrawal!");
+                    })
+                    .catch((error) => {
+                        console.error("Error withdrawing application:", error);
+                    });
+            }
+        });
     };
 
     useEffect(() => {
@@ -350,6 +391,9 @@ const ApplicationList = () => {
                                                                                     : log.status ===
                                                                                       "Pending"
                                                                                     ? "#e9ae20"
+                                                                                    : log.status ===
+                                                                                      "Withdrawn"
+                                                                                    ? "#f57c00"
                                                                                     : "#000000",
                                                                         }}
                                                                     >
@@ -359,89 +403,108 @@ const ApplicationList = () => {
                                                                     </Typography>
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    <IconButton
-                                                                        aria-label="more"
-                                                                        aria-controls={
-                                                                            menuStates[
-                                                                                log
-                                                                                    .id
-                                                                            ]
-                                                                                ?.open
-                                                                                ? `application-menu-${log.id}`
-                                                                                : undefined
-                                                                        }
-                                                                        aria-haspopup="true"
-                                                                        onClick={(
-                                                                            event
-                                                                        ) => {
-                                                                            event.stopPropagation();
-                                                                            handleMenuOpen(
-                                                                                event,
-                                                                                log.id
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        <MoreVert />
-                                                                    </IconButton>
-                                                                    <Menu
-                                                                        id={`application-menu-${log.id}`}
-                                                                        anchorEl={
-                                                                            menuStates[
-                                                                                log
-                                                                                    .id
-                                                                            ]
-                                                                                ?.anchorEl
-                                                                        }
-                                                                        open={
-                                                                            menuStates[
-                                                                                log
-                                                                                    .id
-                                                                            ]
-                                                                                ?.open ||
-                                                                            false
-                                                                        }
-                                                                        onClose={() =>
-                                                                            handleMenuClose(
-                                                                                log.id
-                                                                            )
-                                                                        }
-                                                                        MenuListProps={{
-                                                                            "aria-labelledby": `application-menu-${log.id}`,
-                                                                        }}
-                                                                    >
-                                                                        <MenuItem
-                                                                            onClick={(
-                                                                                event
-                                                                            ) => {
-                                                                                event.stopPropagation();
-                                                                                console.log(
-                                                                                    "Editing Application: " +
+                                                                    {log.status ===
+                                                                    "Pending" ? (
+                                                                        <>
+                                                                            <IconButton
+                                                                                aria-label="more"
+                                                                                aria-controls={
+                                                                                    menuStates[
+                                                                                        log
+                                                                                            .id
+                                                                                    ]
+                                                                                        ?.open
+                                                                                        ? `application-menu-${log.id}`
+                                                                                        : undefined
+                                                                                }
+                                                                                aria-haspopup="true"
+                                                                                onClick={(
+                                                                                    event
+                                                                                ) => {
+                                                                                    event.stopPropagation();
+                                                                                    handleMenuOpen(
+                                                                                        event,
                                                                                         log.id
-                                                                                );
-                                                                                handleMenuClose(
-                                                                                    log.id
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            Edit
-                                                                        </MenuItem>
-                                                                        <MenuItem
-                                                                            onClick={(
-                                                                                event
-                                                                            ) => {
-                                                                                event.stopPropagation();
-                                                                                console.log(
-                                                                                    "Withdrawing Application: " +
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <MoreVert />
+                                                                            </IconButton>
+                                                                            <Menu
+                                                                                id={`application-menu-${log.id}`}
+                                                                                anchorEl={
+                                                                                    menuStates[
+                                                                                        log
+                                                                                            .id
+                                                                                    ]
+                                                                                        ?.anchorEl
+                                                                                }
+                                                                                open={
+                                                                                    menuStates[
+                                                                                        log
+                                                                                            .id
+                                                                                    ]
+                                                                                        ?.open ||
+                                                                                    false
+                                                                                }
+                                                                                onClose={(
+                                                                                    event
+                                                                                ) => {
+                                                                                    event.stopPropagation();
+                                                                                    handleMenuClose(
                                                                                         log.id
-                                                                                );
-                                                                                handleMenuClose(
-                                                                                    log.id
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            Withdraw
-                                                                        </MenuItem>
-                                                                    </Menu>
+                                                                                    );
+                                                                                }}
+                                                                                MenuListProps={{
+                                                                                    "aria-labelledby": `application-menu-${log.id}`,
+                                                                                }}
+                                                                            >
+                                                                                <MenuItem
+                                                                                    onClick={(
+                                                                                        event
+                                                                                    ) => {
+                                                                                        event.stopPropagation();
+                                                                                        handleEditApplication(
+                                                                                            log
+                                                                                        );
+                                                                                        handleMenuClose(
+                                                                                            log.id
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    Edit
+                                                                                </MenuItem>
+                                                                                <MenuItem
+                                                                                    onClick={(
+                                                                                        event
+                                                                                    ) => {
+                                                                                        event.stopPropagation();
+                                                                                        handleWithdrawApplication(
+                                                                                            log.id
+                                                                                        );
+                                                                                        handleMenuClose(
+                                                                                            log.id
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    Withdraw
+                                                                                </MenuItem>
+                                                                                <MenuItem
+                                                                                    onClick={(
+                                                                                        event
+                                                                                    ) => {
+                                                                                        event.stopPropagation();
+                                                                                        handleMenuClose(
+                                                                                            log.id
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    Close
+                                                                                    Menu
+                                                                                </MenuItem>
+                                                                            </Menu>
+                                                                        </>
+                                                                    ) : null}
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -473,7 +536,6 @@ const ApplicationList = () => {
                 <ApplicationForm
                     open={openApplicationForm}
                     close={handleCloseApplicationForm}
-                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
                 />
             )}
             {openApplicationDetails && (
@@ -481,7 +543,13 @@ const ApplicationList = () => {
                     open={true}
                     close={handleCloseApplicationDetails}
                     appDetails={openApplicationDetails}
-                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
+                />
+            )}
+            {openApplicationEdit && (
+                <ApplicationEdit
+                    open={true}
+                    close={handleCloseApplicationEdit}
+                    appDetails={openApplicationEdit}
                 />
             )}
         </Layout>

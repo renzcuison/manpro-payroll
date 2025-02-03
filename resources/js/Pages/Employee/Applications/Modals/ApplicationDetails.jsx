@@ -212,6 +212,8 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                             ? "#f44336"
                                             : appDetails.status === "Pending"
                                             ? "#e9ae20"
+                                            : appDetails.status === "Withdrawn"
+                                            ? "#f57c00"
                                             : "#000000",
                                 }}
                             >

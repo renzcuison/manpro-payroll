@@ -38,16 +38,16 @@ dayjs.extend(duration);
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
-const ApplicationForm = ({ open, close }) => {
+const ApplicationEdit = ({ open, close, appDetails }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
-    const [appType, setAppType] = useState("");
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
-    const [description, setDescription] = useState("");
+    const [appType, setAppType] = useState(appDetails.type_id);
+    const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
+    const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
+    const [description, setDescription] = useState(appDetails.description);
     const [attachment, setAttachment] = useState(null);
     const [applicationDuration, setApplicationDuration] = useState("");
     const [applicationTypes, setApplicationTypes] = useState([]);
@@ -456,4 +456,4 @@ const ApplicationForm = ({ open, close }) => {
     );
 };
 
-export default ApplicationForm;
+export default ApplicationEdit;

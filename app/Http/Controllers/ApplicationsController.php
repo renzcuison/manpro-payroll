@@ -138,14 +138,15 @@ class ApplicationsController extends Controller
 
     public function downloadAttachment($id)
     {
+        //Log::info("ApplicationsController::downloadAttachment");
         $application = ApplicationsModel::find($id);
-        Log::info('Application Found');
+        //Log::info('Application Found');
 
         if (!$application || !$application->attachment) {
             return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
         }
 
-        Log::info($application->attachment);
+        //Log::info($application->attachment);
         $filePath = storage_path('app/public/' . $application->attachment);
 
         if (!file_exists($filePath)) {
@@ -156,4 +157,33 @@ class ApplicationsController extends Controller
 
         return response()->download($filePath, $fileName);
     }
+
+    public function withdrawApplication($id)
+    {   
+        Log::info("ApplicationsController::withdrawApplication");
+        Log::info($id);
+
+        $application = ApplicationsModel::find($id);
+
+        if (!$application) {
+            Log::error('Application not found for ID: ' . $id);
+            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+        }
+
+        if ($application->status !== 'Pending') {
+            Log::warning('Application ' . $id . ' cannot be withdrawn.');
+            return response()->json(['status' => 400, 'message' => 'Only pending applications can be withdrawn'], 400);
+        }
+
+        $application->status = 'Withdrawn';
+        $application->save();
+
+        // Log the successful withdrawal
+        Log::info('Application ' . $id . ' has been withdrawn');
+
+        // Return success response
+        return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!', 'application' => $application], 200);
+    }
+
+    
 }
