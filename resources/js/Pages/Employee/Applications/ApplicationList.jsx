@@ -25,7 +25,6 @@ import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
@@ -41,7 +40,16 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+dayjs.extend(duration);
+
 import ApplicationForm from "./Modals/ApplicationForm";
+import ApplicationDetails from "./Modals/ApplicationDetails";
 
 const ApplicationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -52,18 +60,26 @@ const ApplicationList = () => {
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
 
-    // ---------------- Details
-    const [isLoading, setIsLoading] = useState(true);
+    // ---------------- Application Form
     const [openApplicationForm, setOpenApplicationForm] = useState(false);
-
     const handleOpenApplicationForm = () => {
         setOpenApplicationForm(true);
     };
-
     const handleCloseApplicationForm = () => {
         setOpenApplicationForm(false);
     };
 
+    // ---------------- Application Details
+    const [openApplicationDetails, setOpenApplicationDetails] = useState(null);
+    const handleOpenApplicationDetails = (appDetails) => {
+        setOpenApplicationDetails(appDetails);
+    };
+    const handleCloseApplicationDetails = () => {
+        setOpenApplicationDetails(null);
+    };
+
+    // ---------------- Application List
+    const [isLoading, setIsLoading] = useState(true);
     const [applicationList, setApplicationList] = useState([]);
     const [applicationTypes, setApplicationTypes] = useState([]);
 
@@ -78,7 +94,7 @@ const ApplicationList = () => {
             .catch((error) => {
                 console.error("Error fetching application list:", error);
             });
-    }, []);
+    }, [openApplicationForm]);
 
     useEffect(() => {
         axiosInstance
@@ -92,6 +108,26 @@ const ApplicationList = () => {
                 console.error("Error fetching application types:", error);
             });
     }, []);
+
+    const getDuration = (fromDate, toDate) => {
+        const fromDateTime = dayjs(fromDate);
+        const toDateTime = dayjs(toDate);
+        const duration = dayjs.duration(toDateTime.diff(fromDateTime));
+
+        const days = duration.days();
+        const hours = duration.hours();
+        const minutes = duration.minutes();
+
+        let parts = [];
+        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+        if (minutes > 0)
+            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+
+        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
+
+        return durationInfo;
+    };
 
     return (
         <Layout title={"ApplicationList"}>
@@ -201,9 +237,33 @@ const ApplicationList = () => {
                                                             )?.name ||
                                                             "Unknown Type";
 
+                                                        const createDate =
+                                                            dayjs(
+                                                                log.created_at
+                                                            ).format(
+                                                                "MMM D, YYYY    h:mm A"
+                                                            );
+
+                                                        const startDate = dayjs(
+                                                            log.duration_start
+                                                        ).format(
+                                                            "MMM D, YYYY    h:mm A"
+                                                        );
+
+                                                        const duration =
+                                                            getDuration(
+                                                                log.duration_start,
+                                                                log.duration_end
+                                                            );
+
                                                         return (
                                                             <TableRow
                                                                 key={index}
+                                                                onClick={() =>
+                                                                    handleOpenApplicationDetails(
+                                                                        log
+                                                                    )
+                                                                }
                                                                 sx={{
                                                                     p: 1,
                                                                     backgroundColor:
@@ -218,18 +278,36 @@ const ApplicationList = () => {
                                                                     {typeName}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {
-                                                                        log.created_at
-                                                                    }
+                                                                    {createDate}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {
-                                                                        log.duration_start
-                                                                    }
+                                                                    {startDate}
                                                                 </TableCell>
-                                                                <TableCell align="center"></TableCell>
                                                                 <TableCell align="center">
-                                                                    {log.status}
+                                                                    {duration}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    <Typography
+                                                                        sx={{
+                                                                            fontWeight:
+                                                                                "bold",
+                                                                            color:
+                                                                                log.status ===
+                                                                                "Accepted"
+                                                                                    ? "#177604"
+                                                                                    : log.status ===
+                                                                                      "Declined"
+                                                                                    ? "#f44336"
+                                                                                    : log.status ===
+                                                                                      "Pending"
+                                                                                    ? "#e9ae20"
+                                                                                    : "#000000",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            log.status
+                                                                        }
+                                                                    </Typography>
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -261,6 +339,14 @@ const ApplicationList = () => {
                 <ApplicationForm
                     open={openApplicationForm}
                     close={handleCloseApplicationForm}
+                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
+                />
+            )}
+            {openApplicationDetails && (
+                <ApplicationDetails
+                    open={true}
+                    close={handleCloseApplicationDetails}
+                    appDetails={openApplicationDetails}
                     // employee={employee} onUpdateEmployee={getEmployeeDetails}
                 />
             )}

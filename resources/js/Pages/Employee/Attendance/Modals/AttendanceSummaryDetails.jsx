@@ -114,19 +114,13 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                     p: 1,
                                 }}
                             >
-                                <Grid item xs={6}>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{ fontWeight: "medium" }}
-                                    >
+                                <Grid item xs={6} align="center">
+                                    <Typography sx={{ fontWeight: "bold" }}>
                                         Action
                                     </Typography>
                                 </Grid>
-                                <Grid item xs={6}>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{ fontWeight: "medium" }}
-                                    >
+                                <Grid item xs={6} align="center">
+                                    <Typography sx={{ fontWeight: "bold" }}>
                                         Timestamp
                                     </Typography>
                                 </Grid>
@@ -157,19 +151,15 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                             p: 1,
                                             backgroundColor:
                                                 index % 2 === 0
-                                                    ? "#f8f8f8"
-                                                    : "#efefef",
+                                                    ? "#efefef"
+                                                    : "#f8f8f8",
                                         }}
                                     >
-                                        <Grid item xs={6}>
-                                            <Typography>
-                                                {log.action}
-                                            </Typography>
+                                        <Grid item xs={6} align="left">
+                                            {log.action}
                                         </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography>
-                                                {log.timestamp}
-                                            </Typography>
+                                        <Grid item xs={6} align="right">
+                                            {log.timestamp}
                                         </Grid>
                                     </Grid>
                                 ))}

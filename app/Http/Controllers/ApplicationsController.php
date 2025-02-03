@@ -104,10 +104,21 @@ class ApplicationsController extends Controller
         
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)
-                                 ->select('id','type_id','created_at','duration_start','duration_end','status')
                                  ->get();
         
         return response()->json(['status' => 200, 'applications' => $applications]);
+        
+    }
+
+    public function getApplicationDetails(Request $request)
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+        $applicationId = $request->input('app_id');
+        
+        $application = ApplicationsModel::where('id',$applicationId)
+                                 ->first();
+        
+        return response()->json(['status' => 200, 'application' => $application]);
         
     }
 }
