@@ -43,7 +43,7 @@ class PayrollController extends Controller
 
     public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
     {
-        Log::info("PayrollController::getNumberOfDays");
+        // Log::info("PayrollController::getNumberOfDays");
     
         // Initialize counters
         $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
@@ -154,7 +154,7 @@ class PayrollController extends Controller
 
     public function payrollProcess(Request $request)
     {
-        log::info("PayrollController::payrollProcess");
+        // log::info("PayrollController::payrollProcess");
 
         $user = Auth::user();
 
@@ -204,6 +204,7 @@ class PayrollController extends Controller
 
                 $payrolls[] = [
                     'id' => $employee->id,
+                    'employeeId' => $employee->id,
                     'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
                     'employeeBranch' => $employee->branch->name ?? '-',
                     'employeeDepartment' => $employee->department->name ?? '-',
@@ -223,5 +224,61 @@ class PayrollController extends Controller
         }
 
         return response()->json(['status' => 200, 'payrolls' => null]);
+    }
+
+    public function payrollDetails(Request $request)
+    {
+        // log::info("PayrollController::payrollDetails");
+
+        $startDate = $request->currentStartDate;
+        $endDate = $request->currentEndDate;
+
+        $employee = UsersModel::find($request->selectedPayroll);
+        $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
+
+        $distinctDays = $logs->groupBy(function ($log) {
+            return \Carbon\Carbon::parse($log->timestamp)->toDateString();
+        });
+        
+        $numberOfPresent = $distinctDays->count();
+
+        $payrollData = $this->getNumberOfDays(Carbon::parse($startDate), Carbon::parse($endDate));
+
+        $numberOfDays = $payrollData['numberOfDays'];
+        $numberOfSaturday = $payrollData['numberOfSaturday'];
+        $numberOfSunday = $payrollData['numberOfSunday'];
+        $numberOfHoliday = $payrollData['numberOfHoliday'];
+        
+        $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
+        $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+
+        $perDay = $employee->salary / $numberOfWorkingDays;
+        $perHour = $perDay / 8;
+        $perMin = $perHour / 60;
+
+        $deductionsForAbsent = $perDay * $numberOfAbsentDays;
+
+        $grossPay = $employee->salary - $deductionsForAbsent;
+
+        $payroll = [
+            'id' => $employee->id,
+            'employeeId' => $employee->id,
+            'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+            'employeeBranch' => $employee->branch->name ?? '-',
+            'employeeDepartment' => $employee->department->name ?? '-',
+            'employeeRole' => $employee->role->name ?? '-',
+            'employeeSalary' => $employee->salary,
+            'payrollDates' => $startDate  . ' - ' . $endDate,
+            'numberOfPresent' => $numberOfPresent,
+            'numberOfAbsentDays' => $numberOfAbsentDays,
+            'numberOfWorkingDays' => $numberOfWorkingDays,
+            'numberOfDays' => $numberOfDays,
+            'numberOfHoliday' => $numberOfHoliday,
+            'grossPay' => $grossPay,
+        ];
+
+        log::info($payroll);
+
+        return response()->json(['status' => 200, 'payroll' => $payroll]);
     }
 }

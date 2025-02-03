@@ -13,6 +13,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import PayrollDetails from './Modals/PayrollDetails';
 import PayrollProcessFilter from './Modals/PayrollProcessFilter';
 
 const PayrollProcess = () => {
@@ -24,9 +25,11 @@ const PayrollProcess = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [dataUpdated, setDataUpdated] = useState(false);
 
+    const [openPayrollDetailsModal, setOpenPayrollDetailsModal] = useState(false);
     const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
     const [payrolls, setPayrolls] = useState([]);
+    const [selectedPayroll, setSelectedPayroll] = useState('');
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -87,9 +90,22 @@ const PayrollProcess = () => {
             .catch((error) => {
                 console.error('Error fetching payroll calculations:', error);
             });
-
     };
     
+    const handleOpenPayrollDetailsModal = (id) => {
+        console.log("Payroll ID:", id)
+        console.log("Start Date:", startDate)
+        console.log("End Date:", endDate)
+        console.log("Cut Off:", cutOff)
+
+        setSelectedPayroll(id);
+        setOpenPayrollDetailsModal(true);
+    }
+
+    const handleClosePayrollDetailsModal = () => {
+        setOpenPayrollDetailsModal(false);
+    }
+
     const handleOpenPayrollProcessFilterModal = () => {
         setOpenPayrollProcessFilterModal(true);
     }
@@ -135,7 +151,7 @@ const PayrollProcess = () => {
 
                                         <TableBody>
                                             {payrolls.map((payroll) => (
-                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }} >
+                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenPayrollDetailsModal(payroll.id)} >
                                                     <TableCell align="center"></TableCell>
                                                     <TableCell align="left">{payroll.employeeName}</TableCell>
                                                     <TableCell align="center">{payroll.employeeBranch}</TableCell>
@@ -164,6 +180,16 @@ const PayrollProcess = () => {
                         currentSelectedBranches={branches}
                         currentSelectedDepartments={departments}
                         currentSelectedCutOff={cutOff}
+                    />
+                }
+
+                {openPayrollDetailsModal &&
+                    <PayrollDetails
+                        open={openPayrollDetailsModal}
+                        close={handleClosePayrollDetailsModal}
+                        selectedPayroll={selectedPayroll}
+                        currentStartDate={startDate}
+                        currentEndDate={endDate}
                     />
                 }
 

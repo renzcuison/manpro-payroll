@@ -161,6 +161,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('payroll')->group(function () {
+        Route::get('/payrollDetails', [PayrollController::class, 'payrollDetails']);
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
     });
 
