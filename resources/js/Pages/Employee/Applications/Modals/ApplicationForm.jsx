@@ -163,18 +163,16 @@ const ApplicationForm = ({ open, close }) => {
     const saveApplication = (event) => {
         event.preventDefault();
 
-        const formData = new FormData();
-        formData.append("type_id", appType);
-        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("description", description);
-        formData.append("attachment", attachment);
-
-        console.log("Form Created:");
-        console.log(formData);
+        const data = {
+            type_id: appType,
+            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
+            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
+            description: description,
+            attachment: attachment,
+        };
 
         axiosInstance
-            .post("/applications/saveApplication", formData, {
+            .post("/applications/saveApplication", data, {
                 headers,
             })
             .then((response) => {
