@@ -48,7 +48,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
     const [description, setDescription] = useState(appDetails.description);
-    const [attachment, setAttachment] = useState(null);
+    const [attachment, setAttachment] = useState("");
     const [applicationDuration, setApplicationDuration] = useState("");
     const [applicationTypes, setApplicationTypes] = useState([]);
 
@@ -97,6 +97,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         event.preventDefault();
 
         //Data Viewer
+        console.log(appDetails.id);
         console.log(appType);
         console.log(fromDate);
         console.log(toDate);
@@ -124,13 +125,8 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setDescriptionError(false);
         }
-        if (!attachment) {
-            setAttachmentError(true);
-        } else {
-            setAttachmentError(false);
-        }
 
-        if (!appType || !fromDate || !toDate || !description || !attachment) {
+        if (!appType || !fromDate || !toDate || !description) {
             document.activeElement.blur();
 
             Swal.fire({
@@ -145,7 +141,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to submit this application?",
+                text: "Do you want to update this application?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -154,35 +150,39 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveApplication(event);
+                    updateApplication(event);
                 }
             });
         }
     };
 
-    const saveApplication = (event) => {
+    const updateApplication = (event) => {
         event.preventDefault();
-        const data = {
-            type_id: appType,
-            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
-            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
-            attachment: attachment,
-            description: description,
-        };
 
         const formData = new FormData();
+        formData.append("app_id", appDetails.id);
         formData.append("type_id", appType);
         formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("description", description);
-        formData.append("attachment", attachment);
 
-        console.log("Form Created:");
+        if (attachment) {
+            formData.append("attachment", attachment, attachment.name);
+        }
+
+        console.log("Form Updated:");
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ", " + pair[1]);
+        }
+
         console.log(formData);
 
         axiosInstance
-            .post("/applications/saveApplication", formData, {
-                headers,
+            .patch(`/applications/updateApplication`, formData, {
+                headers: {
+                    ...headers,
+                    "Content-Type": "multipart/form-data", // Ensure this header is set for FormData
+                },
             })
             .then((response) => {
                 document.activeElement.blur();
@@ -190,7 +190,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `You application has been submitted!`,
+                    text: `You application has been updated!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",
@@ -364,46 +364,53 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* File Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <TextField
-                                        fullWidth
-                                        label="Upload File"
-                                        value={
-                                            attachment
-                                                ? `${
-                                                      attachment.name
-                                                  }, ${getFileSize(
-                                                      attachment.size
-                                                  )}`
-                                                : ""
-                                        }
-                                        error={attachmentError}
-                                        onClick={handleTextFieldClick}
-                                        InputProps={{
-                                            readOnly: true,
-                                            endAdornment: !attachment && (
-                                                <InputAdornment position="end">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                            startAdornment: attachment && (
-                                                <InputAdornment position="start">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        variant="outlined"
-                                    />
-                                    <input
-                                        type="file"
-                                        name="attachment"
-                                        ref={attachmentInput}
-                                        style={{ display: "none" }}
-                                        onChange={handleAttachmentChange}
-                                    />
-                                </FormControl>
+                            <Grid container item xs={12} rowGap={1}>
+                                <Grid
+                                    item
+                                    xs={12}
+                                >{`Current File: ${appDetails.attachment}`}</Grid>
+                                <Grid item xs={12}>
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            fullWidth
+                                            label="Replace File?"
+                                            value={
+                                                attachment
+                                                    ? `${
+                                                          attachment.name
+                                                      }, ${getFileSize(
+                                                          attachment.size
+                                                      )}`
+                                                    : ""
+                                            }
+                                            error={attachmentError}
+                                            onClick={handleTextFieldClick}
+                                            InputProps={{
+                                                readOnly: true,
+                                                endAdornment: !attachment && (
+                                                    <InputAdornment position="end">
+                                                        <InsertDriveFileIcon />
+                                                    </InputAdornment>
+                                                ),
+                                                startAdornment: attachment && (
+                                                    <InputAdornment position="start">
+                                                        <InsertDriveFileIcon />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            variant="outlined"
+                                        />
+                                        <input
+                                            type="file"
+                                            name="attachment"
+                                            ref={attachmentInput}
+                                            style={{ display: "none" }}
+                                            onChange={handleAttachmentChange}
+                                        />
+                                    </FormControl>
+                                </Grid>
                             </Grid>
+
                             {/* Description Field */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
@@ -445,7 +452,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     variant="contained"
                                     color="primary"
                                 >
-                                    Submit
+                                    Update
                                 </Button>
                             </Grid>
                         </Grid>

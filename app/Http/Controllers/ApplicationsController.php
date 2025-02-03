@@ -95,6 +95,45 @@ class ApplicationsController extends Controller
             
     }
 
+    public function updateApplication(Request $request)
+    {
+        Log::info("Request Data:", $request->all());
+    // or
+    Log::info("Request Input:", $request->input());
+    
+        Log::info("ApplicationsController::updateApplication");
+        Log::info($request);
+        Log::info($request->input('app_id'));
+
+        $user = Auth::user();
+
+        $application = ApplicationsModel::find($request->input('app_id'));
+
+        if (!$application) {
+            Log::error('Application not found for ID: ' . $request->input('app_id'));
+            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+        }
+
+        $application->type_id = $request->input('type_id');
+        $application->duration_start = $request->input('from_date');
+        $application->duration_end = $request->input('to_date');
+        $application->description = $request->input('description');
+
+        if ($request ->hasFile('attachment')) {
+            Log::info('File Detected!');
+            $file = $request->file('attachment');
+            $dateTime = now()->format('YmdHis');
+            $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+            Log::info($fileName);
+            $filePath = $file->storeAs('applications/employees', $fileName, 'public');
+            $application->attachment = $filePath;
+        }
+
+        $application->save();
+
+        return response()->json(['status' => 200, 'message' => 'Application Updated!', 'application' => $application], 200);
+    }
+
     public function getMyApplications()
     {
         //Log::info("ApplicationsController::getApplicationTypes");
@@ -158,10 +197,11 @@ class ApplicationsController extends Controller
         return response()->download($filePath, $fileName);
     }
 
+
     public function withdrawApplication($id)
     {   
-        Log::info("ApplicationsController::withdrawApplication");
-        Log::info($id);
+        //Log::info("ApplicationsController::withdrawApplication");
+        //Log::info($id);
 
         $application = ApplicationsModel::find($id);
 
@@ -178,10 +218,8 @@ class ApplicationsController extends Controller
         $application->status = 'Withdrawn';
         $application->save();
 
-        // Log the successful withdrawal
         Log::info('Application ' . $id . ' has been withdrawn');
 
-        // Return success response
         return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!', 'application' => $application], 200);
     }
 

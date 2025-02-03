@@ -162,13 +162,6 @@ const ApplicationForm = ({ open, close }) => {
 
     const saveApplication = (event) => {
         event.preventDefault();
-        const data = {
-            type_id: appType,
-            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
-            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
-            attachment: attachment,
-            description: description,
-        };
 
         const formData = new FormData();
         formData.append("type_id", appType);
