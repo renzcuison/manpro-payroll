@@ -141,25 +141,25 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-pencil-square-o',
         children: [
             {
-                href: `/hr/applications?`,
-                text: 'Request',
+                href: `/admin/applications?`,
+                text: 'Application Request',
                 icon: 'fa fa-cogs',
             },
-            {
-                href: `/hr/applications-list?`,
-                text: 'List',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/applications-leave?`,
-                text: 'Leave Credit',
-                icon: 'fa fa-cogs',
-            },
-            {
-                href: `/hr/applications-overtime?`,
-                text: 'Overtime',
-                icon: 'fa fa-cogs',
-            }
+            // {
+            //     href: `/hr/applications-list?`,
+            //     text: 'List',
+            //     icon: 'fa fa-cogs',
+            // },
+            // {
+            //     href: `/hr/applications-leave?`,
+            //     text: 'Leave Credit',
+            //     icon: 'fa fa-cogs',
+            // },
+            // {
+            //     href: `/hr/applications-overtime?`,
+            //     text: 'Overtime',
+            //     icon: 'fa fa-cogs',
+            // }
         ]
     }];
 

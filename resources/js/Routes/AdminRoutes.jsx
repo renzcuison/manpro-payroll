@@ -11,6 +11,8 @@ import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
 import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 
+import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
+
 import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
@@ -46,6 +48,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits/:benefitName" element={<ProtectedRoute element={<BenefitView />} user={user} />} />
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
+
+            <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
