@@ -235,11 +235,11 @@ const ApplicationForm = ({ open, close }) => {
                         }}
                     >
                         <Typography
-                            variant="h5"
-                            sx={{ marginLeft: 1, fontWeight: "bold" }}
+                            variant="h4"
+                            sx={{ ml: 1, mt: 2, fontWeight: "bold" }}
                         >
                             {" "}
-                            Submit an Application{" "}
+                            Create Application{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -256,7 +256,7 @@ const ApplicationForm = ({ open, close }) => {
                     >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
-                            <Grid item xs={12}>
+                            <Grid item xs={12} sx={{ mt: 1 }}>
                                 <FormControl
                                     fullWidth
                                     sx={{
@@ -415,6 +415,7 @@ const ApplicationForm = ({ open, close }) => {
                             <Grid
                                 item
                                 xs={12}
+                                align="center"
                                 sx={{
                                     justifyContent: "center",
                                     alignItems: "center",
@@ -423,9 +424,16 @@ const ApplicationForm = ({ open, close }) => {
                                 <Button
                                     type="submit"
                                     variant="contained"
-                                    color="primary"
+                                    sx={{
+                                        backgroundColor: "#177604",
+                                        color: "white",
+                                    }}
+                                    className="m-1"
                                 >
-                                    Submit
+                                    <p className="m-0">
+                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
+                                        Submit Application{" "}
+                                    </p>
                                 </Button>
                             </Grid>
                         </Grid>

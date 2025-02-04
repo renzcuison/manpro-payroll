@@ -238,11 +238,11 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                         }}
                     >
                         <Typography
-                            variant="h5"
-                            sx={{ marginLeft: 1, fontWeight: "bold" }}
+                            variant="h4"
+                            sx={{ ml: 1, mt: 2, fontWeight: "bold" }}
                         >
                             {" "}
-                            Editing Application{" "}
+                            Edit Application{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -259,7 +259,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                     >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
-                            <Grid item xs={12}>
+                            <Grid item xs={12} sx={{ mt: 1 }}>
                                 <FormControl
                                     fullWidth
                                     sx={{
@@ -356,7 +356,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     <FormControl fullWidth>
                                         <TextField
                                             fullWidth
-                                            label="Replace File?"
+                                            label="Upload New File (Optional)"
                                             value={
                                                 attachment
                                                     ? `${
@@ -425,6 +425,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             <Grid
                                 item
                                 xs={12}
+                                align="center"
                                 sx={{
                                     justifyContent: "center",
                                     alignItems: "center",
@@ -433,9 +434,16 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 <Button
                                     type="submit"
                                     variant="contained"
-                                    color="primary"
+                                    sx={{
+                                        backgroundColor: "#177604",
+                                        color: "white",
+                                    }}
+                                    className="m-1"
                                 >
-                                    Update
+                                    <p className="m-0">
+                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
+                                        Update Application{" "}
+                                    </p>
                                 </Button>
                             </Grid>
                         </Grid>
