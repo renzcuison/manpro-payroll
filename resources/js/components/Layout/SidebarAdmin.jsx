@@ -309,10 +309,6 @@ const Sidebar = ({ children, closeMini }) => {
                                 {employeesItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
-
-                                {/* {applicationsItems.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })} */}
                                 
                                 {attendanceLogs.map((items, index) => {
                                     return <SideItem key={index} items={items} />
@@ -321,11 +317,15 @@ const Sidebar = ({ children, closeMini }) => {
                                 {payrollItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
+                                {applicationsItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
                                 
                                 {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
                                 </StyledNav>
-
 
                                 <StyledNav to={`/hr/summary-reports?month=${moment().format('MM')}&year=${moment().year()}`} >
                                     <i className="fa fa-file" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Summary Reports</span>
@@ -342,6 +342,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav> */}
+                                
 
                                 <li className="nav-main-heading">
                                     <span className="sidebar-mini-hidden text-dark">Schedules</span>
