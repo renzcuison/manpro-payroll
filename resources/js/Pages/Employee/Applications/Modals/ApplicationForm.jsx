@@ -97,12 +97,14 @@ const ApplicationForm = ({ open, close }) => {
         event.preventDefault();
 
         //Data Viewer
+        /*
         console.log(appType);
         console.log(fromDate);
         console.log(toDate);
         console.log(applicationDuration);
         console.log(description);
         console.log(attachment);
+        */
 
         if (!appType) {
             setAppTypeError(true);
@@ -132,7 +134,6 @@ const ApplicationForm = ({ open, close }) => {
 
         if (!appType || !fromDate || !toDate || !description || !attachment) {
             document.activeElement.blur();
-
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "All fields must be filled!",
@@ -170,8 +171,8 @@ const ApplicationForm = ({ open, close }) => {
         formData.append("description", description);
         formData.append("attachment", attachment);
 
-        console.log("Form Created:");
-        console.log(formData);
+        //console.log("Form Created:");
+        //console.log(formData);
 
         axiosInstance
             .post("/applications/saveApplication", formData, {

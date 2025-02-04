@@ -34,30 +34,39 @@ class ApplicationsController extends Controller
         //Log::info("ApplicationsController::getApplications");
 
         $user = Auth::user();
-        $clientId = $user->client_id;
 
-        $apps = ApplicationsModel::where('client_id', $clientId)->select('id', 'name')->where('status', 'Pending')->get();
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+            $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->get();
 
-        $applications = [];
+            $applications = [];
 
-        foreach ($apps as $app) {
-            $employee = $app->employee;
-            $type = $app->type;
+            foreach ($apps as $app) {
+                $employee = $app->user;
+                $type = $app->type;
 
-            $applications[] = [
-                'app_id' => $app->id,
-                'app_type' => $type->name,
-                'app_duration_start' => $app->duration_start,
-                'app_duration_end' => $app->duration_end,
-                'app_date_requested' => $app->created_at,
-                'emp_first_name' => $employee->first_name,
-                'emp_middle_name' => $employee->middle_name,
-                'emp_last_name' => $employee->last_name,
-                'emp_suffix' => $employee->suffix,
-            ];
+                $applications[] = [
+                    'app_id' => $app->id,
+                    'app_type' => $type->name,
+                    'app_duration_start' => $app->duration_start,
+                    'app_duration_end' => $app->duration_end,
+                    'app_date_requested' => $app->created_at,
+                    'app_attachment' => basename($app->attachment),
+                    'app_description' => $app->description,
+                    'app_status' => $app->status,
+                    'emp_first_name' => $employee->first_name,
+                    'emp_middle_name' => $employee->middle_name,
+                    'emp_last_name' => $employee->last_name,
+                    'emp_suffix' => $employee->suffix,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'applications' => $applications]);
+        } else {
+            return response()->json(['status' => 200, 'applications' => null]);
         }
 
-        return response()->json(['status' => 200, 'applications' => $applications]);
+        
     }
 
     public function getApplicationTypes()
@@ -82,21 +91,21 @@ class ApplicationsController extends Controller
     {
 
         //Log::info("ApplicationsController::saveApplication");
-        Log::info($request);
+        //Log::info($request);
 
         $user = Auth::user();
 
         try {
             DB::beginTransaction();
 
-            Log::info('Saving Application');
+            //Log::info('Saving Application');
 
             if ($request ->hasFile('attachment')) {
-                Log::info('File Detected!');
+                //Log::info('File Detected!');
                 $file = $request->file('attachment');
                 $dateTime = now()->format('YmdHis');
                 $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                Log::info($fileName);
+                //Log::info($fileName);
                 $filePath = $file->storeAs('applications/employees', $fileName, 'public');
             }
 
@@ -127,9 +136,9 @@ class ApplicationsController extends Controller
 
     public function updateApplication(Request $request)
     {
-        Log::info("ApplicationsController::updateApplication");
-        Log::info($request);
-        Log::info($request->input('app_id'));
+        //Log::info("ApplicationsController::updateApplication");
+        //Log::info($request);
+        //Log::info($request->input('app_id'));
 
         $user = Auth::user();
 
@@ -146,11 +155,11 @@ class ApplicationsController extends Controller
         $application->description = $request->input('description');
 
         if ($request ->hasFile('attachment')) {
-            Log::info('File Detected!');
+            //Log::info('File Detected!');
             $file = $request->file('attachment');
             $dateTime = now()->format('YmdHis');
             $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-            Log::info($fileName);
+            //Log::info($fileName);
             $filePath = $file->storeAs('applications/employees', $fileName, 'public');
             $application->attachment = $filePath;
         }
@@ -185,7 +194,7 @@ class ApplicationsController extends Controller
 
     public function downloadAttachment($id)
     {
-        Log::info("ApplicationsController::downloadAttachment");
+        //Log::info("ApplicationsController::downloadAttachment");
         $application = ApplicationsModel::find($id);
         //Log::info('Application Found');
 
@@ -195,7 +204,7 @@ class ApplicationsController extends Controller
 
         //Log::info($application->attachment);
         $filePath = storage_path('app/public/' . $application->attachment);
-        log::info($filePath);
+        //log::info($filePath);
 
         if (!file_exists($filePath)) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
@@ -227,9 +236,27 @@ class ApplicationsController extends Controller
         $application->status = 'Withdrawn';
         $application->save();
 
-        Log::info('Application ' . $id . ' has been withdrawn');
+        //Log::info('Application ' . $id . ' has been withdrawn');
 
-        return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!', 'application' => $application], 200);
+        return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!'], 200);
+    }
+
+    public function manageApplication($id, $action)
+    {   
+        Log::info("ApplicationsController::manageApplication");
+        Log::info($id);
+        Log::info($action);
+        
+        $user = Auth::user();
+
+        /*
+        if ($this->checkUser()) {
+            return response()->json(['status' => 200, 'message' => $message], 200);
+        } else {
+            return response()->json(['status' => 200, 'message' => 'Insufficient Permissions!'], 200);
+        }
+        */
+
     }
 
     

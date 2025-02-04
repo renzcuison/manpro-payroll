@@ -97,6 +97,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         event.preventDefault();
 
         //Data Viewer
+        /*
         console.log(appDetails.id);
         console.log(appType);
         console.log(fromDate);
@@ -104,6 +105,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         console.log(applicationDuration);
         console.log(description);
         console.log(attachment);
+        */
 
         if (!appType) {
             setAppTypeError(true);
@@ -170,7 +172,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             data.attachment = attachment;
         }
 
-        console.log(data);
+        //console.log(data);
 
         axiosInstance
             .post(`/applications/updateApplication`, data, {

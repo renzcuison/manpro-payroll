@@ -36,7 +36,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ApplicationDetails = ({ open, close, appDetails }) => {
+const ApplicationManage = ({ open, close, appDetails }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -48,9 +48,9 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
     // ----------- Dynamic Attachment Icon
     useEffect(() => {
-        if (appDetails && appDetails.attachment) {
-            setAttachmentName(appDetails.attachment);
-            const fileType = appDetails.attachment
+        if (appDetails && appDetails.app_attachment) {
+            setAttachmentName(appDetails.app_attachment);
+            const fileType = appDetails.app_attachment
                 .split(".")
                 .pop()
                 .toLowerCase();
@@ -75,10 +75,10 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
         }
     }, []);
 
-    // ----------- Duration
+    // ----------- Duration Calculator
     useEffect(() => {
-        const fromDateTime = dayjs(appDetails.duration_start);
-        const toDateTime = dayjs(appDetails.duration_end);
+        const fromDateTime = dayjs(appDetails.app_duration_start);
+        const toDateTime = dayjs(appDetails.app_duration_end);
         const duration = dayjs.duration(toDateTime.diff(fromDateTime));
 
         const days = duration.days();
@@ -96,11 +96,85 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
         setApplicationDuration(durationInfo);
     }, []);
 
+    const [appResponse, setAppResponse] = useState("");
+    const [appResponseError, setAppResponseError] = useState(false);
+    // ----------- Application Accept/Decline
+    const handleApplicationResponse = () => {
+        if (!appResponse) {
+            setAppResponseError(true);
+        } else {
+            setAppResponseError(false);
+        }
+        if (!appResponse) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "Select an Action!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: `${appResponse} application?`,
+                text: "This action cannot be undone",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: appResponse,
+                confirmButtonColor: `${
+                    appResponse == "Accept" ? "#177604" : "#f44336"
+                }`,
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    axiosInstance
+                        .get(
+                            `applications/manageApplication/${appDetails.app_id}/${appResponse}`,
+                            {
+                                headers,
+                            }
+                        )
+                        .then((response) => {
+                            console.log(
+                                `Application ${appDetails.app_id} has been ${
+                                    appResponse == "Accept"
+                                        ? "Accepted"
+                                        : "Declined"
+                                }.`
+                            );
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: `The application has been ${
+                                    appResponse == "Accept"
+                                        ? "Accepted"
+                                        : "Declined"
+                                }.`,
+                                icon: "success",
+                                showConfirmButton: true,
+                                confirmButtonText: "Okay",
+                                confirmButtonColor: "#177604",
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            console.error("Error managing application:", error);
+                        });
+                }
+            });
+        }
+    };
+
     const handleFileDownload = async () => {
         try {
             //console.log("Downloading attachment for Application No. " + appDetails.app_id);
             const response = await axiosInstance.get(
-                `/applications/downloadAttachment/${appDetails.id}`,
+                `/applications/downloadAttachment/${appDetails.app_id}`,
                 {
                     responseType: "blob",
                     headers,
@@ -165,7 +239,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
-                                {appDetails.type_name}
+                                {appDetails.app_type}
                             </Typography>
                         </Grid>
                         <Grid item xs={5} align="left">
@@ -173,7 +247,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.duration_start).format(
+                                {dayjs(appDetails.app_duration_start).format(
                                     "MMM D, YYYY    h:mm A"
                                 )}
                             </Typography>
@@ -183,7 +257,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.created_at).format(
+                                {dayjs(appDetails.app_date_requested).format(
                                     "MMM D, YYYY    h:mm A"
                                 )}
                             </Typography>
@@ -193,31 +267,9 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.duration_end).format(
+                                {dayjs(appDetails.app_duration_end).format(
                                     "MMM D, YYYY    h:mm A"
                                 )}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={5} align="left">
-                            Status
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography
-                                sx={{
-                                    fontWeight: "bold",
-                                    color:
-                                        appDetails.status === "Accepted"
-                                            ? "#177604"
-                                            : appDetails.status === "Declined"
-                                            ? "#f44336"
-                                            : appDetails.status === "Pending"
-                                            ? "#e9ae20"
-                                            : appDetails.status === "Withdrawn"
-                                            ? "#f57c00"
-                                            : "#000000",
-                                }}
-                            >
-                                {appDetails.status}
                             </Typography>
                         </Grid>
                         <Grid item xs={5} align="left">
@@ -258,10 +310,10 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                     sx={{ textDecoration: "underline" }}
                                 >
                                     {attachmentName.length > 20
-                                        ? `${appDetails.attachment
-                                              .split("/")
-                                              .pop()
-                                              .slice(0, 20)}...`
+                                        ? `${appDetails.app_attachment.slice(
+                                              0,
+                                              20
+                                          )}...`
                                         : attachmentName}
                                 </Typography>
                             </Box>
@@ -271,7 +323,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                             item
                             xs={12}
                             sx={{
-                                mt: 1,
+                                mb: 1,
                             }}
                         >
                             <Grid item xs={12}>
@@ -284,8 +336,52 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 </div>
                             </Grid>
                             <Grid item xs={12} sx={{ mt: 1 }}>
-                                {appDetails.description}
+                                {appDetails.app_description}
                             </Grid>
+                        </Grid>
+                        <Grid
+                            container
+                            item
+                            xs={12}
+                            sx={{ alignItems: "center" }}
+                        >
+                            <Grid item xs={5} align="left">
+                                Action
+                            </Grid>
+                            <Grid item xs={7} align="left">
+                                <FormControl fullWidth>
+                                    <InputLabel id="demo-simple-select-label">
+                                        Select Action
+                                    </InputLabel>
+                                    <Select
+                                        labelId="demo-simple-select-label"
+                                        id="demo-simple-select"
+                                        value={appResponse}
+                                        error={appResponseError}
+                                        label="Age"
+                                        onChange={(event) =>
+                                            setAppResponse(event.target.value)
+                                        }
+                                    >
+                                        <MenuItem value="Accept">
+                                            Accept
+                                        </MenuItem>
+                                        <MenuItem value="Decline">
+                                            Decline
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={12} align="center">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                sx={{ width: "30%" }}
+                                onClick={handleApplicationResponse}
+                            >
+                                Submit
+                            </Button>
                         </Grid>
                     </Grid>
                 </DialogContent>
@@ -294,4 +390,4 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
     );
 };
 
-export default ApplicationDetails;
+export default ApplicationManage;

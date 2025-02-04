@@ -143,6 +143,19 @@ const ApplicationList = () => {
                     })
                     .then((response) => {
                         //console.log("Successful Withdrawal!");
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Your application has been withdrawn`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                fetchApplicationList();
+                            }
+                        });
                     })
                     .catch((error) => {
                         console.error("Error withdrawing application:", error);
@@ -151,7 +164,12 @@ const ApplicationList = () => {
         });
     };
 
+    // ---------------- Application List
     useEffect(() => {
+        fetchApplicationList();
+    }, [openApplicationForm, openApplicationEdit]);
+
+    const fetchApplicationList = () => {
         axiosInstance
             .get(`applications/getMyApplications`, { headers })
             .then((response) => {
@@ -162,8 +180,9 @@ const ApplicationList = () => {
             .catch((error) => {
                 console.error("Error fetching application list:", error);
             });
-    }, [openApplicationForm]);
+    };
 
+    // ---------------- Application Types
     useEffect(() => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
@@ -302,55 +321,59 @@ const ApplicationList = () => {
                                         <TableBody>
                                             {applicationList.length > 0 ? (
                                                 applicationList.map(
-                                                    (log, index) => {
+                                                    (application, index) => {
                                                         const typeName =
                                                             applicationTypes.find(
                                                                 (type) =>
                                                                     type.id ===
-                                                                    log.type_id
+                                                                    application.type_id
                                                             )?.name ||
                                                             "Unknown Type";
 
-                                                        log.type_name =
+                                                        application.type_name =
                                                             typeName;
-                                                        //console.log(log.type_name);
+                                                        //console.log(application.type_name);
 
                                                         const createDate =
                                                             dayjs(
-                                                                log.created_at
+                                                                application.created_at
                                                             ).format(
                                                                 "MMM D, YYYY    h:mm A"
                                                             );
 
                                                         const startDate = dayjs(
-                                                            log.duration_start
+                                                            application.duration_start
                                                         ).format(
                                                             "MMM D, YYYY    h:mm A"
                                                         );
 
                                                         if (
-                                                            !menuStates[log.id]
+                                                            !menuStates[
+                                                                application.id
+                                                            ]
                                                         ) {
-                                                            menuStates[log.id] =
-                                                                {
-                                                                    open: false,
-                                                                    anchorEl:
-                                                                        null,
-                                                                };
+                                                            menuStates[
+                                                                application.id
+                                                            ] = {
+                                                                open: false,
+                                                                anchorEl: null,
+                                                            };
                                                         }
 
                                                         const duration =
                                                             getDuration(
-                                                                log.duration_start,
-                                                                log.duration_end
+                                                                application.duration_start,
+                                                                application.duration_end
                                                             );
 
                                                         return (
                                                             <TableRow
-                                                                key={log.id}
+                                                                key={
+                                                                    application.id
+                                                                }
                                                                 onClick={() =>
                                                                     handleOpenApplicationDetails(
-                                                                        log
+                                                                        application
                                                                     )
                                                                 }
                                                                 sx={{
@@ -369,16 +392,20 @@ const ApplicationList = () => {
                                                                 }}
                                                             >
                                                                 <TableCell align="center">
-                                                                    {typeName}
+                                                                    {typeName ||
+                                                                        "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {createDate}
+                                                                    {createDate ||
+                                                                        "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {startDate}
+                                                                    {startDate ||
+                                                                        "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {duration}
+                                                                    {duration ||
+                                                                        "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     <Typography
@@ -386,39 +413,38 @@ const ApplicationList = () => {
                                                                             fontWeight:
                                                                                 "bold",
                                                                             color:
-                                                                                log.status ===
+                                                                                application.status ===
                                                                                 "Accepted"
                                                                                     ? "#177604"
-                                                                                    : log.status ===
+                                                                                    : application.status ===
                                                                                       "Declined"
                                                                                     ? "#f44336"
-                                                                                    : log.status ===
+                                                                                    : application.status ===
                                                                                       "Pending"
                                                                                     ? "#e9ae20"
-                                                                                    : log.status ===
+                                                                                    : application.status ===
                                                                                       "Withdrawn"
                                                                                     ? "#f57c00"
                                                                                     : "#000000",
                                                                         }}
                                                                     >
-                                                                        {
-                                                                            log.status
-                                                                        }
+                                                                        {application.status ||
+                                                                            "-"}
                                                                     </Typography>
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {log.status ===
+                                                                    {application.status ===
                                                                     "Pending" ? (
                                                                         <>
                                                                             <IconButton
                                                                                 aria-label="more"
                                                                                 aria-controls={
                                                                                     menuStates[
-                                                                                        log
+                                                                                        application
                                                                                             .id
                                                                                     ]
                                                                                         ?.open
-                                                                                        ? `application-menu-${log.id}`
+                                                                                        ? `application-menu-${application.id}`
                                                                                         : undefined
                                                                                 }
                                                                                 aria-haspopup="true"
@@ -428,24 +454,24 @@ const ApplicationList = () => {
                                                                                     event.stopPropagation();
                                                                                     handleMenuOpen(
                                                                                         event,
-                                                                                        log.id
+                                                                                        application.id
                                                                                     );
                                                                                 }}
                                                                             >
                                                                                 <MoreVert />
                                                                             </IconButton>
                                                                             <Menu
-                                                                                id={`application-menu-${log.id}`}
+                                                                                id={`application-menu-${application.id}`}
                                                                                 anchorEl={
                                                                                     menuStates[
-                                                                                        log
+                                                                                        application
                                                                                             .id
                                                                                     ]
                                                                                         ?.anchorEl
                                                                                 }
                                                                                 open={
                                                                                     menuStates[
-                                                                                        log
+                                                                                        application
                                                                                             .id
                                                                                     ]
                                                                                         ?.open ||
@@ -456,11 +482,11 @@ const ApplicationList = () => {
                                                                                 ) => {
                                                                                     event.stopPropagation();
                                                                                     handleMenuClose(
-                                                                                        log.id
+                                                                                        application.id
                                                                                     );
                                                                                 }}
                                                                                 MenuListProps={{
-                                                                                    "aria-labelledby": `application-menu-${log.id}`,
+                                                                                    "aria-labelledby": `application-menu-${application.id}`,
                                                                                 }}
                                                                             >
                                                                                 <MenuItem
@@ -469,10 +495,10 @@ const ApplicationList = () => {
                                                                                     ) => {
                                                                                         event.stopPropagation();
                                                                                         handleEditApplication(
-                                                                                            log
+                                                                                            application
                                                                                         );
                                                                                         handleMenuClose(
-                                                                                            log.id
+                                                                                            application.id
                                                                                         );
                                                                                     }}
                                                                                 >
@@ -484,10 +510,10 @@ const ApplicationList = () => {
                                                                                     ) => {
                                                                                         event.stopPropagation();
                                                                                         handleWithdrawApplication(
-                                                                                            log.id
+                                                                                            application.id
                                                                                         );
                                                                                         handleMenuClose(
-                                                                                            log.id
+                                                                                            application.id
                                                                                         );
                                                                                     }}
                                                                                 >
@@ -499,7 +525,7 @@ const ApplicationList = () => {
                                                                                     ) => {
                                                                                         event.stopPropagation();
                                                                                         handleMenuClose(
-                                                                                            log.id
+                                                                                            application.id
                                                                                         );
                                                                                     }}
                                                                                 >

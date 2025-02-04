@@ -176,6 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
         Route::post('/updateApplication', [ApplicationsController::class, 'updateApplication']);
         Route::get('/withdrawApplication/{id}', [ApplicationsController::class, 'withdrawApplication']);
+        Route::get('/manageApplication/{id}/{action}', [ApplicationsController::class, 'manageApplication']);
     });
 
 

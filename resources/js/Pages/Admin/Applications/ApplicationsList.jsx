@@ -1,11 +1,46 @@
-import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import React, { useEffect, useState } from "react";
+import {
+    Table,
+    TableHead,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableRow,
+    TablePagination,
+    Box,
+    Typography,
+    Button,
+    Menu,
+    MenuItem,
+    TextField,
+    Stack,
+    Grid,
+    CircularProgress,
+} from "@mui/material";
+import Layout from "../../../components/Layout/Layout";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import PageHead from "../../../components/Table/PageHead";
+import PageToolbar from "../../../components/Table/PageToolbar";
+import {
+    Link,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
+import {
+    getComparator,
+    stableSort,
+} from "../../../components/utils/tableUtils";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+dayjs.extend(duration);
+
+import ApplicationManage from "./Modals/ApplicationManage";
 
 const ApplicationsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -13,72 +48,215 @@ const ApplicationsList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
+    const [applications, setApplications] = useState([]);
 
+    // ---------------- Application Details
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
+        axiosInstance
+            .get("/applications/getApplications", { headers })
             .then((response) => {
-                setEmployees(response.data.employees);
+                //console.log(response.data);
+                setApplications(response.data.applications);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching clients:', error);
+                console.error("Error fetching applications:", error);
                 setIsLoading(false);
             });
-    }, []);
+    }, [openApplicationManage]);
+
+    // ---------------- Application Details
+    const [openApplicationManage, setOpenApplicationManage] = useState(null);
+    const handleOpenApplicationManage = (appDetails) => {
+        setOpenApplicationManage(appDetails);
+    };
+    const handleCloseApplicationManage = () => {
+        setOpenApplicationManage(null);
+    };
 
     return (
         <Layout title={"EmployeesList"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
-
-                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Applications </Typography>
+            <Box
+                sx={{
+                    overflowX: "scroll",
+                    width: "100%",
+                    whiteSpace: "nowrap",
+                }}
+            >
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
+                    <Box
+                        sx={{
+                            mt: 5,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            px: 1,
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            {" "}
+                            Applications{" "}
+                        </Typography>
                         <></>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                    <Box
+                        sx={{
+                            mt: 6,
+                            p: 3,
+                            bgcolor: "#ffffff",
+                            borderRadius: "8px",
+                        }}
+                    >
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    minHeight: 200,
+                                }}
+                            >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                {" "}
+                                <TableContainer
+                                    style={{ overflowX: "auto" }}
+                                    sx={{ minHeight: 400 }}
+                                >
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Status</TableCell>
-                                                <TableCell align="center">Type</TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "20%" }}
+                                                >
+                                                    Employee
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "20%" }}
+                                                >
+                                                    Application Type
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "20%" }}
+                                                >
+                                                    Start Date/Time
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "20%" }}
+                                                >
+                                                    End Date/Time
+                                                </TableCell>
+                                                <TableCell
+                                                    align="center"
+                                                    sx={{ width: "20%" }}
+                                                >
+                                                    Date of Application
+                                                </TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {employees.map((employee) => (
-                                                <TableRow key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {applications.map(
+                                                (application, index) => {
+                                                    const createDate = dayjs(
+                                                        application.app_date_requested
+                                                    ).format(
+                                                        "MMM D, YYYY    h:mm A"
+                                                    );
+
+                                                    const startDate = dayjs(
+                                                        application.app_duration_start
+                                                    ).format(
+                                                        "MMM D, YYYY    h:mm A"
+                                                    );
+
+                                                    const endDate = dayjs(
+                                                        application.app_duration_end
+                                                    ).format(
+                                                        "MMM D, YYYY    h:mm A"
+                                                    );
+
+                                                    return (
+                                                        <TableRow
+                                                            key={
+                                                                application.app_id
+                                                            }
+                                                            onClick={() =>
+                                                                handleOpenApplicationManage(
+                                                                    application
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                p: 1,
+                                                                backgroundColor:
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                                "&:hover": {
+                                                                    backgroundColor:
+                                                                        "rgba(0, 0, 0, 0.1)",
+                                                                    cursor: "pointer",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <TableCell align="left">
+                                                                {" "}
+                                                                {
+                                                                    application.emp_first_name
+                                                                }{" "}
+                                                                {application.emp_middle_name ||
+                                                                    ""}{" "}
+                                                                {
+                                                                    application.emp_last_name
+                                                                }{" "}
+                                                                {application.emp_suffix ||
+                                                                    ""}{" "}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {application.app_type ||
+                                                                    "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {startDate ||
+                                                                    "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {endDate || "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {createDate ||
+                                                                    "-"}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                             </>
                         )}
                     </Box>
-
                 </Box>
             </Box>
-        </Layout >
-    )
-}
+            {openApplicationManage && (
+                <ApplicationManage
+                    open={true}
+                    close={handleCloseApplicationManage}
+                    appDetails={openApplicationManage}
+                />
+            )}
+        </Layout>
+    );
+};
 
-export default ApplicationsList
+export default ApplicationsList;
