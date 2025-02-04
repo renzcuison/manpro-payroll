@@ -124,7 +124,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                 showConfirmButton: true,
                 confirmButtonText: appResponse,
                 confirmButtonColor: `${
-                    appResponse == "Accept" ? "#177604" : "#f44336"
+                    appResponse == "Approve" ? "#177604" : "#f44336"
                 }`,
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
@@ -140,8 +140,8 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                         .then((response) => {
                             console.log(
                                 `Application ${appDetails.app_id} has been ${
-                                    appResponse == "Accept"
-                                        ? "Accepted"
+                                    appResponse == "Approve"
+                                        ? "Approved"
                                         : "Declined"
                                 }.`
                             );
@@ -149,8 +149,8 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 customClass: { container: "my-swal" },
                                 title: "Success!",
                                 text: `The application has been ${
-                                    appResponse == "Accept"
-                                        ? "Accepted"
+                                    appResponse == "Approve"
+                                        ? "Approved"
                                         : "Declined"
                                 }.`,
                                 icon: "success",
@@ -159,6 +159,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 confirmButtonColor: "#177604",
                             }).then((res) => {
                                 if (res.isConfirmed) {
+                                    close();
                                 }
                             });
                         })
@@ -363,8 +364,8 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                             setAppResponse(event.target.value)
                                         }
                                     >
-                                        <MenuItem value="Accept">
-                                            Accept
+                                        <MenuItem value="Approve">
+                                            Approve
                                         </MenuItem>
                                         <MenuItem value="Decline">
                                             Decline

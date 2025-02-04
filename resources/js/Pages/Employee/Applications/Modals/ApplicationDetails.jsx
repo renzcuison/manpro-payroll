@@ -206,7 +206,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 sx={{
                                     fontWeight: "bold",
                                     color:
-                                        appDetails.status === "Accepted"
+                                        appDetails.status === "Approved"
                                             ? "#177604"
                                             : appDetails.status === "Declined"
                                             ? "#f44336"

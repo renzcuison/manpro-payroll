@@ -414,7 +414,7 @@ const ApplicationList = () => {
                                                                                 "bold",
                                                                             color:
                                                                                 application.status ===
-                                                                                "Accepted"
+                                                                                "Approved"
                                                                                     ? "#177604"
                                                                                     : application.status ===
                                                                                       "Declined"

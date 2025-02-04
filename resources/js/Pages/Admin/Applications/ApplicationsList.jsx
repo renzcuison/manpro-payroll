@@ -50,8 +50,12 @@ const ApplicationsList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [applications, setApplications] = useState([]);
 
-    // ---------------- Application Details
+    // ---------------- Application List
     useEffect(() => {
+        fetchApplications();
+    }, []);
+
+    const fetchApplications = () => {
         axiosInstance
             .get("/applications/getApplications", { headers })
             .then((response) => {
@@ -63,7 +67,7 @@ const ApplicationsList = () => {
                 console.error("Error fetching applications:", error);
                 setIsLoading(false);
             });
-    }, [openApplicationManage]);
+    };
 
     // ---------------- Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
@@ -72,6 +76,7 @@ const ApplicationsList = () => {
     };
     const handleCloseApplicationManage = () => {
         setOpenApplicationManage(null);
+        fetchApplications();
     };
 
     return (

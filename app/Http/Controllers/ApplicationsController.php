@@ -249,13 +249,31 @@ class ApplicationsController extends Controller
         
         $user = Auth::user();
 
-        /*
+        
         if ($this->checkUser()) {
+            $application = ApplicationsModel::find($id);
+
+            if (!$application) {
+                Log::error('Application not found for ID: ' . $id);
+                return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+            }
+
+            switch($action) {
+                case 'Approve':
+                    $application->status = "Approved";
+                    $message = "Application Approved";
+                    break;
+                case 'Decline':
+                    $application->status = "Declined";
+                    $message = "Application Declined";
+                    break;
+            }
+            $application->save();
+            
             return response()->json(['status' => 200, 'message' => $message], 200);
         } else {
             return response()->json(['status' => 200, 'message' => 'Insufficient Permissions!'], 200);
         }
-        */
 
     }
 
