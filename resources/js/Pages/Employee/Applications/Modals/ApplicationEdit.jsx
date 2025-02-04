@@ -48,7 +48,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
     const [description, setDescription] = useState(appDetails.description);
-    const [attachment, setAttachment] = useState("");
+    const [attachment, setAttachment] = useState(null);
     const [applicationDuration, setApplicationDuration] = useState("");
     const [applicationTypes, setApplicationTypes] = useState([]);
 

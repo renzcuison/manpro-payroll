@@ -60,7 +60,6 @@ class ApplicationsController extends Controller
 
             Log::info('Saving Application');
 
-            $path = '';
             if ($request ->hasFile('attachment')) {
                 Log::info('File Detected!');
                 $file = $request->file('attachment');
