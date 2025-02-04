@@ -31,7 +31,6 @@ const Attendance = ({ open, close }) => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
             .then((response) => {
-                //console.log(response.data);
                 setWorkShift(response.data.workShift);
                 setWorkHour(response.data.workHours);
             })
@@ -65,7 +64,6 @@ const Attendance = ({ open, close }) => {
                 params: { work_date: dayjs().format("YYYY-MM-DD") },
             })
             .then((response) => {
-                // console.log(response.data);
                 setEmployeeAttendance(response.data.attendance);
                 if (response.data.attendance.length > 0) {
                     // Check if a 'Duty Out' entry exists ---------------------------------

@@ -60,7 +60,6 @@ const AttendanceSummary = () => {
 
     // ---------------- Attendance Summary API
     const fetchAttendanceSummary = async () => {
-        console.log("oh hi");
         try {
             const response = await axiosInstance.get(
                 "/attendance/getEmployeeAttendanceSummary",
@@ -73,7 +72,6 @@ const AttendanceSummary = () => {
                 }
             );
             setSummaryData(response.data.summary);
-            console.log(response.data);
         } catch (error) {
             console.error("Error fetching attendance summary:", error);
         } finally {

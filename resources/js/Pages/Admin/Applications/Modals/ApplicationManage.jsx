@@ -138,13 +138,6 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                             }
                         )
                         .then((response) => {
-                            console.log(
-                                `Application ${appDetails.app_id} has been ${
-                                    appResponse == "Approve"
-                                        ? "Approved"
-                                        : "Declined"
-                                }.`
-                            );
                             Swal.fire({
                                 customClass: { container: "my-swal" },
                                 title: "Success!",
@@ -173,7 +166,6 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
     const handleFileDownload = async () => {
         try {
-            //console.log("Downloading attachment for Application No. " + appDetails.app_id);
             const response = await axiosInstance.get(
                 `/applications/downloadAttachment/${appDetails.app_id}`,
                 {

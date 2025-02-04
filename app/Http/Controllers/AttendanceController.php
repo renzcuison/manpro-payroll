@@ -88,7 +88,7 @@ class AttendanceController extends Controller
             } catch (\Exception $e) {
                 DB::rollBack();
 
-                Log::error("Error saving: " . $e->getMessage());
+                //Log::error("Error saving: " . $e->getMessage());
 
                 throw $e;
             }
@@ -116,8 +116,6 @@ class AttendanceController extends Controller
     public function getEmployeeAttendanceLogs(Request $request) 
     {
         // Log::info("AttendanceController::getAttendanceLogs");
-
-        // Log::info($request);
 
         $user = Auth::user();
         $fromDate = $request->input('from_date'); 

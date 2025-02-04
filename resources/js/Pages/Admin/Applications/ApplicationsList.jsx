@@ -59,7 +59,6 @@ const ApplicationsList = () => {
         axiosInstance
             .get("/applications/getApplications", { headers })
             .then((response) => {
-                //console.log(response.data);
                 setApplications(response.data.applications);
                 setIsLoading(false);
             })

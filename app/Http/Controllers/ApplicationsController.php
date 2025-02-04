@@ -76,8 +76,6 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
 
-        //log::info("clientId: " . $clientId);
-
         $types = ApplicationTypesModel::where('client_id', $clientId)
             ->select('id', 'name')
             ->where('deleted_at', NULL)
@@ -91,21 +89,15 @@ class ApplicationsController extends Controller
     {
 
         //Log::info("ApplicationsController::saveApplication");
-        //Log::info($request);
 
         $user = Auth::user();
 
         try {
             DB::beginTransaction();
-
-            //Log::info('Saving Application');
-
             if ($request ->hasFile('attachment')) {
-                //Log::info('File Detected!');
                 $file = $request->file('attachment');
                 $dateTime = now()->format('YmdHis');
                 $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                //Log::info($fileName);
                 $filePath = $file->storeAs('applications/employees', $fileName, 'public');
             }
 
@@ -127,7 +119,7 @@ class ApplicationsController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving: " . $e->getMessage());
+            //Log::error("Error saving: " . $e->getMessage());
 
             throw $e;
         }
@@ -137,15 +129,13 @@ class ApplicationsController extends Controller
     public function updateApplication(Request $request)
     {
         //Log::info("ApplicationsController::updateApplication");
-        //Log::info($request);
-        //Log::info($request->input('app_id'));
 
         $user = Auth::user();
 
         $application = ApplicationsModel::find($request->input('app_id'));
 
         if (!$application) {
-            Log::error('Application not found for ID: ' . $request->input('app_id'));
+            //Log::error('Application not found for ID: ' . $request->input('app_id'));
             return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
         }
 
@@ -155,11 +145,9 @@ class ApplicationsController extends Controller
         $application->description = $request->input('description');
 
         if ($request ->hasFile('attachment')) {
-            //Log::info('File Detected!');
             $file = $request->file('attachment');
             $dateTime = now()->format('YmdHis');
             $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-            //Log::info($fileName);
             $filePath = $file->storeAs('applications/employees', $fileName, 'public');
             $application->attachment = $filePath;
         }
@@ -175,9 +163,6 @@ class ApplicationsController extends Controller
 
         $user = Auth::user();
         $clientId = $user->client_id;
-
-        //log::info("clientId: " . $clientId);
-        //log::info("userId:   " . $user->id);
         
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)
@@ -196,15 +181,12 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::downloadAttachment");
         $application = ApplicationsModel::find($id);
-        //Log::info('Application Found');
 
         if (!$application || !$application->attachment) {
             return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
         }
 
-        //Log::info($application->attachment);
         $filePath = storage_path('app/public/' . $application->attachment);
-        //log::info($filePath);
 
         if (!file_exists($filePath)) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
@@ -219,33 +201,28 @@ class ApplicationsController extends Controller
     public function withdrawApplication($id)
     {   
         //Log::info("ApplicationsController::withdrawApplication");
-        //Log::info($id);
 
         $application = ApplicationsModel::find($id);
 
         if (!$application) {
-            Log::error('Application not found for ID: ' . $id);
+            //Log::error('Application not found for ID: ' . $id);
             return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
         }
 
         if ($application->status !== 'Pending') {
-            Log::warning('Application ' . $id . ' cannot be withdrawn.');
+            //Log::warning('Application ' . $id . ' cannot be withdrawn.');
             return response()->json(['status' => 400, 'message' => 'Only pending applications can be withdrawn'], 400);
         }
 
         $application->status = 'Withdrawn';
         $application->save();
 
-        //Log::info('Application ' . $id . ' has been withdrawn');
-
         return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!'], 200);
     }
 
     public function manageApplication($id, $action)
     {   
-        Log::info("ApplicationsController::manageApplication");
-        Log::info($id);
-        Log::info($action);
+        //Log::info("ApplicationsController::manageApplication");
         
         $user = Auth::user();
 
@@ -254,7 +231,7 @@ class ApplicationsController extends Controller
             $application = ApplicationsModel::find($id);
 
             if (!$application) {
-                Log::error('Application not found for ID: ' . $id);
+                //Log::error('Application not found for ID: ' . $id);
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 

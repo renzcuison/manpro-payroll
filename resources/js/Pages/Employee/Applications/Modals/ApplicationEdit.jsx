@@ -85,7 +85,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                //console.log(response.data);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -95,17 +94,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
-
-        //Data Viewer
-        /*
-        console.log(appDetails.id);
-        console.log(appType);
-        console.log(fromDate);
-        console.log(toDate);
-        console.log(applicationDuration);
-        console.log(description);
-        console.log(attachment);
-        */
 
         if (!appType) {
             setAppTypeError(true);
@@ -171,8 +159,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         if (attachment) {
             data.attachment = attachment;
         }
-
-        //console.log(data);
 
         axiosInstance
             .post(`/applications/updateApplication`, data, {

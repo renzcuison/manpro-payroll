@@ -98,7 +98,6 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
     const handleFileDownload = async () => {
         try {
-            //console.log("Downloading attachment for Application No. " + appDetails.app_id);
             const response = await axiosInstance.get(
                 `/applications/downloadAttachment/${appDetails.id}`,
                 {

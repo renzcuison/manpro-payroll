@@ -44,12 +44,11 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                 },
             })
             .then((response) => {
-                //console.log(response.data);
                 setTodaysAttendance(response.data.attendance);
                 setIsLoading(false);
             })
             .catch((error) => {
-                // console.error("Error fetching employee:", error);
+                console.error("Error fetching employee:", error);
             });
     }, []);
 

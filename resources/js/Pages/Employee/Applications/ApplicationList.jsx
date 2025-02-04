@@ -136,13 +136,11 @@ const ApplicationList = () => {
             cancelButtonText: "Cancel",
         }).then((res) => {
             if (res.isConfirmed) {
-                //console.log(`Withdrawing Application ${id}`);
                 axiosInstance
                     .get(`applications/withdrawApplication/${id}`, {
                         headers,
                     })
                     .then((response) => {
-                        //console.log("Successful Withdrawal!");
                         Swal.fire({
                             customClass: { container: "my-swal" },
                             title: "Success!",
@@ -174,7 +172,6 @@ const ApplicationList = () => {
             .get(`applications/getMyApplications`, { headers })
             .then((response) => {
                 setApplicationList(response.data.applications);
-                //console.log(response.data.applications);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -187,9 +184,7 @@ const ApplicationList = () => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                //console.log(response.data);
                 setApplicationTypes(response.data.types);
-                //console.log(response.data.types);
             })
             .catch((error) => {
                 console.error("Error fetching application types:", error);
@@ -332,7 +327,6 @@ const ApplicationList = () => {
 
                                                         application.type_name =
                                                             typeName;
-                                                        //console.log(application.type_name);
 
                                                         const createDate =
                                                             dayjs(

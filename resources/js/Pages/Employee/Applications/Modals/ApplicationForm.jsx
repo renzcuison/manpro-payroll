@@ -85,7 +85,6 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                //console.log(response.data);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -95,16 +94,6 @@ const ApplicationForm = ({ open, close }) => {
 
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
-
-        //Data Viewer
-        /*
-        console.log(appType);
-        console.log(fromDate);
-        console.log(toDate);
-        console.log(applicationDuration);
-        console.log(description);
-        console.log(attachment);
-        */
 
         if (!appType) {
             setAppTypeError(true);
@@ -170,9 +159,6 @@ const ApplicationForm = ({ open, close }) => {
         formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("description", description);
         formData.append("attachment", attachment);
-
-        //console.log("Form Created:");
-        //console.log(formData);
 
         axiosInstance
             .post("/applications/saveApplication", formData, {
