@@ -165,7 +165,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
-                                {appDetails.type_id}
+                                {appDetails.type_name}
                             </Typography>
                         </Grid>
                         <Grid item xs={5} align="left">

@@ -136,13 +136,13 @@ const ApplicationList = () => {
             cancelButtonText: "Cancel",
         }).then((res) => {
             if (res.isConfirmed) {
-                console.log(`Withdrawing Application ${id}`);
+                //console.log(`Withdrawing Application ${id}`);
                 axiosInstance
                     .get(`applications/withdrawApplication/${id}`, {
                         headers,
                     })
                     .then((response) => {
-                        console.log("Successful Withdrawal!");
+                        //console.log("Successful Withdrawal!");
                     })
                     .catch((error) => {
                         console.error("Error withdrawing application:", error);
@@ -168,9 +168,9 @@ const ApplicationList = () => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                console.log(response.data);
+                //console.log(response.data);
                 setApplicationTypes(response.data.types);
-                console.log(response.data.types);
+                //console.log(response.data.types);
             })
             .catch((error) => {
                 console.error("Error fetching application types:", error);
@@ -310,6 +310,10 @@ const ApplicationList = () => {
                                                                     log.type_id
                                                             )?.name ||
                                                             "Unknown Type";
+
+                                                        log.type_name =
+                                                            typeName;
+                                                        //console.log(log.type_name);
 
                                                         const createDate =
                                                             dayjs(
