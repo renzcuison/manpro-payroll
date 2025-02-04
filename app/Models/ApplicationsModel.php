@@ -23,4 +23,14 @@ class ApplicationsModel extends Model
         'user_id',
         'client_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(ApplicationTypesModel::class, 'type_id');
+    }
 }

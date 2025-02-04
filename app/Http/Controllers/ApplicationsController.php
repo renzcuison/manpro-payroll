@@ -29,6 +29,37 @@ class ApplicationsController extends Controller
         return false;
     }
 
+    public function getApplications()
+    {
+        //Log::info("ApplicationsController::getApplications");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+
+        $apps = ApplicationsModel::where('client_id', $clientId)->select('id', 'name')->where('status', 'Pending')->get();
+
+        $applications = [];
+
+        foreach ($apps as $app) {
+            $employee = $app->employee;
+            $type = $app->type;
+
+            $applications[] = [
+                'app_id' => $app->id,
+                'app_type' => $type->name,
+                'app_duration_start' => $app->duration_start,
+                'app_duration_end' => $app->duration_end,
+                'app_date_requested' => $app->created_at,
+                'emp_first_name' => $employee->first_name,
+                'emp_middle_name' => $employee->middle_name,
+                'emp_last_name' => $employee->last_name,
+                'emp_suffix' => $employee->suffix,
+            ];
+        }
+
+        return response()->json(['status' => 200, 'applications' => $applications]);
+    }
+
     public function getApplicationTypes()
     {
         //Log::info("ApplicationsController::getApplicationTypes");
