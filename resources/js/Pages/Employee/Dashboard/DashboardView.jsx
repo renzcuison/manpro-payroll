@@ -46,7 +46,7 @@ const isToday = (someDate) => {
 const Dashboard = () => {
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
     const [recentAttendances, setRecentAttendances] = useState([]);
-    const [recentApplication, setRecentApplication] = useState([]);
+    const [recentApplications, setRecentApplications] = useState([]);
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
     const [isApplicationLoading, setIsApplicationLoading] = useState(false);
 
@@ -95,6 +95,20 @@ const Dashboard = () => {
             });
     }, [openAttedanceModal]);
 
+    useEffect(() => {
+        axiosInstance.get('/attendance/getEmployeeDashboardAttendance', { headers })
+            .then((response) => {
+                console.log("attendance data:");
+                console.log(response.data);
+                setRecentAttendances(response.data.attendances);
+                setIsAttendanceLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching attendances:', error);
+                setIsAttendanceLoading(false);
+            });
+    });
+
     const handleRowClick = (path) => {
         navigate(path);
     };
@@ -141,6 +155,7 @@ const Dashboard = () => {
                         </Typography>
                     </Box>
 
+                    {/* Header Content */}
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid item xs={12} lg={4}>
                             <Box sx={{
@@ -290,6 +305,7 @@ const Dashboard = () => {
                         </Grid>
                     </Grid>
 
+                    {/* Recent Attendances */}
                     <Grid container spacing={4} sx={{ mt: 1 }}>
                         <Grid item xs={12} lg={8}>
                             <Box sx={{
@@ -315,8 +331,7 @@ const Dashboard = () => {
                                             height: "560px",
                                             overflow: "auto",
                                         }}>
-                                        {isAttendanceLoading &&
-                                            isApplicationLoading ? (
+                                        {isAttendanceLoading ? (
                                             <div style={{
                                                 display: "flex",
                                                 justifyContent: "center",
@@ -347,10 +362,9 @@ const Dashboard = () => {
                                 </div>
                             </Box>
                         </Grid>
-
-
                     </Grid>
 
+                    {/* Recent Applications */}
                     <Grid container spacing={4} sx={{ mt: 1 }}>
                         <Grid item xs={12} lg={8}>
                             <Box sx={{
@@ -376,8 +390,7 @@ const Dashboard = () => {
                                             height: "560px",
                                             overflow: "auto",
                                         }}>
-                                        {isAttendanceLoading &&
-                                            isApplicationLoading ? (
+                                        {isApplicationLoading ? (
                                             <div style={{
                                                 display: "flex",
                                                 justifyContent: "center",
@@ -391,11 +404,8 @@ const Dashboard = () => {
                                                 <Table className="table table-md table-striped table-vcenter">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Date</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Time In</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Time Out</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Overtime In</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Overtime Out</TableCell>
+                                                            <TableCell align="center" sx={{ width: "20%" }}>Application</TableCell>
+                                                            <TableCell align="center" sx={{ width: "20%" }}>Status</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
