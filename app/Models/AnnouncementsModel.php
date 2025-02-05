@@ -14,7 +14,6 @@ class AnnouncementsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name',
         'user_id',
         'client_id',
         'title',

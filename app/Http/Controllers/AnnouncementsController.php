@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\AnnouncementsModel;
+use App\Models\AnnouncementFilesModel;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AnnouncementsController extends Controller
 {
@@ -30,34 +37,65 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = Announcements::where('client_id', $clientId)->get();
+            $announcements = AnnouncementsModel::where('client_id',$clientId)->get();
 
-            $applications = [];
-
-            foreach ($apps as $app) {
-                $employee = $app->user;
-                $type = $app->type;
-
-                $announcements[] = [
-                    'app_id' => $app->id,
-                    'app_type' => $type->name,
-                    'app_duration_start' => $app->duration_start,
-                    'app_duration_end' => $app->duration_end,
-                    'app_date_requested' => $app->created_at,
-                    'app_attachment' => basename($app->attachment),
-                    'app_description' => $app->description,
-                    'app_status' => $app->status,
-                    'emp_first_name' => $employee->first_name,
-                    'emp_middle_name' => $employee->middle_name,
-                    'emp_last_name' => $employee->last_name,
-                    'emp_suffix' => $employee->suffix,
-                ];
-            }
-
-            return response()->json(['status' => 200, 'announcements' => $announcements]);
+            return response()->json([ 'status' => 200, 'announcements' => $announcements]);
         } else {
-            return response()->json(['status' => 200, 'announcements' => null]);
+            return response()->json([ 'status' => 200, 'announcements' => null]);
         }
+    }
+
+    public function saveAnnouncement(Request $request)
+    {
+        Log::info("AnnouncementsController::saveAnnouncement");
+
+        $user = Auth::user();
+        Log::info("Request Info:");
+        Log::info($request);
+
+        if ($this->checkUser()){
+            try {
+                DB::beginTransaction();
+    
+                AnnouncementsModel::create([
+                    'user_id' => $user->id,
+                    'client_id' => $user->client_id,
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'published' => false
+                ]);
+
+                if ($request ->hasFile('attachment')){
+                    $file = $request->file('attachment');
+                    $dateTime = now()->format('YmdHis');
+                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                }
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200 ]);
+    
+            } catch (\Exception $e) {
+                DB::rollBack();
+    
+                //Log::error("Error saving: " . $e->getMessage());
+    
+                throw $e;
+            }
+        } else {
+            return response()->json([ 'status' => 200 ]);
+        }
+
+        /*
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+            $announcements = AnnouncementsModel::where('client_id',$clientId)->get();
+
+            return response()->json([ 'status' => 200, 'announcements' => $announcements]);
+        } else {
+            return response()->json([ 'status' => 200, 'announcements' => null]);
+        }
+        */
     }
 
 

@@ -7,6 +7,13 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import AnnouncementForm from './Modals/AnnouncementForm';
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+
 const AnnouncementList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -15,33 +22,55 @@ const AnnouncementList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
 
+    // ---------------- Announcement List
+    const [announcements, setAnnouncements] = useState([]);
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
+        fetchAnnouncements();
+    }, []);
+
+    const fetchAnnouncements = () => {
+        axiosInstance.get('/announcements/getAnnouncements', { headers })
             .then((response) => {
-                setEmployees(response.data.employees);
+                console.log(response.data);
+                console.log(response.data.announcements);
+                setAnnouncements(response.data.announcements);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching clients:', error);
+                console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
-    }, []);
+    }
+
+    // ---------------- Announcement Form
+    const [openAnnouncementForm, setOpenAnnouncementForm] = useState(false);
+    const handleOpenAnnouncementForm = () => {
+        setOpenAnnouncementForm(true);
+    };
+    const handleCloseAnnouncementForm = () => {
+        setOpenAnnouncementForm(false);
+        fetchAnnouncements();
+
+    };
 
     return (
         <Layout title={"AnnouncementsList"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
-
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
                             Announcements
                         </Typography>
 
-                        <Link to="/admin/employees/add">
-                            <Button variant="contained" color="primary">
-                                <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                            </Button>
-                        </Link>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenAnnouncementForm}
+                        >
+                            <p className="m-0">
+                                <i className="fa fa-plus"></i> Add {" "}
+                            </p>
+                        </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -51,45 +80,65 @@ const AnnouncementList = () => {
                             </Box>
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                {" "}
+                                <TableContainer
+                                    style={{ overflowX: "auto" }}
+                                    sx={{ minHeight: 400 }}
+                                >
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Status</TableCell>
-                                                <TableCell align="center">Type</TableCell>
+                                                <TableCell align="center">
+                                                    Title
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    Date Created
+                                                </TableCell>
                                             </TableRow>
                                         </TableHead>
-
                                         <TableBody>
-                                            {employees.map((employee) => (
-                                                <TableRow
-                                                    key={employee.id}
-                                                    component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                            {announcements.length > 0 ? (
+                                                announcements.map(
+                                                    (announcements, index) => (
+                                                        <TableRow
+                                                            key={announcements.id}
+                                                            sx={{
+                                                                p: 1,
+                                                                backgroundColor:
+                                                                    index % 2 === 0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                            }}>
+                                                            <TableCell align="center">
+                                                                {announcements.title}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                        No Announcements Found
+                                                    </TableCell>
                                                 </TableRow>
-                                            ))}
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                             </>
                         )}
                     </Box>
-
                 </Box>
             </Box>
-        </Layout >
+            {openAnnouncementForm && (
+                <AnnouncementForm
+                    open={openAnnouncementForm}
+                    close={handleCloseAnnouncementForm}
+                />
+            )}
+        </Layout>
     )
 }
 

@@ -213,26 +213,11 @@ const ApplicationList = () => {
 
     return (
         <Layout title={"ApplicationList"}>
-            <Box
-                sx={{
-                    overflowX: "auto",
-                    width: "100%",
-                    whiteSpace: "nowrap",
-                }}
-            >
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap", }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center", }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}
-                            Applications{" "}
+                            {" "}Applications{" "}
                         </Typography>
                         <Button
                             variant="contained"
@@ -245,14 +230,7 @@ const ApplicationList = () => {
                         </Button>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px", }} >
                         {isLoading ? (
                             <Box
                                 sx={{
@@ -274,40 +252,22 @@ const ApplicationList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "19%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "19%" }}>
                                                     Application Type
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "19%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "19%" }}>
                                                     Date of Application
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "19%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "19%" }}>
                                                     Date of Effectivity
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "19%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "19%" }}>
                                                     Duration
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "19%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "19%" }}>
                                                     Status
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "5%" }}>
                                                     Action
                                                 </TableCell>
                                             </TableRow>
@@ -325,81 +285,44 @@ const ApplicationList = () => {
                                                             )?.name ||
                                                             "Unknown Type";
 
-                                                        application.type_name =
-                                                            typeName;
+                                                        application.type_name = typeName;
 
-                                                        const createDate =
-                                                            dayjs(
-                                                                application.created_at
-                                                            ).format(
-                                                                "MMM D, YYYY    h:mm A"
-                                                            );
+                                                        const createDate = dayjs(application.created_at).format("MMM D, YYYY    h:mm A");
 
-                                                        const startDate = dayjs(
-                                                            application.duration_start
-                                                        ).format(
-                                                            "MMM D, YYYY    h:mm A"
-                                                        );
+                                                        const startDate = dayjs(application.duration_start).format("MMM D, YYYY    h:mm A");
 
-                                                        if (
-                                                            !menuStates[
-                                                                application.id
-                                                            ]
-                                                        ) {
-                                                            menuStates[
-                                                                application.id
-                                                            ] = {
-                                                                open: false,
-                                                                anchorEl: null,
-                                                            };
+                                                        if (!menuStates[application.id]) {
+                                                            menuStates[application.id] = { open: false, anchorEl: null, };
                                                         }
 
-                                                        const duration =
-                                                            getDuration(
-                                                                application.duration_start,
-                                                                application.duration_end
-                                                            );
+                                                        const duration = getDuration(application.duration_start, application.duration_end);
 
                                                         return (
                                                             <TableRow
-                                                                key={
-                                                                    application.id
-                                                                }
-                                                                onClick={() =>
-                                                                    handleOpenApplicationDetails(
-                                                                        application
-                                                                    )
-                                                                }
+                                                                key={application.id}
+                                                                onClick={() => handleOpenApplicationDetails(application)}
                                                                 sx={{
                                                                     p: 1,
                                                                     backgroundColor:
-                                                                        index %
-                                                                            2 ===
-                                                                        0
+                                                                        index % 2 === 0
                                                                             ? "#f8f8f8"
                                                                             : "#ffffff",
                                                                     "&:hover": {
-                                                                        backgroundColor:
-                                                                            "rgba(0, 0, 0, 0.1)",
+                                                                        backgroundColor: "rgba(0, 0, 0, 0.1)",
                                                                         cursor: "pointer",
                                                                     },
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 <TableCell align="center">
-                                                                    {typeName ||
-                                                                        "-"}
+                                                                    {typeName || "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {createDate ||
-                                                                        "-"}
+                                                                    {createDate || "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {startDate ||
-                                                                        "-"}
+                                                                    {startDate || "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {duration ||
-                                                                        "-"}
+                                                                    {duration || "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     <Typography
@@ -408,18 +331,18 @@ const ApplicationList = () => {
                                                                                 "bold",
                                                                             color:
                                                                                 application.status ===
-                                                                                "Approved"
+                                                                                    "Approved"
                                                                                     ? "#177604"
                                                                                     : application.status ===
-                                                                                      "Declined"
-                                                                                    ? "#f44336"
-                                                                                    : application.status ===
-                                                                                      "Pending"
-                                                                                    ? "#e9ae20"
-                                                                                    : application.status ===
-                                                                                      "Withdrawn"
-                                                                                    ? "#f57c00"
-                                                                                    : "#000000",
+                                                                                        "Declined"
+                                                                                        ? "#f44336"
+                                                                                        : application.status ===
+                                                                                            "Pending"
+                                                                                            ? "#e9ae20"
+                                                                                            : application.status ===
+                                                                                                "Withdrawn"
+                                                                                                ? "#f57c00"
+                                                                                                : "#000000",
                                                                         }}
                                                                     >
                                                                         {application.status ||
@@ -428,52 +351,25 @@ const ApplicationList = () => {
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {application.status ===
-                                                                    "Pending" ? (
+                                                                        "Pending" ? (
                                                                         <>
                                                                             <IconButton
                                                                                 aria-label="more"
-                                                                                aria-controls={
-                                                                                    menuStates[
-                                                                                        application
-                                                                                            .id
-                                                                                    ]
-                                                                                        ?.open
-                                                                                        ? `application-menu-${application.id}`
-                                                                                        : undefined
+                                                                                aria-controls={menuStates[application.id]?.open
+                                                                                    ? `application-menu-${application.id}`
+                                                                                    : undefined
                                                                                 }
                                                                                 aria-haspopup="true"
-                                                                                onClick={(
-                                                                                    event
-                                                                                ) => {
+                                                                                onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleMenuOpen(
-                                                                                        event,
-                                                                                        application.id
-                                                                                    );
-                                                                                }}
-                                                                            >
+                                                                                    handleMenuOpen(event, application.id);
+                                                                                }}>
                                                                                 <MoreVert />
                                                                             </IconButton>
-                                                                            <Menu
-                                                                                id={`application-menu-${application.id}`}
-                                                                                anchorEl={
-                                                                                    menuStates[
-                                                                                        application
-                                                                                            .id
-                                                                                    ]
-                                                                                        ?.anchorEl
-                                                                                }
-                                                                                open={
-                                                                                    menuStates[
-                                                                                        application
-                                                                                            .id
-                                                                                    ]
-                                                                                        ?.open ||
-                                                                                    false
-                                                                                }
-                                                                                onClose={(
-                                                                                    event
-                                                                                ) => {
+                                                                            <Menu id={`application-menu-${application.id}`}
+                                                                                anchorEl={menuStates[application.id]?.anchorEl}
+                                                                                open={menuStates[application.id]?.open || false}
+                                                                                onClose={(event) => {
                                                                                     event.stopPropagation();
                                                                                     handleMenuClose(
                                                                                         application.id
@@ -481,50 +377,29 @@ const ApplicationList = () => {
                                                                                 }}
                                                                                 MenuListProps={{
                                                                                     "aria-labelledby": `application-menu-${application.id}`,
-                                                                                }}
-                                                                            >
+                                                                                }}>
                                                                                 <MenuItem
-                                                                                    onClick={(
-                                                                                        event
-                                                                                    ) => {
+                                                                                    onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        handleEditApplication(
-                                                                                            application
-                                                                                        );
-                                                                                        handleMenuClose(
-                                                                                            application.id
-                                                                                        );
-                                                                                    }}
-                                                                                >
+                                                                                        handleEditApplication(application);
+                                                                                        handleMenuClose(application.id);
+                                                                                    }}>
                                                                                     Edit
                                                                                 </MenuItem>
                                                                                 <MenuItem
-                                                                                    onClick={(
-                                                                                        event
-                                                                                    ) => {
+                                                                                    onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        handleWithdrawApplication(
-                                                                                            application.id
-                                                                                        );
-                                                                                        handleMenuClose(
-                                                                                            application.id
-                                                                                        );
-                                                                                    }}
-                                                                                >
+                                                                                        handleWithdrawApplication(application.id);
+                                                                                        handleMenuClose(application.id);
+                                                                                    }}>
                                                                                     Withdraw
                                                                                 </MenuItem>
                                                                                 <MenuItem
-                                                                                    onClick={(
-                                                                                        event
-                                                                                    ) => {
+                                                                                    onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        handleMenuClose(
-                                                                                            application.id
-                                                                                        );
-                                                                                    }}
-                                                                                >
-                                                                                    Close
-                                                                                    Menu
+                                                                                        handleMenuClose(application.id);
+                                                                                    }}>
+                                                                                    Close Menu
                                                                                 </MenuItem>
                                                                             </Menu>
                                                                         </>

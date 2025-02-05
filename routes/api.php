@@ -7,7 +7,7 @@ use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ApplicationsController;
-use App\Http\Controllers\AnnouncementsContoller;
+use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
 
@@ -184,6 +184,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('announcements')->group(function () {
         Route::get('/getAnnouncements', [AnnouncementsController::class, 'getAnnouncements']);
+        Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
+
     });
 
 
