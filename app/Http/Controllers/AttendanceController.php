@@ -346,8 +346,8 @@ class AttendanceController extends Controller
 
                 return [
                     'date' => $date,
-                    'time_in' => $timeIn->timestamp,
-                    'time_out' => $timeOut->timestamp,
+                    'time_in' => $timeIn ? $timeIn->timestamp : null,
+                    'time_out' => $timeOut ? $timeOut->timestamp : null,
                     'overtime_in' => $overtimeIn,
                     'overtime_out' => $overtimeOut,
                 ];

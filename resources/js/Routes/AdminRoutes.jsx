@@ -13,6 +13,8 @@ import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 
+import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
+
 import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
@@ -50,6 +52,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
+
+            <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 

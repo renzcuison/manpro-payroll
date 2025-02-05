@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateApplicationTypesTable extends Migration
+class CreateAnnouncementsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,15 @@ class CreateApplicationTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('application_types', function (Blueprint $table) {
+        Schema::create('announcements', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
-            $table->decimal('percentage', 10, 2);
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('client_id');
-            $table->softDeletes();
-
+            $table->string('title', 128);
+            $table->string('description', 512);
             $table->timestamps();
 
+            $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('client_id')->references('id')->on('clients');
         });
     }
@@ -33,6 +33,6 @@ class CreateApplicationTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('application_types');
+        Schema::dropIfExists('announcements');
     }
 }
