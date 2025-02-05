@@ -177,6 +177,34 @@ class ApplicationsController extends Controller
         
     }
 
+    public function getEmployeeDashboardApplications()
+    {
+        //Log::info("ApplicationsController::getEmployeeDashboardApplications");
+
+        $user = Auth::user();
+
+        $clientId = $user->client_id;
+        $apps = ApplicationsModel::where('client_id', $clientId)
+            ->take(10)
+            ->get();
+
+        $applications = [];
+
+        foreach ($apps as $app) {
+            $employee = $app->user;
+            $type = $app->type;
+
+            $applications[] = [
+                'app_id' => $app->id,
+                'app_type' => $type->name,
+                'app_status' => $app->status,
+            ];
+        }
+
+        return response()->json(['status' => 200, 'applications' => $applications]);
+
+    }
+
     public function downloadAttachment($id)
     {
         //Log::info("ApplicationsController::downloadAttachment");
