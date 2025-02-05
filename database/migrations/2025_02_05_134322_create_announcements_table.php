@@ -19,6 +19,7 @@ class CreateAnnouncementsTable extends Migration
             $table->unsignedBigInteger('client_id');
             $table->string('title', 128);
             $table->string('description', 512);
+            $table->boolean('published');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

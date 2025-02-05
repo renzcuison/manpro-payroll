@@ -65,8 +65,6 @@ class ApplicationsController extends Controller
         } else {
             return response()->json(['status' => 200, 'applications' => null]);
         }
-
-        
     }
 
     public function getApplicationTypes()

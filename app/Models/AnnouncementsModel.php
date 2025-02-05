@@ -18,6 +18,7 @@ class AnnouncementsModel extends Model
         'user_id',
         'client_id',
         'title',
+        'published',
         'description',
     ];
 
