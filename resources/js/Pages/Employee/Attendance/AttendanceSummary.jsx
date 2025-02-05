@@ -96,14 +96,8 @@ const AttendanceSummary = () => {
 
     return (
         <Layout title={"AttendanceSummary"}>
-            <Box
-                sx={{
-                    overflowX: "auto",
-                    width: "100%",
-                    whiteSpace: "nowrap",
-                }}
-            >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box
                         sx={{
                             mt: 5,
@@ -119,40 +113,15 @@ const AttendanceSummary = () => {
                         </Typography>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         {isLoading ? (
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    minHeight: 200,
-                                }}
-                            >
+                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                {" "}
-                                <Grid
-                                    container
-                                    direction="row"
-                                    justifyContent="flex-start"
-                                    sx={{
-                                        pb: 2,
-                                        borderBottom: "1px solid #e0e0e0",
-                                    }}
-                                >
-                                    <LocalizationProvider
-                                        dateAdapter={AdapterDayjs}
-                                    >
+                                <Grid container direction="row" justifyContent="flex-start" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="From Date"
                                             value={summaryFromDate}
@@ -500,6 +469,7 @@ const AttendanceSummary = () => {
                     </Box>
                 </Box>
             </Box>
+
             {openAttendanceDetails && (
                 <AttendanceSummaryDetails
                     open={true}

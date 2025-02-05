@@ -278,7 +278,7 @@ const Sidebar = ({ children, closeMini }) => {
                                     EMPLOYEE{" "}
                                 </span>
                             </li>
-                            <StyledNav to={`/member/dashboard`}>
+                            <StyledNav to={`/emplo/dashboard`}>
                                 <i
                                     className="si si-grid"
                                     style={{ color: "#2a800f" }}
