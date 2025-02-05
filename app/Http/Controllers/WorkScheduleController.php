@@ -441,7 +441,7 @@ class WorkScheduleController extends Controller
                 
                 DB::commit();
                 
-                return response()->json([ 'status' => 200, 'group' => $group, 'link' => $link ]);
+                return response()->json([ 'status' => 200, 'group' => $group, 'id' => $group->id, 'link' => $link ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();

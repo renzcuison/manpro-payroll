@@ -80,7 +80,7 @@ const WorkGroupsAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/workgroup/${response.data.link}`);
+                        navigate(`/admin/workgroup/${response.data.id}`);
                     });
                 }
             })
