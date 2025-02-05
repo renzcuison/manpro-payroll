@@ -296,9 +296,8 @@ const Dashboard = () => {
                         </Grid>
                     </Grid>
 
-                    {/* Recent Attendances */}
-                    <Grid container spacing={4} sx={{ mt: 1 }}>
-                        <Grid item xs={12} lg={7}>
+                    <Grid container direction="row" spacing={4} sx={{ mt: 1 }}>
+                        <Grid item xs={12} lg={8}>
                             <Box sx={{
                                 backgroundColor: "white",
                                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -392,10 +391,6 @@ const Dashboard = () => {
                                 </div>
                             </Box>
                         </Grid>
-                    </Grid>
-
-                    {/* Recent Applications */}
-                    <Grid container spacing={4} sx={{ mt: 1 }}>
                         <Grid item xs={12} lg={4}>
                             <Box sx={{
                                 backgroundColor: "white",
@@ -463,7 +458,7 @@ const Dashboard = () => {
                                                                                                 ? "#f57c00"
                                                                                                 : "#000000",
                                                                         }}>
-                                                                        {application.status || "-"}
+                                                                        {application.app_status || "-"}
                                                                     </Typography>
                                                                 </TableCell>
                                                             </TableRow>
@@ -481,8 +476,6 @@ const Dashboard = () => {
                                 </div>
                             </Box>
                         </Grid>
-
-
                     </Grid>
                 </Box>
 
