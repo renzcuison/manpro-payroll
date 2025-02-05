@@ -39,7 +39,7 @@ const Sidebar = ({ children, closeMini }) => {
     const handleNavigate = (link) => {
         navigate(link);
     }
-    
+
     const isAttendanceActive = useIsActive('/hr/attendance');
     const isAttendanceEmployeeActive = useIsActive('/hr/attendance-employee');
 
@@ -50,7 +50,7 @@ const Sidebar = ({ children, closeMini }) => {
     const [workshifts, setWorkshifts] = useState([]);
     const [workgroups, setWorkgroups] = useState([]);
 
-    useEffect(() => {  
+    useEffect(() => {
         axiosInstance.get(`/workshedule/getWorkShiftLinks`, { headers })
             .then((response) => {
                 setWorkshifts(response.data.workShifts);
@@ -82,9 +82,9 @@ const Sidebar = ({ children, closeMini }) => {
                 text: 'List of Benefits',
             },
             // {
-                // href: `/hr/employees-deductions?`,
-                // text: 'List of Deductions',
-                // icon: 'si si-user',
+            // href: `/hr/employees-deductions?`,
+            // text: 'List of Deductions',
+            // icon: 'si si-user',
             // },
         ]
     }];
@@ -95,9 +95,9 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-calendar-check-o',
         children: [
             // {
-                // href: `/admin/attendance/general?`,
-                // text: 'Summary',
-                // icon: 'fa fa-cogs',
+            // href: `/admin/attendance/general?`,
+            // text: 'Summary',
+            // icon: 'fa fa-cogs',
             // },
             {
                 href: `/admin/attendance/logs?`,
@@ -192,7 +192,7 @@ const Sidebar = ({ children, closeMini }) => {
             text: '+ Add Group',
         }),
     }];
-    
+
     const settingsItems = [{
         id: 7,
         text: 'Settings',
@@ -293,7 +293,7 @@ const Sidebar = ({ children, closeMini }) => {
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             {user.user_type === 'Admin' ? <>
-                            
+
                                 <li className="nav-main-heading">
                                     <span className="sidebar-mini-hidden" style={{ color: '#3d3d3f' }}>ADMIN</span>
                                 </li>
@@ -309,7 +309,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 {employeesItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
-                                
+
                                 {attendanceLogs.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
@@ -322,7 +322,11 @@ const Sidebar = ({ children, closeMini }) => {
                                     return <SideItem key={index} items={items} />
                                 })}
 
-                                
+                                <StyledNav to={`/admin/announcements`} >
+                                    <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
+                                </StyledNav>
+
+
                                 {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
                                 </StyledNav>
@@ -342,7 +346,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
                                     <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav> */}
-                                
+
 
                                 <li className="nav-main-heading">
                                     <span className="sidebar-mini-hidden text-dark">Schedules</span>
