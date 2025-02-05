@@ -16,6 +16,7 @@ class CreateApplicationTypesTable extends Migration
         Schema::create('application_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
+            $table->decimal('percentage', 10, 2);
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
 
