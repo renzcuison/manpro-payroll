@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress  } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -22,7 +22,7 @@ const AttendanceLogs = () => {
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching clients:', error);
+                console.error('Error fetching attendance logs:', error);
                 setIsLoading(false);
             });
     }, []);
@@ -30,7 +30,7 @@ const AttendanceLogs = () => {
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Attendance Logs </Typography>

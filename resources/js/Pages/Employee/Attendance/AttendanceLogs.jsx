@@ -110,7 +110,7 @@ const AttendanceLogs = () => {
                 setToDate(today);
                 break;
             case "lastMonth":
-                handleFilterChange( "range", today.subtract(1, "month").startOf("month"), today.subtract(1, "month").endOf("month") );
+                handleFilterChange("range", today.subtract(1, "month").startOf("month"), today.subtract(1, "month").endOf("month"));
                 break;
             case "custom":
 
@@ -141,7 +141,7 @@ const AttendanceLogs = () => {
     };
 
     // Filters: Update Handler
-    const handleFilterChange = ( type, newDate, rangeEnd = null, newSelectType = null ) => {
+    const handleFilterChange = (type, newDate, rangeEnd = null, newSelectType = null) => {
         // Control variables
         let newFromDate = fromDate;
         let newToDate = toDate;
@@ -224,7 +224,7 @@ const AttendanceLogs = () => {
                                                 id="attendance-type-select"
                                                 value={selectedAttendanceType}
                                                 label="Attendance Type"
-                                                onChange={(event) => setAttendanceType( event.target.value )}
+                                                onChange={(event) => setAttendanceType(event.target.value)}
                                             >
                                                 <MenuItem value="All"> All </MenuItem>
                                                 <MenuItem value="Duty In"> Duty In </MenuItem>
@@ -245,7 +245,7 @@ const AttendanceLogs = () => {
                                                     id="date-range-select"
                                                     value={selectedRange}
                                                     label="Date Range"
-                                                    onChange={(event) => setPredefinedDates( event.target.value ) }
+                                                    onChange={(event) => setPredefinedDates(event.target.value)}
                                                 >
                                                     <MenuItem value="today"> Today </MenuItem>
                                                     <MenuItem value="yesterday"> Yesterday </MenuItem>
@@ -265,13 +265,11 @@ const AttendanceLogs = () => {
                                                         <DatePicker
                                                             label="From Date"
                                                             value={fromDate}
-                                                            onChange={(
-                                                                newValue
-                                                            ) => {
-                                                                setSelectedRange( "custom" );
-                                                                handleFilterChange( "from", newValue );
+                                                            onChange={(newValue) => {
+                                                                setSelectedRange("custom");
+                                                                handleFilterChange("from", newValue);
                                                             }}
-                                                            renderInput={( params ) => (
+                                                            renderInput={(params) => (
                                                                 <TextField {...params} />
                                                             )}
                                                         />
@@ -281,14 +279,12 @@ const AttendanceLogs = () => {
                                                         <DatePicker
                                                             label="To Date"
                                                             value={toDate}
-                                                            onChange={(
-                                                                newValue
-                                                            ) => {
-                                                                setSelectedRange( "custom" );
-                                                                handleFilterChange( "to", newValue );
+                                                            onChange={(newValue) => {
+                                                                setSelectedRange("custom");
+                                                                handleFilterChange("to", newValue);
                                                             }}
                                                             minDate={fromDate}
-                                                            renderInput={( params ) => (
+                                                            renderInput={(params) => (
                                                                 <TextField {...params} />
                                                             )}
                                                         />
@@ -315,18 +311,18 @@ const AttendanceLogs = () => {
                                                 attendanceLogs.map(
                                                     (log, index) => (
                                                         <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff" }} >
-                                                            <TableCell align="center"> {moment( log.timestamp, "YYYY-MM-DD HH:mm:ss" ).format( "MMMM D, YYYY" ) || "-"} </TableCell>
-                                                            <TableCell align="center"> {moment( log.timestamp, "YYYY-MM-DD HH:mm:ss" ).format( "hh:mm:ss A" ) || "-"} </TableCell>
+                                                            <TableCell align="center"> {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("MMMM D, YYYY") || "-"} </TableCell>
+                                                            <TableCell align="center"> {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("hh:mm:ss A") || "-"} </TableCell>
                                                             <TableCell align="center">
                                                                 <Typography
                                                                     sx={{
                                                                         fontWeight: "bold",
                                                                         color:
                                                                             log.action === "Duty In" ? "#177604" :
-                                                                            log.action === "Duty Out" ? "#f44336" :
-                                                                            log.action === "Overtime In" ? "#e9ae20" :
-                                                                            log.action === "Overtime Out" ? "#f57c00" :
-                                                                            "#000000",
+                                                                                log.action === "Duty Out" ? "#f44336" :
+                                                                                    log.action === "Overtime In" ? "#e9ae20" :
+                                                                                        log.action === "Overtime Out" ? "#f57c00" :
+                                                                                            "#000000",
                                                                     }}
                                                                 >
                                                                     {log.action || "-"}

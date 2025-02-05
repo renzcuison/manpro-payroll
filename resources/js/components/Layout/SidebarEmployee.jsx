@@ -278,7 +278,7 @@ const Sidebar = ({ children, closeMini }) => {
                                     EMPLOYEE{" "}
                                 </span>
                             </li>
-                            <StyledNav to={`/emplo/dashboard`}>
+                            <StyledNav to={`/employee/dashboard`}>
                                 <i
                                     className="si si-grid"
                                     style={{ color: "#2a800f" }}
@@ -364,8 +364,8 @@ const Sidebar = ({ children, closeMini }) => {
                                 to={`/reports`}
                                 className={
                                     isReportsActive ||
-                                    isReportCreateActive ||
-                                    isReportEditActive
+                                        isReportCreateActive ||
+                                        isReportEditActive
                                         ? "active"
                                         : ""
                                 }

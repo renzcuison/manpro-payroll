@@ -356,7 +356,7 @@ class AttendanceController extends Controller
             ->values()
             ->all();
 
-        return response()->json(['status' => 200, 'summary' => $attendances]);
+        return response()->json(['status' => 200, 'attendances' => $attendances]);
 
     }
     
