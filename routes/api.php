@@ -171,6 +171,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
+        Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
         
         Route::get('/downloadAttachment/{id}', [ApplicationsController::class, 'downloadAttachment']);
 

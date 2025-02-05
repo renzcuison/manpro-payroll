@@ -177,9 +177,9 @@ class ApplicationsController extends Controller
         
     }
 
-    public function getEmployeeDashboardApplications()
+    public function getDashboardApplications()
     {
-        //Log::info("ApplicationsController::getEmployeeDashboardApplications");
+        //Log::info("ApplicationsController::getDashboardApplications");
 
         $user = Auth::user();
 

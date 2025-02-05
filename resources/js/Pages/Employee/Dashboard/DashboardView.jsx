@@ -24,6 +24,7 @@ import {
 } from "../../../components/utils/tableUtils";
 import Swal from "sweetalert2";
 import { useMediaQuery } from "@mui/material";
+import dayjs from "dayjs";
 
 import Attendance from "../Dashboard/Modals/Attendance";
 
@@ -60,10 +61,6 @@ const Dashboard = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    const emptyRows =
-        page > 0
-            ? Math.max(0, (1 + page) * rowsPerPage - recentAttendances.length)
-            : 0;
     // const formattedDateTime = currentDateTime.toLocaleString();
     const formattedDateTime = currentDateTime.toLocaleTimeString();
 
@@ -96,22 +93,18 @@ const Dashboard = () => {
     }, [openAttedanceModal]);
 
     useEffect(() => {
-        axiosInstance.get('/attendance/getEmployeeDashboardAttendance', { headers })
+        axiosInstance.get('/applications/getDashboardApplications', { headers })
             .then((response) => {
-                console.log("attendance data:");
+                console.log("application data:");
                 console.log(response.data);
-                setRecentAttendances(response.data.attendances);
-                setIsAttendanceLoading(false);
+                setRecentApplications(response.data.applications);
+                setIsApplicationLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching attendances:', error);
-                setIsAttendanceLoading(false);
+                console.error('Error fetching applications:', error);
+                setIsApplicationLoading(false);
             });
-    });
-
-    const handleRowClick = (path) => {
-        navigate(path);
-    };
+    }, []);
 
     const handleOpenAttendanceModal = () => {
         setOpenAttendanceModal(true);
@@ -125,13 +118,11 @@ const Dashboard = () => {
 
     return (
         <Layout>
-            <Box
-                sx={{
-                    overflowX: "scroll",
-                    width: "100%",
-                    whiteSpace: "nowrap",
-                }}
-            >
+            <Box sx={{
+                overflowX: "scroll",
+                width: "100%",
+                whiteSpace: "nowrap",
+            }}>
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box
                         sx={{
@@ -353,7 +344,46 @@ const Dashboard = () => {
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
-                                                        { }
+                                                        {recentAttendances.length > 0 ? (recentAttendances.map((attendance, index) => (
+
+                                                            <TableRow key={index} sx={{
+                                                                backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff"
+                                                            }}>
+                                                                <TableCell align="center">
+                                                                    {dayjs(
+                                                                        attendance.date
+                                                                    ).format(
+                                                                        "MMMM D, YYYY"
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {attendance.time_in
+                                                                        ? dayjs(attendance.time_in).format("hh:mm:ss A")
+                                                                        : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {attendance.time_out
+                                                                        ? dayjs(attendance.time_out).format("hh:mm:ss A")
+                                                                        : attendance.time_in ? "Failed to Time Out"
+                                                                            : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {attendance.overtime_in
+                                                                        ? dayjs(attendance.overtime_in).format("hh:mm:ss A")
+                                                                        : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {attendance.overtime_out
+                                                                        ? dayjs(attendance.overtime_out).format("hh:mm:ss A")
+                                                                        : "-"}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))) :
+                                                            <TableRow>
+                                                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                                    No Attendance Found
+                                                                </TableCell>
+                                                            </TableRow>}
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>
@@ -404,12 +434,45 @@ const Dashboard = () => {
                                                 <Table className="table table-md table-striped table-vcenter">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Application</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Status</TableCell>
+                                                            <TableCell align="center" sx={{ width: "50%" }}>Application</TableCell>
+                                                            <TableCell align="center" sx={{ width: "50%" }}>Status</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
-                                                        { }
+                                                        {recentApplications.length > 0 ? (recentApplications.map((application, index) => (
+
+                                                            <TableRow key={index} sx={{
+                                                                backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff"
+                                                            }}>
+                                                                <TableCell align="center">
+                                                                    {application.app_type || "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    <Typography
+                                                                        sx={{
+                                                                            fontWeight:
+                                                                                "bold",
+                                                                            color:
+                                                                                application.app_status === "Approved"
+                                                                                    ? "#177604"
+                                                                                    : application.app_status === "Declined"
+                                                                                        ? "#f44336"
+                                                                                        : application.app_status === "Pending"
+                                                                                            ? "#e9ae20"
+                                                                                            : application.app_status === "Withdrawn"
+                                                                                                ? "#f57c00"
+                                                                                                : "#000000",
+                                                                        }}>
+                                                                        {application.status || "-"}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))) :
+                                                            <TableRow>
+                                                                <TableCell colSpan={2} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                                    No Applications Found
+                                                                </TableCell>
+                                                            </TableRow>}
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>

@@ -157,52 +157,28 @@ const AttendanceSummary = () => {
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Date
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Time In
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Time Out
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Total Hours
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     OT In
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     OT Out
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Total OT
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "12.5%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "12.5%" }}>
                                                     Late/Absences
                                                 </TableCell>
                                             </TableRow>
@@ -213,159 +189,61 @@ const AttendanceSummary = () => {
                                                     (summary, index) => (
                                                         <TableRow
                                                             key={index}
-                                                            onClick={() =>
-                                                                handleOpenAttendanceDetails(
-                                                                    summary.date
-                                                                )
-                                                            }
-                                                            sx={{
-                                                                backgroundColor:
-                                                                    index %
-                                                                        2 ===
-                                                                    0
-                                                                        ? "#f8f8f8"
-                                                                        : "#ffffff",
-                                                            }}
+                                                            onClick={() => handleOpenAttendanceDetails(summary.date)}
+                                                            sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", }}
                                                         >
                                                             <TableCell align="center">
-                                                                {dayjs(
-                                                                    summary.date
-                                                                ).format(
-                                                                    "MMMM D, YYYY"
-                                                                )}
+                                                                {dayjs(summary.date).format("MMMM D, YYYY")}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {summary.time_in
-                                                                    ? dayjs(
-                                                                          summary.time_in
-                                                                      ).format(
-                                                                          "hh:mm:ss A"
-                                                                      )
-                                                                    : "N/A"}
+                                                                    ? dayjs(summary.time_in).format("hh:mm:ss A")
+                                                                    : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {summary.time_out
-                                                                    ? dayjs(
-                                                                          summary.time_out
-                                                                      ).format(
-                                                                          "hh:mm:ss A"
-                                                                      )
-                                                                    : "N/A"}
+                                                                    ? dayjs(summary.time_out).format("hh:mm:ss A")
+                                                                    : summary.time_in ? "Failed to Time Out"
+                                                                        : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {(() => {
-                                                                    const totalMinutes =
-                                                                        summary.total_time;
+                                                                    const totalMinutes = summary.total_time;
                                                                     const hours =
-                                                                        Math.floor(
-                                                                            totalMinutes /
-                                                                                60
-                                                                        );
-                                                                    const minutes =
-                                                                        totalMinutes %
-                                                                        60;
-                                                                    if (
-                                                                        hours >
-                                                                            0 &&
-                                                                        minutes >
-                                                                            0
-                                                                    ) {
-                                                                        return `${hours} hour${
-                                                                            hours >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }, ${minutes} minute${
-                                                                            minutes >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else if (
-                                                                        hours >
-                                                                        0
-                                                                    ) {
-                                                                        return `${hours} hour${
-                                                                            hours >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
+                                                                        Math.floor(totalMinutes / 60);
+                                                                    const minutes = totalMinutes % 60;
+                                                                    if (hours > 0 && minutes > 0) {
+                                                                        return `${hours} hour${hours > 1 ? "s" : ""}, ${minutes} minute${minutes > 1 ? "s" : ""}`;
+                                                                    } else if (hours > 0) {
+                                                                        return `${hours} hour${hours > 1 ? "s" : ""}`;
                                                                     } else {
-                                                                        return `${minutes} minute${
-                                                                            minutes >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
+                                                                        return `${minutes} minute${minutes > 1 ? "s" : ""}`;
                                                                     }
                                                                 })()}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {summary.overtime_in
-                                                                    ? dayjs(
-                                                                          summary.overtime_in
-                                                                      ).format(
-                                                                          "hh:mm:ss A"
-                                                                      )
-                                                                    : "N/A"}
+                                                                    ? dayjs(summary.overtime_in).format("hh:mm:ss A")
+                                                                    : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {summary.overtime_out
-                                                                    ? dayjs(
-                                                                          summary.overtime_out
-                                                                      ).format(
-                                                                          "hh:mm:ss A"
-                                                                      )
-                                                                    : "N/A"}
+                                                                    ? dayjs(summary.overtime_out).format("hh:mm:ss A")
+                                                                    : "-"}
                                                             </TableCell>
 
                                                             <TableCell align="center">
                                                                 {(() => {
-                                                                    const totalOT =
-                                                                        summary.total_ot;
-                                                                    const hoursOT =
-                                                                        Math.floor(
-                                                                            totalOT /
-                                                                                60
-                                                                        );
-                                                                    const minutesOT =
-                                                                        totalOT %
-                                                                        60;
-                                                                    if (
-                                                                        hoursOT >
-                                                                            0 &&
-                                                                        minutesOT >
-                                                                            0
-                                                                    ) {
-                                                                        return `${hoursOT} hour${
-                                                                            hoursOT >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }, ${minutesOT} minute${
-                                                                            minutesOT >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
-                                                                    } else if (
-                                                                        hoursOT >
-                                                                        0
-                                                                    ) {
-                                                                        return `${hoursOT} hour${
-                                                                            hoursOT >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
+                                                                    const totalOT = summary.total_ot;
+                                                                    const hoursOT = Math.floor(totalOT / 60);
+                                                                    const minutesOT = totalOT % 60;
+
+                                                                    if (hoursOT > 0 && minutesOT > 0) {
+                                                                        return `${hoursOT} hour${hoursOT > 1 ? "s" : ""}, ${minutesOT} minute${minutesOT > 1 ? "s" : ""}`;
+                                                                    } else if (hoursOT > 0) {
+                                                                        return `${hoursOT} hour${hoursOT > 1 ? "s" : ""}`;
                                                                     } else {
-                                                                        return `${minutesOT} minute${
-                                                                            minutesOT >
-                                                                            1
-                                                                                ? "s"
-                                                                                : ""
-                                                                        }`;
+                                                                        return `${minutesOT} minute${minutesOT > 1 ? "s" : ""}`;
                                                                     }
                                                                 })()}
                                                             </TableCell>
@@ -373,13 +251,10 @@ const AttendanceSummary = () => {
                                                                 <Typography
                                                                     sx={{
                                                                         color:
-                                                                            summary.date ===
-                                                                            currentDate
+                                                                            summary.date === currentDate
                                                                                 ? "#177604"
-                                                                                : summary.late_time >
-                                                                                  0
-                                                                                ? "#f44336"
-                                                                                : null,
+                                                                                : summary.late_time > 0 ? "#f44336"
+                                                                                    : null,
                                                                     }}
                                                                 >
                                                                     {(() => {
@@ -394,7 +269,7 @@ const AttendanceSummary = () => {
                                                                             const hoursLate =
                                                                                 Math.floor(
                                                                                     totalLate /
-                                                                                        60
+                                                                                    60
                                                                                 );
                                                                             const minutesLate =
                                                                                 totalLate %
@@ -402,41 +277,37 @@ const AttendanceSummary = () => {
 
                                                                             if (
                                                                                 hoursLate >
-                                                                                    0 &&
+                                                                                0 &&
                                                                                 minutesLate >
-                                                                                    0
+                                                                                0
                                                                             ) {
-                                                                                return `${hoursLate} hour${
-                                                                                    hoursLate >
+                                                                                return `${hoursLate} hour${hoursLate >
                                                                                     1
+                                                                                    ? "s"
+                                                                                    : ""
+                                                                                    }, ${minutesLate} minute${minutesLate >
+                                                                                        1
                                                                                         ? "s"
                                                                                         : ""
-                                                                                }, ${minutesLate} minute${
-                                                                                    minutesLate >
-                                                                                    1
-                                                                                        ? "s"
-                                                                                        : ""
-                                                                                }`;
+                                                                                    }`;
                                                                             } else if (
                                                                                 hoursLate >
                                                                                 0
                                                                             ) {
-                                                                                return `${hoursLate} hour${
-                                                                                    hoursLate >
+                                                                                return `${hoursLate} hour${hoursLate >
                                                                                     1
-                                                                                        ? "s"
-                                                                                        : ""
-                                                                                }`;
+                                                                                    ? "s"
+                                                                                    : ""
+                                                                                    }`;
                                                                             } else if (
                                                                                 minutesLate >
                                                                                 0
                                                                             ) {
-                                                                                return `${minutesLate} minute${
-                                                                                    minutesLate >
+                                                                                return `${minutesLate} minute${minutesLate >
                                                                                     1
-                                                                                        ? "s"
-                                                                                        : ""
-                                                                                }`;
+                                                                                    ? "s"
+                                                                                    : ""
+                                                                                    }`;
                                                                             } else {
                                                                                 return "None";
                                                                             }
@@ -470,15 +341,17 @@ const AttendanceSummary = () => {
                 </Box>
             </Box>
 
-            {openAttendanceDetails && (
-                <AttendanceSummaryDetails
-                    open={true}
-                    close={handleCloseAttendanceDetails}
-                    date={openAttendanceDetails}
+            {
+                openAttendanceDetails && (
+                    <AttendanceSummaryDetails
+                        open={true}
+                        close={handleCloseAttendanceDetails}
+                        date={openAttendanceDetails}
                     // employee={employee} onUpdateEmployee={getEmployeeDetails}
-                />
-            )}
-        </Layout>
+                    />
+                )
+            }
+        </Layout >
     );
 };
 
