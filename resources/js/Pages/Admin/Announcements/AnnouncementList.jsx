@@ -28,12 +28,14 @@ const AnnouncementList = () => {
     }, []);
 
     return (
-        <Layout title={"EmployeesList"}>
+        <Layout title={"AnnouncementsList"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employees </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                            Announcements
+                        </Typography>
 
                         <Link to="/admin/employees/add">
                             <Button variant="contained" color="primary">
