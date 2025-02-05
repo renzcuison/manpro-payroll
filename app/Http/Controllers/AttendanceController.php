@@ -203,6 +203,7 @@ class AttendanceController extends Controller
                     $totalShiftTime = 0;
                 }
 
+                // Rendered Hours Calculator
                 foreach ($logs as $log) {
                     if ($log->action == "Duty In" || $log->action == "Overtime In") {
                         if ($log->action == "Duty In") {
@@ -311,6 +312,52 @@ class AttendanceController extends Controller
             ->all();
 
         return response()->json(['status' => 200, 'summary' => $summaryData]);
+    }
+
+    public function getEmployeeDashboardAttendance()
+    {
+        //Log::info("WorkScheduleController::getEmployeeDashboardAttendance");
+
+        $user = Auth::user();
+
+        $attendances = AttendanceLogsModel::where('user_id', $user->id)
+            ->orderBy('timestamp', 'asc')
+            ->get()
+            ->groupBy(function($log) {
+                return Carbon::parse($log->timestamp)->format('Y-m-d');
+            })
+            ->sortKeysDesc()
+            ->map(function($logs, $date) {
+                // Find first time in
+                $timeIn = $logs->firstWhere('action', 'Duty In');
+                
+                // Find last time out
+                $timeOut = $logs->last(function($log) {
+                    return $log->action == 'Duty Out';
+                });
+
+                // Find first overtime in
+                $overtimeIn = $logs->firstWhere('action', 'Overtime In');
+                
+                // Find last overtime out
+                $overtimeOut = $logs->last(function($log) {
+                    return $log->action == 'Overtime Out';
+                });
+
+                return [
+                    'date' => $date,
+                    'time_in' => $timeIn,
+                    'time_out' => $timeOut,
+                    'overtime_in' => $overtimeIn,
+                    'overtime_out' => $overtimeOut,
+                ];
+            })
+            ->take(10)
+            ->values()
+            ->all();
+
+        return response()->json(['status' => 200, 'summary' => $attendances]);
+
     }
     
 }
