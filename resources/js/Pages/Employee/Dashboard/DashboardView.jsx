@@ -298,7 +298,7 @@ const Dashboard = () => {
 
                     {/* Recent Attendances */}
                     <Grid container spacing={4} sx={{ mt: 1 }}>
-                        <Grid item xs={12} lg={8}>
+                        <Grid item xs={12} lg={7}>
                             <Box sx={{
                                 backgroundColor: "white",
                                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -336,11 +336,11 @@ const Dashboard = () => {
                                                 <Table className="table table-md table-striped table-vcenter">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Date</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Time In</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Time Out</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Overtime In</TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>Overtime Out</TableCell>
+                                                            <TableCell align="center">Date</TableCell>
+                                                            <TableCell align="center">Time In</TableCell>
+                                                            <TableCell align="center">Time Out</TableCell>
+                                                            <TableCell align="center">Overtime In</TableCell>
+                                                            <TableCell align="center">Overtime Out</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
@@ -396,7 +396,7 @@ const Dashboard = () => {
 
                     {/* Recent Applications */}
                     <Grid container spacing={4} sx={{ mt: 1 }}>
-                        <Grid item xs={12} lg={8}>
+                        <Grid item xs={12} lg={4}>
                             <Box sx={{
                                 backgroundColor: "white",
                                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -434,8 +434,8 @@ const Dashboard = () => {
                                                 <Table className="table table-md table-striped table-vcenter">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ width: "50%" }}>Application</TableCell>
-                                                            <TableCell align="center" sx={{ width: "50%" }}>Status</TableCell>
+                                                            <TableCell align="center">Application</TableCell>
+                                                            <TableCell align="center">Status</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
