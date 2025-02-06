@@ -178,5 +178,26 @@ class AnnouncementsController extends Controller
 
     }
 
+    public function getThumbnail($id)
+    {
+        Log::info("AnnouncementsController::getThumbnail");
 
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            Log::info($id);
+
+            $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $id)
+            ->where('thumbnail', true)
+            ->first();
+
+            $thumbnail = $thumbnailFile ? $thumbnailFile->path : null;
+
+            Log::info($thumbnail);
+
+            return response()->json([ 'status' => 200, 'thumbnail' => $thumbnail]);
+        } else {
+            return response()->json([ 'status' => 200, 'thumbnail' => null]);
+        }
+    }
 }

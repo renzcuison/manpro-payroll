@@ -9,6 +9,10 @@ import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+
 
 const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
     const navigate = useNavigate();
@@ -23,6 +27,8 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
+
+    const [imagePath, setImagePath] = useState("");
 
     useEffect(() => {
         axiosInstance.get('/settings/getBranches', { headers })
@@ -47,6 +53,22 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
             .catch((error) => {
                 console.error('Error fetching departments:', error);
             });
+
+        console.log("attempting to get thumbnail");
+        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
+            .then((response) => {
+                /*
+                const fetchedBranches = response.data.branches;
+                setBranches(fetchedBranches);
+
+                const allBranchIds = fetchedBranches.map((branch) => branch.id);
+                setSelectedBranches(allBranchIds);
+                */
+            })
+            .catch((error) => {
+                console.error('Error fetching branches:', error);
+            });
+
     }, []);
 
     const checkInput = (event) => {
@@ -108,14 +130,12 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
         };
 
         console.log(data);
-
+        /*
         axiosInstance
             .post("/announcements/publishAnnouncement", data, {
                 headers,
             })
             .then((response) => {
-                console.log("Announcement Published!");
-                /*
                 document.activeElement.blur();
                 document.body.removeAttribute("aria-hidden");
                 Swal.fire({
@@ -133,33 +153,61 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
                     }
-                });
-                */
+                })
             })
             .catch((error) => {
                 console.error("Error:", error);
                 document.body.setAttribute("aria-hidden", "true");
             });
+            */
     }
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: 1, backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', maxWidth: '600px', marginBottom: '5%' } }}>
+                <DialogTitle sx={{ padding: 3, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Publish Announcement </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 2, fontWeight: 'bold' }}> Publish Announcement </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography sx={{ mt: 1, mb: 1, alignSelf: 'flex-start' }}>Announcement Preview</Typography>
+                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                            <Card sx={{ minWidth: 350, maxWidth: 400 }}>
+                                <CardMedia
+                                    sx={{ height: 150 }}
+                                    image="../../../../images/ManPro.png"
+                                    title="AnnouncementCard"
+                                />
+                                <CardContent>
+                                    <Typography gutterBottom variant="h6" component="div">
+                                        {announceInfo.title}
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ color: 'text.secondary' }}
+                                    >
+                                        {
+                                            announceInfo.description.length > 150
+                                                ? `${announceInfo.description.slice(0, 147)}...`
+                                                : announceInfo.description
+                                        }
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Box>
+                    </Box>
+                    <Box component="form" sx={{ my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                        <Typography sx={{ mb: 2 }}>Select Recipients:</Typography>
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
                             <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 2, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -197,7 +245,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                             </FormControl>
 
                             <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 2, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -236,8 +284,8 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                             </FormControl>
                         </FormGroup>
 
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                        <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
+                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Publish </p>
                             </Button>
                         </Box>
