@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import AnnouncementForm from './Modals/AnnouncementForm';
+import AnnouncementPublishModal from './Modals/AnnouncementPublishModal';
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -53,6 +54,16 @@ const AnnouncementList = () => {
 
     };
 
+    // ---------------- Announcement Publishing
+    const [openAnnouncementPublish, setOpenAnnouncementPublish] = useState(null);
+    const handleOpenAnnouncementPublish = (announcement) => {
+        setOpenAnnouncementPublish(announcement)
+    }
+    const handleCloseAnnouncementPublish = () => {
+        setOpenAnnouncementPublish(null);
+        fetchAnnouncements();
+    }
+
     return (
         <Layout title={"AnnouncementsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -88,7 +99,7 @@ const AnnouncementList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "50%" }}>
+                                                <TableCell align="center" sx={{ width: "40%" }}>
                                                     Title
                                                 </TableCell>
                                                 <TableCell align="center" sx={{ width: "25%" }}>
@@ -96,6 +107,9 @@ const AnnouncementList = () => {
                                                 </TableCell>
                                                 <TableCell align="center" sx={{ width: "25%" }}>
                                                     Publish Date
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>
+                                                    Action
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -105,6 +119,7 @@ const AnnouncementList = () => {
                                                     (announcements, index) => (
                                                         <TableRow
                                                             key={announcements.id}
+                                                            onClick={() => handleOpenAnnouncementPublish(announcements)}
                                                             sx={{
                                                                 p: 1,
                                                                 backgroundColor:
@@ -143,6 +158,13 @@ const AnnouncementList = () => {
                 <AnnouncementForm
                     open={openAnnouncementForm}
                     close={handleCloseAnnouncementForm}
+                />
+            )}
+            {openAnnouncementPublish && (
+                <AnnouncementPublishModal
+                    open={true}
+                    close={handleCloseAnnouncementPublish}
+                    announceInfo={openAnnouncementPublish}
                 />
             )}
         </Layout>

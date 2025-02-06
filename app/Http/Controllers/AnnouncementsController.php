@@ -50,11 +50,11 @@ class AnnouncementsController extends Controller
 
     public function saveAnnouncement(Request $request)
     {
-        Log::info("AnnouncementsController::saveAnnouncement");
+        //Log::info("AnnouncementsController::saveAnnouncement");
 
         $user = Auth::user();
-        Log::info("Request Info:");
-        Log::info($request);
+        //Log::info("Request Info:");
+        //Log::info($request);
 
         if ($this->checkUser()){
             try {
@@ -79,8 +79,8 @@ class AnnouncementsController extends Controller
                     foreach ($request->file('attachment') as $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
-                        Log::info($fileName);
-                        Log::info($filePath);
+                        //Log::info($fileName);
+                        //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
                             'type' => "Document",
@@ -95,8 +95,8 @@ class AnnouncementsController extends Controller
                     foreach ($request->file('image') as $index => $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
-                        Log::info($fileName);
-                        Log::info($filePath);
+                        //Log::info($fileName);
+                        //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
                             'type' => "Document",
@@ -120,6 +120,61 @@ class AnnouncementsController extends Controller
         } else {
             return response()->json([ 'status' => 200 ]);
         }
+
+    }
+
+    public function publishAnnouncement(Request $request)
+    {
+        Log::info("AnnouncementsController::publishAnnouncement");
+        Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                
+                DB::beginTransaction();
+
+                $announcementId = $request->input('announcement');
+                $announcement = AnnouncementsModel::find($announcementId);
+            
+                $dateTime = now();
+                $announcement->published = $dateTime;
+                $announcement->save();
+
+                foreach($request->input('departments') as $key => $departmentId){
+                    Log::info($announcementId . " " . $departmentId);
+                    AnnouncementDepartmentsModel::create([
+                        'announcement_id' => $announcement->id,
+                        'department_id' => $departmentId
+                    ]);
+                }
+
+                foreach($request->input('branches') as $key => $branchId){
+                    Log::info($announcementId . " " . $branchId);
+                    AnnouncementBranchesModel::create([
+                        'announcement_id' => $announcement->id,
+                        'branch_id' => $branchId
+                    ]);
+                }
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200 ]);
+    
+            } catch (\Exception $e) {
+                DB::rollBack();
+    
+                Log::error("Error saving: " . $e->getMessage());
+    
+                throw $e;
+            }
+
+            
+        } else {
+            return response()->json([ 'status' => 200]);
+        }
+
 
     }
 

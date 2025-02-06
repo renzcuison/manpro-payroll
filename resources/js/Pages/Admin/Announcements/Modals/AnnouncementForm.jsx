@@ -187,7 +187,7 @@ const AnnouncementForm = ({ open, close }) => {
             })
             .catch((error) => {
                 console.error("Error:", error);
-                attachment.body.setAttribute("aria-hidden", "true");
+                document.body.setAttribute("aria-hidden", "true");
             });
     };
 
