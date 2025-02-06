@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+
 class AnnouncementsController extends Controller
 {
     public function checkUser()
@@ -55,6 +56,7 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()){
             try {
+                /*
                 DB::beginTransaction();
     
                 AnnouncementsModel::create([
@@ -71,7 +73,9 @@ class AnnouncementsController extends Controller
                     $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                 }
                 
+                
                 DB::commit();
+                */
                 
                 return response()->json([ 'status' => 200 ]);
     
