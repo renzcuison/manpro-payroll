@@ -88,11 +88,14 @@ const AnnouncementList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">
+                                                <TableCell align="center" sx={{ width: "50%" }}>
                                                     Title
                                                 </TableCell>
-                                                <TableCell align="center">
+                                                <TableCell align="center" sx={{ width: "25%" }}>
                                                     Date Created
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "25%" }}>
+                                                    Publish Date
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -113,13 +116,17 @@ const AnnouncementList = () => {
                                                                 {announcements.title}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}                                                            </TableCell>
+                                                                {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {"[insert publish date]"}
+                                                            </TableCell>
                                                         </TableRow>
                                                     )
                                                 )
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={2} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                    <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1, }}>
                                                         No Announcements Found
                                                     </TableCell>
                                                 </TableRow>

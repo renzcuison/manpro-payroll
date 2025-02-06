@@ -303,7 +303,7 @@ const AnnouncementForm = ({ open, close }) => {
                                                     Documents
                                                 </Typography>
                                                 <input
-                                                    accept=".doc, .docx, .pdf, .xls, xlsx"
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
                                                     id="attachment-upload"
                                                     type="file"
                                                     name="attachment"
