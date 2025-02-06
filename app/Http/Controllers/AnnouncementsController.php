@@ -56,26 +56,99 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()){
             try {
-                /*
-                DB::beginTransaction();
-    
-                AnnouncementsModel::create([
+                
+                //DB::beginTransaction();
+
+                // Announcement Entry
+                $announcement = AnnouncementsModel::create([
                     'user_id' => $user->id,
                     'client_id' => $user->client_id,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
                     'published' => false
                 ]);
+                
+                
+                // File Handling
+                $dateTime = now()->format('YmdHis');
 
+                // (Documents)
+                if ($request->hasFile('attachment')) {
+                    foreach ($request->file('attachment') as $file){
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
+                        Log::info($fileName);
+                        Log::info($filePath);
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Document",
+                            'path' => $filePath,
+                            'thumbnail' => false,
+                        ]);
+                    }
+                }
+
+                // (Images)
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $index => $file){
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/images', $fileName, 'public');
+                        Log::info($fileName);
+                        Log::info($filePath);
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Document",
+                            'path' => $filePath,
+                            'thumbnail' => $index == $request->input('thumbnail'),
+                        ]);
+                    }
+                }
+                
+                /*
+                AnnouncementFileModel:create([
+                    'announcment_id' => $announcement->id])
+
+                    if ($request->hasFile('attachment')) {
+        foreach ($request->file('attachment') as $file) {
+            $dateTime = now()->format('YmdHis');
+            $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('path/to/attachments', $fileName); // Adjust the path
+
+            AnnouncementFileModel::create([
+                'announcement_id' => $announcement->id,
+                'file_name' => $fileName,
+                'file_path' => 'path/to/attachments/' . $fileName, // or however you store paths
+                'type' => 'attachment' // or some identifier for attachments
+            ]);
+        }
+    }
+
+    // Handle images
+    if ($request->hasFile('image')) {
+        foreach ($request->file('image') as $file) {
+            $dateTime = now()->format('YmdHis');
+            $fileName = 'image_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('path/to/images', $fileName); // Adjust the path
+
+            AnnouncementFileModel::create([
+                'announcement_id' => $announcement->id,
+                'file_name' => $fileName,
+                'file_path' => 'path/to/images/' . $fileName, // or however you store paths
+                'type' => 'image' // or some identifier for images
+            ]);
+        }
+    }
+                
                 if ($request ->hasFile('attachment')){
                     $file = $request->file('attachment');
                     $dateTime = now()->format('YmdHis');
                     $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                 }
+                    */
                 
                 
-                DB::commit();
-                */
+                //DB::commit();
+                
                 
                 return response()->json([ 'status' => 200 ]);
     
@@ -90,16 +163,6 @@ class AnnouncementsController extends Controller
             return response()->json([ 'status' => 200 ]);
         }
 
-        /*
-        if ($this->checkUser()) {
-            $clientId = $user->client_id;
-            $announcements = AnnouncementsModel::where('client_id',$clientId)->get();
-
-            return response()->json([ 'status' => 200, 'announcements' => $announcements]);
-        } else {
-            return response()->json([ 'status' => 200, 'announcements' => null]);
-        }
-        */
     }
 
 
