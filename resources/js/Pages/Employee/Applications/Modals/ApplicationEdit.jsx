@@ -301,7 +301,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="From Date"
+                                        label="From"
                                         value={fromDate}
                                         error={fromDateError}
                                         minDate={dayjs()}
@@ -323,7 +323,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="To Date"
+                                        label="To"
                                         value={toDate}
                                         error={toDateError}
                                         minDateTime={fromDate}
@@ -359,11 +359,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             label="Upload New File (Optional)"
                                             value={
                                                 attachment
-                                                    ? `${
-                                                          attachment.name
-                                                      }, ${getFileSize(
-                                                          attachment.size
-                                                      )}`
+                                                    ? `${attachment.name
+                                                    }, ${getFileSize(
+                                                        attachment.size
+                                                    )}`
                                                     : ""
                                             }
                                             error={attachmentError}

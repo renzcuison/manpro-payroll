@@ -298,7 +298,7 @@ const ApplicationForm = ({ open, close }) => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="From Date"
+                                        label="From"
                                         value={fromDate}
                                         error={fromDateError}
                                         minDate={dayjs()}
@@ -320,7 +320,7 @@ const ApplicationForm = ({ open, close }) => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="To Date"
+                                        label="To"
                                         value={toDate}
                                         error={toDateError}
                                         minDateTime={fromDate}
@@ -351,11 +351,10 @@ const ApplicationForm = ({ open, close }) => {
                                         label="Upload File"
                                         value={
                                             attachment
-                                                ? `${
-                                                      attachment.name
-                                                  }, ${getFileSize(
-                                                      attachment.size
-                                                  )}`
+                                                ? `${attachment.name
+                                                }, ${getFileSize(
+                                                    attachment.size
+                                                )}`
                                                 : ""
                                         }
                                         error={attachmentError}
