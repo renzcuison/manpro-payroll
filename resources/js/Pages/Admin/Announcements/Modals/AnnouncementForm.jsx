@@ -21,7 +21,7 @@ import {
     Stack,
     Radio
 } from "@mui/material";
-import { Cancel, InsertDriveFile } from "@mui/icons-material";
+import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -108,8 +108,6 @@ const AnnouncementForm = ({ open, close }) => {
         } else {
             setDescriptionError(false);
         }
-
-        console.log(thumbnailIndex);
 
         if (!title || !description) {
             document.activeElement.blur();
@@ -262,7 +260,7 @@ const AnnouncementForm = ({ open, close }) => {
                                                     setDescription(value);
                                                 }
                                             }}
-                                            placeholder="Enter announcement description here... (Required)"
+                                            placeholder="Enter announcement description here *"
                                             modules={{
                                                 toolbar: [
                                                     [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -283,6 +281,9 @@ const AnnouncementForm = ({ open, close }) => {
                                             theme="snow"
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
+                                        <FormHelperText>
+                                            {description.length}/{512}
+                                        </FormHelperText>
                                     </div>
                                 </FormControl>
 
