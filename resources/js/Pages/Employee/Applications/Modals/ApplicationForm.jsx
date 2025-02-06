@@ -375,6 +375,7 @@ const ApplicationForm = ({ open, close }) => {
                                         variant="outlined"
                                     />
                                     <input
+                                        accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
                                         type="file"
                                         name="attachment"
                                         ref={attachmentInput}
