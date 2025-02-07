@@ -25,6 +25,7 @@ import { Form, useLocation, useNavigate } from "react-router-dom";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -302,6 +303,11 @@ const ApplicationForm = ({ open, close }) => {
                                         value={fromDate}
                                         error={fromDateError}
                                         minDate={dayjs()}
+                                        viewRenderers={{
+                                            hours: renderTimeViewClock,
+                                            minutes: renderTimeViewClock,
+                                            seconds: renderTimeViewClock,
+                                        }}
                                         onChange={(newValue) => {
                                             setFromDate(newValue);
                                             if (newValue.isAfter(toDate)) {

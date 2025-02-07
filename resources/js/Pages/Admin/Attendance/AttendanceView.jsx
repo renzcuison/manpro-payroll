@@ -18,6 +18,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 
 import AttendanceViewDetails from "./Modals/AttendanceViewDetails";
+import AddAttendanceModal from './Modals/AddAttendanceModal';
 
 const AttendanceView = () => {
     const { user } = useParams();
@@ -49,6 +50,17 @@ const AttendanceView = () => {
 
     const handleCloseAttendanceDetails = () => {
         setOpenAttendanceDetails(null);
+    };
+
+    // ---------------- Add Attendance
+    const [openAddAttendance, setOpenAddAttendance] = useState(false);
+
+    const handleOpenAddAttendance = () => {
+        setOpenAddAttendance(true);
+    };
+
+    const handleCloseAddAttendance = () => {
+        setOpenAddAttendance(false);
     };
 
     // ---------------- Employee API
@@ -93,9 +105,17 @@ const AttendanceView = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Attendance - {employee.id} {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Attendance - {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </Typography>
 
-                        <></>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenAddAttendance}
+                        >
+                            <p className="m-0">
+                                <i className="fa fa-plus"></i> Add {" "}
+                            </p>
+                        </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
@@ -292,6 +312,15 @@ const AttendanceView = () => {
                         open={true}
                         close={handleCloseAttendanceDetails}
                         date={openAttendanceDetails}
+                        employee={employee.id}
+                    />
+                )
+            }
+            {
+                openAddAttendance && (
+                    <AddAttendanceModal
+                        open={true}
+                        close={handleCloseAttendanceDetails}
                         employee={employee.id}
                     />
                 )
