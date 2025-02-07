@@ -333,6 +333,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         value={toDate}
                                         error={toDateError}
                                         minDateTime={fromDate}
+                                        timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setToDate(newValue);
                                         }}

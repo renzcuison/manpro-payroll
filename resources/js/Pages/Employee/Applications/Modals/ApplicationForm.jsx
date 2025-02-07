@@ -330,6 +330,7 @@ const ApplicationForm = ({ open, close }) => {
                                         value={toDate}
                                         error={toDateError}
                                         minDateTime={fromDate}
+                                        timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setToDate(newValue);
                                         }}

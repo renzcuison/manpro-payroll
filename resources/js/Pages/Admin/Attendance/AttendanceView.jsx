@@ -320,7 +320,7 @@ const AttendanceView = () => {
                 openAddAttendance && (
                     <AddAttendanceModal
                         open={true}
-                        close={handleCloseAttendanceDetails}
+                        close={handleCloseAddAttendance}
                         employee={employee.id}
                     />
                 )

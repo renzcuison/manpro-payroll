@@ -36,9 +36,92 @@ const AddAttendanceModal = ({ open, close, employee }) => {
         console.log(employee);
     }, []);
 
-    const checkInput = () => {
-        console.log("submit attendance?");
+    const checkInput = (event) => {
+        event.preventDefault();
+
+        if (!selectedAction) {
+            setSelectedActionError(true);
+        } else {
+            setSelectedActionError(false);
+        }
+        if (!timestamp) {
+            setTimestampError(true);
+        } else {
+            setTimestampError(false);
+        }
+
+        if (!selectedAction || !timestamp) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "Do you want to record this attendance?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveAttendance(event);
+                }
+            });
+        }
     }
+
+    const saveAttendance = (event) => {
+        event.preventDefault();
+
+
+        const data = {
+            employee: employee,
+            action: selectedAction,
+            timestamp: timestamp.format("YYYY-MM-DD HH:mm:ss")
+        }
+
+        console.log(data);
+
+
+        axiosInstance
+            .post("/attendance/recordEmployeeAttendance", data, {
+                headers,
+            })
+            .then((response) => {
+                document.activeElement.blur();
+                document.body.removeAttribute("aria-hidden");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `Attendance successfully recorded`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        close();
+                        document.body.setAttribute("aria-hidden", "true");
+                    } else {
+                        document.body.setAttribute("aria-hidden", "true");
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+
+    };
 
     return (
         <>
@@ -52,7 +135,6 @@ const AddAttendanceModal = ({ open, close, employee }) => {
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                        <Typography sx={{ mb: 2 }}>Employee: {employee.id}</Typography>
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -69,7 +151,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                     value={selectedAction}
                                     error={selectedActionError}
                                     onChange={(event) =>
-                                        handleTypeChange(event.target.value)
+                                        setSelectedAction(event.target.value)
                                     }
                                 >
                                     <MenuItem value="Time In">
@@ -95,6 +177,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                         value={timestamp}
                                         error={timestampError}
                                         minDate={dayjs()}
+                                        timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setTimestamp(newValue);
                                         }}
