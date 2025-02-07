@@ -64,7 +64,7 @@ const AttendanceSummary = () => {
                                                 <TableRow
                                                     key={employee.id}
                                                     component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
+                                                    to={`/admin/attendance/${employee.user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
                                                     <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
