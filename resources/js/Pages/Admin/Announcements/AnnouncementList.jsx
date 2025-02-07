@@ -22,7 +22,6 @@ const AnnouncementList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
 
     // ---------------- Announcement List
     const [announcements, setAnnouncements] = useState([]);

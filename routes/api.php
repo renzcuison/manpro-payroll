@@ -185,6 +185,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('announcements')->group(function () {
         Route::get('/getAnnouncements', [AnnouncementsController::class, 'getAnnouncements']);
+        Route::get('/getMyAnnouncements', [AnnouncementsController::class, 'getMyAnnouncements']);
+
         Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
 

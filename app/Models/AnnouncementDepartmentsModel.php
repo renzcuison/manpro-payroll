@@ -17,4 +17,9 @@ class AnnouncementDepartmentsModel extends Model
         'announcement_id',
         'department_id',
     ];
+
+    public function announcement()
+    {
+        return $this->belongsTo(AnnouncementsModel::class, 'announcement_id');
+    }
 }

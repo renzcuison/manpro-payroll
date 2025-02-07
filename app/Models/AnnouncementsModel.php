@@ -25,4 +25,14 @@ class AnnouncementsModel extends Model
     {
         return $this->hasMany(AnnouncementFilesModel::class, 'announcement_id');
     }
+
+    public function branches()
+    {
+        return $this->hasMany(AnnouncementBranchesModel::class, 'announcement_id');
+    }
+
+    public function departments()
+    {
+        return $this->hasMany(AnnouncementDepartmentsModel::class, 'announcement_id');
+    }
 }

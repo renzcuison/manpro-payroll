@@ -125,8 +125,8 @@ class AnnouncementsController extends Controller
 
     public function publishAnnouncement(Request $request)
     {
-        Log::info("AnnouncementsController::publishAnnouncement");
-        Log::info($request);
+        //Log::info("AnnouncementsController::publishAnnouncement");
+        //Log::info($request);
 
         $user = Auth::user();
 
@@ -143,7 +143,7 @@ class AnnouncementsController extends Controller
                 $announcement->save();
 
                 foreach($request->input('departments') as $key => $departmentId){
-                    Log::info($announcementId . " " . $departmentId);
+                    //Log::info($announcementId . " " . $departmentId);
                     AnnouncementDepartmentsModel::create([
                         'announcement_id' => $announcement->id,
                         'department_id' => $departmentId
@@ -151,7 +151,7 @@ class AnnouncementsController extends Controller
                 }
 
                 foreach($request->input('branches') as $key => $branchId){
-                    Log::info($announcementId . " " . $branchId);
+                    //Log::info($announcementId . " " . $branchId);
                     AnnouncementBranchesModel::create([
                         'announcement_id' => $announcement->id,
                         'branch_id' => $branchId
@@ -180,7 +180,7 @@ class AnnouncementsController extends Controller
 
     public function getThumbnail($id)
     {
-        Log::info("AnnouncementsController::getThumbnail");
+        //Log::info("AnnouncementsController::getThumbnail");
 
         $user = Auth::user();
 
@@ -201,5 +201,28 @@ class AnnouncementsController extends Controller
         } else {
             return response()->json([ 'status' => 200, 'thumbnail' => null]);
         }
+    }
+
+    public function getMyAnnouncements(Request $request)
+    {
+        //Log::info("AnnouncementsController::getMyAnnouncements");
+        $user = Auth::user();
+        //Log::info($user->branch_id);
+        //Log::info($user->department_id);
+
+        // Branch Announcements
+        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
+            $query->where('branch_id', $user->branch_id);
+        })->get();
+
+        // Department Announcements
+        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
+            $query->where('department_id', $user->department_id);
+        })->get();
+
+        $announcements = $branches->merge($departments)->unique('id');
+
+        return response()->json(['status' => 200, 'announcements' => $announcements]);
+    
     }
 }

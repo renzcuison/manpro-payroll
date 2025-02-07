@@ -46,11 +46,28 @@ const AnnouncementList = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [announcements, setAnnouncements] = useState([]);
+
+    useEffect(() => {
+        fetchAnnouncements();
+    }, []);
+
+    const fetchAnnouncements = () => {
+        axiosInstance.get('/announcements/getMyAnnouncements', { headers })
+            .then((response) => {
+                console.log(response.data.announcements);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching announcements:', error);
+                setIsLoading(false);
+            });
+    }
 
     // ---------------- Announcement List API
     useEffect(() => {
+
     }, []);
 
 
@@ -64,7 +81,7 @@ const AnnouncementList = () => {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Box sx={{ mt: 6, p: 3, borderRadius: "8px" }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
