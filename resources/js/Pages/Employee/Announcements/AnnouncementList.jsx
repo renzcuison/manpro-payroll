@@ -20,6 +20,9 @@ import {
     InputLabel,
     Select,
     breadcrumbsClasses,
+    Card,
+    CardMedia,
+    CardContent
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -47,8 +50,10 @@ const AnnouncementList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [imageLoading, setImageLoading] = useState(false);
     const [announcements, setAnnouncements] = useState([]);
 
+    // ---------------- Announcement List API
     useEffect(() => {
         fetchAnnouncements();
     }, []);
@@ -56,7 +61,7 @@ const AnnouncementList = () => {
     const fetchAnnouncements = () => {
         axiosInstance.get('/announcements/getMyAnnouncements', { headers })
             .then((response) => {
-                console.log(response.data.announcements);
+                setAnnouncements(response.data.announcements);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -65,10 +70,14 @@ const AnnouncementList = () => {
             });
     }
 
-    // ---------------- Announcement List API
+    // ---------------- Announcement Image API
     useEffect(() => {
-
-    }, []);
+        if (announcements.length > 0) {
+            console.log("Requesting Thumbnails");
+        } else {
+            console.log("No Request Needed");
+        }
+    }, [announcements]);
 
 
     return (
@@ -81,14 +90,58 @@ const AnnouncementList = () => {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, borderRadius: "8px" }} >
+                    <Box sx={{ p: 3 }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                <Box>oh hi</Box>
+                                <Grid container rowSpacing={{ xs: 1, sm: 2 }} columnSpacing={{ xs: 2, sm: 3 }}>
+                                    {announcements.length > 0 ? (
+                                        announcements.map(
+                                            (announcement, index) => (
+                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                    <Card sx={{ maxWidth: 350 }}>
+                                                        {imageLoading ? (
+                                                            <Box
+                                                                sx={{
+                                                                    display: 'flex',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center',
+                                                                    height: 150
+                                                                }}
+                                                            >
+                                                                <CircularProgress />
+                                                            </Box>
+                                                        ) : (
+                                                            <CardMedia
+                                                                sx={{ height: 150 }}
+                                                                image={"../../../images/ManProTab.png"}
+                                                                title="AnnouncementCard"
+                                                            />
+                                                        )}
+
+                                                        <CardContent>
+                                                            <Typography gutterBottom variant="h6" component="div">
+                                                                {announcement.title}
+                                                            </Typography>
+                                                            <div
+                                                                id="description"
+                                                                style={{ height: '100px', overflow: 'hidden' }}
+                                                                dangerouslySetInnerHTML={{ __html: announcement.description }} // Render HTML directly
+                                                            />
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                            )
+                                        )
+                                    ) : (
+                                        <>
+                                            <Box sx={{ bgcolor: "#ffffff", p: 4, alignSelf: "center" }}>No Announcements</Box>
+                                        </>
+                                    )}
+                                </Grid>
                             </>
                         )}
                     </Box>

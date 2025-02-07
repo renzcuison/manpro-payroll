@@ -75,7 +75,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
             })
             .catch((error) => {
                 console.error('Error fetching thumbnail:', error);
-                setImagePath("../../../../images/ManPro.png");
+                setImagePath("../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
 
