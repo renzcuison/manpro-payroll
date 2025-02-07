@@ -20,7 +20,7 @@ class CreateApplicationsTable extends Migration
             $table->dateTime('duration_end');
             $table->string('attachment', 256);
             $table->string('description', 512);
-            $table->enum('status',['Pending', 'Approved', 'Declined', 'Withdrawn']);
+            $table->enum('status',['Pending', 'Approved', 'Declined', 'Withdrawn'])->default('Pending');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('client_id');
             $table->timestamps();

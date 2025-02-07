@@ -383,6 +383,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             variant="outlined"
                                         />
                                         <input
+                                            accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
                                             type="file"
                                             name="attachment"
                                             ref={attachmentInput}
