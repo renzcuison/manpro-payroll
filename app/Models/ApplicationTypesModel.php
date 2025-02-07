@@ -17,6 +17,5 @@ class ApplicationTypesModel extends Model
         'name',
         'client_id',
         'deleted_at',
-        'deleted_by',
     ];
 }

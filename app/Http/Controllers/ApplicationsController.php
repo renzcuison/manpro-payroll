@@ -77,7 +77,6 @@ class ApplicationsController extends Controller
         $types = ApplicationTypesModel::where('client_id', $clientId)
             ->select('id', 'name')
             ->where('deleted_at', NULL)
-            ->where('deleted_by', NULL)
             ->get();
 
         return response()->json(['status' => 200, 'types' => $types]);
