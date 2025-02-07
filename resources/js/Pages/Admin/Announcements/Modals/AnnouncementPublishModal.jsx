@@ -29,6 +29,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
     const [selectedDepartments, setSelectedDepartments] = useState([]);
 
     const [imagePath, setImagePath] = useState("");
+    const [imageLoading, setImageLoading] = useState(true);
 
     useEffect(() => {
         axiosInstance.get('/settings/getBranches', { headers })
@@ -54,19 +55,28 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                 console.error('Error fetching departments:', error);
             });
 
-        console.log("attempting to get thumbnail");
         axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
             .then((response) => {
-                /*
-                const fetchedBranches = response.data.branches;
-                setBranches(fetchedBranches);
+                if (response.data.thumbnail) {
+                    const byteCharacters = atob(response.data.thumbnail);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'image/png' });
 
-                const allBranchIds = fetchedBranches.map((branch) => branch.id);
-                setSelectedBranches(allBranchIds);
-                */
+                    setImagePath(URL.createObjectURL(blob));
+                } else {
+                    setImagePath("../../../../images/ManPro.png");
+                }
+                setImageLoading(false);
+
             })
             .catch((error) => {
-                console.error('Error fetching branches:', error);
+                console.error('Error fetching thumbnail:', error);
+                setImagePath("../../../../images/ManPro.png");
+                setImageLoading(false);
             });
 
     }, []);
@@ -129,8 +139,6 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
             branches: selectedBranches,
         };
 
-        console.log(data);
-        /*
         axiosInstance
             .post("/announcements/publishAnnouncement", data, {
                 headers,
@@ -148,7 +156,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        close();
+                        handleClose();
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
@@ -159,7 +167,14 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                 console.error("Error:", error);
                 document.body.setAttribute("aria-hidden", "true");
             });
-            */
+
+    }
+
+    const handleClose = () => {
+        if (imagePath && imagePath.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePath);
+        }
+        close();
     }
 
     return (
@@ -176,12 +191,26 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography sx={{ mt: 1, mb: 1, alignSelf: 'flex-start' }}>Announcement Preview</Typography>
                         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                            <Card sx={{ minWidth: 350, maxWidth: 400 }}>
-                                <CardMedia
-                                    sx={{ height: 150 }}
-                                    image="../../../../images/ManPro.png"
-                                    title="AnnouncementCard"
-                                />
+                            <Card sx={{ maxWidth: 350 }}>
+                                {imageLoading ? (
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            height: 150
+                                        }}
+                                    >
+                                        <CircularProgress />
+                                    </Box>
+                                ) : (
+                                    <CardMedia
+                                        sx={{ height: 150 }}
+                                        image={imagePath}
+                                        title="AnnouncementCard"
+                                    />
+                                )}
+
                                 <CardContent>
                                     <Typography gutterBottom variant="h6" component="div">
                                         {announceInfo.title}

@@ -102,17 +102,14 @@ class AttendanceController extends Controller
 
     public function recordEmployeeAttendance(Request $request)
     {
-        log::info("AttendanceController::recordEmployeeAttendance");
-        Log::info($request);
+        //log::info("AttendanceController::recordEmployeeAttendance");
         $validated = $request->validate([ 'action' => 'required' ]);
 
 
         $user = Auth::user();
 
         if ($this->checkUser() && $validated) {
-            $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
-            Log::info($employee);
-            
+            $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();            
             try {
                 DB::beginTransaction();
 
@@ -395,8 +392,8 @@ class AttendanceController extends Controller
                     'date' => $date,
                     'time_in' => $timeIn ? $timeIn->timestamp : null,
                     'time_out' => $timeOut ? $timeOut->timestamp : null,
-                    'overtime_in' => $overtimeIn,
-                    'overtime_out' => $overtimeOut,
+                    'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
+                    'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
                 ];
             })
             ->take(10)

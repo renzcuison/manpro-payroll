@@ -51,30 +51,30 @@ const AttendanceLogs = () => {
 
     // ---------------- Attendance Logs API
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const response = await axiosInstance.get(
-                    `/attendance/getEmployeeAttendanceLogs`,
-                    {
-                        headers,
-                        params: {
-                            from_date: fromDate.format("YYYY-MM-DD"),
-                            to_date: toDate.format("YYYY-MM-DD"),
-                            action: "All",
-                        },
-                    }
-                );
-                console.log("Initial fetch:", response.data);
-                setAttendanceLogs(response.data.attendances);
-                setIsLoading(false);
-            } catch (error) {
-                console.error("Error fetching initial attendance logs:", error);
-                setIsLoading(false);
-            }
-        };
-
-        fetchInitialData();
+        fetchAttendanceLogs();
     }, []);
+
+    const fetchAttendanceLogs = async () => {
+        try {
+            const response = await axiosInstance.get(
+                `/attendance/getEmployeeAttendanceLogs`,
+                {
+                    headers,
+                    params: {
+                        from_date: fromDate.format("YYYY-MM-DD"),
+                        to_date: toDate.format("YYYY-MM-DD"),
+                        action: "All",
+                    },
+                }
+            );
+            console.log("Initial fetch:", response.data);
+            setAttendanceLogs(response.data.attendances);
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Error fetching initial attendance logs:", error);
+            setIsLoading(false);
+        }
+    };
 
     // ---------------- Date Filter
     const [fromDate, setFromDate] = useState(dayjs());

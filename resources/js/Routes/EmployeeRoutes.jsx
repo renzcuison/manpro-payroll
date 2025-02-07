@@ -8,6 +8,7 @@ import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
 import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
+import AnnouncementList from "../Pages/Employee/Announcements/AnnouncementList";
 
 import MemberAttendance from "../Pages/Member/MemberAttendance";
 import MemberApplication from "../Pages/Member/MemberApplication";
@@ -59,6 +60,17 @@ const EmployeeRoutes = ({ user }) => {
                 }
             />
 
+            <Route
+                path="announcements"
+                element={
+                    <ProtectedRoute
+                        element={<AnnouncementList />}
+                        user={user}
+                    />
+                }
+            />
+
+
             {/* Old Routes ------------------------------------------------ */}
             {/* ----------------------------------------------------------- */}
             <Route
@@ -89,7 +101,7 @@ const EmployeeRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="announcements"
+                path="member-announcements"
                 element={
                     <ProtectedRoute
                         element={<MemberAnnouncements />}

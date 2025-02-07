@@ -325,7 +325,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 </span>
                             </StyledNav>
 
-                            <StyledNav to={`/member/announcements`}>
+                            <StyledNav to={`/employee/announcements`}>
                                 <i
                                     className="fa fa-file-text-o"
                                     style={{ color: "#2a800f" }}

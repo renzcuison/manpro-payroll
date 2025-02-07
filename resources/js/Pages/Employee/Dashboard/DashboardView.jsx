@@ -53,10 +53,6 @@ const Dashboard = () => {
 
     const [openAttedanceModal, setOpenAttendanceModal] = useState(false);
 
-    const [order, setOrder] = useState("asc");
-    const [orderBy, setOrderBy] = useState("calories");
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -64,11 +60,6 @@ const Dashboard = () => {
     // const formattedDateTime = currentDateTime.toLocaleString();
     const formattedDateTime = currentDateTime.toLocaleTimeString();
 
-    const handleRequestSort = (_event, property) => {
-        const isAsc = orderBy === property && order === "asc";
-        setOrder(isAsc ? "desc" : "asc");
-        setOrderBy(property);
-    };
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -81,8 +72,6 @@ const Dashboard = () => {
     useEffect(() => {
         axiosInstance.get('/attendance/getEmployeeDashboardAttendance', { headers })
             .then((response) => {
-                console.log("attendance data:");
-                console.log(response.data);
                 setRecentAttendances(response.data.attendances);
                 setIsAttendanceLoading(false);
             })
@@ -95,8 +84,6 @@ const Dashboard = () => {
     useEffect(() => {
         axiosInstance.get('/applications/getDashboardApplications', { headers })
             .then((response) => {
-                console.log("application data:");
-                console.log(response.data);
                 setRecentApplications(response.data.applications);
                 setIsApplicationLoading(false);
             })

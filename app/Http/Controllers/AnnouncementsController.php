@@ -185,15 +185,17 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            Log::info($id);
+            //Log::info($id);
 
             $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $id)
             ->where('thumbnail', true)
             ->first();
 
-            $thumbnail = $thumbnailFile ? $thumbnailFile->path : null;
-
-            Log::info($thumbnail);
+            $thumbnail = null;
+            $thumbnail = null;
+            if ($thumbnailFile) {
+                $thumbnail = base64_encode(Storage::disk('public')->get($thumbnailFile->path));
+            }
 
             return response()->json([ 'status' => 200, 'thumbnail' => $thumbnail]);
         } else {
