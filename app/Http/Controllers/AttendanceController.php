@@ -56,8 +56,13 @@ class AttendanceController extends Controller
         $workDate = $request->input('work_date');
     
         $user = Auth::user();
-        $currentDate = Carbon::now()->toDateString();
-        $attendance = AttendanceLogsModel::where('user_id', $user->id)->whereDate('timestamp', $workDate)->get();
+
+        $employeeId = $user->id;
+        if ($this->checkUser() && $request->input('employee')) {
+            $employeeId = $request->input('employee');
+        }
+        
+        $attendance = AttendanceLogsModel::where('user_id', $employeeId)->whereDate('timestamp', $workDate)->get();
 
         return response()->json([ 'status' => 200, 'attendance' => $attendance ]);
     }
@@ -141,11 +146,15 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $fromDate = $request->input('summary_from_date'); 
         $toDate = $request->input('summary_to_date'); 
-        
+
+        $employeeId = $user->id;
+        if ($this->checkUser() && $request->input('employee')) {
+            $employeeId = $request->input('employee');
+        }
         // Fetch and process attendance logs for summary
         $summaryData = DB::table('attendance_logs as al')
             ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
-            ->where('al.user_id', $user->id)
+            ->where('al.user_id', $employeeId)
             ->whereBetween('al.timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
             ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
             ->orderBy('al.timestamp', 'asc')

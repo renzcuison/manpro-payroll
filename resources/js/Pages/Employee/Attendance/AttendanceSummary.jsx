@@ -127,11 +127,7 @@ const AttendanceSummary = () => {
                                             value={summaryFromDate}
                                             onChange={(newValue) => {
                                                 setSummaryFromDate(newValue);
-                                                if (
-                                                    newValue.isAfter(
-                                                        summaryToDate
-                                                    )
-                                                ) {
+                                                if (newValue.isAfter(summaryToDate)) {
                                                     setSummaryToDate(newValue);
                                                 }
                                             }}
@@ -258,56 +254,22 @@ const AttendanceSummary = () => {
                                                                     }}
                                                                 >
                                                                     {(() => {
-                                                                        if (
-                                                                            summary.date ===
-                                                                            currentDate
-                                                                        ) {
+                                                                        if (summary.date === currentDate) {
                                                                             return "Day Ongoing";
                                                                         } else {
-                                                                            const totalLate =
-                                                                                summary.late_time;
-                                                                            const hoursLate =
-                                                                                Math.floor(
-                                                                                    totalLate /
-                                                                                    60
-                                                                                );
-                                                                            const minutesLate =
-                                                                                totalLate %
-                                                                                60;
+                                                                            const totalLate = summary.late_time;
+                                                                            const hoursLate = Math.floor(totalLate / 60);
+                                                                            const minutesLate = totalLate % 60;
 
-                                                                            if (
-                                                                                hoursLate >
-                                                                                0 &&
-                                                                                minutesLate >
-                                                                                0
-                                                                            ) {
+                                                                            if (hoursLate > 0 && minutesLate > 0) {
                                                                                 return `${hoursLate} hour${hoursLate >
                                                                                     1
                                                                                     ? "s"
-                                                                                    : ""
-                                                                                    }, ${minutesLate} minute${minutesLate >
-                                                                                        1
-                                                                                        ? "s"
-                                                                                        : ""
-                                                                                    }`;
-                                                                            } else if (
-                                                                                hoursLate >
-                                                                                0
-                                                                            ) {
-                                                                                return `${hoursLate} hour${hoursLate >
-                                                                                    1
-                                                                                    ? "s"
-                                                                                    : ""
-                                                                                    }`;
-                                                                            } else if (
-                                                                                minutesLate >
-                                                                                0
-                                                                            ) {
-                                                                                return `${minutesLate} minute${minutesLate >
-                                                                                    1
-                                                                                    ? "s"
-                                                                                    : ""
-                                                                                    }`;
+                                                                                    : ""}, ${minutesLate} minute${minutesLate > 1 ? "s" : ""}`;
+                                                                            } else if (hoursLate > 0) {
+                                                                                return `${hoursLate} hour${hoursLate > 1 ? "s" : ""}`;
+                                                                            } else if (minutesLate > 0) {
+                                                                                return `${minutesLate} minute${minutesLate > 1 ? "s" : ""}`;
                                                                             } else {
                                                                                 return "None";
                                                                             }
@@ -323,12 +285,8 @@ const AttendanceSummary = () => {
                                                     <TableCell
                                                         colSpan={8}
                                                         align="center"
-                                                        sx={{
-                                                            color: "text.secondary",
-                                                            p: 1,
-                                                        }}
-                                                    >
-                                                        No Attendance Data Found
+                                                        sx={{ color: "text.secondary", p: 1, }}>
+                                                        No Attendance Found
                                                     </TableCell>
                                                 </TableRow>
                                             )}
@@ -340,14 +298,12 @@ const AttendanceSummary = () => {
                     </Box>
                 </Box>
             </Box>
-
             {
                 openAttendanceDetails && (
                     <AttendanceSummaryDetails
                         open={true}
                         close={handleCloseAttendanceDetails}
                         date={openAttendanceDetails}
-                    // employee={employee} onUpdateEmployee={getEmployeeDetails}
                     />
                 )
             }
