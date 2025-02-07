@@ -94,12 +94,11 @@ const Sidebar = ({ children, closeMini }) => {
         text: 'Attendance',
         icon: 'fa fa-calendar-check-o',
         children: [
-            // {
-            // href: `/admin/attendance/general?`,
-            // text: 'Summary',
-            // icon: 'fa fa-cogs',
-            // },
             {
+            href: `/admin/attendance/summary?`,
+            text: 'Summary',
+            icon: 'fa fa-cogs',
+            }, {
                 href: `/admin/attendance/logs?`,
                 text: 'Logs',
                 icon: 'fa fa-cogs',
@@ -116,18 +115,15 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/payroll/process?`,
                 text: 'Process',
                 icon: 'fa fa-cogs',
-            },
-            {
+            }, {
                 href: `/hr/payroll-process?`,
                 text: 'Process Old',
                 icon: 'fa fa-cogs',
-            },
-            {
+            }, {
                 href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
                 text: 'Records',
                 icon: 'fa fa-cogs',
-            },
-            {
+            }, {
                 href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
                 text: 'Summary',
                 icon: 'fa fa-cogs',
@@ -214,8 +210,7 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 href: `/member/evaluate`,
                 text: 'Evaluate',
-            },
-            {
+            }, {
                 href: `/member/evaluation`,
                 text: 'My Evaluation',
             }

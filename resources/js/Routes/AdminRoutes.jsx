@@ -15,7 +15,8 @@ import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
-import EmployeeAttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
+import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
+import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
@@ -49,7 +50,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits" element={<ProtectedRoute element={<BenefitsList />} user={user} />} />
             <Route path="employees/benefits/:benefitName" element={<ProtectedRoute element={<BenefitView />} user={user} />} />
 
-            <Route path="attendance/logs" element={<ProtectedRoute element={<EmployeeAttendanceLogs />} user={user} />} />
+            <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
+            <Route path="attendance/summary" element={<ProtectedRoute element={<AttendanceSummary />} user={user} />} />
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
 
