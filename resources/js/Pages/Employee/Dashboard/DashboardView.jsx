@@ -197,47 +197,37 @@ const Dashboard = () => {
                                 padding: 4,
                                 borderRadius: "16px",
                             }}>
-                                <Link
-                                    to="/member/announcements"
-                                    sx={{
-                                        color: "#777777",
-                                        textDecoration: "none",
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        width: "100%",
-                                    }}>
+                                <Box sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: "100%",
+                                }}>
                                     <Box sx={{
                                         display: "flex",
+                                        justifyContent: "center",
                                         alignItems: "center",
-                                        width: "100%",
+                                        backgroundColor: "#2a800f",
+                                        borderRadius: "50%",
+                                        width: { xs: 40, sm: 50 },
+                                        height: { xs: 40, sm: 50 },
                                     }}>
-                                        <Box sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#2a800f",
-                                            borderRadius: "50%",
-                                            width: { xs: 40, sm: 50 },
-                                            height: { xs: 40, sm: 50 },
-                                        }}>
-                                            <CheckCircle sx={{
-                                                color: "white",
-                                                fontSize: 30,
-                                            }} />
-                                        </Box>
-                                        <Typography
-                                            variant="h5"
-                                            sx={{
-                                                marginLeft: 2,
-                                                paddingTop: 1,
-                                                flexGrow: 1,
-                                                textAlign: "right",
-                                                color: "#777777",
-                                            }}>
-                                            {" "}Announcements{" "}
-                                        </Typography>
+                                        <CheckCircle sx={{
+                                            color: "white",
+                                            fontSize: 30,
+                                        }} />
                                     </Box>
-                                </Link>
+                                    <Typography
+                                        variant="h5"
+                                        sx={{
+                                            marginLeft: 2,
+                                            paddingTop: 1,
+                                            flexGrow: 1,
+                                            textAlign: "right",
+                                            color: "#777777",
+                                        }}>
+                                        {" "}Announcements{" "}
+                                    </Typography>
+                                </Box>
                             </Box>
                         </Grid>
 
@@ -248,55 +238,46 @@ const Dashboard = () => {
                                 padding: 4,
                                 borderRadius: "16px",
                             }}>
-                                <Link
-                                    to="/member/trainings"
+                                <Box
                                     sx={{
-                                        color: "#777777",
-                                        textDecoration: "none",
                                         display: "flex",
-                                        justifyContent: "space-between",
+                                        alignItems: "center",
                                         width: "100%",
                                     }}>
                                     <Box
                                         sx={{
                                             display: "flex",
+                                            justifyContent: "center",
                                             alignItems: "center",
-                                            width: "100%",
+                                            backgroundColor: "#2a800f",
+                                            borderRadius: "50%",
+                                            width: { xs: 40, sm: 50 },
+                                            height: { xs: 40, sm: 50 },
                                         }}>
-                                        <Box
+                                        <Info
                                             sx={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                backgroundColor: "#2a800f",
-                                                borderRadius: "50%",
-                                                width: { xs: 40, sm: 50 },
-                                                height: { xs: 40, sm: 50 },
-                                            }}>
-                                            <Info
-                                                sx={{
-                                                    color: "white",
-                                                    fontSize: 30,
-                                                }} />
-                                        </Box>
-                                        <Typography
-                                            variant="h5"
-                                            sx={{
-                                                marginLeft: 2,
-                                                paddingTop: 1,
-                                                flexGrow: 1,
-                                                textAlign: "right",
-                                                color: "#777777",
-                                            }}>
-                                            {" "}Trainings{" "}
-                                        </Typography>
+                                                color: "white",
+                                                fontSize: 30,
+                                            }} />
                                     </Box>
-                                </Link>
+                                    <Typography
+                                        variant="h5"
+                                        sx={{
+                                            marginLeft: 2,
+                                            paddingTop: 1,
+                                            flexGrow: 1,
+                                            textAlign: "right",
+                                            color: "#777777",
+                                        }}>
+                                        {" "}Trainings{" "}
+                                    </Typography>
+                                </Box>
                             </Box>
                         </Grid>
                     </Grid>
 
                     <Grid container direction="row" spacing={4} sx={{ mt: 1 }}>
+                        {/* Attendance Table */}
                         <Grid item xs={12} lg={8}>
                             <Box sx={{
                                 backgroundColor: "white",
@@ -391,6 +372,7 @@ const Dashboard = () => {
                                 </div>
                             </Box>
                         </Grid>
+                        {/* Applications Table */}
                         <Grid item xs={12} lg={4}>
                             <Box sx={{
                                 backgroundColor: "white",

@@ -76,7 +76,7 @@ const Attendance = ({ open, close }) => {
                     // Check the Latest Log Entry ----------------------------------------
                     const latestAttendance =
                         response.data.attendance[
-                            response.data.attendance.length - 1
+                        response.data.attendance.length - 1
                         ];
 
                     if (
@@ -177,9 +177,8 @@ const Attendance = ({ open, close }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: `${timeIn ? "Time in" : "Time out"}`,
-                text: `Are you sure you want to ${
-                    timeIn ? "time in" : "time out"
-                }?`,
+                text: `Are you sure you want to ${timeIn ? "time in" : "time out"
+                    }?`,
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: `${timeIn ? "Time in" : "Time out"}`,
@@ -190,15 +189,14 @@ const Attendance = ({ open, close }) => {
                 if (res.isConfirmed) {
                     const data = {
                         datetime: formattedDateTime,
-                        action: `${
-                            shift == "Overtime"
+                        action: `${shift == "Overtime"
                                 ? timeIn
                                     ? "Overtime In"
                                     : "Overtime Out"
                                 : timeIn
-                                ? "Duty In"
-                                : "Duty Out"
-                        }`,
+                                    ? "Duty In"
+                                    : "Duty Out"
+                            }`,
                     };
 
                     axiosInstance
@@ -217,9 +215,8 @@ const Attendance = ({ open, close }) => {
 
                     Swal.fire({
                         customClass: { container: "my-swal" },
-                        title: `${
-                            timeIn ? "Timed In" : "Timed Out"
-                        } Successfully!`,
+                        title: `${timeIn ? "Timed In" : "Timed Out"
+                            } Successfully!`,
                         text: "Your attendance has been recorded",
                         icon: "success",
                         showConfirmButton: true,
@@ -258,7 +255,7 @@ const Attendance = ({ open, close }) => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             {" "}
                             Attendance{" "}
                         </Typography>
@@ -377,10 +374,10 @@ const Attendance = ({ open, close }) => {
 
                         {/*Overtime Shift------------------------------*/}
                         {firstDutyFinished &&
-                        ((workShift.shift_type == "Regular" &&
-                            firstShiftExpired) ||
-                            (workShift.shift_type == "Split" &&
-                                secondShiftExpired)) ? (
+                            ((workShift.shift_type == "Regular" &&
+                                firstShiftExpired) ||
+                                (workShift.shift_type == "Split" &&
+                                    secondShiftExpired)) ? (
                             <AttendanceButtons
                                 label="Overtime"
                                 onTimeIn={handleTimeInOut}
