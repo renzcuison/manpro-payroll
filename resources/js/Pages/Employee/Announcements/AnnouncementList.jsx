@@ -22,7 +22,8 @@ import {
     breadcrumbsClasses,
     Card,
     CardMedia,
-    CardContent
+    CardContent,
+    Pagination
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -43,15 +44,27 @@ import {
     getComparator,
     stableSort,
 } from "../../../components/utils/tableUtils";
+import { first } from "lodash";
 
 const AnnouncementList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    // ---------------- Announcement Data States
     const [isLoading, setIsLoading] = useState(true);
     const [imageLoading, setImageLoading] = useState(false);
     const [announcements, setAnnouncements] = useState([]);
+    const [announcementReload, setAnnouncementReload] = useState(true);
+
+    // ---------------- Pagination States
+    const [currentPage, setCurrentPage] = useState(1);
+    const [announcementsPerPage] = useState(9);
+    const [totalAnnouncements, setTotalAnnouncements] = useState(0);
+
+    const lastAnnouncement = currentPage * announcementsPerPage;
+    const firstAnnouncement = lastAnnouncement - announcementsPerPage;
+    const pageAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
 
     // ---------------- Announcement List API
     useEffect(() => {
@@ -62,22 +75,75 @@ const AnnouncementList = () => {
         axiosInstance.get('/announcements/getMyAnnouncements', { headers })
             .then((response) => {
                 setAnnouncements(response.data.announcements);
+                setTotalAnnouncements(response.data.announcements.length);
+                setAnnouncementReload(false);
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
+
     }
 
     // ---------------- Announcement Image API
     useEffect(() => {
+        if (!announcementReload) {
+            setAnnouncementReload(true);
+        }
+        fetchPageThumbnails();
+    }, [announcementReload, firstAnnouncement, lastAnnouncement]);
+
+    const fetchPageThumbnails = () => {
         if (announcements.length > 0) {
-            console.log("Requesting Thumbnails");
+            const pagedAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
+            const announcementIds = pagedAnnouncements.map(announcement => announcement.id);
+
+            axiosInstance.post('/announcements/getPageThumbnails', { announcementIds }, { headers })
+                .then((response) => {
+                    const thumbnails = response.data.thumbnails;
+
+                    setAnnouncements(prevAnnouncements => {
+                        const updatedAnnouncements = [...prevAnnouncements];
+
+                        pagedAnnouncements.forEach((announcement, paginatedIndex) => {
+                            const globalIndex = prevAnnouncements.indexOf(announcement);
+
+                            if (paginatedIndex < thumbnails.length && thumbnails[paginatedIndex] !== null) {
+                                const byteCharacters = window.atob(thumbnails[paginatedIndex]);
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: 'image/png' });
+                                updatedAnnouncements[globalIndex] = { ...announcement, thumbnail: URL.createObjectURL(blob) };
+                            } else {
+                                updatedAnnouncements[globalIndex] = { ...announcement };
+                            }
+                        });
+
+                        return updatedAnnouncements;
+                    });
+
+                    setImageLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching thumbnails:', error);
+                    setImageLoading(false);
+                });
         } else {
             console.log("No Request Needed");
+            setImageLoading(false);
         }
-    }, [announcements]);
+    };
+
+    // ---------------- Pagination Controls
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+        setImageLoading(true);
+        fetchPageThumbnails();
+    };
 
 
     return (
@@ -97,9 +163,23 @@ const AnnouncementList = () => {
                             </Box>
                         ) : (
                             <>
+                                {totalAnnouncements > announcementsPerPage && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                                        <Pagination
+                                            shape="rounded"
+                                            count={Math.ceil(totalAnnouncements / announcementsPerPage)}
+                                            page={currentPage}
+                                            onChange={handleChangePage}
+                                            color="primary"
+                                            size="large"
+                                            showFirstButton
+                                            showLastButton
+                                        />
+                                    </Box>
+                                )}
                                 <Grid container rowSpacing={{ xs: 1, sm: 2 }} columnSpacing={{ xs: 2, sm: 3 }}>
-                                    {announcements.length > 0 ? (
-                                        announcements.map(
+                                    {pageAnnouncements.length > 0 ? (
+                                        pageAnnouncements.map(
                                             (announcement, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
                                                     <Card sx={{ maxWidth: 350 }}>
@@ -117,7 +197,7 @@ const AnnouncementList = () => {
                                                         ) : (
                                                             <CardMedia
                                                                 sx={{ height: 150 }}
-                                                                image={"../../../images/ManProTab.png"}
+                                                                image={announcement.thumbnail || "../../../images/ManProTab.png"}
                                                                 title="AnnouncementCard"
                                                             />
                                                         )}
@@ -142,6 +222,21 @@ const AnnouncementList = () => {
                                         </>
                                     )}
                                 </Grid>
+                                {totalAnnouncements > announcementsPerPage && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                        <Pagination
+                                            count={Math.ceil(totalAnnouncements / announcementsPerPage)}
+                                            page={currentPage}
+                                            onChange={handleChangePage}
+                                            color="primary"
+                                            size="large"
+                                            showFirstButton
+                                            showLastButton
+                                        />
+                                    </Box>
+                                )}
+
+
                             </>
                         )}
                     </Box>

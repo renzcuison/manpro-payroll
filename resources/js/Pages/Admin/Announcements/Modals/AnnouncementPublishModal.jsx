@@ -193,7 +193,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography sx={{ mt: 1, mb: 1, alignSelf: 'flex-start' }}>Announcement Preview</Typography>
                         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                            <Card sx={{ maxWidth: 350 }}>
+                            <Card sx={{ width: 350 }}>
                                 {imageLoading ? (
                                     <Box
                                         sx={{

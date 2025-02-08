@@ -203,6 +203,28 @@ class AnnouncementsController extends Controller
         }
     }
 
+    public function getPageThumbnails(Request $request)
+    {
+        // Log the request for debugging
+        Log::info($request);
+
+        $user = Auth::user();
+
+        $announcementIds = $request->input('announcementIds', []);
+        
+        $thumbnails = array_fill_keys($announcementIds, null);
+
+        $thumbnailFiles = AnnouncementFilesModel::whereIn('announcement_id', $announcementIds)
+            ->where('thumbnail', true)
+            ->get();
+
+        $thumbnailFiles->each(function ($file) use (&$thumbnails) {
+            $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+        });
+        
+        return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
+    }
+
     public function getMyAnnouncements(Request $request)
     {
         //Log::info("AnnouncementsController::getMyAnnouncements");

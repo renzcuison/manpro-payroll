@@ -191,6 +191,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
 
         Route::get('/getThumbnail/{id}', [AnnouncementsController::class, 'getThumbnail']);
+        Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
     });
 
 
