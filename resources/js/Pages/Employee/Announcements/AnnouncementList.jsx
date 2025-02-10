@@ -194,7 +194,7 @@ const AnnouncementList = () => {
                                                             <CardMedia
                                                                 sx={{ height: '180px' }}
                                                                 image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                title="AnnouncementCard"
+                                                                title="Thumbnail"
                                                             />
                                                         )}
 

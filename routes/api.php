@@ -189,9 +189,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
+        Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
 
         Route::get('/getThumbnail/{id}', [AnnouncementsController::class, 'getThumbnail']);
         Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
+        Route::get('/getFileNames/{id}', [AnnouncementsController::class, 'getFileNames']);
+        
     });
 
 

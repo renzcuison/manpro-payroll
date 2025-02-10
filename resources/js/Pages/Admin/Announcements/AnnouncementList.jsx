@@ -13,6 +13,7 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import AnnouncementForm from './Modals/AnnouncementForm';
 import AnnouncementPublishModal from './Modals/AnnouncementPublishModal';
+import AnnouncementEdit from './Modals/AnnouncementEdit';
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -59,6 +60,16 @@ const AnnouncementList = () => {
     }
     const handleCloseAnnouncementPublish = () => {
         setOpenAnnouncementPublish(null);
+        fetchAnnouncements();
+    }
+
+    // ---------------- Announcement Publishing
+    const [openAnnouncementEdit, setOpenAnnouncementEdit] = useState(null);
+    const handleOpenAnnouncementEdit = (announcement) => {
+        setOpenAnnouncementEdit(announcement)
+    }
+    const handleCloseAnnouncementEdit = () => {
+        setOpenAnnouncementEdit(null);
         fetchAnnouncements();
     }
 
@@ -196,7 +207,7 @@ const AnnouncementList = () => {
                                                                                 <MenuItem
                                                                                     onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        console.log(`Editing Announcement ${announcements.id}`);
+                                                                                        handleOpenAnnouncementEdit(announcements);
                                                                                         handleMenuClose(announcements.id);
                                                                                     }}>
                                                                                     Edit
@@ -204,7 +215,7 @@ const AnnouncementList = () => {
                                                                                 <MenuItem
                                                                                     onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        handleOpenAnnouncementPublish(announcements)
+                                                                                        handleOpenAnnouncementPublish(announcements);
                                                                                         handleMenuClose(announcements.id);
                                                                                     }}>
                                                                                     Publish
@@ -250,6 +261,13 @@ const AnnouncementList = () => {
                     open={true}
                     close={handleCloseAnnouncementPublish}
                     announceInfo={openAnnouncementPublish}
+                />
+            )}
+            {openAnnouncementEdit && (
+                <AnnouncementEdit
+                    open={true}
+                    close={handleCloseAnnouncementEdit}
+                    announceInfo={openAnnouncementEdit}
                 />
             )}
         </Layout>

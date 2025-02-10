@@ -191,8 +191,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography sx={{ mt: 1, mb: 1, alignSelf: 'flex-start' }}>Announcement Preview</Typography>
-                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                        <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
                             <Card sx={{ width: 350 }}>
                                 {imageLoading ? (
                                     <Box
@@ -209,7 +208,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                     <CardMedia
                                         sx={{ height: 150 }}
                                         image={imagePath}
-                                        title="AnnouncementCard"
+                                        title="Thumbnail"
                                     />
                                 )}
 
@@ -217,16 +216,11 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                     <Typography gutterBottom variant="h6" component="div">
                                         {announceInfo.title}
                                     </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{ color: 'text.secondary' }}
-                                    >
-                                        {
-                                            announceInfo.description.length > 150
-                                                ? `${announceInfo.description.slice(0, 147)}...`
-                                                : announceInfo.description
-                                        }
-                                    </Typography>
+                                    <div
+                                        id="description"
+                                        style={{ maxHeight: '100px', overflow: 'hidden' }}
+                                        dangerouslySetInnerHTML={{ __html: announceInfo.description }}
+                                    />
                                 </CardContent>
                             </Card>
                         </Box>

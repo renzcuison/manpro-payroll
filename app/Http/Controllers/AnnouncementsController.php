@@ -48,6 +48,27 @@ class AnnouncementsController extends Controller
         }
     }
 
+    public function getMyAnnouncements(Request $request)
+    {
+        //Log::info("AnnouncementsController::getMyAnnouncements");
+        $user = Auth::user();
+
+        // Branch Announcements
+        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
+            $query->where('branch_id', $user->branch_id);
+        })->get();
+
+        // Department Announcements
+        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
+            $query->where('department_id', $user->department_id);
+        })->get();
+
+        $announcements = $branches->merge($departments)->unique('id');
+
+        return response()->json(['status' => 200, 'announcements' => $announcements]);
+    
+    }
+
     public function saveAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::saveAnnouncement");
@@ -99,7 +120,7 @@ class AnnouncementsController extends Controller
                         //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
-                            'type' => "Document",
+                            'type' => "Image",
                             'path' => $filePath,
                             'thumbnail' => $index == $request->input('thumbnail'),
                         ]);
@@ -224,26 +245,42 @@ class AnnouncementsController extends Controller
         return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
     }
 
-    public function getMyAnnouncements(Request $request)
+    public function editAnnouncement(Request $request)
     {
-        //Log::info("AnnouncementsController::getMyAnnouncements");
+        //Log::info("AnnouncementsController::editAnnouncement");
+        Log::info($request);
+
         $user = Auth::user();
-        //Log::info($user->branch_id);
-        //Log::info($user->department_id);
 
-        // Branch Announcements
-        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
-            $query->where('branch_id', $user->branch_id);
-        })->get();
+        if ($this->checkUser()){
+            
+        } else {
+            return response()->json([ 'status' => 200 ]);
+        }
+    }
 
-        // Department Announcements
-        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
-            $query->where('department_id', $user->department_id);
-        })->get();
+    public function getFileNames($id)
+    {
+        //Log::info("AnnouncementsController::getFileNames");
+        $user = Auth::user();
+        
+        if ($this->checkUser()){
+            $files = AnnouncementFilesModel::where('announcement_id', $id)
+                ->select('path', 'type')
+                ->get();
 
-        $announcements = $branches->merge($departments)->unique('id');
+                $filenames = [];
+                foreach($files as $file){
+                    $filenames[] = [
+                        'filename' => basename($file->path),
+                        'type' => $file->type
+                    ];
+                }
 
-        return response()->json(['status' => 200, 'announcements' => $announcements]);
-    
+            return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
+        } else {
+            return response()->json([ 'status' => 200, 'filenames' => null ]);
+        }
+        
     }
 }

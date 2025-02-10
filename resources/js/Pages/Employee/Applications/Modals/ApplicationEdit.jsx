@@ -135,7 +135,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 text: "Do you want to update this application?",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Save",
+                confirmButtonText: "Update",
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
