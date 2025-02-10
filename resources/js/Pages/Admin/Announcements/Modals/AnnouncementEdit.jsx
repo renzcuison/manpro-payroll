@@ -608,7 +608,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                 >
                                     <p className="m-0">
                                         <i className="fa fa-floppy-o mr-2 mt-1"></i>
-                                        {" "}Save Changes{" "}
+                                        {" "}Update Announcement{" "}
                                     </p>
                                 </Button>
                             </Grid>

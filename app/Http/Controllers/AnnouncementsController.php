@@ -310,8 +310,6 @@ class AnnouncementsController extends Controller
                 }
 
                 DB::commit();
-                //File Handling Prep
-
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -322,7 +320,6 @@ class AnnouncementsController extends Controller
             }
         }
     }
-
 
     public function getFileNames($id)
     {
@@ -346,6 +343,29 @@ class AnnouncementsController extends Controller
             return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
         } else {
             return response()->json([ 'status' => 200, 'filenames' => null ]);
+        }
+        
+    }
+
+    public function toggleHide($id)
+    {
+        //Log::info("AnnouncementsController::toggleHide");
+        $user = Auth::user();
+        
+        if ($this->checkUser()){
+            
+            $announcement = AnnouncementsModel::find($id);
+
+            if (!$announcement) {
+                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
+            }
+
+            $announcement->hidden = !$announcement->hidden;
+            $announcement->save();
+
+            return response()->json([ 'status' => 200 ]);
+        } else {
+            return response()->json([ 'status' => 200 ]);
         }
         
     }
