@@ -74,8 +74,6 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::saveAnnouncement");
 
         $user = Auth::user();
-        //Log::info("Request Info:");
-        //Log::info($request);
 
         if ($this->checkUser()){
             try {
@@ -156,8 +154,7 @@ class AnnouncementsController extends Controller
                 
                 DB::beginTransaction();
 
-                $announcementId = $request->input('announcement');
-                $announcement = AnnouncementsModel::find($announcementId);
+                $announcement = AnnouncementsModel::find($request->input('announcement'));
             
                 $dateTime = now();
                 $announcement->published = $dateTime;
@@ -248,16 +245,63 @@ class AnnouncementsController extends Controller
     public function editAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::editAnnouncement");
-        Log::info($request);
 
         $user = Auth::user();
+        Log::info($request);
 
         if ($this->checkUser()){
-            
-        } else {
-            return response()->json([ 'status' => 200 ]);
+            try {
+                DB::beginTransaction();
+
+                //Announcement Update
+                $announcement = AnnouncementsModel::find($request->input('id'));
+
+                $announcement->title = $request->input('title');
+                $announcement->description = $request->input('description');
+                $announcement->save();
+                
+                // (Documents)
+                if ($request->hasFile('attachment')) {
+                    foreach ($request->file('attachment') as $file){
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Document",
+                            'path' => $filePath,
+                            'thumbnail' => false,
+                        ]);
+                    }
+                }
+
+                // (Images)
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $index => $file){
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/images', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Image",
+                            'path' => $filePath,
+                            'thumbnail' => $index == $request->input('thumbnail'),
+                        ]);
+                    }
+                }
+
+                DB::commit();
+                //File Handling Prep
+
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+    
+                Log::error("Error saving: " . $e->getMessage());
+    
+                throw $e;
+            }
         }
     }
+
 
     public function getFileNames($id)
     {

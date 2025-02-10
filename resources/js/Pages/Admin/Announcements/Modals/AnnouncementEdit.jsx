@@ -153,6 +153,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         event.preventDefault();
 
         const formData = new FormData();
+        formData.append("id", announceInfo.id);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("thumbnail", thumbnailIndex);
