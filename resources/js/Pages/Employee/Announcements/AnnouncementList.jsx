@@ -53,7 +53,7 @@ const AnnouncementList = () => {
 
     // ---------------- Announcement Data States
     const [isLoading, setIsLoading] = useState(true);
-    const [imageLoading, setImageLoading] = useState(false);
+    const [imageLoading, setImageLoading] = useState(true);
     const [announcements, setAnnouncements] = useState([]);
     const [announcementReload, setAnnouncementReload] = useState(true);
 
@@ -122,7 +122,6 @@ const AnnouncementList = () => {
                                 updatedAnnouncements[globalIndex] = { ...announcement };
                             }
                         });
-
                         return updatedAnnouncements;
                     });
 
@@ -134,7 +133,6 @@ const AnnouncementList = () => {
                 });
         } else {
             console.log("No Request Needed");
-            setImageLoading(false);
         }
     };
 
@@ -144,6 +142,18 @@ const AnnouncementList = () => {
         setImageLoading(true);
         fetchPageThumbnails();
     };
+
+    // ---------------- Image Cleanup
+    useEffect(() => {
+        return () => {
+            console.log("closed");
+            announcements.forEach(announcement => {
+                if (announcement.thumbnail && announcement.thumbnail.startsWith('blob:')) {
+                    URL.revokeObjectURL(announcement.thumbnail);
+                }
+            });
+        };
+    }, []);
 
 
     return (
@@ -163,20 +173,6 @@ const AnnouncementList = () => {
                             </Box>
                         ) : (
                             <>
-                                {totalAnnouncements > announcementsPerPage && (
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                                        <Pagination
-                                            shape="rounded"
-                                            count={Math.ceil(totalAnnouncements / announcementsPerPage)}
-                                            page={currentPage}
-                                            onChange={handleChangePage}
-                                            color="primary"
-                                            size="large"
-                                            showFirstButton
-                                            showLastButton
-                                        />
-                                    </Box>
-                                )}
                                 <Grid container rowSpacing={{ xs: 1, sm: 2 }} columnSpacing={{ xs: 2, sm: 3 }}>
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
@@ -197,7 +193,7 @@ const AnnouncementList = () => {
                                                         ) : (
                                                             <CardMedia
                                                                 sx={{ height: 150 }}
-                                                                image={announcement.thumbnail || "../../../images/ManProTab.png"}
+                                                                image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
                                                                 title="AnnouncementCard"
                                                             />
                                                         )}
@@ -209,7 +205,7 @@ const AnnouncementList = () => {
                                                             <div
                                                                 id="description"
                                                                 style={{ height: '100px', overflow: 'hidden' }}
-                                                                dangerouslySetInnerHTML={{ __html: announcement.description }} // Render HTML directly
+                                                                dangerouslySetInnerHTML={{ __html: announcement.description }}
                                                             />
                                                         </CardContent>
                                                     </Card>
@@ -225,6 +221,7 @@ const AnnouncementList = () => {
                                 {totalAnnouncements > announcementsPerPage && (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                                         <Pagination
+                                            shape="rounded"
                                             count={Math.ceil(totalAnnouncements / announcementsPerPage)}
                                             page={currentPage}
                                             onChange={handleChangePage}
@@ -235,8 +232,6 @@ const AnnouncementList = () => {
                                         />
                                     </Box>
                                 )}
-
-
                             </>
                         )}
                     </Box>

@@ -205,8 +205,7 @@ class AnnouncementsController extends Controller
 
     public function getPageThumbnails(Request $request)
     {
-        // Log the request for debugging
-        Log::info($request);
+        //Log::info("AnnouncementsController::getPageThumbnails");
 
         $user = Auth::user();
 
