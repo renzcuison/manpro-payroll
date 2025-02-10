@@ -62,7 +62,34 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
     const handleAttachmentChange = (event) => {
         const selectedAttachment = event.target.files[0];
-        setAttachment(selectedAttachment);
+
+        // Check for File Size
+        if (selectedAttachment.size === 0) return "0 Bytes";
+        const k = 1024;
+        const mbSize = selectedAttachment.size / Math.pow(k, 2);
+        if (mbSize > 10) {
+            console.log("File Too Large");
+            document.activeElement.blur();
+            document.body.removeAttribute("aria-hidden");
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Too Large!",
+                text: "The size limit is 10MB",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#177604",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    document.body.setAttribute("aria-hidden", "true");
+                } else {
+                    document.body.setAttribute("aria-hidden", "true");
+                }
+            });
+        } else {
+            console.log("File Accepted");
+            setAttachment(selectedAttachment);
+        }
     };
 
     const handleTextFieldClick = (event) => {
@@ -306,11 +333,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         value={fromDate}
                                         error={fromDateError}
                                         minDate={dayjs()}
-                                        viewRenderers={{
-                                            hours: renderTimeViewClock,
-                                            minutes: renderTimeViewClock,
-                                            seconds: renderTimeViewClock,
-                                        }}
+                                        timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setFromDate(newValue);
                                             if (newValue.isAfter(toDate)) {
@@ -354,52 +377,53 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* File Upload */}
-                            <Grid container item xs={12} rowGap={1}>
-                                <Grid
-                                    item
-                                    xs={12}
-                                >{`Current File: ${appDetails.attachment}`}</Grid>
-                                <Grid item xs={12}>
-                                    <FormControl fullWidth>
-                                        <TextField
-                                            fullWidth
-                                            label="Upload New File (Optional)"
-                                            value={
-                                                attachment
-                                                    ? `${attachment.name
-                                                    }, ${getFileSize(
-                                                        attachment.size
-                                                    )}`
-                                                    : ""
-                                            }
-                                            error={attachmentError}
-                                            onClick={handleTextFieldClick}
-                                            InputProps={{
-                                                readOnly: true,
-                                                endAdornment: !attachment && (
-                                                    <InputAdornment position="end">
-                                                        <InsertDriveFileIcon />
-                                                    </InputAdornment>
-                                                ),
-                                                startAdornment: attachment && (
-                                                    <InputAdornment position="start">
-                                                        <InsertDriveFileIcon />
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                            variant="outlined"
-                                        />
-                                        <input
-                                            accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
-                                            type="file"
-                                            name="attachment"
-                                            ref={attachmentInput}
-                                            style={{ display: "none" }}
-                                            onChange={handleAttachmentChange}
-                                        />
-                                    </FormControl>
-                                </Grid>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        fullWidth
+                                        label="Upload New File (Optional)"
+                                        value={
+                                            attachment
+                                                ? `${attachment.name
+                                                }, ${getFileSize(
+                                                    attachment.size
+                                                )}`
+                                                : ""
+                                        }
+                                        error={attachmentError}
+                                        onClick={handleTextFieldClick}
+                                        InputProps={{
+                                            readOnly: true,
+                                            endAdornment: !attachment && (
+                                                <InputAdornment position="end">
+                                                    <InsertDriveFileIcon />
+                                                </InputAdornment>
+                                            ),
+                                            startAdornment: attachment && (
+                                                <InputAdornment position="start">
+                                                    <InsertDriveFileIcon />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        variant="outlined"
+                                    />
+                                    <input
+                                        accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
+                                        type="file"
+                                        name="attachment"
+                                        ref={attachmentInput}
+                                        style={{ display: "none" }}
+                                        onChange={handleAttachmentChange}
+                                    />
+                                    <FormHelperText>
+                                        Accepted types: png, jpg, jpeg, docx, doc, pdf. 10 mb limit
+                                    </FormHelperText>
+                                    <FormHelperText>
+                                        {`Current File: ${appDetails.attachment}`}
+                                    </FormHelperText>
+                                </FormControl>
                             </Grid>
+
 
                             {/* Description Field */}
                             <Grid item xs={12}>

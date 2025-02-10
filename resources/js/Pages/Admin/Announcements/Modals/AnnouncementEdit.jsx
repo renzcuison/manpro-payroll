@@ -155,9 +155,6 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const saveAnnouncement = (event) => {
         event.preventDefault();
 
-        console.log(deleteAttachments);
-        console.log(deleteImages);
-
         const formData = new FormData();
         formData.append("id", announceInfo.id);
         formData.append("title", title);
@@ -187,9 +184,6 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         } else {
             formData.append('deleteImages[]', null);
         }
-
-        console.log("Form Data:");
-        console.log(formData);
 
         axiosInstance
             .post("/announcements/editAnnouncement", formData, {
