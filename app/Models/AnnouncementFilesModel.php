@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AnnouncementFilesModel extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'announcement_files';
 

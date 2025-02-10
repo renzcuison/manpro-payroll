@@ -225,7 +225,8 @@ const AttendanceSummary = () => {
                                                             <TableCell align="center">
                                                                 {summary.overtime_out
                                                                     ? dayjs(summary.overtime_out).format("hh:mm:ss A")
-                                                                    : "-"}
+                                                                    : summary.overtime_in ? "Failed to Time Out"
+                                                                        : "-"}
                                                             </TableCell>
 
                                                             <TableCell align="center">

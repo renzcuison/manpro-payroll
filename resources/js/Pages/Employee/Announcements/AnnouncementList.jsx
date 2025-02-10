@@ -158,7 +158,7 @@ const AnnouncementList = () => {
 
     return (
         <Layout title={"AnnouncementList"}>
-            <Box sx={{ overflowY: "auto", width: "100%", whiteSpace: "nowrap" }} >
+            <Box sx={{ width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
@@ -166,14 +166,14 @@ const AnnouncementList = () => {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ p: 3 }} >
+                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                <Grid container rowSpacing={{ xs: 1, sm: 2 }} columnSpacing={{ xs: 2, sm: 3 }}>
+                                <Grid container rowSpacing={2} columnSpacing={{ xs: 2, sm: 3, }}>
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
@@ -185,14 +185,14 @@ const AnnouncementList = () => {
                                                                     display: 'flex',
                                                                     justifyContent: 'center',
                                                                     alignItems: 'center',
-                                                                    height: 150
+                                                                    height: '180px'
                                                                 }}
                                                             >
                                                                 <CircularProgress />
                                                             </Box>
                                                         ) : (
                                                             <CardMedia
-                                                                sx={{ height: 150 }}
+                                                                sx={{ height: '180px' }}
                                                                 image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
                                                                 title="AnnouncementCard"
                                                             />
@@ -214,7 +214,9 @@ const AnnouncementList = () => {
                                         )
                                     ) : (
                                         <>
-                                            <Box sx={{ bgcolor: "#ffffff", p: 4, alignSelf: "center" }}>No Announcements</Box>
+                                            <Box sx={{ mt: 5, p: 3, bgcolor: "#ffffff", borderRadius: 3, width: '100%', maxWidth: 350, textAlign: 'center' }}>
+                                                No Announcements
+                                            </Box>
                                         </>
                                     )}
                                 </Grid>
