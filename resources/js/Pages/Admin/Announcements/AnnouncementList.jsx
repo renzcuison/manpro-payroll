@@ -212,7 +212,9 @@ const AnnouncementList = () => {
                                                                             : "#ffffff",
                                                                 }}>
                                                                 <TableCell align="center">
-                                                                    {announcements.title}
+                                                                    {announcements.title.length > 40
+                                                                        ? (`${announcements.title.slice(0, 37)}...`)
+                                                                        : announcements.title}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}

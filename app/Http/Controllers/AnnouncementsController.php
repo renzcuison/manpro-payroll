@@ -56,12 +56,12 @@ class AnnouncementsController extends Controller
         // Branch Announcements
         $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
             $query->where('branch_id', $user->branch_id);
-        })->get();
+        })->where('hidden', false)->get();
 
         // Department Announcements
         $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
             $query->where('department_id', $user->department_id);
-        })->get();
+        })->where('hidden', false)->get();
 
         $announcements = $branches->merge($departments)->unique('id');
 
