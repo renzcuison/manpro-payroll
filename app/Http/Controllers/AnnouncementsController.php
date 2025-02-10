@@ -247,7 +247,6 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::editAnnouncement");
 
         $user = Auth::user();
-        Log::info($request);
 
         if ($this->checkUser()){
             try {
@@ -259,7 +258,19 @@ class AnnouncementsController extends Controller
                 $announcement->title = $request->input('title');
                 $announcement->description = $request->input('description');
                 $announcement->save();
-                
+
+                $deleteFiles = array_merge($request->input('deleteImages'),$request->input('deleteAttachments'));
+
+                // Remove Thumbnail
+                AnnouncementFilesModel::whereIn('id', $deleteFiles)
+                    ->where('thumbnail', true)
+                    ->update(['thumbnail' => false]);
+
+                // Remove Files
+                AnnouncementFilesModel::whereIn('id', $deleteFiles)->delete();
+
+                $dateTime = now()->format('YmdHis');
+
                 // (Documents)
                 if ($request->hasFile('attachment')) {
                     foreach ($request->file('attachment') as $file){
@@ -277,6 +288,16 @@ class AnnouncementsController extends Controller
                 // (Images)
                 if ($request->hasFile('image')) {
                     foreach ($request->file('image') as $index => $file){
+                        // Replace Thumbnail if Applicable
+                        if ($index == $request->input('thumbnail')){
+                            $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
+                                ->where('thumbnail', true)
+                                ->first();
+                            if ($oldThumbnail) {
+                                $oldThumbnail->thumbnail = false;
+                                $oldThumbnail->save();
+                            }
+                        }
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
@@ -310,12 +331,13 @@ class AnnouncementsController extends Controller
         
         if ($this->checkUser()){
             $files = AnnouncementFilesModel::where('announcement_id', $id)
-                ->select('path', 'type')
+                ->select('id', 'path', 'type')
                 ->get();
 
                 $filenames = [];
                 foreach($files as $file){
                     $filenames[] = [
+                        'id' => $file->id,
                         'filename' => basename($file->path),
                         'type' => $file->type
                     ];

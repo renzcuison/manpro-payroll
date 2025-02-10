@@ -19,9 +19,10 @@ import {
     Select,
     MenuItem,
     Stack,
-    Radio
+    Radio,
+    Checkbox
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
+import { Cancel, CheckBox, CheckBoxRounded } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -47,6 +48,9 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const [image, setImage] = useState([]);
     const [thumbnailIndex, setThumbnailIndex] = useState(null);
     const [fileNames, setFileNames] = useState([]);
+
+    const [deleteAttachments, setDeleteAttachments] = useState([]);
+    const [deleteImages, setDeleteImages] = useState([]);
 
     // Form Errors
     const [titleError, setTitleError] = useState(false);
@@ -105,7 +109,6 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-
     const handleAnnouncementSubmit = (event) => {
         event.preventDefault();
 
@@ -152,6 +155,9 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const saveAnnouncement = (event) => {
         event.preventDefault();
 
+        console.log(deleteAttachments);
+        console.log(deleteImages);
+
         const formData = new FormData();
         formData.append("id", announceInfo.id);
         formData.append("title", title);
@@ -166,6 +172,20 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
             image.forEach(file => {
                 formData.append('image[]', file);
             });
+        }
+        if (deleteAttachments.length > 0) {
+            deleteAttachments.forEach(del => {
+                formData.append('deleteAttachments[]', del);
+            });
+        } else {
+            formData.append('deleteAttachments[]', null);
+        }
+        if (deleteImages.length > 0) {
+            deleteImages.forEach(del => {
+                formData.append('deleteImages[]', del);
+            });
+        } else {
+            formData.append('deleteImages[]', null);
         }
 
         console.log("Form Data:");
@@ -305,14 +325,6 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
-                                        {/* File Replacement Warning*/}
-                                        {fileNames.length > 0 && (attachment.length > 0 || image.length > 0)
-                                            ? (
-                                                <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-                                                    New File/s Detected! This will replace all old files.
-                                                </Typography>
-                                            )
-                                            : null}
                                         <Stack direction="row" spacing={1}
                                             sx={{
                                                 justifyContent: "space-between",
@@ -376,22 +388,59 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             const documentFiles = fileNames.filter(filename => filename.type === "Document");
                                             return documentFiles.length > 0 && (
                                                 <>
-                                                    <Typography variant="body2" sx={{ my: 1 }}>
-                                                        Current Documents
-                                                    </Typography>
+                                                    <Stack direction="row" spacing={1}
+                                                        sx={{
+                                                            pt: 1,
+                                                            pr: 1,
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            width: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Current Documents
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Remove
+                                                        </Typography>
+                                                    </Stack>
                                                     {documentFiles.map((filename, index) => (
-                                                        <Typography key={index} variant="body2"
+                                                        <Box
+                                                            key={index}
                                                             sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
                                                                 mt: 1,
                                                                 p: 1,
                                                                 borderRadius: "2px",
                                                                 border: '1px solid',
-                                                                borderColor: image.length > 0 || attachment.length > 0
+                                                                borderColor: deleteAttachments.includes(filename.id)
                                                                     ? "#f44336"
                                                                     : "#e0e0e0"
-                                                            }}>
-                                                            {filename.filename}
-                                                        </Typography>
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" noWrap>
+                                                                {`${filename.filename} ${filename.id}`}
+                                                            </Typography>
+                                                            <Checkbox
+                                                                checked={deleteAttachments.includes(filename.id)}
+                                                                onChange={() => {
+                                                                    setDeleteAttachments(prevAttachments => {
+                                                                        if (prevAttachments.includes(filename.id)) {
+                                                                            return prevAttachments.filter(id => id !== filename.id);
+                                                                        } else {
+                                                                            return [...prevAttachments, filename.id];
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                sx={{
+                                                                    '&.Mui-checked': {
+                                                                        color: "#f44336",
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </Box>
                                                     ))}
                                                 </>
                                             );
@@ -479,22 +528,59 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             const imageFiles = fileNames.filter(filename => filename.type === "Image");
                                             return imageFiles.length > 0 && (
                                                 <>
-                                                    <Typography variant="body2" sx={{ my: 1 }}>
-                                                        Current Images
-                                                    </Typography>
+                                                    <Stack direction="row" spacing={1}
+                                                        sx={{
+                                                            pt: 1,
+                                                            pr: 1,
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            width: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Current Images
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Remove
+                                                        </Typography>
+                                                    </Stack>
                                                     {imageFiles.map((filename, index) => (
-                                                        <Typography key={index} variant="body2"
+                                                        <Box
+                                                            key={index}
                                                             sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
                                                                 mt: 1,
                                                                 p: 1,
                                                                 borderRadius: "2px",
                                                                 border: '1px solid',
-                                                                borderColor: image.length > 0 || attachment.length > 0
+                                                                borderColor: deleteImages.includes(filename.id)
                                                                     ? "#f44336"
                                                                     : "#e0e0e0"
-                                                            }}>
-                                                            {filename.filename}
-                                                        </Typography>
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" noWrap>
+                                                                {`${filename.filename} ${filename.id}`}
+                                                            </Typography>
+                                                            <Checkbox
+                                                                checked={deleteImages.includes(filename.id)}
+                                                                onChange={() => {
+                                                                    setDeleteImages(prevImages => {
+                                                                        if (prevImages.includes(filename.id)) {
+                                                                            return prevImages.filter(id => id !== filename.id);
+                                                                        } else {
+                                                                            return [...prevImages, filename.id];
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                sx={{
+                                                                    '&.Mui-checked': {
+                                                                        color: "#f44336",
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </Box>
                                                     ))}
                                                 </>
                                             );

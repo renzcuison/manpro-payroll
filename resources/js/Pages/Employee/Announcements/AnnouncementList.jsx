@@ -173,7 +173,7 @@ const AnnouncementList = () => {
                             </Box>
                         ) : (
                             <>
-                                <Grid container rowSpacing={2} columnSpacing={{ xs: 2, sm: 3, }}>
+                                <Grid container rowSpacing={2} columnSpacing={{ xs: 2, sm: 3, }} sx={{ justifyContent: "center" }}>
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
