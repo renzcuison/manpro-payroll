@@ -17,6 +17,7 @@ class CreateApplicationTypesTable extends Migration
             $table->id();
             $table->string('name', 128);
             $table->decimal('percentage', 10, 2);
+            $table->boolean('require_files')->default(0);
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
 
