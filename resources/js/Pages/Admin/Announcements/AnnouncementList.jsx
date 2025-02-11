@@ -306,7 +306,7 @@ const AnnouncementList = () => {
                                                 )
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
                                                         No Announcements Found
                                                     </TableCell>
                                                 </TableRow>

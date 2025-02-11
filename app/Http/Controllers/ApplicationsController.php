@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationsModel;
+use App\Models\ApplicationTypesModel;
+use App\Models\ApplicationFilesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +76,7 @@ class ApplicationsController extends Controller
         $clientId = $user->client_id;
 
         $types = ApplicationTypesModel::where('client_id', $clientId)
-            ->select('id', 'name')
+            ->select('id', 'name', 'require_files')
             ->where('deleted_at', NULL)
             ->get();
 
@@ -86,28 +87,50 @@ class ApplicationsController extends Controller
     {
 
         //Log::info("ApplicationsController::saveApplication");
-
         $user = Auth::user();
+        Log::info($request);
 
         try {
             DB::beginTransaction();
-            if ($request ->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $dateTime = now()->format('YmdHis');
-                $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('applications/employees', $fileName, 'public');
-            }
 
-            ApplicationsModel::create([
+            $application = ApplicationsModel::create([
                 "type_id" => $request->input('type_id'),
                 "duration_start" => $request->input('from_date'),
                 "duration_end" => $request->input('to_date'),
-                "attachment" => $filePath,
                 "description" => $request->input('description') ?? "",
                 "status" => "Pending",
                 "user_id" => $user->id,
                 "client_id" => $user->client_id,
             ]);
+
+            // File Handling
+            $dateTime = now()->format('YmdHis');
+
+            // (Documents)
+            if ($request->hasFile('attachment')) {
+                foreach ($request->file('attachment') as $file){
+                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
+                    ApplicationFilesModel::create([
+                        'application_id' => $application->id,
+                        'type' => "Document",
+                        'path' => $filePath,
+                    ]);
+                }
+            }
+
+            // (Images)
+            if ($request->hasFile('image')) {
+                foreach ($request->file('image') as $index => $file){
+                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
+                    ApplicationFilesModel::create([
+                        'application_id' => $application->id,
+                        'type' => "Image",
+                        'path' => $filePath,
+                    ]);
+                }
+            }
             
             DB::commit();
             

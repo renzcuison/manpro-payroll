@@ -18,7 +18,9 @@ import {
     Switch,
     Select,
     MenuItem,
+    Stack
 } from "@mui/material";
+import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -45,60 +47,73 @@ const ApplicationForm = ({ open, close }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
+    const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState("");
+
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
-    const [description, setDescription] = useState("");
-    const [attachment, setAttachment] = useState(null);
     const [applicationDuration, setApplicationDuration] = useState("");
-    const [applicationTypes, setApplicationTypes] = useState([]);
+
+    const [description, setDescription] = useState("");
+
+    const [attachment, setAttachment] = useState([]);
+    const [image, setImage] = useState([]);
 
     // Form Requirement Sets
     const [appTypeError, setAppTypeError] = useState(false);
+
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
+
     const [descriptionError, setDescriptionError] = useState(false);
-    const [attachmentError, setAttachmentError] = useState(false);
 
-    const handleAttachmentChange = (event) => {
-        const selectedAttachment = event.target.files[0];
+    const [fileRequired, setFileRequired] = useState(false);
+    const [fileError, setFileError] = useState(false);
 
-        // Check for File Size
-        if (selectedAttachment.size === 0) return "0 Bytes";
-        const k = 1024;
-        const mbSize = selectedAttachment.size / Math.pow(k, 2);
-        if (mbSize > 10) {
-            console.log("File Too Large");
-            document.activeElement.blur();
-            document.body.removeAttribute("aria-hidden");
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Too Large!",
-                text: "The size limit is 10MB",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    document.body.setAttribute("aria-hidden", "true");
-                } else {
-                    document.body.setAttribute("aria-hidden", "true");
-                }
+
+    // Application Types
+    useEffect(() => {
+        axiosInstance
+            .get(`applications/getApplicationTypes`, { headers })
+            .then((response) => {
+                console.log(response.data.types);
+                setApplicationTypes(response.data.types);
+            })
+            .catch((error) => {
+                console.error("Error fetching application types:", error);
             });
-        } else {
-            console.log("File Accepted");
-            setAttachment(selectedAttachment);
-        }
-    };
-
-    const handleTextFieldClick = (event) => {
-        attachmentInput.current.click();
-    };
-    const attachmentInput = useRef(null);
+    }, []);
 
     const handleTypeChange = (value) => {
+        const selectedType = applicationTypes.find(type => type.id == value);
+        setFileRequired(selectedType.require_files);
         setAppType(value);
+    };
+
+    // Attachment Handlers
+    const handleAttachmentUpload = (input) => {
+        const files = Array.from(input.target.files);
+        setAttachment(prev => [...prev, ...files]);
+    };
+
+    const handleDeleteAttachment = (index) => {
+        setAttachment(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
+    };
+
+    // Image Handlers
+    const handleImageUpload = (input) => {
+        const files = Array.from(input.target.files);
+        setImage(prev => [...prev, ...files]);
+    };
+
+    const handleDeleteImage = (index) => {
+        setImage(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
     };
 
     const getFileSize = (size) => {
@@ -109,17 +124,7 @@ const ApplicationForm = ({ open, close }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    useEffect(() => {
-        axiosInstance
-            .get(`applications/getApplicationTypes`, { headers })
-            .then((response) => {
-                setApplicationTypes(response.data.types);
-            })
-            .catch((error) => {
-                console.error("Error fetching application types:", error);
-            });
-    }, []);
-
+    // Input Verification
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
 
@@ -143,17 +148,17 @@ const ApplicationForm = ({ open, close }) => {
         } else {
             setDescriptionError(false);
         }
-        if (!attachment) {
-            setAttachmentError(true);
+        if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
+            setFileError(true);
         } else {
-            setAttachmentError(false);
+            setFileError(false);
         }
 
-        if (!appType || !fromDate || !toDate || !description || !attachment) {
+        if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "All fields must be filled!",
+                text: "All Required Fields must be filled!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -176,8 +181,10 @@ const ApplicationForm = ({ open, close }) => {
                 }
             });
         }
+
     };
 
+    // Final Submission
     const saveApplication = (event) => {
         event.preventDefault();
 
@@ -186,7 +193,16 @@ const ApplicationForm = ({ open, close }) => {
         formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("description", description);
-        formData.append("attachment", attachment);
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
+            });
+        }
+        if (image.length > 0) {
+            image.forEach(file => {
+                formData.append('image[]', file);
+            });
+        }
 
         axiosInstance
             .post("/applications/saveApplication", formData, {
@@ -309,12 +325,9 @@ const ApplicationForm = ({ open, close }) => {
                                             handleTypeChange(event.target.value)
                                         }
                                     >
-                                        {applicationTypes.map((log, index) => (
-                                            <MenuItem
-                                                key={index}
-                                                value={log.id}
-                                            >
-                                                {log.name}
+                                        {applicationTypes.map((type, index) => (
+                                            <MenuItem key={index} value={type.id}>
+                                                {type.name}
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -373,50 +386,6 @@ const ApplicationForm = ({ open, close }) => {
                                     ></TextField>
                                 </FormControl>
                             </Grid>
-                            {/* File Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <TextField
-                                        fullWidth
-                                        label="Upload File"
-                                        value={
-                                            attachment
-                                                ? `${attachment.name
-                                                }, ${getFileSize(
-                                                    attachment.size
-                                                )}`
-                                                : ""
-                                        }
-                                        error={attachmentError}
-                                        onClick={handleTextFieldClick}
-                                        InputProps={{
-                                            readOnly: true,
-                                            endAdornment: !attachment && (
-                                                <InputAdornment position="end">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                            startAdornment: attachment && (
-                                                <InputAdornment position="start">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        variant="outlined"
-                                    />
-                                    <input
-                                        accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
-                                        type="file"
-                                        name="attachment"
-                                        ref={attachmentInput}
-                                        style={{ display: "none" }}
-                                        onChange={handleAttachmentChange}
-                                    />
-                                    <FormHelperText>
-                                        Accepted types: png, jpg, jpeg, docx, doc, pdf. 10 mb limit
-                                    </FormHelperText>
-                                </FormControl>
-                            </Grid>
                             {/* Description Field */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
@@ -442,6 +411,144 @@ const ApplicationForm = ({ open, close }) => {
                                     <FormHelperText>
                                         {description.length}/{512}
                                     </FormHelperText>
+                                </FormControl>
+                            </Grid>
+                            {/* Attachment Upload */}
+                            <Grid item xs={12}>
+                                {/* File Requirement */}
+                                {fileError && <Typography variant="caption" color="error" sx={{ mb: 2 }}>
+                                    You must include supporting files for this type of application!
+                                </Typography>
+                                }
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Documents
+                                                </Typography>
+                                                <input
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
+                                                    id="attachment-upload"
+                                                    type="file"
+                                                    name="attachment"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleAttachmentUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: "auto" }}
+                                                    onClick={() => document.getElementById('attachment-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                            {attachment.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+
+                                        {attachment.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {attachment.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Image Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Images
+                                                </Typography>
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                            {image.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
                                 </FormControl>
                             </Grid>
                             {/* Submit Button */}

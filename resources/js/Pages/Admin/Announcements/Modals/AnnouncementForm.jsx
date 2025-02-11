@@ -113,7 +113,7 @@ const AnnouncementForm = ({ open, close }) => {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "All required fields must be filled!",
+                text: "All Required Fields must be filled!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",

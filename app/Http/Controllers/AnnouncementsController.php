@@ -98,8 +98,6 @@ class AnnouncementsController extends Controller
                     foreach ($request->file('attachment') as $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
-                        //Log::info($fileName);
-                        //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
                             'type' => "Document",
@@ -114,8 +112,6 @@ class AnnouncementsController extends Controller
                     foreach ($request->file('image') as $index => $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
-                        //Log::info($fileName);
-                        //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
                             'type' => "Image",
