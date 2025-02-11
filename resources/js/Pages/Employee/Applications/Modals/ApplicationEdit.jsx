@@ -109,7 +109,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
         const files = Array.from(input.target.files);
-        setAttachment(prev => [...prev, ...files]);
+        let validFiles = validateFiles(files, attachment.length, 5, 10485760);
+        if (validFiles) {
+            setAttachment(prev => [...prev, ...files]);
+        }
     };
 
     const handleDeleteAttachment = (index) => {
@@ -122,7 +125,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     // Image Handlers
     const handleImageUpload = (input) => {
         const files = Array.from(input.target.files);
-        setImage(prev => [...prev, ...files]);
+        let validFiles = validateFiles(files, image.length, 10, 5242880);
+        if (validFiles) {
+            setImage(prev => [...prev, ...files]);
+        }
     };
 
     const handleDeleteImage = (index) => {
@@ -131,6 +137,44 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         );
 
     };
+
+    // Validate Files
+    const validateFiles = (newFiles, oldFileCount, countLimit, sizeLimit) => {
+        if (newFiles.length + oldFileCount > countLimit) {
+            // The File Limit has been Exceeded
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "The File Limit has been Exceeded!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return false;
+        } else {
+            let largeFiles = 0;
+            newFiles.forEach((file) => {
+                if (file.size > sizeLimit) {
+                    largeFiles++;
+                }
+            });
+            if (largeFiles > 0) {
+                // A File is Too Large
+                document.activeElement.blur();
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    text: "A File is Too Large",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: "#177604",
+                });
+                return false;
+            } else {
+                // All File Criteria Met
+                return true;
+            }
+        }
+    }
 
     const getFileSize = (size) => {
         if (size === 0) return "0 Bytes";
@@ -311,12 +355,8 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography
-                            variant="h4"
-                            sx={{ ml: 1, mt: 2, fontWeight: "bold" }}
-                        >
-                            {" "}
-                            Edit Application{" "}
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
+                            {" "}Edit Application{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -431,9 +471,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         value={description}
                                         error={descriptionError}
                                         onChange={(event) => {
-                                            if (
-                                                event.target.value.length <= 512
-                                            ) {
+                                            if (event.target.value.length <= 512) {
                                                 setDescription(
                                                     event.target.value
                                                 );
