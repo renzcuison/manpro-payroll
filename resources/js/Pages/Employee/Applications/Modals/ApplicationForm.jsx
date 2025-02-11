@@ -62,7 +62,34 @@ const ApplicationForm = ({ open, close }) => {
 
     const handleAttachmentChange = (event) => {
         const selectedAttachment = event.target.files[0];
-        setAttachment(selectedAttachment);
+
+        // Check for File Size
+        if (selectedAttachment.size === 0) return "0 Bytes";
+        const k = 1024;
+        const mbSize = selectedAttachment.size / Math.pow(k, 2);
+        if (mbSize > 10) {
+            console.log("File Too Large");
+            document.activeElement.blur();
+            document.body.removeAttribute("aria-hidden");
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Too Large!",
+                text: "The size limit is 10MB",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#177604",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    document.body.setAttribute("aria-hidden", "true");
+                } else {
+                    document.body.setAttribute("aria-hidden", "true");
+                }
+            });
+        } else {
+            console.log("File Accepted");
+            setAttachment(selectedAttachment);
+        }
     };
 
     const handleTextFieldClick = (event) => {
@@ -303,11 +330,7 @@ const ApplicationForm = ({ open, close }) => {
                                         value={fromDate}
                                         error={fromDateError}
                                         minDate={dayjs()}
-                                        viewRenderers={{
-                                            hours: renderTimeViewClock,
-                                            minutes: renderTimeViewClock,
-                                            seconds: renderTimeViewClock,
-                                        }}
+                                        timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setFromDate(newValue);
                                             if (newValue.isAfter(toDate)) {
@@ -389,6 +412,9 @@ const ApplicationForm = ({ open, close }) => {
                                         style={{ display: "none" }}
                                         onChange={handleAttachmentChange}
                                     />
+                                    <FormHelperText>
+                                        Accepted types: png, jpg, jpeg, docx, doc, pdf. 10 mb limit
+                                    </FormHelperText>
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}

@@ -48,13 +48,32 @@ class AnnouncementsController extends Controller
         }
     }
 
+    public function getMyAnnouncements(Request $request)
+    {
+        //Log::info("AnnouncementsController::getMyAnnouncements");
+        $user = Auth::user();
+
+        // Branch Announcements
+        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
+            $query->where('branch_id', $user->branch_id);
+        })->where('hidden', false)->get();
+
+        // Department Announcements
+        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
+            $query->where('department_id', $user->department_id);
+        })->where('hidden', false)->get();
+
+        $announcements = $branches->merge($departments)->unique('id');
+
+        return response()->json(['status' => 200, 'announcements' => $announcements]);
+    
+    }
+
     public function saveAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::saveAnnouncement");
 
         $user = Auth::user();
-        //Log::info("Request Info:");
-        //Log::info($request);
 
         if ($this->checkUser()){
             try {
@@ -99,7 +118,7 @@ class AnnouncementsController extends Controller
                         //Log::info($filePath);
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
-                            'type' => "Document",
+                            'type' => "Image",
                             'path' => $filePath,
                             'thumbnail' => $index == $request->input('thumbnail'),
                         ]);
@@ -135,8 +154,7 @@ class AnnouncementsController extends Controller
                 
                 DB::beginTransaction();
 
-                $announcementId = $request->input('announcement');
-                $announcement = AnnouncementsModel::find($announcementId);
+                $announcement = AnnouncementsModel::find($request->input('announcement'));
             
                 $dateTime = now();
                 $announcement->published = $dateTime;
@@ -203,26 +221,152 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getMyAnnouncements(Request $request)
+    public function getPageThumbnails(Request $request)
     {
-        //Log::info("AnnouncementsController::getMyAnnouncements");
+        //Log::info("AnnouncementsController::getPageThumbnails");
+
         $user = Auth::user();
-        //Log::info($user->branch_id);
-        //Log::info($user->department_id);
 
-        // Branch Announcements
-        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
-            $query->where('branch_id', $user->branch_id);
-        })->get();
+        $announcementIds = $request->input('announcementIds', []);
+        
+        $thumbnails = array_fill_keys($announcementIds, null);
 
-        // Department Announcements
-        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
-            $query->where('department_id', $user->department_id);
-        })->get();
+        $thumbnailFiles = AnnouncementFilesModel::whereIn('announcement_id', $announcementIds)
+            ->where('thumbnail', true)
+            ->get();
 
-        $announcements = $branches->merge($departments)->unique('id');
+        $thumbnailFiles->each(function ($file) use (&$thumbnails) {
+            $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+        });
+        
+        return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
+    }
 
-        return response()->json(['status' => 200, 'announcements' => $announcements]);
+    public function editAnnouncement(Request $request)
+    {
+        //Log::info("AnnouncementsController::editAnnouncement");
+
+        $user = Auth::user();
+
+        if ($this->checkUser()){
+            try {
+                DB::beginTransaction();
+
+                //Announcement Update
+                $announcement = AnnouncementsModel::find($request->input('id'));
+
+                $announcement->title = $request->input('title');
+                $announcement->description = $request->input('description');
+                $announcement->save();
+
+                $deleteFiles = array_merge($request->input('deleteImages'),$request->input('deleteAttachments'));
+
+                // Remove Thumbnail
+                AnnouncementFilesModel::whereIn('id', $deleteFiles)
+                    ->where('thumbnail', true)
+                    ->update(['thumbnail' => false]);
+
+                // Remove Files
+                AnnouncementFilesModel::whereIn('id', $deleteFiles)->delete();
+
+                $dateTime = now()->format('YmdHis');
+
+                // (Documents)
+                if ($request->hasFile('attachment')) {
+                    foreach ($request->file('attachment') as $file){
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Document",
+                            'path' => $filePath,
+                            'thumbnail' => false,
+                        ]);
+                    }
+                }
+
+                // (Images)
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $index => $file){
+                        // Replace Thumbnail if Applicable
+                        if ($index == $request->input('thumbnail')){
+                            $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
+                                ->where('thumbnail', true)
+                                ->first();
+                            if ($oldThumbnail) {
+                                $oldThumbnail->thumbnail = false;
+                                $oldThumbnail->save();
+                            }
+                        }
+                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/images', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Image",
+                            'path' => $filePath,
+                            'thumbnail' => $index == $request->input('thumbnail'),
+                        ]);
+                    }
+                }
+
+                DB::commit();
+
+            } catch (\Exception $e) {
+                DB::rollBack();
     
+                Log::error("Error saving: " . $e->getMessage());
+    
+                throw $e;
+            }
+        }
+    }
+
+    public function getFileNames($id)
+    {
+        //Log::info("AnnouncementsController::getFileNames");
+        $user = Auth::user();
+        
+        if ($this->checkUser()){
+            $files = AnnouncementFilesModel::where('announcement_id', $id)
+                ->select('id', 'path', 'type')
+                ->get();
+
+                $filenames = [];
+                foreach($files as $file){
+                    $filenames[] = [
+                        'id' => $file->id,
+                        'filename' => basename($file->path),
+                        'type' => $file->type
+                    ];
+                }
+
+            return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
+        } else {
+            return response()->json([ 'status' => 200, 'filenames' => null ]);
+        }
+        
+    }
+
+    public function toggleHide($id)
+    {
+        //Log::info("AnnouncementsController::toggleHide");
+        $user = Auth::user();
+        
+        if ($this->checkUser()){
+            
+            $announcement = AnnouncementsModel::find($id);
+
+            if (!$announcement) {
+                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
+            }
+
+            $announcement->hidden = !$announcement->hidden;
+            $announcement->save();
+
+            return response()->json([ 'status' => 200 ]);
+        } else {
+            return response()->json([ 'status' => 200 ]);
+        }
+        
     }
 }

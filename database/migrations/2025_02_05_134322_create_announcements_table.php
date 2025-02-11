@@ -20,6 +20,7 @@ class CreateAnnouncementsTable extends Migration
             $table->string('title', 128);
             $table->string('description', 512);
             $table->dateTime('published')->nullable();
+            $table->boolean('hidden')->default(0);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

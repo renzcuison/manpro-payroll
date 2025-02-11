@@ -39,7 +39,7 @@ const AttendanceView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
-    }, []);
+    }, [summaryFromDate, summaryToDate]);
 
     // ---------------- Attendance Details
     const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
@@ -78,8 +78,8 @@ const AttendanceView = () => {
                             headers,
                             params: {
                                 employee: response.data.employee.id,
-                                summary_from_date: dayjs().subtract(5, 'day').format("YYYY-MM-DD"),
-                                summary_to_date: dayjs().format("YYYY-MM-DD"),
+                                summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
+                                summary_to_date: summaryToDate.format("YYYY-MM-DD"),
                             },
                         }
                     ).then((response) => {

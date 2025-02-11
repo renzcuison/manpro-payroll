@@ -7,12 +7,15 @@ import PageHead from '../../../components/Table/PageHead';
 import PageToolbar from '../../../components/Table/PageToolbar';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getComparator, stableSort } from '../../../components/utils/tableUtils';
+import Swal from "sweetalert2";
+
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import AnnouncementForm from './Modals/AnnouncementForm';
 import AnnouncementPublishModal from './Modals/AnnouncementPublishModal';
+import AnnouncementEdit from './Modals/AnnouncementEdit';
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -61,6 +64,57 @@ const AnnouncementList = () => {
         setOpenAnnouncementPublish(null);
         fetchAnnouncements();
     }
+
+    // ---------------- Announcement Publishing
+    const [openAnnouncementEdit, setOpenAnnouncementEdit] = useState(null);
+    const handleOpenAnnouncementEdit = (announcement) => {
+        setOpenAnnouncementEdit(announcement)
+    }
+    const handleCloseAnnouncementEdit = () => {
+        setOpenAnnouncementEdit(null);
+        fetchAnnouncements();
+    }
+
+    // ---------------- Application Hiding
+    const handleToggleHide = (toggle, id) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `${toggle ? "Hide" : "Unhide"} Announcement?`,
+            text: `The Announcement will be ${toggle ? "Hidden from" : "Visible to"} Employees`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: toggle ? "Hide" : "Unhide",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                axiosInstance
+                    .get(`announcements/toggleHide/${id}`, {
+                        headers
+                    })
+                    .then((response) => {
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Your Announcement is now ${toggle ? "Hidden" : "Visible"}`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                fetchAnnouncements();
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error toggling Hide Status:", error);
+                    });
+            }
+        });
+    };
 
     // ---------------- Menu Items
     const [menuStates, setMenuStates] = useState({});
@@ -121,14 +175,17 @@ const AnnouncementList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "30%" }}>
+                                                <TableCell align="center" sx={{ width: "22.5%" }}>
                                                     Title
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "30%" }}>
+                                                <TableCell align="center" sx={{ width: "22.5%" }}>
                                                     Date Created
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "30%" }}>
+                                                <TableCell align="center" sx={{ width: "22.5%" }}>
                                                     Publish Date
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "22.5%" }}>
+                                                    Status
                                                 </TableCell>
                                                 <TableCell align="center" sx={{ width: "10%" }}>
                                                     Action
@@ -155,7 +212,9 @@ const AnnouncementList = () => {
                                                                             : "#ffffff",
                                                                 }}>
                                                                 <TableCell align="center">
-                                                                    {announcements.title}
+                                                                    {announcements.title.length > 40
+                                                                        ? (`${announcements.title.slice(0, 37)}...`)
+                                                                        : announcements.title}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}
@@ -166,59 +225,80 @@ const AnnouncementList = () => {
                                                                         : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {!announcements.published ? (
-                                                                        <>
-                                                                            <IconButton
-                                                                                aria-label="more"
-                                                                                aria-controls={menuStates[announcements.id]?.open
-                                                                                    ? `announcement-menu-${announcements.id}`
-                                                                                    : undefined
-                                                                                }
-                                                                                aria-haspopup="true"
+                                                                    {!announcements.published
+                                                                        ? "Pending"
+                                                                        : !announcements.hidden
+                                                                            ? "Published"
+                                                                            : "Hidden"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    <IconButton
+                                                                        aria-label="more"
+                                                                        aria-controls={menuStates[announcements.id]?.open
+                                                                            ? `announcement-menu-${announcements.id}`
+                                                                            : undefined
+                                                                        }
+                                                                        aria-haspopup="true"
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleMenuOpen(event, announcements.id);
+                                                                        }}>
+                                                                        <MoreVert />
+                                                                    </IconButton>
+                                                                    <Menu id={`announcement-menu-${announcements.id}`}
+                                                                        anchorEl={menuStates[announcements.id]?.anchorEl}
+                                                                        open={menuStates[announcements.id]?.open || false}
+                                                                        onClose={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleMenuClose(
+                                                                                announcements.id
+                                                                            );
+                                                                        }}
+                                                                        MenuListProps={{
+                                                                            "aria-labelledby": `application-menu-${announcements.id}`,
+                                                                        }}>
+                                                                        {/* Editing */}
+                                                                        {!announcements.published && (
+                                                                            <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleMenuOpen(event, announcements.id);
+                                                                                    handleOpenAnnouncementEdit(announcements);
+                                                                                    handleMenuClose(announcements.id);
                                                                                 }}>
-                                                                                <MoreVert />
-                                                                            </IconButton>
-                                                                            <Menu id={`announcement-menu-${announcements.id}`}
-                                                                                anchorEl={menuStates[announcements.id]?.anchorEl}
-                                                                                open={menuStates[announcements.id]?.open || false}
-                                                                                onClose={(event) => {
+                                                                                Edit
+                                                                            </MenuItem>
+                                                                        )}
+                                                                        {/* Publishing */}
+                                                                        {!announcements.published && (
+                                                                            <MenuItem
+                                                                                onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleMenuClose(
-                                                                                        announcements.id
-                                                                                    );
-                                                                                }}
-                                                                                MenuListProps={{
-                                                                                    "aria-labelledby": `application-menu-${announcements.id}`,
+                                                                                    handleOpenAnnouncementPublish(announcements);
+                                                                                    handleMenuClose(announcements.id);
                                                                                 }}>
-                                                                                <MenuItem
-                                                                                    onClick={(event) => {
-                                                                                        event.stopPropagation();
-                                                                                        console.log(`Editing Announcement ${announcements.id}`);
-                                                                                        handleMenuClose(announcements.id);
-                                                                                    }}>
-                                                                                    Edit
-                                                                                </MenuItem>
-                                                                                <MenuItem
-                                                                                    onClick={(event) => {
-                                                                                        event.stopPropagation();
-                                                                                        handleOpenAnnouncementPublish(announcements)
-                                                                                        handleMenuClose(announcements.id);
-                                                                                    }}>
-                                                                                    Publish
-                                                                                </MenuItem>
-                                                                                <MenuItem
-                                                                                    onClick={(event) => {
-                                                                                        event.stopPropagation();
-                                                                                        handleMenuClose(announcements.id);
-                                                                                    }}>
-                                                                                    Close Menu
-                                                                                </MenuItem>
-                                                                            </Menu>
-                                                                        </>
-                                                                    ) : "Published"}
+                                                                                Publish
+                                                                            </MenuItem>
+                                                                        )}
+                                                                        {/* Hide Toggle */}
+                                                                        {(announcements.published) && (
+                                                                            <MenuItem
+                                                                                onClick={(event) => {
+                                                                                    event.stopPropagation();
+                                                                                    handleToggleHide(!announcements.hidden, announcements.id);
+                                                                                    handleMenuClose(announcements.id);
+                                                                                }}
+                                                                            >
+                                                                                {announcements.hidden ? 'Unhide' : 'Hide'}
+                                                                            </MenuItem>
+                                                                        )}
+                                                                        <MenuItem
+                                                                            onClick={(event) => {
+                                                                                event.stopPropagation();
+                                                                                handleMenuClose(announcements.id);
+                                                                            }}>
+                                                                            Close Menu
+                                                                        </MenuItem>
+                                                                    </Menu>
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -250,6 +330,13 @@ const AnnouncementList = () => {
                     open={true}
                     close={handleCloseAnnouncementPublish}
                     announceInfo={openAnnouncementPublish}
+                />
+            )}
+            {openAnnouncementEdit && (
+                <AnnouncementEdit
+                    open={true}
+                    close={handleCloseAnnouncementEdit}
+                    announceInfo={openAnnouncementEdit}
                 />
             )}
         </Layout>

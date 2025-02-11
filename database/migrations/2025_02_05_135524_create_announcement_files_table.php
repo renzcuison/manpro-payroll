@@ -20,6 +20,7 @@ class CreateAnnouncementFilesTable extends Migration
             $table->string('path', 256);
             $table->boolean('thumbnail');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('announcement_id')->references('id')->on('announcements');
         });

@@ -123,9 +123,8 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: appResponse,
-                confirmButtonColor: `${
-                    appResponse == "Approve" ? "#177604" : "#f44336"
-                }`,
+                confirmButtonColor: `${appResponse == "Approve" ? "#177604" : "#f44336"
+                    }`,
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
             }).then((res) => {
@@ -141,11 +140,10 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                             Swal.fire({
                                 customClass: { container: "my-swal" },
                                 title: "Success!",
-                                text: `The application has been ${
-                                    appResponse == "Approve"
-                                        ? "Approved"
-                                        : "Declined"
-                                }.`,
+                                text: `The application has been ${appResponse == "Approve"
+                                    ? "Approved"
+                                    : "Declined"
+                                    }.`,
                                 icon: "success",
                                 showConfirmButton: true,
                                 confirmButtonText: "Okay",
@@ -236,21 +234,21 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                             </Typography>
                         </Grid>
                         <Grid item xs={5} align="left">
-                            Starts
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.app_duration_start).format(
-                                    "MMM D, YYYY    h:mm A"
-                                )}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={5} align="left">
                             Created
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
                                 {dayjs(appDetails.app_date_requested).format(
+                                    "MMM D, YYYY    h:mm A"
+                                )}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={5} align="left">
+                            Starts
+                        </Grid>
+                        <Grid item xs={7} align="left">
+                            <Typography sx={{ fontWeight: "bold" }}>
+                                {dayjs(appDetails.app_duration_start).format(
                                     "MMM D, YYYY    h:mm A"
                                 )}
                             </Typography>
@@ -304,9 +302,9 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 >
                                     {attachmentName.length > 20
                                         ? `${appDetails.app_attachment.slice(
-                                              0,
-                                              20
-                                          )}...`
+                                            0,
+                                            20
+                                        )}...`
                                         : attachmentName}
                                 </Typography>
                             </Box>

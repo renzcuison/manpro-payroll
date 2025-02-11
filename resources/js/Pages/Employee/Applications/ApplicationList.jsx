@@ -412,7 +412,7 @@ const ApplicationList = () => {
                                             ) : (
                                                 <TableRow>
                                                     <TableCell
-                                                        colSpan={5}
+                                                        colSpan={6}
                                                         align="center"
                                                         sx={{
                                                             color: "text.secondary",

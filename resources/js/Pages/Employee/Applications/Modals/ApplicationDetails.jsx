@@ -168,21 +168,21 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                             </Typography>
                         </Grid>
                         <Grid item xs={5} align="left">
-                            Starts
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.duration_start).format(
-                                    "MMM D, YYYY    h:mm A"
-                                )}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={5} align="left">
                             Created
                         </Grid>
                         <Grid item xs={7} align="left">
                             <Typography sx={{ fontWeight: "bold" }}>
                                 {dayjs(appDetails.created_at).format(
+                                    "MMM D, YYYY    h:mm A"
+                                )}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={5} align="left">
+                            Starts
+                        </Grid>
+                        <Grid item xs={7} align="left">
+                            <Typography sx={{ fontWeight: "bold" }}>
+                                {dayjs(appDetails.duration_start).format(
                                     "MMM D, YYYY    h:mm A"
                                 )}
                             </Typography>
@@ -208,12 +208,12 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                         appDetails.status === "Approved"
                                             ? "#177604"
                                             : appDetails.status === "Declined"
-                                            ? "#f44336"
-                                            : appDetails.status === "Pending"
-                                            ? "#e9ae20"
-                                            : appDetails.status === "Withdrawn"
-                                            ? "#f57c00"
-                                            : "#000000",
+                                                ? "#f44336"
+                                                : appDetails.status === "Pending"
+                                                    ? "#e9ae20"
+                                                    : appDetails.status === "Withdrawn"
+                                                        ? "#f57c00"
+                                                        : "#000000",
                                 }}
                             >
                                 {appDetails.status}
@@ -258,9 +258,9 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 >
                                     {attachmentName.length > 20
                                         ? `${appDetails.attachment
-                                              .split("/")
-                                              .pop()
-                                              .slice(0, 20)}...`
+                                            .split("/")
+                                            .pop()
+                                            .slice(0, 20)}...`
                                         : attachmentName}
                                 </Typography>
                             </Box>

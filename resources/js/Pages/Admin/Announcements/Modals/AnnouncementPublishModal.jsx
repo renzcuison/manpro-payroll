@@ -31,6 +31,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
 
+    // ------------- Branch, Department, Thumbnail Requests
     useEffect(() => {
         axiosInstance.get('/settings/getBranches', { headers })
             .then((response) => {
@@ -58,7 +59,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
         axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
             .then((response) => {
                 if (response.data.thumbnail) {
-                    const byteCharacters = atob(response.data.thumbnail);
+                    const byteCharacters = window.atob(response.data.thumbnail);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -68,14 +69,14 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
                     setImagePath(URL.createObjectURL(blob));
                 } else {
-                    setImagePath("../../../../images/ManPro.png");
+                    setImagePath("../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
 
             })
             .catch((error) => {
                 console.error('Error fetching thumbnail:', error);
-                setImagePath("../../../../images/ManPro.png");
+                setImagePath("../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
 
@@ -170,6 +171,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
     }
 
+    // ------------- Close Modal & Blob Cleanup
     const handleClose = () => {
         if (imagePath && imagePath.startsWith('blob:')) {
             URL.revokeObjectURL(imagePath);
@@ -189,9 +191,8 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography sx={{ mt: 1, mb: 1, alignSelf: 'flex-start' }}>Announcement Preview</Typography>
-                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                            <Card sx={{ maxWidth: 350 }}>
+                        <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                            <Card sx={{ width: 350 }}>
                                 {imageLoading ? (
                                     <Box
                                         sx={{
@@ -207,7 +208,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                     <CardMedia
                                         sx={{ height: 150 }}
                                         image={imagePath}
-                                        title="AnnouncementCard"
+                                        title="Thumbnail"
                                     />
                                 )}
 
@@ -215,16 +216,11 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                     <Typography gutterBottom variant="h6" component="div">
                                         {announceInfo.title}
                                     </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{ color: 'text.secondary' }}
-                                    >
-                                        {
-                                            announceInfo.description.length > 150
-                                                ? `${announceInfo.description.slice(0, 147)}...`
-                                                : announceInfo.description
-                                        }
-                                    </Typography>
+                                    <div
+                                        id="description"
+                                        style={{ maxHeight: '100px', overflow: 'hidden' }}
+                                        dangerouslySetInnerHTML={{ __html: announceInfo.description }}
+                                    />
                                 </CardContent>
                             </Card>
                         </Box>
@@ -235,6 +231,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
+                            {/* Department Selection */}
                             <FormControl sx={{
                                 marginBottom: 2, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -273,6 +270,7 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                 </TextField>
                             </FormControl>
 
+                            {/* Branch Selection */}
                             <FormControl sx={{
                                 marginBottom: 2, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -298,21 +296,20 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
                                             key={branch.id}
                                             value={branch.id}
                                             onClick={() => {
-                                                setSelectedDepartments((prevSelected) =>
+                                                setSelectedBranches((prevSelected) =>
                                                     prevSelected.includes(branch.id)
                                                         ? prevSelected.filter((id) => id !== branch.id)
                                                         : [...prevSelected, branch.id]
                                                 );
                                             }}
                                         >
-                                            <Checkbox checked={selectedDepartments.includes(branch.id)} />
+                                            <Checkbox checked={selectedBranches.includes(branch.id)} />
                                             <ListItemText primary={`${branch.name} (${branch.acronym})`} />
                                         </MenuItem>
                                     ))}
                                 </TextField>
                             </FormControl>
                         </FormGroup>
-
                         <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Publish </p>

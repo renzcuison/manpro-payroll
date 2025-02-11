@@ -133,76 +133,41 @@ const ApplicationsList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "20%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "20%" }} >
                                                     Employee
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "20%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "20%" }} >
                                                     Application Type
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "20%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "20%" }} >
                                                     Start Date/Time
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "20%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "20%" }} >
                                                     End Date/Time
                                                 </TableCell>
-                                                <TableCell
-                                                    align="center"
-                                                    sx={{ width: "20%" }}
-                                                >
+                                                <TableCell align="center" sx={{ width: "20%" }} >
                                                     Date of Application
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
 
-                                        <TableBody>
-                                            {applications.map(
+                                        <TableBody>{
+                                            applications.length > 0 ? (applications.map(
                                                 (application, index) => {
-                                                    const createDate = dayjs(
-                                                        application.app_date_requested
-                                                    ).format(
-                                                        "MMM D, YYYY    h:mm A"
-                                                    );
+                                                    const createDate = dayjs(application.app_date_requested).format("MMM D, YYYY    h:mm A");
 
-                                                    const startDate = dayjs(
-                                                        application.app_duration_start
-                                                    ).format(
-                                                        "MMM D, YYYY    h:mm A"
-                                                    );
+                                                    const startDate = dayjs(application.app_duration_start).format("MMM D, YYYY    h:mm A");
 
-                                                    const endDate = dayjs(
-                                                        application.app_duration_end
-                                                    ).format(
-                                                        "MMM D, YYYY    h:mm A"
-                                                    );
+                                                    const endDate = dayjs(application.app_duration_end).format("MMM D, YYYY    h:mm A");
 
                                                     return (
                                                         <TableRow
-                                                            key={
-                                                                application.app_id
-                                                            }
-                                                            onClick={() =>
-                                                                handleOpenApplicationManage(
-                                                                    application
-                                                                )
-                                                            }
+                                                            key={application.app_id}
+                                                            onClick={() => handleOpenApplicationManage(application)}
                                                             sx={{
                                                                 p: 1,
                                                                 backgroundColor:
-                                                                    index %
-                                                                        2 ===
-                                                                    0
+                                                                    index % 2 === 0
                                                                         ? "#f8f8f8"
                                                                         : "#ffffff",
                                                                 "&:hover": {
@@ -214,36 +179,39 @@ const ApplicationsList = () => {
                                                         >
                                                             <TableCell align="left">
                                                                 {" "}
-                                                                {
-                                                                    application.emp_first_name
-                                                                }{" "}
-                                                                {application.emp_middle_name ||
-                                                                    ""}{" "}
-                                                                {
-                                                                    application.emp_last_name
-                                                                }{" "}
-                                                                {application.emp_suffix ||
-                                                                    ""}{" "}
+                                                                {application.emp_first_name}{" "}
+                                                                {application.emp_middle_name || ""}{" "}
+                                                                {application.emp_last_name}{" "}
+                                                                {application.emp_suffix || ""}{" "}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {application.app_type ||
-                                                                    "-"}
+                                                                {application.app_type || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {startDate ||
-                                                                    "-"}
+                                                                {startDate || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {endDate || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {createDate ||
-                                                                    "-"}
+                                                                {createDate || "-"}
                                                             </TableCell>
                                                         </TableRow>
                                                     );
                                                 }
-                                            )}
+                                            )) : <TableRow>
+                                                <TableCell
+                                                    colSpan={5}
+                                                    align="center"
+                                                    sx={{
+                                                        color: "text.secondary",
+                                                        p: 1,
+                                                    }}
+                                                >
+                                                    No Applications Found
+                                                </TableCell>
+                                            </TableRow>}
+
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
