@@ -17,7 +17,6 @@ class ApplicationsModel extends Model
         'type_id',
         'duration_start',
         'duration_end',
-        'attachment',
         'description',
         'status',
         'user_id',
@@ -32,5 +31,10 @@ class ApplicationsModel extends Model
     public function type()
     {
         return $this->belongsTo(ApplicationTypesModel::class, 'type_id');
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ApplicationFilesModel::class, 'application_id');
     }
 }
