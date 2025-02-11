@@ -76,7 +76,6 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                console.log(response.data.types);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -214,7 +213,7 @@ const ApplicationForm = ({ open, close }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `You application has been submitted!`,
+                    text: `Your application has been submitted!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",

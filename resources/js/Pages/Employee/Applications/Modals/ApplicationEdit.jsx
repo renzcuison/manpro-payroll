@@ -82,7 +82,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                console.log(response.data.types);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -100,7 +99,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     useEffect(() => {
         axiosInstance.get(`/applications/getFileNames/${appDetails.id}`, { headers })
             .then((response) => {
-                console.log(response.data);
                 setFileNames(response.data.filenames);
             })
             .catch((error) => {
@@ -146,6 +144,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
 
+
         if (!appType) {
             setAppTypeError(true);
         } else {
@@ -166,13 +165,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setDescriptionError(false);
         }
-        if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
+        let fileRequirementsMet = true;
+        if (fileRequired && !attachment.length > 0 && !image.length > 0 && (deleteImages.length + deleteAttachments.length == fileNames.length)) {
+            fileRequirementsMet = false;
             setFileError(true);
         } else {
             setFileError(false);
         }
 
-        if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
+        if (!appType || !fromDate || !toDate || !description || !fileRequirementsMet) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -186,7 +187,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to submit this application?",
+                text: "Do you want to update this application?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -199,7 +200,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 }
             });
         }
-
     };
 
     // Final Submission
@@ -247,7 +247,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `You application has been submitted!`,
+                    text: `Application successfully edited!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",
@@ -449,7 +449,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             {/* Attachment Upload */}
                             <Grid item xs={12}>
                                 {/* File Requirement */}
-                                {fileError && <Typography variant="caption" color="error" sx={{ mb: 2 }}>
+                                {fileError && <Typography variant="caption" color="error" sx={{ pb: 3 }}>
                                     You must include supporting files for this type of application!
                                 </Typography>
                                 }
