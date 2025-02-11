@@ -89,11 +89,9 @@ class AnnouncementsController extends Controller
                     'published' => null
                 ]);
                 
-                
-                // File Handling
                 $dateTime = now()->format('YmdHis');
 
-                // (Documents)
+                // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
                     foreach ($request->file('attachment') as $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -107,7 +105,7 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // (Images)
+                // Adding Files - Images
                 if ($request->hasFile('image')) {
                     foreach ($request->file('image') as $index => $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -267,7 +265,7 @@ class AnnouncementsController extends Controller
 
                 $dateTime = now()->format('YmdHis');
 
-                // (Documents)
+                // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
                     foreach ($request->file('attachment') as $file){
                         $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -281,7 +279,7 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // (Images)
+                // Adding Files - Images
                 if ($request->hasFile('image')) {
                     foreach ($request->file('image') as $index => $file){
                         // Replace Thumbnail if Applicable

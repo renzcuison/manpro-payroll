@@ -176,9 +176,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
         
         Route::get('/downloadAttachment/{id}', [ApplicationsController::class, 'downloadAttachment']);
+        Route::get('/getFileNames/{id}', [ApplicationsController::class, 'getFileNames']);
 
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
-        Route::post('/updateApplication', [ApplicationsController::class, 'updateApplication']);
+        Route::post('/editApplication', [ApplicationsController::class, 'editApplication']);
         Route::get('/withdrawApplication/{id}', [ApplicationsController::class, 'withdrawApplication']);
         Route::get('/manageApplication/{id}/{action}', [ApplicationsController::class, 'manageApplication']);
     });

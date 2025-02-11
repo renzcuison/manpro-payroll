@@ -103,10 +103,9 @@ class ApplicationsController extends Controller
                 "client_id" => $user->client_id,
             ]);
 
-            // File Handling
             $dateTime = now()->format('YmdHis');
 
-            // (Documents)
+            // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file){
                     $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -119,7 +118,7 @@ class ApplicationsController extends Controller
                 }
             }
 
-            // (Images)
+            // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $index => $file){
                     $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -146,18 +145,69 @@ class ApplicationsController extends Controller
             
     }
 
-    public function updateApplication(Request $request)
+    public function editApplication(Request $request)
     {
         //Log::info("ApplicationsController::updateApplication");
-
         $user = Auth::user();
+        Log::info($request);
 
-        $application = ApplicationsModel::find($request->input('app_id'));
+        try {
+            DB::beginTransaction();
 
-        if (!$application) {
-            //Log::error('Application not found for ID: ' . $request->input('app_id'));
-            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+            //Application Update
+            $application = ApplicationsModel::find($request->input('id'));
+            Log::info($application);
+
+            $application->type_id = $request->input('type_id');
+            $application->duration_start = $request->input('from_date');
+            $application->duration_end = $request->input('to_date');
+            $application->description = $request->input('description');
+            $application->save();
+
+            // Remove Files
+            $deleteFiles = array_merge($request->input('deleteImages'),$request->input('deleteAttachments'));
+            ApplicationFilesModel::whereIn('id', $deleteFiles)->delete();
+
+            $dateTime = now()->format('YmdHis');
+
+            // Adding Files - Documents
+            if ($request->hasFile('attachment')) {
+                foreach ($request->file('attachment') as $file){
+                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
+                    ApplicationFilesModel::create([
+                        'application_id' => $application->id,
+                        'type' => "Document",
+                        'path' => $filePath,
+                    ]);
+                }
+            }
+
+            // Adding Files - Images
+            if ($request->hasFile('image')) {
+                foreach ($request->file('image') as $index => $file){
+                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
+                    ApplicationFilesModel::create([
+                        'application_id' => $application->id,
+                        'type' => "Image",
+                        'path' => $filePath,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
         }
+
+        /*
+        $application = ApplicationsModel::find($request->input('app_id'));
 
         $application->type_id = $request->input('type_id');
         $application->duration_start = $request->input('from_date');
@@ -175,6 +225,7 @@ class ApplicationsController extends Controller
         $application->save();
 
         return response()->json(['status' => 200, 'message' => 'Application Updated!', 'application' => $application], 200);
+        */
     }
 
     public function getMyApplications()
@@ -300,6 +351,28 @@ class ApplicationsController extends Controller
             return response()->json(['status' => 200, 'message' => 'Insufficient Permissions!'], 200);
         }
 
+    }
+
+    public function getFileNames($id)
+    {
+        //Log::info("AnnouncementsController::getFileNames");
+        $user = Auth::user();
+        
+        $files = ApplicationFilesModel::where('application_id', $id)
+                ->select('id', 'path', 'type')
+                ->get();
+
+                $filenames = [];
+                foreach($files as $file){
+                    $filenames[] = [
+                        'id' => $file->id,
+                        'filename' => basename($file->path),
+                        'type' => $file->type
+                    ];
+                }
+
+            return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
+        
     }
 
     

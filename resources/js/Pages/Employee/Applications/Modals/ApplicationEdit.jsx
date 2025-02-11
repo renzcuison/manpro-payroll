@@ -18,7 +18,10 @@ import {
     Switch,
     Select,
     MenuItem,
+    Stack,
+    Checkbox
 } from "@mui/material";
+import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -45,60 +48,90 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
+    const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
+
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
-    const [description, setDescription] = useState(appDetails.description);
-    const [attachment, setAttachment] = useState(null);
     const [applicationDuration, setApplicationDuration] = useState("");
-    const [applicationTypes, setApplicationTypes] = useState([]);
+
+    const [description, setDescription] = useState(appDetails.description);
+
+    const [attachment, setAttachment] = useState([]);
+    const [image, setImage] = useState([]);
+
+    const [fileNames, setFileNames] = useState([]);
+
+    const [deleteAttachments, setDeleteAttachments] = useState([]);
+    const [deleteImages, setDeleteImages] = useState([]);
 
     // Form Requirement Sets
     const [appTypeError, setAppTypeError] = useState(false);
+
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
+
     const [descriptionError, setDescriptionError] = useState(false);
-    const [attachmentError, setAttachmentError] = useState(false);
 
-    const handleAttachmentChange = (event) => {
-        const selectedAttachment = event.target.files[0];
+    const [fileRequired, setFileRequired] = useState(false);
+    const [fileError, setFileError] = useState(false);
 
-        // Check for File Size
-        if (selectedAttachment.size === 0) return "0 Bytes";
-        const k = 1024;
-        const mbSize = selectedAttachment.size / Math.pow(k, 2);
-        if (mbSize > 10) {
-            console.log("File Too Large");
-            document.activeElement.blur();
-            document.body.removeAttribute("aria-hidden");
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Too Large!",
-                text: "The size limit is 10MB",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    document.body.setAttribute("aria-hidden", "true");
-                } else {
-                    document.body.setAttribute("aria-hidden", "true");
-                }
+
+    // Application Types
+    useEffect(() => {
+        axiosInstance
+            .get(`applications/getApplicationTypes`, { headers })
+            .then((response) => {
+                console.log(response.data.types);
+                setApplicationTypes(response.data.types);
+            })
+            .catch((error) => {
+                console.error("Error fetching application types:", error);
             });
-        } else {
-            console.log("File Accepted");
-            setAttachment(selectedAttachment);
-        }
-    };
-
-    const handleTextFieldClick = (event) => {
-        attachmentInput.current.click();
-    };
-    const attachmentInput = useRef(null);
+    }, []);
 
     const handleTypeChange = (value) => {
+        const selectedType = applicationTypes.find(type => type.id == value);
+        setFileRequired(selectedType.require_files);
         setAppType(value);
+    };
+
+    // Get Existing Files
+    useEffect(() => {
+        axiosInstance.get(`/applications/getFileNames/${appDetails.id}`, { headers })
+            .then((response) => {
+                console.log(response.data);
+                setFileNames(response.data.filenames);
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
+    }, []);
+
+    // Attachment Handlers
+    const handleAttachmentUpload = (input) => {
+        const files = Array.from(input.target.files);
+        setAttachment(prev => [...prev, ...files]);
+    };
+
+    const handleDeleteAttachment = (index) => {
+        setAttachment(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
+    };
+
+    // Image Handlers
+    const handleImageUpload = (input) => {
+        const files = Array.from(input.target.files);
+        setImage(prev => [...prev, ...files]);
+    };
+
+    const handleDeleteImage = (index) => {
+        setImage(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
     };
 
     const getFileSize = (size) => {
@@ -109,17 +142,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    useEffect(() => {
-        axiosInstance
-            .get(`applications/getApplicationTypes`, { headers })
-            .then((response) => {
-                setApplicationTypes(response.data.types);
-            })
-            .catch((error) => {
-                console.error("Error fetching application types:", error);
-            });
-    }, []);
-
+    // Input Verification
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
 
@@ -143,13 +166,17 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setDescriptionError(false);
         }
+        if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
+            setFileError(true);
+        } else {
+            setFileError(false);
+        }
 
-        if (!appType || !fromDate || !toDate || !description) {
+        if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
             document.activeElement.blur();
-
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "All fields must be filled!",
+                text: "All Required Fields must be filled!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -159,41 +186,60 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to update this application?",
+                text: "Do you want to submit this application?",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Update",
+                confirmButtonText: "Save",
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    updateApplication(event);
+                    editApplication(event);
                 }
             });
         }
+
     };
 
-    const updateApplication = (event) => {
+    // Final Submission
+    const editApplication = (event) => {
         event.preventDefault();
-        const data = {
-            app_id: appDetails.id,
-            type_id: appType,
-            from_date: fromDate.format("YYYY-MM-DD HH:mm:ss"),
-            to_date: toDate.format("YYYY-MM-DD HH:mm:ss"),
-            description: description,
-        };
 
-        if (attachment) {
-            data.attachment = attachment;
+        const formData = new FormData();
+        formData.append("id", appDetails.id);
+        formData.append("type_id", appType);
+        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("description", description);
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
+            });
+        }
+        if (image.length > 0) {
+            image.forEach(file => {
+                formData.append('image[]', file);
+            });
+        }
+        if (deleteAttachments.length > 0) {
+            deleteAttachments.forEach(del => {
+                formData.append('deleteAttachments[]', del);
+            });
+        } else {
+            formData.append('deleteAttachments[]', null);
+        }
+        if (deleteImages.length > 0) {
+            deleteImages.forEach(del => {
+                formData.append('deleteImages[]', del);
+            });
+        } else {
+            formData.append('deleteImages[]', null);
         }
 
         axiosInstance
-            .post(`/applications/updateApplication`, data, {
-                headers: {
-                    ...headers,
-                    "Content-Type": "multipart/form-data", // Ensure this header is set for FormData
-                },
+            .post("/applications/editApplication", formData, {
+                headers,
             })
             .then((response) => {
                 document.activeElement.blur();
@@ -201,7 +247,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `You application has been updated!`,
+                    text: `You application has been submitted!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",
@@ -312,12 +358,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             handleTypeChange(event.target.value)
                                         }
                                     >
-                                        {applicationTypes.map((log, index) => (
-                                            <MenuItem
-                                                key={index}
-                                                value={log.id}
-                                            >
-                                                {log.name}
+                                        {applicationTypes.map((type, index) => (
+                                            <MenuItem key={index} value={type.id}>
+                                                {type.name}
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -376,55 +419,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     ></TextField>
                                 </FormControl>
                             </Grid>
-                            {/* File Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <TextField
-                                        fullWidth
-                                        label="Upload New File (Optional)"
-                                        value={
-                                            attachment
-                                                ? `${attachment.name
-                                                }, ${getFileSize(
-                                                    attachment.size
-                                                )}`
-                                                : ""
-                                        }
-                                        error={attachmentError}
-                                        onClick={handleTextFieldClick}
-                                        InputProps={{
-                                            readOnly: true,
-                                            endAdornment: !attachment && (
-                                                <InputAdornment position="end">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                            startAdornment: attachment && (
-                                                <InputAdornment position="start">
-                                                    <InsertDriveFileIcon />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        variant="outlined"
-                                    />
-                                    <input
-                                        accept=".png, .jpg, .jpeg, .docx, .doc, .pdf"
-                                        type="file"
-                                        name="attachment"
-                                        ref={attachmentInput}
-                                        style={{ display: "none" }}
-                                        onChange={handleAttachmentChange}
-                                    />
-                                    <FormHelperText>
-                                        Accepted types: png, jpg, jpeg, docx, doc, pdf. 10 mb limit
-                                    </FormHelperText>
-                                    <FormHelperText>
-                                        {`Current File: ${appDetails.attachment}`}
-                                    </FormHelperText>
-                                </FormControl>
-                            </Grid>
-
-
                             {/* Description Field */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
@@ -452,6 +446,265 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     </FormHelperText>
                                 </FormControl>
                             </Grid>
+                            {/* Attachment Upload */}
+                            <Grid item xs={12}>
+                                {/* File Requirement */}
+                                {fileError && <Typography variant="caption" color="error" sx={{ mb: 2 }}>
+                                    You must include supporting files for this type of application!
+                                </Typography>
+                                }
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Documents
+                                                </Typography>
+                                                <input
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
+                                                    id="attachment-upload"
+                                                    type="file"
+                                                    name="attachment"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleAttachmentUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: "auto" }}
+                                                    onClick={() => document.getElementById('attachment-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                            {attachment.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {attachment.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {attachment.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                        {(() => {
+                                            const documentFiles = fileNames.filter(filename => filename.type === "Document");
+                                            return documentFiles.length > 0 && (
+                                                <>
+                                                    <Stack direction="row" spacing={1}
+                                                        sx={{
+                                                            pt: 1,
+                                                            pr: 1,
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            width: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Current Documents
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Remove
+                                                        </Typography>
+                                                    </Stack>
+                                                    {documentFiles.map((filename, index) => (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                mt: 1,
+                                                                p: 1,
+                                                                borderRadius: "2px",
+                                                                border: '1px solid',
+                                                                borderColor: deleteAttachments.includes(filename.id)
+                                                                    ? "#f44336"
+                                                                    : "#e0e0e0"
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" noWrap>
+                                                                {`${filename.filename} ${filename.id}`}
+                                                            </Typography>
+                                                            <Checkbox
+                                                                checked={deleteAttachments.includes(filename.id)}
+                                                                onChange={() => {
+                                                                    setDeleteAttachments(prevAttachments => {
+                                                                        if (prevAttachments.includes(filename.id)) {
+                                                                            return prevAttachments.filter(id => id !== filename.id);
+                                                                        } else {
+                                                                            return [...prevAttachments, filename.id];
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                sx={{
+                                                                    '&.Mui-checked': {
+                                                                        color: "#f44336",
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    ))}
+                                                </>
+                                            );
+                                        })()}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Image Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Images
+                                                </Typography>
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                            {image.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                        {(() => {
+                                            const imageFiles = fileNames.filter(filename => filename.type === "Image");
+                                            return imageFiles.length > 0 && (
+                                                <>
+                                                    <Stack direction="row" spacing={1}
+                                                        sx={{
+                                                            pt: 1,
+                                                            pr: 1,
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            width: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Current Images
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Remove
+                                                        </Typography>
+                                                    </Stack>
+                                                    {imageFiles.map((filename, index) => (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                mt: 1,
+                                                                p: 1,
+                                                                borderRadius: "2px",
+                                                                border: '1px solid',
+                                                                borderColor: deleteImages.includes(filename.id)
+                                                                    ? "#f44336"
+                                                                    : "#e0e0e0"
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" noWrap>
+                                                                {`${filename.filename} ${filename.id}`}
+                                                            </Typography>
+                                                            <Checkbox
+                                                                checked={deleteImages.includes(filename.id)}
+                                                                onChange={() => {
+                                                                    setDeleteImages(prevImages => {
+                                                                        if (prevImages.includes(filename.id)) {
+                                                                            return prevImages.filter(id => id !== filename.id);
+                                                                        } else {
+                                                                            return [...prevImages, filename.id];
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                sx={{
+                                                                    '&.Mui-checked': {
+                                                                        color: "#f44336",
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    ))}
+                                                </>
+                                            );
+                                        })()}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
                             {/* Submit Button */}
                             <Grid
                                 item
@@ -473,7 +726,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 >
                                     <p className="m-0">
                                         <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
-                                        Update Application{" "}
+                                        Submit Application{" "}
                                     </p>
                                 </Button>
                             </Grid>

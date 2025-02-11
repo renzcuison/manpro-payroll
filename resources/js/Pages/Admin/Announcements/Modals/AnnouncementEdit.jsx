@@ -58,13 +58,14 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const [attachmentError, setAttachmentError] = useState(false);
     const [imageError, setImageError] = useState(false);
 
+    // Get Existing Files
     useEffect(() => {
         axiosInstance.get(`/announcements/getFileNames/${announceInfo.id}`, { headers })
             .then((response) => {
                 setFileNames(response.data.filenames);
             })
             .catch((error) => {
-                console.error('Error fetching file names:', error);
+                console.error('Error fetching files:', error);
             });
     }, []);
 
@@ -146,13 +147,13 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveAnnouncement(event);
+                    editAnnouncement(event);
                 }
             });
         }
     }
 
-    const saveAnnouncement = (event) => {
+    const editAnnouncement = (event) => {
         event.preventDefault();
 
         const formData = new FormData();
