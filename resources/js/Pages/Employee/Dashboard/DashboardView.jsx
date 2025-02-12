@@ -423,7 +423,7 @@ const Dashboard = () => {
                                                                                         ? "#f44336"
                                                                                         : application.app_status === "Pending"
                                                                                             ? "#e9ae20"
-                                                                                            : application.app_status === "Withdrawn"
+                                                                                            : application.app_status === "Cancelled"
                                                                                                 ? "#f57c00"
                                                                                                 : "#000000",
                                                                         }}>

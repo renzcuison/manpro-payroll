@@ -44,10 +44,6 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    //const [attachmentName, setAttachmentName] = useState("");
-    //const [AttachmentIcon, setAttachmentIcon] = useState(null);
-    const [iconColor, setIconColor] = useState("#177604");
-
     const [files, setFiles] = useState([]);
 
     // ----------- Request Attachments
@@ -61,6 +57,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
             });
     }, []);
 
+    // ----------- Dynamic File Icon
     const getFileIcon = (filename) => {
         const fileType = filename
             .split(".")
@@ -95,6 +92,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
         return { icon, color };
     }
 
+    // ----------- Download Attachment
     const handleFileDownload = async (filename, id) => {
         try {
             const response = await axiosInstance.get(
@@ -155,6 +153,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
                 <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
                     <Grid container rowSpacing={2}>
+                        {/* Application Type */}
                         <Grid item xs={5} align="left">
                             Type
                         </Grid>
@@ -166,6 +165,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         <Grid item xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
+                        {/* Request Date*/}
                         <Grid item xs={5} align="left">
                             Requested
                         </Grid>
@@ -179,6 +179,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 </Typography>
                             </Stack>
                         </Grid>
+                        {/* Start Date */}
                         <Grid item xs={5} align="left">
                             Starts
                         </Grid>
@@ -192,6 +193,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 </Typography>
                             </Stack>
                         </Grid>
+                        {/* End Date */}
                         <Grid item xs={5} align="left">
                             Ends
                         </Grid>
@@ -208,6 +210,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         <Grid item xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
+                        {/* Application Status */}
                         <Grid item xs={5} align="left">
                             Status
                         </Grid>
@@ -233,6 +236,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         <Grid item xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
+                        {/* Description */}
                         <Grid container item xs={12}>
                             <Grid item xs={12}>
                                 <div
@@ -250,6 +254,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         <Grid item xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
+                        {/* Attachments */}
                         <Grid container item xs={12}>
                             <Grid item xs={12}>
                                 Attached Files
