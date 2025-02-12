@@ -272,7 +272,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                                         justifyContent: 'space-between',
                                                         alignItems: 'center',
                                                         border: '1px solid #e0e0e0',
-                                                        borderRadius: '4px',
+                                                        borderRadius: '10px',
                                                         padding: '4px 8px',
                                                         mt: 1,
                                                     }}
