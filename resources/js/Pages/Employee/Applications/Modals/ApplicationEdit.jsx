@@ -65,7 +65,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
-    const [fileRequired, setFileRequired] = useState(false);
     const [fileError, setFileError] = useState(false);
 
     // Application Types
@@ -78,11 +77,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             .catch((error) => {
                 console.error("Error fetching application types:", error);
             });
+
     }, []);
 
     const handleTypeChange = (value) => {
-        const selectedType = applicationTypes.find(type => type.id == value);
-        setFileRequired(selectedType.require_files);
         setAppType(value);
     };
 
@@ -197,7 +195,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
 
-
         if (!appType) {
             setAppTypeError(true);
         } else {
@@ -219,6 +216,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             setDescriptionError(false);
         }
 
+        const selectedType = applicationTypes.find(type => type.id == appType);
+        const fileRequired = selectedType.require_files;
+
         let fileRequirementsMet = true;
         let deleteAllOldFiles = true;
         if (fileNames) {
@@ -231,6 +231,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setFileError(false);
         }
+
 
         if (!appType || !fromDate || !toDate || !description || !fileRequirementsMet) {
             document.activeElement.blur();
