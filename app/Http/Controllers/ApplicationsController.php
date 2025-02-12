@@ -108,7 +108,7 @@ class ApplicationsController extends Controller
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file){
-                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -121,7 +121,7 @@ class ApplicationsController extends Controller
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $index => $file){
-                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -171,7 +171,7 @@ class ApplicationsController extends Controller
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file){
-                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -184,7 +184,7 @@ class ApplicationsController extends Controller
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $index => $file){
-                    $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -277,23 +277,22 @@ class ApplicationsController extends Controller
     public function downloadAttachment($id)
     {
         //Log::info("ApplicationsController::downloadAttachment");
-        $application = ApplicationsModel::find($id);
+        $file = ApplicationFilesModel::find($id);
 
-        if (!$application || !$application->attachment) {
+        if (!$file) {
             return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
         }
 
-        $filePath = storage_path('app/public/' . $application->attachment);
+        $filePath = storage_path('app/public/' . $file->path);
 
         if (!file_exists($filePath)) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        $fileName = basename($application->attachment);
+        $fileName = basename($file->path);
 
         return response()->download($filePath, $fileName);
     }
-
 
     public function cancelApplication($id)
     {   

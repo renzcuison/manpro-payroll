@@ -94,7 +94,7 @@ class AnnouncementsController extends Controller
                 // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
                     foreach ($request->file('attachment') as $file){
-                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -108,7 +108,7 @@ class AnnouncementsController extends Controller
                 // Adding Files - Images
                 if ($request->hasFile('image')) {
                     foreach ($request->file('image') as $index => $file){
-                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -268,7 +268,7 @@ class AnnouncementsController extends Controller
                 // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
                     foreach ($request->file('attachment') as $file){
-                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -292,7 +292,7 @@ class AnnouncementsController extends Controller
                                 $oldThumbnail->save();
                             }
                         }
-                        $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,

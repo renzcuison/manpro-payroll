@@ -148,7 +148,6 @@ const AnnouncementList = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
                             Announcements
                         </Typography>
-
                         <Button
                             variant="contained"
                             color="primary"

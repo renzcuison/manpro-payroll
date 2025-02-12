@@ -16,8 +16,11 @@ import {
     Switch,
     Select,
     MenuItem,
+    Divider,
+    Stack,
+    Tooltip
 } from "@mui/material";
-import { PictureAsPdf, Description, InsertPhoto } from "@mui/icons-material";
+import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -41,65 +44,61 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [applicationDuration, setApplicationDuration] = useState([]);
-    const [attachmentName, setAttachmentName] = useState("");
-    const [AttachmentIcon, setAttachmentIcon] = useState(null);
+    //const [attachmentName, setAttachmentName] = useState("");
+    //const [AttachmentIcon, setAttachmentIcon] = useState(null);
     const [iconColor, setIconColor] = useState("#177604");
 
-    // ----------- Dynamic Attachment Icon
-    useEffect(() => {
-        if (appDetails && appDetails.attachment) {
-            setAttachmentName(appDetails.attachment);
-            const fileType = appDetails.attachment
-                .split(".")
-                .pop()
-                .toLowerCase();
+    const [files, setFiles] = useState([]);
 
-            switch (fileType) {
-                case "png":
-                case "jpg":
-                case "jpeg":
-                    setAttachmentIcon(InsertPhoto);
-                    setIconColor("#177604");
-                    break;
-                case "doc":
-                case "docx":
-                    setAttachmentIcon(Description);
-                    setIconColor("blue");
-                    break;
-                case "pdf":
-                    setAttachmentIcon(PictureAsPdf);
-                    setIconColor("red");
-                    break;
-            }
+    // ----------- Request Attachments
+    useEffect(() => {
+        axiosInstance.get(`/applications/getFileNames/${appDetails.id}`, { headers })
+            .then((response) => {
+                setFiles(response.data.filenames);
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
+    }, []);
+
+    const getFileIcon = (filename) => {
+        const fileType = filename
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+        let icon = null;
+        let color = null;
+
+        switch (fileType) {
+            case "png":
+            case "jpg":
+            case "jpeg":
+                icon = InsertPhoto;
+                color = "purple";
+                break;
+            case "doc":
+            case "docx":
+                icon = Description;
+                color = "blue";
+                break;
+            case "pdf":
+                icon = PictureAsPdf;
+                color = "red";
+                break;
+            case "xls":
+            case "xlsx":
+                icon = GridOn;
+                color = "green";
         }
-    }, []);
 
-    // ----------- Duration
-    useEffect(() => {
-        const fromDateTime = dayjs(appDetails.duration_start);
-        const toDateTime = dayjs(appDetails.duration_end);
-        const duration = dayjs.duration(toDateTime.diff(fromDateTime));
+        return { icon, color };
+    }
 
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0)
-            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
-        setApplicationDuration(durationInfo);
-    }, []);
-
-    const handleFileDownload = async () => {
+    const handleFileDownload = async (filename, id) => {
         try {
             const response = await axiosInstance.get(
-                `/applications/downloadAttachment/${appDetails.id}`,
+                `/applications/downloadAttachment/${id}`,
                 {
                     responseType: "blob",
                     headers,
@@ -110,7 +109,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
             });
             const link = document.createElement("a");
             link.href = window.URL.createObjectURL(blob);
-            link.download = attachmentName;
+            link.download = filename;
             link.click();
 
             window.URL.revokeObjectURL(link.href);
@@ -130,13 +129,14 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
-                        minWidth: { xs: "100%", sm: "400px" },
-                        maxWidth: "450px",
+                        maxHeight: "600px",
+                        minWidth: { xs: "100%", sm: "450px" },
+                        maxWidth: "500px",
                         marginBottom: "5%",
                     },
                 }}
             >
-                <DialogTitle sx={{ padding: 2, paddingBottom: 2 }}>
+                <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box
                         sx={{
                             display: "flex",
@@ -144,12 +144,8 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography
-                            variant="h5"
-                            sx={{ marginLeft: 1, fontWeight: "bold" }}
-                        >
-                            {" "}
-                            Application Details
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
+                            {" "}Application Details{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -158,7 +154,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
-                    <Grid container columnSpacing={4} rowSpacing={2}>
+                    <Grid container rowSpacing={2}>
                         <Grid item xs={5} align="left">
                             Type
                         </Grid>
@@ -167,35 +163,50 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 {appDetails.type_name}
                             </Typography>
                         </Grid>
+                        <Grid item xs={12} sx={{ my: 0 }} >
+                            <Divider />
+                        </Grid>
                         <Grid item xs={5} align="left">
-                            Created
+                            Requested
                         </Grid>
                         <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.created_at).format(
-                                    "MMM D, YYYY    h:mm A"
-                                )}
-                            </Typography>
+                            <Stack direction="row">
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.created_at).format("MMM D, YYYY")}
+                                </Typography>
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.created_at).format("h:mm A")}
+                                </Typography>
+                            </Stack>
                         </Grid>
                         <Grid item xs={5} align="left">
                             Starts
                         </Grid>
                         <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.duration_start).format(
-                                    "MMM D, YYYY    h:mm A"
-                                )}
-                            </Typography>
+                            <Stack direction="row">
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.duration_start).format("MMM D, YYYY")}
+                                </Typography>
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.duration_start).format("h:mm A")}
+                                </Typography>
+                            </Stack>
                         </Grid>
                         <Grid item xs={5} align="left">
                             Ends
                         </Grid>
                         <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {dayjs(appDetails.duration_end).format(
-                                    "MMM D, YYYY    h:mm A"
-                                )}
-                            </Typography>
+                            <Stack direction="row">
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.duration_end).format("MMM D, YYYY")}
+                                </Typography>
+                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
+                                    {dayjs(appDetails.duration_end).format("h:mm A")}
+                                </Typography>
+                            </Stack>
+                        </Grid>
+                        <Grid item xs={12} sx={{ my: 0 }} >
+                            <Divider />
                         </Grid>
                         <Grid item xs={5} align="left">
                             Status
@@ -211,68 +222,18 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                                 ? "#f44336"
                                                 : appDetails.status === "Pending"
                                                     ? "#e9ae20"
-                                                    : appDetails.status === "Withdrawn"
+                                                    : appDetails.status === "Cancelled"
                                                         ? "#f57c00"
                                                         : "#000000",
                                 }}
                             >
-                                {appDetails.status}
+                                {appDetails.status.toUpperCase()}
                             </Typography>
                         </Grid>
-                        <Grid item xs={5} align="left">
-                            Duration
+                        <Grid item xs={12} sx={{ my: 0 }} >
+                            <Divider />
                         </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {applicationDuration}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={5} align="left">
-                            Attachment
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    padding: "2px 0px",
-                                    borderRadius: "4px",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(0, 0, 0, 0.05)",
-                                        cursor: "pointer",
-                                    },
-                                }}
-                                onClick={handleFileDownload}
-                            >
-                                {AttachmentIcon && (
-                                    <AttachmentIcon
-                                        fontSize="small"
-                                        sx={{
-                                            marginRight: "5px",
-                                            color: iconColor,
-                                        }}
-                                    />
-                                )}
-                                <Typography
-                                    sx={{ textDecoration: "underline" }}
-                                >
-                                    {attachmentName.length > 20
-                                        ? `${appDetails.attachment
-                                            .split("/")
-                                            .pop()
-                                            .slice(0, 20)}...`
-                                        : attachmentName}
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid
-                            container
-                            item
-                            xs={12}
-                            sx={{
-                                mt: 1,
-                            }}
-                        >
+                        <Grid container item xs={12}>
                             <Grid item xs={12}>
                                 <div
                                     style={{
@@ -284,6 +245,62 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                             </Grid>
                             <Grid item xs={12} sx={{ mt: 1 }}>
                                 {appDetails.description}
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={12} sx={{ my: 0 }} >
+                            <Divider />
+                        </Grid>
+                        <Grid container item xs={12}>
+                            <Grid item xs={12}>
+                                Attached Files
+                            </Grid>
+                            <Grid item xs={12}>
+                                {files ? (
+                                    <Stack direction="column" sx={{ width: '100%' }}>
+                                        {files.map((file, index) => {
+                                            const fileIcon = getFileIcon(file.filename);
+                                            return (
+                                                <Box
+                                                    key={index}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        border: '1px solid #e0e0e0',
+                                                        borderRadius: '4px',
+                                                        padding: '4px 8px',
+                                                        mt: 1,
+                                                    }}
+                                                >
+                                                    <Box sx={{ display: 'flex' }}>
+                                                        {fileIcon.icon && <fileIcon.icon sx={{ mr: 1, color: fileIcon.color }} />}
+                                                        <Typography noWrap sx={{ textDecoration: "underline" }}>{file.filename}</Typography>
+                                                    </Box>
+                                                    <Tooltip title="Download File">
+                                                        <IconButton onClick={() => handleFileDownload(file.filename, file.id)} size="small">
+                                                            <FileDownload />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            )
+                                        })}
+                                    </Stack>
+                                ) : (
+                                    <Box
+                                        sx={{
+                                            mt: 1,
+                                            width: "100%",
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '4px',
+                                            padding: '4px 8px'
+                                        }}
+                                    >
+                                        <Typography noWrap variant="caption" sx={{ color: 'text.secondary' }}>No Attached Documents</Typography>
+                                    </Box>
+                                )}
                             </Grid>
                         </Grid>
                     </Grid>
