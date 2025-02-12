@@ -102,7 +102,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         const oldFiles = oldFileCompiler("Document");
         const oldFileCount = oldFiles.length - deleteAttachments.length;
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, attachment.length, oldFileCount, 5, 10485760, "documents");
+        let validFiles = validateFiles(files, attachment.length, oldFileCount, 5, 10485760, "document");
         if (validFiles) {
             setAttachment(prev => [...prev, ...files]);
         }
@@ -119,7 +119,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         const oldFiles = oldFileCompiler("Image");
         const oldFileCount = oldFiles.length - deleteImages.length;
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, oldFileCount, 10, 5242880, "images");
+        let validFiles = validateFiles(files, image.length, oldFileCount, 10, 5242880, "image");
         if (validFiles) {
             setImage(prev => [...prev, ...files]);
         }
@@ -145,7 +145,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const validateFiles = (newFiles, currentFileCount, oldFileCount, countLimit, sizeLimit, docType) => {
         if ((newFiles.length + currentFileCount + oldFileCount) > countLimit) {
             // The File Limit has been Exceeded
-            fileCountError(`You can only have up to ${countLimit} ${docType} at a time.`);
+            fileCountError(`You can only have up to ${countLimit} ${docType}s at a time.`);
             return false;
         } else {
             let largeFiles = 0;
@@ -159,7 +159,8 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 document.activeElement.blur();
                 Swal.fire({
                     customClass: { container: "my-swal" },
-                    text: "A File is Too Large",
+                    title: "File Too Large",
+                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: "#177604",
