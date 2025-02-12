@@ -129,7 +129,7 @@ const ApplicationForm = ({ open, close }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "File Limit Reached!",
-                text: `You can only have up to ${countLimit} ${docType} at a time.`,
+                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",

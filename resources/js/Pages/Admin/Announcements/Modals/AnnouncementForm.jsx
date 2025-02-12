@@ -56,7 +56,7 @@ const AnnouncementForm = ({ open, close }) => {
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, attachment.length, 5, 10485760);
+        let validFiles = validateFiles(files, attachment.length, 5, 10485760, "document");
         if (validFiles) {
             setAttachment(prev => [...prev, ...files]);
         }
@@ -72,7 +72,7 @@ const AnnouncementForm = ({ open, close }) => {
     // Image Handlers
     const handleImageUpload = (input) => {
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, 10, 5242880);
+        let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
         if (validFiles) {
             setImage(prev => [...prev, ...files]);
         }
@@ -92,13 +92,14 @@ const AnnouncementForm = ({ open, close }) => {
     };
 
     // Validate Files
-    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit) => {
+    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
         if (newFiles.length + currentFileCount > countLimit) {
             // The File Limit has been Exceeded
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "The File Limit has been Exceeded!",
+                title: "File Limit Reached!",
+                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -116,7 +117,8 @@ const AnnouncementForm = ({ open, close }) => {
                 document.activeElement.blur();
                 Swal.fire({
                     customClass: { container: "my-swal" },
-                    text: "A File is Too Large",
+                    title: "File Too Large!",
+                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: "#177604",
@@ -365,13 +367,24 @@ const AnnouncementForm = ({ open, close }) => {
                                                     </p>
                                                 </Button>
                                             </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 5 Files, 10 MB Each
+                                            </Typography>
                                             {attachment.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
                                                     Remove
                                                 </Typography>
                                             )}
                                         </Stack>
-
                                         {attachment.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {attachment.map((file, index) => (
@@ -432,6 +445,18 @@ const AnnouncementForm = ({ open, close }) => {
                                                     </p>
                                                 </Button>
                                             </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Files, 5 MB Each
+                                            </Typography>
                                             {image.length > 0 && (
                                                 <Stack direction="row" spacing={1}>
                                                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
