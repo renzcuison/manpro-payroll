@@ -50,32 +50,23 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     // Form Fields
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
-
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
     const [applicationDuration, setApplicationDuration] = useState("");
-
     const [description, setDescription] = useState(appDetails.description);
-
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
-
     const [fileNames, setFileNames] = useState([]);
-
     const [deleteAttachments, setDeleteAttachments] = useState([]);
     const [deleteImages, setDeleteImages] = useState([]);
 
     // Form Requirement Sets
     const [appTypeError, setAppTypeError] = useState(false);
-
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
-
     const [descriptionError, setDescriptionError] = useState(false);
-
     const [fileRequired, setFileRequired] = useState(false);
     const [fileError, setFileError] = useState(false);
-
 
     // Application Types
     useEffect(() => {
@@ -108,8 +99,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
+        const oldFiles = oldFileCompiler("Document");
+        const oldFileCount = oldFiles.length - deleteAttachments.length;
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, attachment.length, 5, 10485760);
+        let validFiles = validateFiles(files, attachment.length, oldFileCount, 5, 10485760, "documents");
         if (validFiles) {
             setAttachment(prev => [...prev, ...files]);
         }
@@ -119,13 +112,14 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         setAttachment(prevAttachments =>
             prevAttachments.filter((_, i) => i !== index)
         );
-
     };
 
     // Image Handlers
     const handleImageUpload = (input) => {
+        const oldFiles = oldFileCompiler("Image");
+        const oldFileCount = oldFiles.length - deleteImages.length;
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, 10, 5242880);
+        let validFiles = validateFiles(files, image.length, oldFileCount, 10, 5242880, "images");
         if (validFiles) {
             setImage(prev => [...prev, ...files]);
         }
@@ -135,21 +129,23 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         setImage(prevAttachments =>
             prevAttachments.filter((_, i) => i !== index)
         );
-
     };
 
+    // Collects Old Files by Type
+    const oldFileCompiler = (fileType) => {
+        if (fileNames) {
+            return fileNames.filter(filename => filename.type === fileType);
+        } else {
+            return [];
+        }
+
+    }
+
     // Validate Files
-    const validateFiles = (newFiles, oldFileCount, countLimit, sizeLimit) => {
-        if (newFiles.length + oldFileCount > countLimit) {
+    const validateFiles = (newFiles, currentFileCount, oldFileCount, countLimit, sizeLimit, docType) => {
+        if ((newFiles.length + currentFileCount + oldFileCount) > countLimit) {
             // The File Limit has been Exceeded
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "The File Limit has been Exceeded!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            fileCountError(`You can only have up to ${countLimit} ${docType} at a time.`);
             return false;
         } else {
             let largeFiles = 0;
@@ -174,6 +170,18 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 return true;
             }
         }
+    }
+
+    const fileCountError = (message) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "File Limit Reached!",
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
     }
 
     const getFileSize = (size) => {
@@ -209,8 +217,14 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setDescriptionError(false);
         }
+
         let fileRequirementsMet = true;
-        if (fileRequired && !attachment.length > 0 && !image.length > 0 && (deleteImages.length + deleteAttachments.length == fileNames.length)) {
+        let deleteAllOldFiles = true;
+        if (fileNames) {
+            deleteAllOldFiles = (deleteImages.length + deleteAttachments.length == fileNames.length);
+        }
+
+        if (fileRequired && !attachment.length > 0 && !image.length > 0 && deleteAllOldFiles) {
             fileRequirementsMet = false;
             setFileError(true);
         } else {
@@ -523,7 +537,20 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                         <i className="fa fa-plus"></i> Add
                                                     </p>
                                                 </Button>
+
                                             </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 5 Files, 10 MB Each
+                                            </Typography>
                                             {attachment.length > 0 && (
                                                 <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
                                                     Remove
@@ -553,7 +580,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             </Stack>
                                         )}
                                         {(() => {
-                                            const documentFiles = fileNames.filter(filename => filename.type === "Document");
+                                            const documentFiles = oldFileCompiler("Document");
                                             return documentFiles.length > 0 && (
                                                 <>
                                                     <Stack direction="row" spacing={1}
@@ -594,9 +621,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                             <Checkbox
                                                                 checked={deleteAttachments.includes(filename.id)}
                                                                 onChange={() => {
+                                                                    const oldFileCount = documentFiles.length - deleteAttachments.length;
                                                                     setDeleteAttachments(prevAttachments => {
                                                                         if (prevAttachments.includes(filename.id)) {
-                                                                            return prevAttachments.filter(id => id !== filename.id);
+                                                                            if (attachment.length + oldFileCount == 5) {
+                                                                                fileCountError("You can only have up to 5 documents at a time.");
+                                                                                return prevAttachments;
+                                                                            } else {
+                                                                                return prevAttachments.filter(id => id !== filename.id);
+                                                                            }
                                                                         } else {
                                                                             return [...prevAttachments, filename.id];
                                                                         }
@@ -651,6 +684,18 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                     </p>
                                                 </Button>
                                             </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Files, 5 MB Each
+                                            </Typography>
                                             {image.length > 0 && (
                                                 <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
                                                     Remove
@@ -680,7 +725,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             </Stack>
                                         )}
                                         {(() => {
-                                            const imageFiles = fileNames.filter(filename => filename.type === "Image");
+                                            const imageFiles = oldFileCompiler("Image");
                                             return imageFiles.length > 0 && (
                                                 <>
                                                     <Stack direction="row" spacing={1}
@@ -721,9 +766,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                             <Checkbox
                                                                 checked={deleteImages.includes(filename.id)}
                                                                 onChange={() => {
+                                                                    const oldFileCount = imageFiles.length - deleteImages.length;
                                                                     setDeleteImages(prevImages => {
                                                                         if (prevImages.includes(filename.id)) {
-                                                                            return prevImages.filter(id => id !== filename.id);
+                                                                            if (image.length + oldFileCount == 10) {
+                                                                                fileCountError("You can only have up to 10 images at a time.");
+                                                                                return prevImages;
+                                                                            } else {
+                                                                                return prevImages.filter(id => id !== filename.id);
+                                                                            }
                                                                         } else {
                                                                             return [...prevImages, filename.id];
                                                                         }

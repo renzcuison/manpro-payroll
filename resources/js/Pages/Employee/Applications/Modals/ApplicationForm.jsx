@@ -122,8 +122,8 @@ const ApplicationForm = ({ open, close }) => {
     };
 
     // Validate Files
-    const validateFiles = (newFiles, oldFileCount, countLimit, sizeLimit) => {
-        if (newFiles.length + oldFileCount > countLimit) {
+    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit) => {
+        if (newFiles.length + currentFileCount > countLimit) {
             // The File Limit has been Exceeded
             document.activeElement.blur();
             Swal.fire({
