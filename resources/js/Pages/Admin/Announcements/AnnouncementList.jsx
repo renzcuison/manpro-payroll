@@ -65,7 +65,7 @@ const AnnouncementList = () => {
         fetchAnnouncements();
     }
 
-    // ---------------- Announcement Publishing
+    // ---------------- Announcement Editing
     const [openAnnouncementEdit, setOpenAnnouncementEdit] = useState(null);
     const handleOpenAnnouncementEdit = (announcement) => {
         setOpenAnnouncementEdit(announcement)
@@ -80,11 +80,11 @@ const AnnouncementList = () => {
         document.activeElement.blur();
         Swal.fire({
             customClass: { container: "my-swal" },
-            title: `${toggle ? "Hide" : "Unhide"} Announcement?`,
-            text: `The Announcement will be ${toggle ? "Hidden from" : "Visible to"} Employees`,
+            title: `${toggle ? "Hide" : "Show"} Announcement?`,
+            text: `The Announcement will be ${toggle ? "hidden from" : "visible to"} employees`,
             icon: "warning",
             showConfirmButton: true,
-            confirmButtonText: toggle ? "Hide" : "Unhide",
+            confirmButtonText: toggle ? "Hide" : "Show",
             confirmButtonColor: "#E9AE20",
             showCancelButton: true,
             cancelButtonText: "Cancel",
@@ -98,7 +98,7 @@ const AnnouncementList = () => {
                         Swal.fire({
                             customClass: { container: "my-swal" },
                             title: "Success!",
-                            text: `Your Announcement is now ${toggle ? "Hidden" : "Visible"}`,
+                            text: `Your Announcement is now ${toggle ? "hidden" : "visible"}`,
                             icon: "success",
                             showConfirmButton: true,
                             confirmButtonText: "Okay",
@@ -110,7 +110,7 @@ const AnnouncementList = () => {
                         });
                     })
                     .catch((error) => {
-                        console.error("Error toggling Hide Status:", error);
+                        console.error("Error toggling Hidden Status:", error);
                     });
             }
         });
@@ -288,7 +288,7 @@ const AnnouncementList = () => {
                                                                                     handleMenuClose(announcements.id);
                                                                                 }}
                                                                             >
-                                                                                {announcements.hidden ? 'Unhide' : 'Hide'}
+                                                                                {announcements.hidden ? 'Show' : 'Hide'}
                                                                             </MenuItem>
                                                                         )}
                                                                         <MenuItem

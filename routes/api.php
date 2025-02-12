@@ -180,7 +180,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
         Route::post('/editApplication', [ApplicationsController::class, 'editApplication']);
-        Route::get('/withdrawApplication/{id}', [ApplicationsController::class, 'withdrawApplication']);
+        Route::get('/cancelApplication/{id}', [ApplicationsController::class, 'cancelApplication']);
         Route::get('/manageApplication/{id}/{action}', [ApplicationsController::class, 'manageApplication']);
     });
 

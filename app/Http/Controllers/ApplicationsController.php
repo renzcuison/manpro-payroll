@@ -295,9 +295,9 @@ class ApplicationsController extends Controller
     }
 
 
-    public function withdrawApplication($id)
+    public function cancelApplication($id)
     {   
-        //Log::info("ApplicationsController::withdrawApplication");
+        //Log::info("ApplicationsController::cancelApplication");
 
         $application = ApplicationsModel::find($id);
 
@@ -307,14 +307,14 @@ class ApplicationsController extends Controller
         }
 
         if ($application->status !== 'Pending') {
-            //Log::warning('Application ' . $id . ' cannot be withdrawn.');
-            return response()->json(['status' => 400, 'message' => 'Only pending applications can be withdrawn'], 400);
+            //Log::warning('Application ' . $id . ' cannot be cancelled.');
+            return response()->json(['status' => 400, 'message' => 'Only pending applications can be cancelled'], 400);
         }
 
-        $application->status = 'Withdrawn';
+        $application->status = 'Cancelled';
         $application->save();
 
-        return response()->json(['status' => 200, 'message' => 'Application Withdrawal Successful!'], 200);
+        return response()->json(['status' => 200, 'message' => 'Application Cancelling Successful!'], 200);
     }
 
     public function manageApplication($id, $action)

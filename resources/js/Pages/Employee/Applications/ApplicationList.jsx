@@ -121,30 +121,30 @@ const ApplicationList = () => {
         }));
     };
 
-    // ---------------- Application Withdrawal
-    const handleWithdrawApplication = (id) => {
+    // ---------------- Application Cancelling
+    const handleCancelApplication = (id) => {
         document.activeElement.blur();
         Swal.fire({
             customClass: { container: "my-swal" },
-            title: "Withdraw Application?",
+            title: "Cancel Application?",
             text: "This action cannot be undone",
             icon: "warning",
             showConfirmButton: true,
-            confirmButtonText: "Withdraw",
+            confirmButtonText: "Cancel",
             confirmButtonColor: "#E9AE20",
             showCancelButton: true,
-            cancelButtonText: "Cancel",
+            cancelButtonText: "No",
         }).then((res) => {
             if (res.isConfirmed) {
                 axiosInstance
-                    .get(`applications/withdrawApplication/${id}`, {
+                    .get(`applications/cancelApplication/${id}`, {
                         headers,
                     })
                     .then((response) => {
                         Swal.fire({
                             customClass: { container: "my-swal" },
                             title: "Success!",
-                            text: `Your application has been withdrawn`,
+                            text: `Your application has been cancelled`,
                             icon: "success",
                             showConfirmButton: true,
                             confirmButtonText: "Okay",
@@ -156,7 +156,7 @@ const ApplicationList = () => {
                         });
                     })
                     .catch((error) => {
-                        console.error("Error withdrawing application:", error);
+                        console.error("Error cancelling application:", error);
                     });
             }
         });
@@ -340,7 +340,7 @@ const ApplicationList = () => {
                                                                                             "Pending"
                                                                                             ? "#e9ae20"
                                                                                             : application.status ===
-                                                                                                "Withdrawn"
+                                                                                                "Cancelled"
                                                                                                 ? "#f57c00"
                                                                                                 : "#000000",
                                                                         }}
@@ -389,10 +389,10 @@ const ApplicationList = () => {
                                                                                 <MenuItem
                                                                                     onClick={(event) => {
                                                                                         event.stopPropagation();
-                                                                                        handleWithdrawApplication(application.id);
+                                                                                        handleCancelApplication(application.id);
                                                                                         handleMenuClose(application.id);
                                                                                     }}>
-                                                                                    Withdraw
+                                                                                    Cancel
                                                                                 </MenuItem>
                                                                                 <MenuItem
                                                                                     onClick={(event) => {
