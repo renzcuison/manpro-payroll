@@ -159,7 +159,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 document.activeElement.blur();
                 Swal.fire({
                     customClass: { container: "my-swal" },
-                    title: "File Too Large",
+                    title: "File Too Large!",
                     text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
                     icon: "error",
                     showConfirmButton: true,
@@ -558,6 +558,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 </Typography>
                                             )}
                                         </Stack>
+                                        {/* Added Attachments */}
                                         {attachment.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {attachment.map((file, index) => (
@@ -580,6 +581,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 ))}
                                             </Stack>
                                         )}
+                                        {/* Old Attachments */}
                                         {(() => {
                                             const documentFiles = oldFileCompiler("Document");
                                             return documentFiles.length > 0 && (
@@ -617,7 +619,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                             }}
                                                         >
                                                             <Typography variant="body2" noWrap>
-                                                                {`${filename.filename} ${filename.id}`}
+                                                                {filename.filename}
                                                             </Typography>
                                                             <Checkbox
                                                                 checked={deleteAttachments.includes(filename.id)}
@@ -703,6 +705,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 </Typography>
                                             )}
                                         </Stack>
+                                        {/* Added Images */}
                                         {image.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {image.map((file, index) => (
@@ -725,6 +728,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 ))}
                                             </Stack>
                                         )}
+                                        {/* Old Images */}
                                         {(() => {
                                             const imageFiles = oldFileCompiler("Image");
                                             return imageFiles.length > 0 && (
@@ -762,7 +766,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                             }}
                                                         >
                                                             <Typography variant="body2" noWrap>
-                                                                {`${filename.filename} ${filename.id}`}
+                                                                {filename.filename}
                                                             </Typography>
                                                             <Checkbox
                                                                 checked={deleteImages.includes(filename.id)}

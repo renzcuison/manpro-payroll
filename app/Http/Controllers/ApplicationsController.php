@@ -149,14 +149,12 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::updateApplication");
         $user = Auth::user();
-        Log::info($request);
 
         try {
             DB::beginTransaction();
 
             //Application Update
             $application = ApplicationsModel::find($request->input('id'));
-            Log::info($application);
 
             $application->type_id = $request->input('type_id');
             $application->duration_start = $request->input('from_date');

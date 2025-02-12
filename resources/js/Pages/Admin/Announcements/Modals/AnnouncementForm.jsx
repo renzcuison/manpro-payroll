@@ -385,6 +385,7 @@ const AnnouncementForm = ({ open, close }) => {
                                                 </Typography>
                                             )}
                                         </Stack>
+                                        {/* Added Attachments */}
                                         {attachment.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {attachment.map((file, index) => (
@@ -468,6 +469,7 @@ const AnnouncementForm = ({ open, close }) => {
                                                 </Stack>
                                             )}
                                         </Stack>
+                                        {/* Added Images */}
                                         {image.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {image.map((file, index) => (
