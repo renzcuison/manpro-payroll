@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ApplicationsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationFilesModel;
+use App\Models\LeaveCreditsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,9 @@ class ApplicationsController extends Controller
             foreach ($apps as $app) {
                 $employee = $app->user;
                 $type = $app->type;
+                $branch = $app->branch;
+                $department = $app->department;
+                $job_title = $app->jobTitle;
 
                 $applications[] = [
                     'app_id' => $app->id,
@@ -59,6 +63,9 @@ class ApplicationsController extends Controller
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
                     'emp_suffix' => $employee->suffix,
+                    'emp_branch' => $branch->name,
+                    'emp_department' => $department->name,
+                    'emp_job_title' => $job_title->name
                 ];
             }
 
@@ -66,6 +73,54 @@ class ApplicationsController extends Controller
         } else {
             return response()->json(['status' => 200, 'applications' => null]);
         }
+    }
+
+    public function getMyApplications()
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+        
+        $applications = ApplicationsModel::where('client_id', $clientId)
+                                 ->where('user_id', $user->id)
+                                 ->get();
+
+        $applications = $applications->map(function($application) {
+            $application->attachment = basename($application->attachment);
+            return $application;
+        });
+        
+        return response()->json(['status' => 200, 'applications' => $applications]);
+        
+    }
+
+    public function getDashboardApplications()
+    {
+        //Log::info("ApplicationsController::getDashboardApplications");
+
+        $user = Auth::user();
+
+        $clientId = $user->client_id;
+        $apps = ApplicationsModel::where('client_id', $clientId)
+            ->take(10)
+            ->get();
+
+        $applications = [];
+
+        foreach ($apps as $app) {
+            $employee = $app->user;
+            $type = $app->type;
+
+            $applications[] = [
+                'app_id' => $app->id,
+                'app_type' => $type->name,
+                'app_status' => $app->status,
+            ];
+        }
+
+        return response()->json(['status' => 200, 'applications' => $applications]);
+
     }
 
     public function getApplicationTypes()
@@ -226,74 +281,6 @@ class ApplicationsController extends Controller
         */
     }
 
-    public function getMyApplications()
-    {
-        //Log::info("ApplicationsController::getApplicationTypes");
-
-        $user = Auth::user();
-        $clientId = $user->client_id;
-        
-        $applications = ApplicationsModel::where('client_id', $clientId)
-                                 ->where('user_id', $user->id)
-                                 ->get();
-
-        $applications = $applications->map(function($application) {
-            $application->attachment = basename($application->attachment);
-            return $application;
-        });
-        
-        return response()->json(['status' => 200, 'applications' => $applications]);
-        
-    }
-
-    public function getDashboardApplications()
-    {
-        //Log::info("ApplicationsController::getDashboardApplications");
-
-        $user = Auth::user();
-
-        $clientId = $user->client_id;
-        $apps = ApplicationsModel::where('client_id', $clientId)
-            ->take(10)
-            ->get();
-
-        $applications = [];
-
-        foreach ($apps as $app) {
-            $employee = $app->user;
-            $type = $app->type;
-
-            $applications[] = [
-                'app_id' => $app->id,
-                'app_type' => $type->name,
-                'app_status' => $app->status,
-            ];
-        }
-
-        return response()->json(['status' => 200, 'applications' => $applications]);
-
-    }
-
-    public function downloadAttachment($id)
-    {
-        //Log::info("ApplicationsController::downloadAttachment");
-        $file = ApplicationFilesModel::find($id);
-
-        if (!$file) {
-            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
-        }
-
-        $filePath = storage_path('app/public/' . $file->path);
-
-        if (!file_exists($filePath)) {
-            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
-        }
-
-        $fileName = basename($file->path);
-
-        return response()->download($filePath, $fileName);
-    }
-
     public function cancelApplication($id)
     {   
         //Log::info("ApplicationsController::cancelApplication");
@@ -350,7 +337,7 @@ class ApplicationsController extends Controller
 
     }
 
-    public function getFileNames($id)
+    public function getApplicationFiles($id)
     {
         //Log::info("AnnouncementsController::getFileNames");
         $user = Auth::user();
@@ -372,5 +359,38 @@ class ApplicationsController extends Controller
         
     }
 
-    
+    public function downloadAttachment($id)
+    {
+        //Log::info("ApplicationsController::downloadAttachment");
+        $file = ApplicationFilesModel::find($id);
+
+        if (!$file) {
+            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
+        }
+
+        $filePath = storage_path('app/public/' . $file->path);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        $fileName = basename($file->path);
+
+        return response()->download($filePath, $fileName);
+    }
+
+    public function getLeaveCredits($id)
+    {
+        //Log::info("ApplicationsController::getLeaveCredits");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+
+        $leaveCredits = LeaveCreditsModel::where('client_id', $clientId)
+                                 ->where('user_id', $id)
+                                 ->get();
+
+        return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
+
+    }
 }

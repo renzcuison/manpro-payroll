@@ -19,6 +19,12 @@ import {
     Divider,
     Stack,
     Tooltip,
+    TableContainer,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
+    Table,
 } from "@mui/material";
 import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
@@ -49,11 +55,9 @@ const ApplicationManage = ({ open, close, appDetails }) => {
     const [appResponse, setAppResponse] = useState("");
     const [appResponseError, setAppResponseError] = useState(false);
 
-    const [employee, setEmployee] = useState("");
-
     // ----------- Request Attachments
     useEffect(() => {
-        axiosInstance.get(`/applications/getFileNames/${appDetails.app_id}`, { headers })
+        axiosInstance.get(`/applications/getApplicationFiles/${appDetails.app_id}`, { headers })
             .then((response) => {
                 setFiles(response.data.filenames);
             })
@@ -61,29 +65,6 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                 console.error('Error fetching files:', error);
             });
     }, []);
-
-    /*
-    // ----------- Employee API
-    useEffect(() => {
-        getEmployeeDetails();
-    }, []);
-
-    const getEmployeeDetails = () => {
-        let data = { username: user };
-        console.log(data);
-        
-        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    console.log(response.data.employee);
-                    setEmployee(response.data.employee);
-                }
-            }).catch((error) => {
-                console.error('Error fetching employee:', error);
-            });
-            
-    }
-    */
 
     // ----------- Dynamic File Icon
     const getFileIcon = (filename) => {
@@ -242,7 +223,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
+                <DialogContent sx={{ py: 4, marginBottom: 4 }}>
                     <Box sx={{ display: 'flex' }}>
                         {/* Application Details */}
                         <Box sx={{ width: "50%" }}>
@@ -451,7 +432,11 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 </Grid>
                                 <Grid item xs={7} align="left">
                                     <Typography sx={{ fontWeight: "bold" }}>
-                                        {appDetails.app_type}
+                                        {" "}
+                                        {appDetails.emp_first_name}{" "}
+                                        {appDetails.emp_middle_name || ""}{" "}
+                                        {appDetails.emp_last_name}{" "}
+                                        {appDetails.emp_suffix || ""}{" "}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={12} sx={{ my: 0 }} >
@@ -462,42 +447,27 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                     Position
                                 </Grid>
                                 <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_date_requested).format("MMM D, YYYY")}
-                                        </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_date_requested).format("h:mm A")}
-                                        </Typography>
-                                    </Stack>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}{appDetails.emp_job_title}{" "}
+                                    </Typography>
                                 </Grid>
                                 {/* Employee Branch */}
                                 <Grid item xs={5} align="left">
                                     Branch
                                 </Grid>
                                 <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_duration_start).format("MMM D, YYYY")}
-                                        </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_duration_start).format("h:mm A")}
-                                        </Typography>
-                                    </Stack>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}{appDetails.emp_branch}{" "}
+                                    </Typography>
                                 </Grid>
                                 {/* Employee Department */}
                                 <Grid item xs={5} align="left">
                                     Department
                                 </Grid>
                                 <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_duration_end).format("MMM D, YYYY")}
-                                        </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                            {dayjs(appDetails.app_duration_end).format("h:mm A")}
-                                        </Typography>
-                                    </Stack>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}{appDetails.emp_department}{" "}
+                                    </Typography>
                                 </Grid>
                                 <Grid item xs={12} sx={{ my: 0 }} >
                                     <Divider />
@@ -513,15 +483,89 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                             Leave Credits
                                         </div>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ mt: 1 }}>
-                                        {appDetails.app_description}
+                                    <Grid item xs={12}>
+                                        <TableContainer>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell sx={{ width: "40%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                Type
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                Credits
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                Used
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                Remaining
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {/* Static Row 1 */}
+                                                    <TableRow>
+                                                        <TableCell>
+                                                            Vacation Leave
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            64
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            32
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            32
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    {/* Static Row 2 */}
+                                                    <TableRow>
+                                                        <TableCell>
+                                                            Study Leave
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            100
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            80
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            20
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    {/* Static Row 3 */}
+                                                    <TableRow>
+                                                        <TableCell>
+                                                            Emergency Leave
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            10
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            0
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            10
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Grid>
                                 </Grid>
                             </Grid>
                         </Box>
                     </Box>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
         </>
     );
 };

@@ -60,7 +60,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     // Get Existing Files
     useEffect(() => {
-        axiosInstance.get(`/announcements/getFileNames/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.id}`, { headers })
             .then((response) => {
                 setFileNames(response.data.filenames);
             })

@@ -176,7 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
         
         Route::get('/downloadAttachment/{id}', [ApplicationsController::class, 'downloadAttachment']);
-        Route::get('/getFileNames/{id}', [ApplicationsController::class, 'getFileNames']);
+        Route::get('/getApplicationFiles/{id}', [ApplicationsController::class, 'getApplicationFiles']);
 
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
         Route::post('/editApplication', [ApplicationsController::class, 'editApplication']);
@@ -194,7 +194,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getThumbnail/{id}', [AnnouncementsController::class, 'getThumbnail']);
         Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
-        Route::get('/getFileNames/{id}', [AnnouncementsController::class, 'getFileNames']);
+        Route::get('/getAnnouncementFiles/{id}', [AnnouncementsController::class, 'getAnnouncementFiles']);
         
         Route::get('/toggleHide/{id}', [AnnouncementsController::class, 'toggleHide']);
     });

@@ -86,7 +86,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
     // Get Existing Files
     useEffect(() => {
-        axiosInstance.get(`/applications/getFileNames/${appDetails.id}`, { headers })
+        axiosInstance.get(`/applications/getApplicationFiles/${appDetails.id}`, { headers })
             .then((response) => {
                 setFileNames(response.data.filenames);
             })

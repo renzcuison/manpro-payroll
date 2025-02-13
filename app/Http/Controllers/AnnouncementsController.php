@@ -315,7 +315,7 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getFileNames($id)
+    public function getAnnouncementFiles($id)
     {
         //Log::info("AnnouncementsController::getFileNames");
         $user = Auth::user();

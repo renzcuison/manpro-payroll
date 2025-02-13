@@ -154,11 +154,9 @@ class EmployeesController extends Controller
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
-        Log::info($request);
 
         $user = Auth::user();            
         $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
-        Log::info($employee);
     
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
             $employee = $this->enrichEmployeeDetails($employee);

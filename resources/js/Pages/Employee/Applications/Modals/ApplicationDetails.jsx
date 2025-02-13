@@ -48,7 +48,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
 
     // ----------- Request Attachments
     useEffect(() => {
-        axiosInstance.get(`/applications/getFileNames/${appDetails.id}`, { headers })
+        axiosInstance.get(`/applications/getApplicationFiles/${appDetails.id}`, { headers })
             .then((response) => {
                 setFiles(response.data.filenames);
             })
