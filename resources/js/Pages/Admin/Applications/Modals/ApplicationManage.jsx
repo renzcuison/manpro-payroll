@@ -68,7 +68,6 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
         axiosInstance.get(`/applications/getLeaveCredits/${appDetails.emp_id}`, { headers })
             .then((response) => {
-                console.log(response.data.leave_credits);
                 setLeaveCredits(response.data.leave_credits);
             })
             .catch((error) => {
@@ -303,11 +302,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 {/* Description */}
                                 <Grid container item xs={12}>
                                     <Grid item xs={12}>
-                                        <div
-                                            style={{
-                                                textDecoration: "underline",
-                                            }}
-                                        >
+                                        <div style={{ textDecoration: "underline" }} >
                                             Description
                                         </div>
                                     </Grid>
@@ -485,11 +480,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 {/* Leave Credits */}
                                 <Grid container item xs={12}>
                                     <Grid item xs={12}>
-                                        <div
-                                            style={{
-                                                textDecoration: "underline",
-                                            }}
-                                        >
+                                        <div style={{ textDecoration: "underline", }} >
                                             Leave Credits
                                         </div>
                                     </Grid>

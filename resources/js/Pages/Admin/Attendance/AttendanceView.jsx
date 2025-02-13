@@ -39,7 +39,13 @@ const AttendanceView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
-    }, [summaryFromDate, summaryToDate]);
+    }, []);
+
+    useEffect(() => {
+        if (employee) {
+            getEmployeeAttendance();
+        }
+    }, [employee, summaryFromDate, summaryToDate]);
 
     // ---------------- Attendance Details
     const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
@@ -71,7 +77,6 @@ const AttendanceView = () => {
             .then((response) => {
                 if (response.data.status === 200) {
                     setEmployee(response.data.employee);
-                    getEmployeeAttendance();
                 }
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
@@ -86,7 +91,7 @@ const AttendanceView = () => {
             {
                 headers,
                 params: {
-                    employee: response.data.employee.id,
+                    employee: employee.id,
                     summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
                     summary_to_date: summaryToDate.format("YYYY-MM-DD"),
                 },

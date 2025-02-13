@@ -6,6 +6,13 @@ import {
     DialogContent,
     Grid,
     Typography,
+    Divider,
+    TableContainer,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
@@ -117,14 +124,11 @@ const Attendance = ({ open, close }) => {
 
     useEffect(() => {
         if (latestAttendanceTime) {
-            // Parse the string into a moment object
             const momentTime = moment(
                 latestAttendanceTime,
                 "YYYY-MM-DD HH:mm:ss"
             );
-            // Format the time to extract only the time part
             const timePart = momentTime.format("HH:mm:ss");
-            // Set the extracted time to latestTime
             setLatestTime(timePart);
         }
     }, [latestAttendanceTime]);
@@ -190,12 +194,12 @@ const Attendance = ({ open, close }) => {
                     const data = {
                         datetime: formattedDateTime,
                         action: `${shift == "Overtime"
-                                ? timeIn
-                                    ? "Overtime In"
-                                    : "Overtime Out"
-                                : timeIn
-                                    ? "Duty In"
-                                    : "Duty Out"
+                            ? timeIn
+                                ? "Overtime In"
+                                : "Overtime Out"
+                            : timeIn
+                                ? "Duty In"
+                                : "Duty Out"
                             }`,
                     };
 
@@ -256,8 +260,7 @@ const Attendance = ({ open, close }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}
-                            Attendance{" "}
+                            {" "}Attendance{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -284,29 +287,17 @@ const Attendance = ({ open, close }) => {
                             <Grid item xs={12} sm={4}>
                                 Date:
                             </Grid>
-
                             <Grid item xs={12} sm={8}>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        textAlign: { xs: "left", sm: "right" },
-                                    }}
-                                >
+                                <Typography sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" }, }}>
                                     {formattedDate}
                                 </Typography>
                             </Grid>
-
                             <Grid item xs={12} sm={4}>
                                 Time:
                             </Grid>
-
                             <Grid item xs={12} sm={8}>
                                 <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        textAlign: { xs: "left", sm: "right" },
-                                    }}
-                                >
+                                    sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" } }}>
                                     {formattedTime}
                                 </Typography>
                             </Grid>
@@ -347,26 +338,16 @@ const Attendance = ({ open, close }) => {
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
                                     disableTimeIn={onDuty || firstShiftExpired}
-                                    disableTimeOut={
-                                        (!onDuty && firstShiftExpired) ||
-                                        latestTime > workHour.first_time_out
-                                    }
+                                    disableTimeOut={(!onDuty && firstShiftExpired) || latestTime > workHour.first_time_out}
                                     shiftType="First"
                                 />
-
                                 {/*Second Shift */}
                                 <AttendanceButtons
                                     label={workShift.second_label}
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
-                                    disableTimeIn={
-                                        (firstShiftExpired && onDuty) ||
-                                        secondShiftExpired
-                                    }
-                                    disableTimeOut={
-                                        (!onDuty && secondShiftExpired) ||
-                                        latestTime > workHour.second_time_out
-                                    }
+                                    disableTimeIn={(firstShiftExpired && onDuty) || secondShiftExpired}
+                                    disableTimeOut={(!onDuty && secondShiftExpired) || latestTime > workHour.second_time_out}
                                     shiftType="Second"
                                 />
                             </>
@@ -374,10 +355,8 @@ const Attendance = ({ open, close }) => {
 
                         {/*Overtime Shift------------------------------*/}
                         {firstDutyFinished &&
-                            ((workShift.shift_type == "Regular" &&
-                                firstShiftExpired) ||
-                                (workShift.shift_type == "Split" &&
-                                    secondShiftExpired)) ? (
+                            ((workShift.shift_type == "Regular" && firstShiftExpired) ||
+                                (workShift.shift_type == "Split" && secondShiftExpired)) ? (
                             <AttendanceButtons
                                 label="Overtime"
                                 onTimeIn={handleTimeInOut}
@@ -388,68 +367,43 @@ const Attendance = ({ open, close }) => {
                             />
                         ) : null}
                     </Grid>
-
                     {/*Attendance Logs------------------------------*/}
                     {employeeAttendance.length > 0 ? (
-                        // If there are attendance records
                         <>
-                            {/* Header Row */}
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="center"
-                                sx={{
-                                    mt: 2,
-                                    p: 1,
-                                    borderTop: "1px solid #e0e0e0",
-                                    borderBottom: "1px solid #e0e0e0",
-                                }}
-                            >
-                                <Grid item xs={6} align="center">
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        Action
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={6} align="center">
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        Timestamp
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-                            <Grid
-                                container
-                                direction="column"
-                                sx={{
-                                    maxHeight: { xs: "150px", lg: "200px" },
-                                    overflowY: "auto",
-                                    overflowX: "hidden",
-                                    flexWrap: "nowrap",
-                                }}
-                            >
-                                {/* Attendance Records */}
-                                {employeeAttendance.map((log, index) => (
-                                    <Grid
-                                        key={index}
-                                        container
-                                        direction="row"
-                                        alignItems="center"
-                                        sx={{
-                                            p: 1,
-                                            backgroundColor:
-                                                index % 2 === 0
-                                                    ? "#efefef"
-                                                    : "#f8f8f8",
-                                        }}
-                                    >
-                                        <Grid item xs={6} align="left">
-                                            {log.action}
-                                        </Grid>
-                                        <Grid item xs={6} align="right">
-                                            {log.timestamp}
-                                        </Grid>
-                                    </Grid>
-                                ))}
-                            </Grid>
+                            <Divider sx={{ my: 1 }} />
+                            <Box>
+                                Today's Attendance:
+                            </Box>
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    Action
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    Timestamp
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {employeeAttendance.map((log, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell align="left" sx={{ pl: 0 }}>
+                                                    {log.action}
+                                                </TableCell>
+                                                <TableCell align="left" sx={{ pl: 0 }}>
+                                                    {log.timestamp}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </>
                     ) : (
                         <Box

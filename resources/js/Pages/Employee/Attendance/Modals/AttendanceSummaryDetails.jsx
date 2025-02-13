@@ -16,6 +16,14 @@ import {
     Switch,
     Select,
     MenuItem,
+    Stack,
+    Divider,
+    TableContainer,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
@@ -69,7 +77,7 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                     },
                 }}
             >
-                <DialogTitle sx={{ padding: 2, paddingBottom: 2 }}>
+                <DialogTitle sx={{ padding: 2 }}>
                     <Box
                         sx={{
                             display: "flex",
@@ -77,12 +85,8 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography
-                            variant="h6"
-                            sx={{ marginLeft: 2, fontWeight: "bold" }}
-                        >
-                            {" "}
-                            Attendance Logs for {date}
+                        <Typography variant="h5" sx={{ marginLeft: 1, fontWeight: "bold" }} >
+                            {" "}Attendance Logs{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -90,7 +94,10 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
+                <DialogContent sx={{ py: 2, pb: 5 }}>
+                    <Box>
+                        Log Information:
+                    </Box>
                     {isLoading ? (
                         <Box
                             sx={{
@@ -103,67 +110,36 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        <>
-                            {" "}
-                            <Grid
-                                container
-                                direction="row"
-                                alignItems="center"
-                                sx={{
-                                    p: 1,
-                                }}
-                            >
-                                <Grid item xs={6} align="center">
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        Action
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={6} align="center">
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        Timestamp
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-                            <Grid
-                                container
-                                direction="column"
-                                sx={{
-                                    justifyContent: "flex-start",
-                                    alignItems: "flex-start",
-                                    borderTop: "1px solid #e0e0e0",
-                                    maxHeight: {
-                                        xs: "150px",
-                                        lg: "200px",
-                                    },
-                                    overflowY: "auto",
-                                    overflowX: "hidden",
-                                    flexWrap: "nowrap",
-                                }}
-                            >
-                                {todaysAttendance.map((log, index) => (
-                                    <Grid
-                                        key={index}
-                                        container
-                                        direction="row"
-                                        alignItems="center"
-                                        sx={{
-                                            p: 1,
-                                            backgroundColor:
-                                                index % 2 === 0
-                                                    ? "#efefef"
-                                                    : "#f8f8f8",
-                                        }}
-                                    >
-                                        <Grid item xs={6} align="left">
-                                            {log.action}
-                                        </Grid>
-                                        <Grid item xs={6} align="right">
-                                            {log.timestamp}
-                                        </Grid>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </>
+                        <TableContainer>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
+                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                Action
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
+                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                Timestamp
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {todaysAttendance.map((log, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell align="left" sx={{ pl: 0 }}>
+                                                {log.action}
+                                            </TableCell>
+                                            <TableCell align="left" sx={{ pl: 0 }}>
+                                                {dayjs(log.timestamp).format("HH:mm:ss")}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                     )}
                 </DialogContent>
             </Dialog>
