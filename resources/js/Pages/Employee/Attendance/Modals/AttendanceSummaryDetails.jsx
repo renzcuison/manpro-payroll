@@ -95,9 +95,6 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ py: 2, pb: 5 }}>
-                    <Box>
-                        Log Information:
-                    </Box>
                     {isLoading ? (
                         <Box
                             sx={{

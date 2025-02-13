@@ -96,9 +96,6 @@ const AttendanceViewDetails = ({ open, close, date, employee }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ py: 2, pb: 5 }}>
-                    <Box>
-                        Log Information:
-                    </Box>
                     {isLoading ? (
                         <Box
                             sx={{

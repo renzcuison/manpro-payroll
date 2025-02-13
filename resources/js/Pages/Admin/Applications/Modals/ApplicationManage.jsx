@@ -56,7 +56,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
     const [appResponse, setAppResponse] = useState("");
     const [appResponseError, setAppResponseError] = useState(false);
 
-    // ----------- Request Attachments
+    // ----------- Request Attachments and Leave Credits
     useEffect(() => {
         axiosInstance.get(`/applications/getApplicationFiles/${appDetails.app_id}`, { headers })
             .then((response) => {
