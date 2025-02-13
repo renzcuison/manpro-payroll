@@ -52,6 +52,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [files, setFiles] = useState([]);
+    const [leaveCredits, setLeaveCredits] = useState([]);
     const [appResponse, setAppResponse] = useState("");
     const [appResponseError, setAppResponseError] = useState(false);
 
@@ -60,6 +61,15 @@ const ApplicationManage = ({ open, close, appDetails }) => {
         axiosInstance.get(`/applications/getApplicationFiles/${appDetails.app_id}`, { headers })
             .then((response) => {
                 setFiles(response.data.filenames);
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
+
+        axiosInstance.get(`/applications/getLeaveCredits/${appDetails.emp_id}`, { headers })
+            .then((response) => {
+                console.log(response.data.leave_credits);
+                setLeaveCredits(response.data.leave_credits);
             })
             .catch((error) => {
                 console.error('Error fetching files:', error);
@@ -488,7 +498,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell sx={{ width: "40%" }}>
+                                                        <TableCell align="left" sx={{ width: "40%" }}>
                                                             <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                                 Type
                                                             </Typography>
@@ -511,51 +521,46 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {/* Static Row 1 */}
-                                                    <TableRow>
-                                                        <TableCell>
-                                                            Vacation Leave
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            64
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            32
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            32
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    {/* Static Row 2 */}
-                                                    <TableRow>
-                                                        <TableCell>
-                                                            Study Leave
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            100
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            80
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            20
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    {/* Static Row 3 */}
-                                                    <TableRow>
-                                                        <TableCell>
-                                                            Emergency Leave
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            10
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            0
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            10
-                                                        </TableCell>
-                                                    </TableRow>
+                                                    {leaveCredits.length > 0 ? (
+                                                        leaveCredits.map((leave, index) => {
+
+                                                            const remainingCredits = leave.credit_number - leave.credit_used;
+                                                            const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
+                                                            const remainingEmpty = remainingCredits < (leave.credit_number / 3);
+
+                                                            return (
+                                                                <TableRow key={index}>
+                                                                    <TableCell>
+                                                                        {leave.app_type_name}
+                                                                    </TableCell>
+                                                                    <TableCell align="center">
+                                                                        {leave.credit_number}
+                                                                    </TableCell>
+                                                                    <TableCell align="center">
+                                                                        {leave.credit_used}
+                                                                    </TableCell>
+                                                                    <TableCell align="center" sx={{
+                                                                        color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null
+                                                                    }}>
+                                                                        {remainingCredits}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+
+                                                        })) :
+                                                        <TableRow>
+                                                            <TableCell
+                                                                colSpan={4}
+                                                                align="center"
+                                                                sx={{
+                                                                    color: "text.secondary",
+                                                                    p: 1,
+                                                                }}
+                                                            >
+                                                                No Leave Credits Found
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    }
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>

@@ -23,4 +23,9 @@ class LeaveCreditsModel extends Model
         'number',
         'used'
     ];
+
+    public function type()
+    {
+        return $this->belongsTo(ApplicationTypesModel::class, 'application_type_id');
+    }
 }

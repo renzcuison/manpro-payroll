@@ -59,6 +59,7 @@ class ApplicationsController extends Controller
                     'app_attachment' => basename($app->attachment),
                     'app_description' => $app->description,
                     'app_status' => $app->status,
+                    'emp_id' => $app->user_id,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
@@ -386,9 +387,25 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
 
-        $leaveCredits = LeaveCreditsModel::where('client_id', $clientId)
+        $leaves = LeaveCreditsModel::where('client_id', $clientId)
                                  ->where('user_id', $id)
                                  ->get();
+
+        $leaveCredits = [];
+
+        foreach($leaves as $leave) {
+            $app_type = $leave->type;
+
+            $leaveCredits[] = [
+                'id' => $leave->id,
+                'client_id' => $leave->client_id,
+                'user_id' => $leave->user_id,
+                'app_type_id' => $app_type->id,
+                'app_type_name' => $app_type->name,
+                'credit_number' => $leave->number,
+                'credit_used' => $leave->used,
+            ];
+        }
 
         return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
 
