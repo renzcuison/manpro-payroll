@@ -41,6 +41,7 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
 import { icon } from "@fortawesome/fontawesome-svg-core";
+import LeaveCreditEdit from "./LeaveCreditEdit";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -64,6 +65,22 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
             });
 
     }, []);
+
+    // ----------- Edit Leave Credits Modal
+    const [openLeaveCreditEdit, setOpenLeaveCreditEdit] = useState(false);
+    const [leaveDetails, setLeaveDetails] = useState([]);
+    const [editLeave, setEditLeave] = useState(false);
+
+    const handleOpenLeaveCreditEdit = (leaveInfo, action) => {
+        setEditLeave(action);
+        setLeaveDetails(leaveInfo);
+        setOpenLeaveCreditEdit(true);
+    }
+
+    const handleCloseLeaveCreditEdit = () => {
+        setEditLeave(false);
+        setOpenLeaveCreditEdit(null);
+    }
 
     return (
         <>
@@ -101,7 +118,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, marginBottom: 2 }}>
+                <DialogContent sx={{ py: 4, mb: 2 }}>
                     <Box>
                         <TableContainer>
                             <Table size="small">
@@ -157,7 +174,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell align="center">
-                                                        <IconButton size="small" onClick={() => console.log(`Editing ${leave.id}`)}>
+                                                        <IconButton size="small" onClick={() => handleOpenLeaveCreditEdit(leave, true)}>
                                                             <Edit size="small" />
                                                         </IconButton>
                                                     </TableCell>
@@ -181,8 +198,27 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                 </TableBody>
                             </Table>
                         </TableContainer>
+                        <Box display="flex" justifyContent="center" sx={{ mt: '20px' }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleOpenLeaveCreditEdit(null, false)}
+                            >
+                                <p className="m-0">
+                                    <i className="fa fa-plus"></i> Add Leave Credit{" "}
+                                </p>
+                            </Button>
+                        </Box>
                     </Box>
                 </DialogContent>
+                {openLeaveCreditEdit &&
+                    <LeaveCreditEdit
+                        open={openLeaveCreditEdit}
+                        close={handleCloseLeaveCreditEdit}
+                        leaveDetails={leaveDetails}
+                        editLeave={editLeave}
+                    />
+                }
             </Dialog >
         </>
     );

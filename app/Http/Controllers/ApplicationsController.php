@@ -410,4 +410,61 @@ class ApplicationsController extends Controller
         return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
 
     }
+
+    public function saveLeaveCredits(Request $request)
+    {
+        //Log::info("ApplicationsController::saveLeaveCredits");
+        $user = Auth::user();
+        Log::info($request);
+
+        /*
+        if($this->checkUser()){
+            try {
+                DB::beginTransaction();
+    
+                LeaveCreditsModel::create([
+                    'client_id' => $user->client_id,
+                    'user_id' => $request->input('emp_id'),
+                    'aplication_type_id' => $request->input('app_id');
+                    'number' => $request->input('credit_count');
+                    'used' => 0,
+                ]);
+                
+                DB::commit();
+                
+                return response()->json([ 'status' => 200 ]);
+    
+            } catch (\Exception $e) {
+                DB::rollBack();
+    
+                //Log::error("Error saving: " . $e->getMessage());
+    
+                throw $e;
+            }
+        }
+            */
+    }
+
+    public function editLeaveCredits(Request $request)
+    {
+        //Log::info("ApplicationsController::editLeaveCredits");
+        $user = Auth::user();
+        Log::info($request);
+
+        /*
+        if($this->checkUser()){
+            try {
+    
+                $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
+                $leaveCredit->number  = $request->input('credit_count');
+                $leaveCredit->save();
+                return response()->json([ 'status' => 200 ]);
+    
+            } catch (\Exception $e) {
+                //Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+            */
+    }
 }
