@@ -30,21 +30,10 @@ import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
-import moment from "moment";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import duration from "dayjs/plugin/duration";
-import { icon } from "@fortawesome/fontawesome-svg-core";
-import LeaveCreditEdit from "./LeaveCreditEdit";
-dayjs.extend(utc);
-dayjs.extend(localizedFormat);
-dayjs.extend(duration);
+import EditLeaveCredit from "./EditLeaveCredit";
+import AddLeaveCredit from "./AddLeaveCredit";
 
 const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
@@ -56,6 +45,10 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
     // ----------- Request Leave Credits
     useEffect(() => {
+        getLeaveCredits();
+    }, []);
+
+    const getLeaveCredits = () => {
         axiosInstance.get(`/applications/getLeaveCredits/${employee.id}`, { headers })
             .then((response) => {
                 setLeaveCredits(response.data.leave_credits);
@@ -63,23 +56,32 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
             .catch((error) => {
                 console.error('Error fetching files:', error);
             });
-
-    }, []);
-
-    // ----------- Edit Leave Credits Modal
-    const [openLeaveCreditEdit, setOpenLeaveCreditEdit] = useState(false);
-    const [leaveDetails, setLeaveDetails] = useState([]);
-    const [editLeave, setEditLeave] = useState(false);
-
-    const handleOpenLeaveCreditEdit = (leaveInfo, action) => {
-        setEditLeave(action);
-        setLeaveDetails(leaveInfo);
-        setOpenLeaveCreditEdit(true);
     }
 
-    const handleCloseLeaveCreditEdit = () => {
-        setEditLeave(false);
-        setOpenLeaveCreditEdit(null);
+    // ----------- Edit Leave Credits Modal
+    const [openEditLeaveCredit, setOpenEditLeaveCredit] = useState(false);
+    const [leaveData, setLeaveData] = useState(null);
+
+    const handleOpenEditLeaveCredit = (leaveInfo) => {
+        setLeaveData(leaveInfo);
+        setOpenEditLeaveCredit(true);
+    }
+
+    const handleCloseEditLeaveCredit = () => {
+        setOpenEditLeaveCredit(false);
+        getLeaveCredits();
+    }
+
+    // ----------- Edit Leave Credits Modal
+    const [openAddLeaveCredit, setOpenAddLeaveCredit] = useState(false);
+
+    const handleOpenAddLeaveCredit = () => {
+        setOpenAddLeaveCredit(true);
+    }
+
+    const handleCloseAddLeaveCredit = () => {
+        setOpenAddLeaveCredit(false);
+        getLeaveCredits();
     }
 
     return (
@@ -174,7 +176,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell align="center">
-                                                        <IconButton size="small" onClick={() => handleOpenLeaveCreditEdit(leave, true)}>
+                                                        <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}>
                                                             <Edit size="small" />
                                                         </IconButton>
                                                     </TableCell>
@@ -202,21 +204,27 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={() => handleOpenLeaveCreditEdit(null, false)}
+                                onClick={() => handleOpenAddLeaveCredit()}
                             >
                                 <p className="m-0">
-                                    <i className="fa fa-plus"></i> Add Leave Credit{" "}
+                                    <i className="fa fa-plus"></i>{" "}Add Leave Credit
                                 </p>
                             </Button>
                         </Box>
                     </Box>
                 </DialogContent>
-                {openLeaveCreditEdit &&
-                    <LeaveCreditEdit
-                        open={openLeaveCreditEdit}
-                        close={handleCloseLeaveCreditEdit}
-                        leaveDetails={leaveDetails}
-                        editLeave={editLeave}
+                {openEditLeaveCredit &&
+                    <EditLeaveCredit
+                        open={openEditLeaveCredit}
+                        close={handleCloseEditLeaveCredit}
+                        leaveData={leaveData}
+                    />
+                }
+                {openAddLeaveCredit &&
+                    <AddLeaveCredit
+                        open={openAddLeaveCredit}
+                        close={handleCloseAddLeaveCredit}
+                        empId={employee.id}
                     />
                 }
             </Dialog >

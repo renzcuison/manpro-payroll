@@ -417,7 +417,6 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         Log::info($request);
 
-        /*
         if($this->checkUser()){
             try {
                 DB::beginTransaction();
@@ -425,9 +424,9 @@ class ApplicationsController extends Controller
                 LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
                     'user_id' => $request->input('emp_id'),
-                    'aplication_type_id' => $request->input('app_id');
-                    'number' => $request->input('credit_count');
-                    'used' => 0,
+                    'application_type_id' => $request->input('app_type_id'),
+                    'number' => $request->input('credit_count'),
+                    'used' => 0
                 ]);
                 
                 DB::commit();
@@ -442,7 +441,6 @@ class ApplicationsController extends Controller
                 throw $e;
             }
         }
-            */
     }
 
     public function editLeaveCredits(Request $request)
@@ -451,13 +449,13 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         Log::info($request);
 
-        /*
         if($this->checkUser()){
             try {
     
                 $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
                 $leaveCredit->number  = $request->input('credit_count');
                 $leaveCredit->save();
+                
                 return response()->json([ 'status' => 200 ]);
     
             } catch (\Exception $e) {
@@ -465,6 +463,5 @@ class ApplicationsController extends Controller
                 throw $e;
             }
         }
-            */
     }
 }

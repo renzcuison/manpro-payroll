@@ -14,61 +14,34 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const LeaveCreditEdit = ({ open, close, leaveDetails, editLeave }) => {
+const LeaveCreditEdit = ({ open, close, leaveData }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [leaveType, setLeaveType] = useState(leaveDetails ? leaveDetails.app_type_id : '');
-    const [leaveTypeSet, setLeaveTypeSet] = useState([]);
-    const [creditCount, setCreditCount] = useState(leaveDetails ? leaveDetails.credit_number : '');
-
-    const [leaveTypeError, setLeaveTypeError] = useState(false);
+    const [creditCount, setCreditCount] = useState(leaveData.credit_number);
     const [creditCountError, setCreditCountError] = useState(false);
-
-    // Application Types
-    useEffect(() => {
-        axiosInstance
-            .get(`applications/getApplicationTypes`, { headers })
-            .then((response) => {
-                setLeaveTypeSet(response.data.types);
-            })
-            .catch((error) => {
-                console.error("Error fetching leave types:", error);
-            });
-    }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        console.log(leaveType);
-        console.log(creditCount);
-        console.log(editLeave);
-
-        if (!leaveType) {
-            setLeaveTypeError(true);
-        } else {
-            setLeaveTypeError(false);
-        }
         if (!creditCount) {
             setCreditCountError(true);
-        } else {
-            setCreditCountError(false);
-        }
-
-        if (!leaveType || !creditCount) {
+            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "Enter Credit Count!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
             });
         } else {
+            setCreditCountError(false);
+            document.activeElement.blur();
             new Swal({
                 customClass: { container: "my-swal" },
-                title: "Insert Confirmation Title!",
-                text: "Insert Confirmation Message",
+                title: "Are you sure?",
+                text: "Do you want to edit this leave credit?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -88,52 +61,31 @@ const LeaveCreditEdit = ({ open, close, leaveDetails, editLeave }) => {
         event.preventDefault();
 
         const data = {
-            app_id: leaveDetails ? leaveDetails.id : null,
-            leave_type: leaveType,
+            app_id: leaveData.id,
             credit_count: creditCount,
         };
 
-        if (editLeave) {
-            axiosInstance.post('/applications/editLeaveCredits', data, { headers })
-                .then(response => {
-                    if (response.data.status === 200) {
-                        Swal.fire({
-                            customClass: { container: 'my-swal' },
-                            text: "Leave Credits edited successfully!",
-                            icon: "success",
-                            timer: 1000,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Proceed',
-                            confirmButtonColor: '#177604',
-                        }).then(() => {
-                            close();
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        } else {
-            axiosInstance.post('/applications/saveLeaveCredits', data, { headers })
-                .then(response => {
-                    if (response.data.status === 200) {
-                        Swal.fire({
-                            customClass: { container: 'my-swal' },
-                            text: "Leave Credits added successfully!",
-                            icon: "success",
-                            timer: 1000,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Proceed',
-                            confirmButtonColor: '#177604',
-                        }).then(() => {
-                            close();
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
+        axiosInstance.post('/applications/editLeaveCredits', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    document.activeElement.blur();
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Leave Credits edited successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
     };
 
     return (
@@ -157,7 +109,7 @@ const LeaveCreditEdit = ({ open, close, leaveDetails, editLeave }) => {
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}>
-                            {`${editLeave ? "Edit" : "Add"} Leave Credit`}
+                            Edit Leave Credits
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -178,20 +130,11 @@ const LeaveCreditEdit = ({ open, close, leaveDetails, editLeave }) => {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
-                                    required
-                                    select
                                     id="leave-type"
                                     label="Leave Type"
-                                    value={leaveType}
-                                    error={leaveTypeError}
-                                    disabled={editLeave}
-                                    onChange={(event) => setLeaveType(event.target.value)}
+                                    value={leaveData.app_type_name}
+                                    readOnly
                                 >
-                                    {leaveTypeSet.map((type, index) => (
-                                        <MenuItem key={index} value={type.id}>
-                                            {type.name}
-                                        </MenuItem>
-                                    ))}
                                 </TextField>
                             </FormControl>
 
@@ -219,7 +162,7 @@ const LeaveCreditEdit = ({ open, close, leaveDetails, editLeave }) => {
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> {`${editLeave ? "Update" : "Add"} Leave Credit`} </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> {`Update Leave Credit`} </p>
                             </Button>
                         </Box>
                     </Box>
