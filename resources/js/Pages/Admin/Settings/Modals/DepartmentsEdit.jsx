@@ -18,7 +18,7 @@ const DepartmentsEdit = ({ open, close, departmentInfo }) => {
     const [name, setName] = useState(departmentInfo.name);
     const [acronym, setAcronym] = useState(departmentInfo.acronym);
     const [description, setDescription] = useState(departmentInfo.description || '');
-    const [leaveLimit, setLeaveLimit] = useState(departmentInfo.leave_limit);
+    const [leaveLimit, setLeaveLimit] = useState(departmentInfo.leave_limit || 0);
     const [status, setStatus] = useState(departmentInfo.status);
 
     const [nameError, setNameError] = useState(false);
@@ -93,6 +93,24 @@ const DepartmentsEdit = ({ open, close, departmentInfo }) => {
             status: status
         };
 
+        axiosInstance.post('/settings/editDepartment', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Department updated successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
 
     return (
@@ -190,6 +208,7 @@ const DepartmentsEdit = ({ open, close, departmentInfo }) => {
                             }}>
                                 <TextField
                                     required
+                                    type="number"
                                     id="leave_limit"
                                     label="Leave Limit"
                                     variant="outlined"

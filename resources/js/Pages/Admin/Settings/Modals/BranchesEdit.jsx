@@ -18,7 +18,7 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
     const [name, setName] = useState(branchInfo.name);
     const [acronym, setAcronym] = useState(branchInfo.acronym);
     const [address, setAddress] = useState(branchInfo.address);
-    const [leaveLimit, setLeaveLimit] = useState(branchInfo.leave_limit);
+    const [leaveLimit, setLeaveLimit] = useState(branchInfo.leave_limit || 0);
     const [status, setStatus] = useState(branchInfo.status);
 
     const [nameError, setNameError] = useState(false);
@@ -100,17 +100,13 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
             status: status
         };
 
-        /*
-
-        axiosInstance.post('/settings/saveBranch', data, { headers })
+        axiosInstance.post('/settings/editBranch', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
-
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Branch saved successfully!",
+                        text: "Branch updated successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
@@ -122,7 +118,6 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
             .catch(error => {
                 console.error('Error:', error);
             });
-            */
     };
 
     return (
@@ -222,6 +217,7 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
                             }}>
                                 <TextField
                                     required
+                                    type="number"
                                     id="leave_limit"
                                     label="Leave Limit"
                                     variant="outlined"

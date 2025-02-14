@@ -87,41 +87,28 @@ class SettingsController extends Controller
     public function editBranch(Request $request)
     {
         log::info("SettingsController::editBranch");
-        log::info($request);
 
-        // $validated = $request->validate([
-        //     'name' => 'required',
-        //     'acronym' => 'required',
-        // ]);
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+            'status' => 'required',
+        ]);
 
-        // if ($this->checkUser() && $validated) {
+        if ($this->checkUser() && $validated) {
 
-        //     $user = Auth::user();
-        //     $client = ClientsModel::find($user->client_id);
-
-        //     try {
-        //         DB::beginTransaction();
-
-        //         $branch = BranchesModel::create([
-        //             "name" => $request->name,
-        //             "acronym" => $request->acronym,
-        //             "address" => $request->address,
-        //             "status" => "Active",
-        //             "client_id" => $client->id,
-        //         ]);
-                
-        //         DB::commit();
+            $user = Auth::user();
+            $branch = BranchesModel::find($request->input('id'));
             
-        //         return response()->json([ 'status' => 200, 'branch' => $branch ]);
+            $branch->name = $request->input('name');
+            $branch->acronym = $request->input('acronym');
+            $branch->address = $request->input('address');
+            $branch->status = $request->input('status');
+            $branch->leave_limit = $request->input('leave_limit');
 
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
+            $branch->save();
 
-        //         Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }    
+            return response()->json([ 'status' => 200 ]);
+        }    
     }
 
     public function getDepartments(Request $request)
@@ -180,41 +167,28 @@ class SettingsController extends Controller
     public function editDepartment(Request $request)
     {
         log::info("SettingsController::editDepartment");
-        log::info($request);
 
-        // $validated = $request->validate([
-        //     'name' => 'required',
-        //     'acronym' => 'required',
-        // ]);
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+            'status' => 'required',
+        ]);
 
-        // if ($this->checkUser() && $validated) {
+        if ($this->checkUser() && $validated) {
 
-        //     $user = Auth::user();
-        //     $client = ClientsModel::find($user->client_id);
-
-        //     try {
-        //         DB::beginTransaction();
-
-        //         $department = DepartmentsModel::create([
-        //             "name" => $request->name,
-        //             "acronym" => $request->acronym,
-        //             "description" => $request->description,
-        //             "status" => "Active",
-        //             "client_id" => $client->id,
-        //         ]);
-                
-        //         DB::commit();
+            $user = Auth::user();
+            $department = DepartmentsModel::find($request->input('id'));
             
-        //         return response()->json([ 'status' => 200, 'department' => $department ]);
+            $department->name = $request->input('name');
+            $department->acronym = $request->input('acronym');
+            $department->description = $request->input('description');
+            $department->status = $request->input('status');
+            $department->leave_limit = $request->input('leave_limit');
 
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
+            $department->save();
 
-        //         Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }    
+            return response()->json([ 'status' => 200 ]);
+        }  
     }
 
     public function getJobTitles(Request $request)
@@ -272,40 +246,26 @@ class SettingsController extends Controller
     public function editJobTitle(Request $request)
     {
         log::info("SettingsController::editJobTitle");
-        log:;info($request);
 
-        // $validated = $request->validate([
-        //     'name' => 'required',
-        //     'acronym' => 'required',
-        // ]);
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+            'status' => 'required',
+        ]);
 
-        // if ($this->checkUser() && $validated) {
+        if ($this->checkUser() && $validated) {
 
-        //     $user = Auth::user();
-        //     $client = ClientsModel::find($user->client_id);
-
-        //     try {
-        //         DB::beginTransaction();
-
-        //         $jobTitle = JobTitlesModel::create([
-        //             "name" => $request->name,
-        //             "acronym" => $request->acronym,
-        //             "status" => "Active",
-        //             "client_id" => $client->id,
-        //         ]);
-                
-        //         DB::commit();
+            $user = Auth::user();
+            $jobTitle = JobTitlesModel::find($request->input('id'));
             
-        //         return response()->json([ 'status' => 200, 'jobTitle' => $jobTitle ]);
+            $jobTitle->name = $request->input('name');
+            $jobTitle->acronym = $request->input('acronym');
+            $jobTitle->status = $request->input('status');
 
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
+            $jobTitle->save();
 
-        //         Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }    
+            return response()->json([ 'status' => 200 ]);
+        }   
     }
 
     public function getRoles(Request $request)
@@ -363,40 +323,26 @@ class SettingsController extends Controller
     public function editRole(Request $request)
     {
         log::info("SettingsController::editRole");
-        log::info($request);
 
-        // $validated = $request->validate([
-        //     'name' => 'required',
-        //     'acronym' => 'required',
-        // ]);
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+            'status' => 'required',
+        ]);
         
-        // if ($this->checkUser() && $validated) {
+        if ($this->checkUser() && $validated) {
 
-        //     $user = Auth::user();
-        //     $client = ClientsModel::find($user->client_id);
-
-        //     try {
-        //         DB::beginTransaction();
-
-        //         $role = EmployeeRolesModel::create([
-        //             "name" => $request->name,
-        //             "acronym" => $request->acronym,
-        //             "status" => "Active",
-        //             "client_id" => $client->id,
-        //         ]);
-                
-        //         DB::commit();
+            $user = Auth::user();
+            $role = EmployeeRolesModel::find($request->input('id'));
             
-        //         return response()->json([ 'status' => 200, 'role' => $role ]);
+            $role->name = $request->input('name');
+            $role->acronym = $request->input('acronym');
+            $role->status = $request->input('status');
 
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
+            $role->save();
 
-        //         Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }    
+            return response()->json([ 'status' => 200 ]);
+        }     
         
     }
 }

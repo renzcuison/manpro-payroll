@@ -19,5 +19,6 @@ class DepartmentsModel extends Model
         'description',
         'status',
         'client_id',
+        'leave_limit'
     ];
 }

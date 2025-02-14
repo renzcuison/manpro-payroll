@@ -19,5 +19,6 @@ class BranchesModel extends Model
         'address',
         'status',
         'client_id',
+        'leave_limit'
     ];
 }

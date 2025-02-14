@@ -83,7 +83,24 @@ const RolesEdit = ({ open, close, roleInfo }) => {
             status: status
         };
 
-        console.log(data);
+        axiosInstance.post('/settings/editRole', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Role updated successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        close();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
 
     };
 
