@@ -135,6 +135,16 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
     // ----------- Application Response
     const handleApplicationResponse = () => {
+
+        const data = {
+            app_id: appDetails.app_id,
+            app_type_id: appDetails.app_type_id,
+            app_emp_id: appDetails.emp_id,
+            app_response: appResponse,
+            app_start_date: dayjs(appDetails.app_duration_start).format("YYYY-MM-DD"),
+            app_end_date: dayjs(appDetails.app_duration_end).format("YYYY-MM-DD"),
+        }
+
         if (!appResponse) {
             setAppResponseError(true);
         } else {
@@ -165,12 +175,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
             }).then((res) => {
                 if (res.isConfirmed) {
                     axiosInstance
-                        .get(
-                            `applications/manageApplication/${appDetails.app_id}/${appResponse}`,
-                            {
-                                headers,
-                            }
-                        )
+                        .post(`applications/manageApplication`, data, { headers })
                         .then((response) => {
                             Swal.fire({
                                 customClass: { container: "my-swal" },
@@ -248,7 +253,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 </Grid>
                                 <Grid item xs={7} align="left">
                                     <Typography sx={{ fontWeight: "bold" }}>
-                                        {appDetails.app_type}
+                                        {appDetails.app_type_name}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={12} sx={{ my: 0 }} >

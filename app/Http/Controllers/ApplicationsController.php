@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+
+use Carbon\Carbon;
 
 class ApplicationsController extends Controller
 {
@@ -52,11 +55,11 @@ class ApplicationsController extends Controller
 
                 $applications[] = [
                     'app_id' => $app->id,
-                    'app_type' => $type->name,
+                    'app_type_id' => $type->id,
+                    'app_type_name' => $type->name,
                     'app_duration_start' => $app->duration_start,
                     'app_duration_end' => $app->duration_end,
                     'app_date_requested' => $app->created_at,
-                    'app_attachment' => basename($app->attachment),
                     'app_description' => $app->description,
                     'app_status' => $app->status,
                     'emp_id' => $app->user_id,
@@ -304,23 +307,28 @@ class ApplicationsController extends Controller
         return response()->json(['status' => 200, 'message' => 'Application Cancelling Successful!'], 200);
     }
 
-    public function manageApplication($id, $action)
+    public function manageApplication(Request $request)
     {   
         //Log::info("ApplicationsController::manageApplication");
-        
         $user = Auth::user();
 
-        
         if ($this->checkUser()) {
-            $application = ApplicationsModel::find($id);
+            //Application Acceptance
+            $application = ApplicationsModel::find($request->input('app_id'));
 
             if (!$application) {
                 //Log::error('Application not found for ID: ' . $id);
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 
-            switch($action) {
+            $startDate = Carbon::parse($request->input('app_start_date'));
+            $endDate = Carbon::parse($request->input('app_end_date'));
+            $empId = $request->input('app_emp_id');
+            $appTypeId = $request->input('app_type_id');
+
+            switch($request->input('app_response')) {
                 case 'Approve':
+                    $this->deductLeaveCredits($startDate, $endDate, $empId, $appTypeId);
                     $application->status = "Approved";
                     $message = "Application Approved";
                     break;
@@ -333,7 +341,7 @@ class ApplicationsController extends Controller
             
             return response()->json(['status' => 200, 'message' => $message], 200);
         } else {
-            return response()->json(['status' => 200, 'message' => 'Insufficient Permissions!'], 200);
+            return response()->json(['status' => 200, 'message' => null], 200);
         }
 
     }
@@ -462,6 +470,139 @@ class ApplicationsController extends Controller
                 //Log::error("Error saving: " . $e->getMessage());
                 throw $e;
             }
+        }
+    }
+
+    public function deductLeaveCredits(Carbon $startDate, Carbon $endDate, $empId, $appTypeId)
+    {
+        if($this->checkUser()){
+            $dayCount = $this->getNumberOfDays($startDate, $endDate);
+
+            $numberOfDays = $dayCount['numberOfDays'];
+            $numberOfSaturday = $dayCount['numberOfSaturday'];
+            $numberOfSunday = $dayCount['numberOfSunday'];
+            $numberOfHoliday = $dayCount['numberOfHoliday'];
+
+            $creditCount = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
+
+            $leaveInfo = LeaveCreditsModel::where('user_id', $empId)
+                                    ->where('application_type_id', $appTypeId)
+                                    ->first();
+            $leaveInfo->used = $leaveInfo->used + $creditCount;
+            $leaveInfo->save();
+        }
+    }
+
+    public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
+    {
+        //Log::info("ApplicationsController::getNumberOfDays");
+    
+        // Initialize counters
+        $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
+        $numberOfSaturday = 0;
+        $numberOfSunday = 0;
+        $numberOfHoliday = 0;
+    
+        // Fetch Philippine holidays from Nager.Date API
+        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
+    
+        $currentDate = $startDate->copy();
+    
+        while ($currentDate <= $endDate) {
+            // Check for Saturday or Sunday
+            if ($currentDate->isSaturday()) {
+                $numberOfSaturday++;
+            } elseif ($currentDate->isSunday()) {
+                $numberOfSunday++;
+            }
+    
+            // Check if it's a holiday
+            $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
+            if (in_array($holidayDate, $holidays)) {
+                $numberOfHoliday++;
+            }
+    
+            // Move to the next day
+            $currentDate->addDay();
+        }
+    
+        // Return the results
+        return [
+            'numberOfDays' => $numberOfDays,
+            'numberOfSaturday' => $numberOfSaturday,
+            'numberOfSunday' => $numberOfSunday,
+            'numberOfHoliday' => $numberOfHoliday,
+        ];
+    }
+
+    public function getNagerHolidays($startYear, $endYear)
+    {
+        //Log::info("ApplicationsController::getNagerHolidays");
+
+        $holidays = [];
+        $countryCode = 'PH';
+    
+        // Fetch holidays for each year in the range
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
+    
+            $response = Http::get($url);
+    
+            if ($response->successful()) {
+                $data = $response->json();
+    
+                // Log the API response for debugging
+                //Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
+    
+                // Ensure $data is an array before iterating
+                if (is_array($data)) {
+                    foreach ($data as $holiday) {
+                        $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                    }
+                } else {
+                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
+                }
+            } else {
+                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+                Log::error($response->body());
+            }
+        }
+    
+        return $holidays;
+    }
+
+    public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
+    {
+        //log::info("ApplicationsController::getGoogleCalendarHolidays");
+
+        $apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
+        $calendarId = 'en.philippines#holiday@group.v.calendar.google.com';
+
+        // Prepare the API endpoint to fetch holidays within the date range
+        $startDateFormatted = $startDate->toIso8601String();
+        $endDateFormatted = $endDate->toIso8601String();
+
+        $url = "https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events";
+        $url .= "?key={$apiKey}&timeMin={$startDateFormatted}&timeMax={$endDateFormatted}&singleEvents=true";
+
+        // Make the API request
+        $response = Http::get($url);
+
+        if ($response->successful()) {
+            $events = $response->json()['items'];
+            $holidays = [];
+
+            foreach ($events as $event) {
+                // Extract the date of the holiday and add to the holidays array
+                $holidayDate = Carbon::parse($event['start']['date'])->format('Y-m-d');
+                $holidays[] = $holidayDate;
+            }
+
+            return $holidays;
+        } else {
+            Log::error("Failed to fetch Google Calendar holidays: " . $response->status());
+            log::error($response);
+            return [];
         }
     }
 }

@@ -10,7 +10,7 @@ use App\Http\Controllers\ApplicationsController;
 use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
-
+use App\Http\Controllers\WorkDaysController;
 
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
@@ -148,6 +148,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
 
         Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
+
     });
 
     Route::prefix('attendance')->group(function () {
@@ -181,7 +182,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
         Route::post('/editApplication', [ApplicationsController::class, 'editApplication']);
         Route::get('/cancelApplication/{id}', [ApplicationsController::class, 'cancelApplication']);
-        Route::get('/manageApplication/{id}/{action}', [ApplicationsController::class, 'manageApplication']);
+        Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
         Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
