@@ -73,11 +73,8 @@ const GeneralSettings = () => {
 
     const handleCloseAddBranchModal = () => {
         setOpenAddBranchModal(false);
+        fetchBranches();
     }
-
-    const handleUpdateBranches = (newBranch) => {
-        setBranches((prevBranches) => [...prevBranches, newBranch]);
-    };
 
     // Edit Branch Functions
     const handleOpenEditBranchModal = (branch) => {
@@ -109,11 +106,8 @@ const GeneralSettings = () => {
 
     const handleCloseAddDepartmentModal = () => {
         setOpenAddDepartmentModal(false);
+        fetchDepartments();
     }
-
-    const handleUpdateDepartments = (newDepartment) => {
-        setDepartments((prevDepartments) => [...prevDepartments, newDepartment]);
-    };
 
     // Edit Department Functions
     const handleOpenEditDepartmentModal = (department) => {
@@ -145,10 +139,7 @@ const GeneralSettings = () => {
 
     const handleCloseAddJobTitleModal = () => {
         setOpenAddJobTitleModal(false);
-    }
-
-    const handleUpdateJobTitles = (newJobTitle) => {
-        setJobTitles((prevJobTitles) => [...prevJobTitles, newJobTitle]);
+        fetchJobTitles();
     }
 
     // Edit Job Title Functions
@@ -181,11 +172,8 @@ const GeneralSettings = () => {
 
     const handleCloseAddRoleModal = () => {
         setOpenAddRolesModal(false);
+        fetchRoles();
     }
-
-    const handleUpdateRoles = (newRole) => {
-        setRoles((prevRoles) => [...prevRoles, newRole]);
-    };
 
     // Add Role Functions
     const handleOpenEditRoleModal = (role) => {
@@ -396,16 +384,16 @@ const GeneralSettings = () => {
                 </Grid>
 
                 {openAddBranchModal &&
-                    <BranchesAdd open={openAddBranchModal} close={handleCloseAddBranchModal} onUpdateBranches={handleUpdateBranches} type={2} />
+                    <BranchesAdd open={openAddBranchModal} close={handleCloseAddBranchModal} type={2} />
                 }
                 {openAddDepartmentModal &&
-                    <DepartmentsAdd open={openAddDepartmentModal} close={handleCloseAddDepartmentModal} onUpdateDepartments={handleUpdateDepartments} type={2} />
+                    <DepartmentsAdd open={openAddDepartmentModal} close={handleCloseAddDepartmentModal} type={2} />
                 }
                 {openAddJobTitleModal &&
-                    <JobTitlesAdd open={openAddJobTitleModal} close={handleCloseAddJobTitleModal} onUpdateJobTitles={handleUpdateJobTitles} type={2} />
+                    <JobTitlesAdd open={openAddJobTitleModal} close={handleCloseAddJobTitleModal} type={2} />
                 }
                 {openAddRolesModal &&
-                    <RolesAdd open={openAddRolesModal} close={handleCloseAddRoleModal} onUpdateRoles={handleUpdateRoles} type={2} />
+                    <RolesAdd open={openAddRolesModal} close={handleCloseAddRoleModal} type={2} />
                 }
 
                 {openEditBranchModal &&

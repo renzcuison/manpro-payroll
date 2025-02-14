@@ -17,7 +17,7 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
 
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
-    
+
     const [name, setName] = useState('');
     const [acronym, setAcronym] = useState('');
 
@@ -45,33 +45,40 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
                 confirmButtonColor: '#177604',
             });
         } else {
-            saveInput(event);
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "This role will be added",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Add",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInput(event);
+                }
+            });
         }
     };
 
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = { name: name, acronym: acronym };
+        const data = {
+            name: name,
+            acronym: acronym
+        };
 
         axiosInstance.post('/settings/saveRole', data, { headers })
             .then(response => {
-                
-                console.log(response.data);
-
                 if (response.data.status === 200) {
-
-                    const newRole = response.data.role;
-
-                    if (onUpdateRoles) {
-                        onUpdateRoles(newRole);
-                    }
-
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Role saved successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
@@ -87,22 +94,23 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Role </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Role </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
-            
+
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -114,8 +122,9 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
                                     onChange={(e) => setName(e.target.value)}
                                 />
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -135,7 +144,7 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Role </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
                 </DialogContent>
             </Dialog >
