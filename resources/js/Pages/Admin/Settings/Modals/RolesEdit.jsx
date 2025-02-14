@@ -172,8 +172,8 @@ const RolesEdit = ({ open, close, roleInfo }) => {
                                     <MenuItem value="Inactive">
                                         Inactive
                                     </MenuItem>
-                                    <MenuItem value="Deleted">
-                                        Deleted
+                                    <MenuItem value="Disabled">
+                                        Disabled
                                     </MenuItem>
                                 </Select>
                             </FormControl>

@@ -171,8 +171,8 @@ const JobTitlesEdit = ({ open, close, jobTitleInfo }) => {
                                     <MenuItem value="Inactive">
                                         Inactive
                                     </MenuItem>
-                                    <MenuItem value="Deleted">
-                                        Deleted
+                                    <MenuItem value="Disabled">
+                                        Disabled
                                     </MenuItem>
                                 </Select>
                             </FormControl>
