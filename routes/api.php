@@ -94,17 +94,21 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('settings')->group(function () {
-        Route::get('/getRoles', [SettingsController::class, 'getRoles']);
-        Route::post('/saveRole', [SettingsController::class, 'saveRole']);
-
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
-
-        Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+        Route::post('/editBranch', [SettingsController::class, 'editBranch']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
+        Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
+
+        Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+        Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
+
+        Route::get('/getRoles', [SettingsController::class, 'getRoles']);
+        Route::post('/saveRole', [SettingsController::class, 'saveRole']);
+        Route::post('/editRole', [SettingsController::class, 'editRole']);
     });
 
     Route::prefix('employee')->group(function () {

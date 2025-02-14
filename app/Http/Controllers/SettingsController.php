@@ -31,58 +31,6 @@ class SettingsController extends Controller
         return false;
     }
 
-    public function getRoles(Request $request)
-    {
-        // Log::info("SettingsController::getRoles");
-
-        if ($this->checkUser()) {
-            $user = Auth::user();
-            $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
-
-            return response()->json(['status' => 200, 'roles' => $roles]);
-        }
-
-        return response()->json(['status' => 200, 'roles' => null]);
-    }
-
-    public function saveRole(Request $request)
-    {
-        // log::info("SettingsController::saveRole");
-
-        $validated = $request->validate([
-            'name' => 'required',
-            'acronym' => 'required',
-        ]);
-
-        if ($this->checkUser() && $validated) {
-
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-
-            try {
-                DB::beginTransaction();
-
-                $role = EmployeeRolesModel::create([
-                    "name" => $request->name,
-                    "acronym" => $request->acronym,
-                    "status" => "Active",
-                    "client_id" => $client->id,
-                ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'role' => $role ]);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-
-                throw $e;
-            }
-        }    
-    }
-
     public function getBranches(Request $request)
     {
         // Log::info("SettingsController::getBranches");
@@ -134,6 +82,139 @@ class SettingsController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function editBranch(Request $request)
+    {
+        log::info("SettingsController::editBranch");
+        log::info($request);
+
+        // $validated = $request->validate([
+        //     'name' => 'required',
+        //     'acronym' => 'required',
+        // ]);
+
+        // if ($this->checkUser() && $validated) {
+
+        //     $user = Auth::user();
+        //     $client = ClientsModel::find($user->client_id);
+
+        //     try {
+        //         DB::beginTransaction();
+
+        //         $branch = BranchesModel::create([
+        //             "name" => $request->name,
+        //             "acronym" => $request->acronym,
+        //             "address" => $request->address,
+        //             "status" => "Active",
+        //             "client_id" => $client->id,
+        //         ]);
+                
+        //         DB::commit();
+            
+        //         return response()->json([ 'status' => 200, 'branch' => $branch ]);
+
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+
+        //         Log::error("Error saving: " . $e->getMessage());
+
+        //         throw $e;
+        //     }
+        // }    
+    }
+
+    public function getDepartments(Request $request)
+    {
+        // Log::info("SettingsController::getDepartments");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
+
+            return response()->json(['status' => 200, 'departments' => $departments]);
+        }
+
+        return response()->json(['status' => 200, 'departments' => null]);
+    }
+
+    public function saveDepartment(Request $request)
+    {
+        // log::info("SettingsController::saveDepartment");
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'acronym' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $department = DepartmentsModel::create([
+                    "name" => $request->name,
+                    "acronym" => $request->acronym,
+                    "description" => $request->description,
+                    "status" => "Active",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200, 'department' => $department ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
+    public function editDepartment(Request $request)
+    {
+        log::info("SettingsController::editDepartment");
+        log::info($request);
+
+        // $validated = $request->validate([
+        //     'name' => 'required',
+        //     'acronym' => 'required',
+        // ]);
+
+        // if ($this->checkUser() && $validated) {
+
+        //     $user = Auth::user();
+        //     $client = ClientsModel::find($user->client_id);
+
+        //     try {
+        //         DB::beginTransaction();
+
+        //         $department = DepartmentsModel::create([
+        //             "name" => $request->name,
+        //             "acronym" => $request->acronym,
+        //             "description" => $request->description,
+        //             "status" => "Active",
+        //             "client_id" => $client->id,
+        //         ]);
+                
+        //         DB::commit();
+            
+        //         return response()->json([ 'status' => 200, 'department' => $department ]);
+
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+
+        //         Log::error("Error saving: " . $e->getMessage());
+
+        //         throw $e;
+        //     }
+        // }    
     }
 
     public function getJobTitles(Request $request)
@@ -188,23 +269,62 @@ class SettingsController extends Controller
         }    
     }
 
-    public function getDepartments(Request $request)
+    public function editJobTitle(Request $request)
     {
-        // Log::info("SettingsController::getDepartments");
+        log::info("SettingsController::editJobTitle");
+        log:;info($request);
+
+        // $validated = $request->validate([
+        //     'name' => 'required',
+        //     'acronym' => 'required',
+        // ]);
+
+        // if ($this->checkUser() && $validated) {
+
+        //     $user = Auth::user();
+        //     $client = ClientsModel::find($user->client_id);
+
+        //     try {
+        //         DB::beginTransaction();
+
+        //         $jobTitle = JobTitlesModel::create([
+        //             "name" => $request->name,
+        //             "acronym" => $request->acronym,
+        //             "status" => "Active",
+        //             "client_id" => $client->id,
+        //         ]);
+                
+        //         DB::commit();
+            
+        //         return response()->json([ 'status' => 200, 'jobTitle' => $jobTitle ]);
+
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+
+        //         Log::error("Error saving: " . $e->getMessage());
+
+        //         throw $e;
+        //     }
+        // }    
+    }
+
+    public function getRoles(Request $request)
+    {
+        // Log::info("SettingsController::getRoles");
 
         if ($this->checkUser()) {
             $user = Auth::user();
-            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
+            $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
 
-            return response()->json(['status' => 200, 'departments' => $departments]);
+            return response()->json(['status' => 200, 'roles' => $roles]);
         }
 
-        return response()->json(['status' => 200, 'departments' => null]);
+        return response()->json(['status' => 200, 'roles' => null]);
     }
 
-    public function saveDepartment(Request $request)
+    public function saveRole(Request $request)
     {
-        // log::info("SettingsController::saveDepartment");
+        // log::info("SettingsController::saveRole");
 
         $validated = $request->validate([
             'name' => 'required',
@@ -219,17 +339,16 @@ class SettingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $department = DepartmentsModel::create([
+                $role = EmployeeRolesModel::create([
                     "name" => $request->name,
                     "acronym" => $request->acronym,
-                    "description" => $request->description,
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
                 
                 DB::commit();
             
-                return response()->json([ 'status' => 200, 'department' => $department ]);
+                return response()->json([ 'status' => 200, 'role' => $role ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -239,5 +358,45 @@ class SettingsController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function editRole(Request $request)
+    {
+        log::info("SettingsController::editRole");
+        log::info($request);
+
+        // $validated = $request->validate([
+        //     'name' => 'required',
+        //     'acronym' => 'required',
+        // ]);
+        
+        // if ($this->checkUser() && $validated) {
+
+        //     $user = Auth::user();
+        //     $client = ClientsModel::find($user->client_id);
+
+        //     try {
+        //         DB::beginTransaction();
+
+        //         $role = EmployeeRolesModel::create([
+        //             "name" => $request->name,
+        //             "acronym" => $request->acronym,
+        //             "status" => "Active",
+        //             "client_id" => $client->id,
+        //         ]);
+                
+        //         DB::commit();
+            
+        //         return response()->json([ 'status' => 200, 'role' => $role ]);
+
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+
+        //         Log::error("Error saving: " . $e->getMessage());
+
+        //         throw $e;
+        //     }
+        // }    
+        
     }
 }

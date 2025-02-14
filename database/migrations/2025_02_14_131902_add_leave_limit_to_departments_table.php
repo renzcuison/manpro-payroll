@@ -14,7 +14,7 @@ class AddLeaveLimitToDepartmentsTable extends Migration
     public function up()
     {
         Schema::table('departments', function (Blueprint $table) {
-            $table->integer('leave_limit')->after('client_id');
+            $table->integer('leave_limit')->default(0)->after('client_id');
         });
     }
 
