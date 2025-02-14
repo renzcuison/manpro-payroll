@@ -18,7 +18,7 @@ class CreateDepartmentsTable extends Migration
             $table->string('name', 128);
             $table->string('acronym', 8);
             $table->text('description')->nullable();
-            $table->enum('status', ['Active', 'Inactive', 'Deleted'])->default('Active');
+            $table->enum('status', ['Active', 'Inactive', 'Disabled'])->default('Active');
             $table->unsignedBigInteger('client_id');
             $table->softDeletes();
             $table->timestamps();

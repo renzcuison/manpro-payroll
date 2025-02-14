@@ -188,6 +188,9 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
                                     <MenuItem value="Inactive">
                                         Inactive
                                     </MenuItem>
+                                    <MenuItem value="Deleted">
+                                        Deleted
+                                    </MenuItem>
                                 </Select>
                             </FormControl>
                         </FormGroup>

@@ -181,6 +181,9 @@ const DepartmentsEdit = ({ open, close, departmentInfo }) => {
                                     <MenuItem value="Inactive">
                                         Inactive
                                     </MenuItem>
+                                    <MenuItem value="Deleted">
+                                        Deleted
+                                    </MenuItem>
                                 </Select>
                             </FormControl>
                         </FormGroup>
@@ -224,7 +227,6 @@ const DepartmentsEdit = ({ open, close, departmentInfo }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Update Department </p>
                             </Button>
                         </Box>
-
                     </Box>
                 </DialogContent>
             </Dialog >
