@@ -124,25 +124,17 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                 maxWidth="md"
                 PaperProps={{
                     style: {
-                        backgroundColor: "#f8f9fa",
-                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                        borderRadius: "20px",
-                        maxHeight: "600px",
-                        minWidth: { xs: "100%", sm: "450px" },
-                        maxWidth: "500px",
-                        marginBottom: "5%",
-                    },
-                }}
-            >
-                <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        minWidth: { xs: "100%", sm: "500px" },
+                        maxWidth: '600px',
+                        marginBottom: '5%'
+                    }
+                }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
+                        <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
                             {" "}Application Details{" "}
                         </Typography>
                         <IconButton onClick={close}>
@@ -151,7 +143,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, paddingBottom: 5 }}>
+                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Grid container rowSpacing={2}>
                         {/* Application Type */}
                         <Grid item xs={5} align="left">

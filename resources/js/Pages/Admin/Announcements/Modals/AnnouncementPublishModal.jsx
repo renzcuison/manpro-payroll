@@ -181,15 +181,32 @@ const AnnouncementPublishModal = ({ open, close, announceInfo }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: 1, backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', maxWidth: '600px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 3, paddingBottom: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 2, fontWeight: 'bold' }}> Publish Announcement </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+            <Dialog
+                open={open}
+                fullWidth
+                maxWidth="md"
+                PaperProps={{
+                    style: {
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        minWidth: { xs: "100%", sm: "500px" },
+                        maxWidth: '600px',
+                        marginBottom: '5%'
+                    }
+                }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
+                            {" "}Publish Announcement{" "}
+                        </Typography>
+                        <IconButton onClick={close}>
+                            <i className="si si-close"></i>
+                        </IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
+                <DialogContent sx={{ padding: 5, mt: 2 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
                             <Card sx={{ width: 350 }}>
