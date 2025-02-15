@@ -100,13 +100,13 @@ const LeaveCreditEdit = ({ open, close, leaveData }) => {
                         backgroundColor: '#f8f9fa',
                         boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
                         borderRadius: '20px',
-                        minWidth: '750px',
-                        maxWidth: '800px',
+                        minWidth: '800px',
+                        maxWidth: '1000px',
                         marginBottom: '5%'
                     }
                 }}
             >
-                <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}>
                             Edit Leave Credits
@@ -117,8 +117,8 @@ const LeaveCreditEdit = ({ open, close, leaveData }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, mb: 2 }}>
-                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
+                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },

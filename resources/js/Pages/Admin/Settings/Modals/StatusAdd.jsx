@@ -47,7 +47,7 @@ const StatusAdd = ({ open, close, onUpdateStatus }) => {
 
         axiosInstance.post('/settings/saveStatus', data, { headers })
             .then(response => {
-                
+
                 console.log(response.data);
 
                 if (response.data.status === 200) {
@@ -78,22 +78,23 @@ const StatusAdd = ({ open, close, onUpdateStatus }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Status </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Status </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
-            
+
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -112,7 +113,7 @@ const StatusAdd = ({ open, close, onUpdateStatus }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Status </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
                 </DialogContent>
             </Dialog >

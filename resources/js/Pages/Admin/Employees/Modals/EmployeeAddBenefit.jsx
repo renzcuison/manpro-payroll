@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText, } from '@mui/material';
 import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -25,11 +25,11 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
     const [benefits, setBenefits] = useState([]);
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
-    
+
     useEffect(() => {
         axiosInstance.get(`/benefits/getBenefits`, { headers })
             .then((response) => {
-                if ( response.data.status === 200 ) {
+                if (response.data.status === 200) {
                     setBenefits(response.data.benefits);
                 }
             }).catch((error) => {
@@ -52,7 +52,7 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
             setNumberError(false);
         }
 
-        if ( benefit == '' || number == '' ) {
+        if (benefit == '' || number == '') {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -88,7 +88,7 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
             benefit: benefit,
             number: number
         };
-        
+
         console.log(data);
 
         axiosInstance.post('/benefits/addEmployeeBenefit', data, { headers })
@@ -118,23 +118,24 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Benefit </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Benefit </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -151,8 +152,9 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -165,7 +167,7 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
 
-                            
+
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>

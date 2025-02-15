@@ -17,7 +17,7 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
 
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
-    
+
     const [name, setName] = useState('');
     const [acronym, setAcronym] = useState('');
 
@@ -56,7 +56,7 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
 
         axiosInstance.post('/settings/saveRole', data, { headers })
             .then(response => {
-                
+
                 console.log(response.data);
 
                 if (response.data.status === 200) {
@@ -87,10 +87,10 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '70%', maxWidth: '80%', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '70%', maxWidth: '80%', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Employee Profile </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Employee Profile </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -112,15 +112,16 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
                         </Box>
                     </Grid>
                 </Grid>
-            
+
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -132,8 +133,9 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
                                     onChange={(e) => setName(e.target.value)}
                                 />
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -153,7 +155,7 @@ const EmployeeEdit = ({ open, close, onUpdateRoles }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Role </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
                 </DialogContent>
             </Dialog >

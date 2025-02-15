@@ -115,22 +115,23 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Employment Details </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Employment Details </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
-            
+
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     select
@@ -144,8 +145,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                     ))}
                                 </TextField>
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -161,7 +163,8 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{
+                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -179,11 +182,12 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     select
@@ -197,8 +201,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                     ))}
                                 </TextField>
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -214,8 +219,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
@@ -225,18 +231,19 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                         onChange={(newValue) => {
                                             setStartDate(newValue);
                                         }}
-                                        slotProps={{ textField: { variant: 'outlined' }}}
+                                        slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
                             </FormControl>
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     select
@@ -251,8 +258,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                     <MenuItem key="Full-Time" value="Full-Time"> Full-Time </MenuItem>
                                 </TextField>
                             </FormControl>
-                            
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -268,8 +276,9 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
@@ -280,7 +289,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                         onChange={(newValue) => {
                                             setEndDate(newValue);
                                         }}
-                                        slotProps={{ textField: { variant: 'outlined' }}}
+                                        slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
                             </FormControl>
@@ -291,7 +300,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Details </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
                 </DialogContent>
             </Dialog >
