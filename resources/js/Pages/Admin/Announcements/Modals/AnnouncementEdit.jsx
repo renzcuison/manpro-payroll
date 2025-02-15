@@ -288,16 +288,15 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                 maxWidth="md"
                 PaperProps={{
                     style: {
-                        backgroundColor: "#f8f9fa",
-                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                        borderRadius: "20px",
-                        minWidth: { xs: "100%", sm: "500px" },
-                        maxWidth: "650px",
-                        marginBottom: "5%",
-                    },
-                }}
-            >
-                <DialogTitle sx={{ padding: 2, paddingBottom: 2 }}>
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        minWidth: { xs: "100%", sm: "700px" },
+                        maxWidth: '800px',
+                        marginBottom: '5%'
+                    }
+                }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Edit Announcement{" "}
@@ -308,7 +307,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ paddingBottom: 5 }}>
+                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box
                         component="form"
                         onSubmit={handleAnnouncementSubmit}
