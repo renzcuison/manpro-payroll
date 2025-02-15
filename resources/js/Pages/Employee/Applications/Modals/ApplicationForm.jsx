@@ -61,6 +61,7 @@ const ApplicationForm = ({ open, close }) => {
 
     // Form Requirement Sets
     const [appTypeError, setAppTypeError] = useState(false);
+    const [tenureship, setTenureship] = useState(0);
 
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
@@ -76,6 +77,7 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
+                console.log(response.data.types);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -83,12 +85,25 @@ const ApplicationForm = ({ open, close }) => {
             });
 
         axiosInstance
+            .get(`applications/getTenureship`, { headers })
+            .then((response) => {
+                console.log(response.data.tenureship);
+                setTenureship(response.data.tenureship);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
+            });
+
+        {/*
+                axiosInstance
             .get(`applications/getFullLeaveDays`, { headers })
             .then((response) => {
             })
             .catch((error) => {
                 console.error("Error fetching Full Days:", error);
             });
+                 */}
+
     }, []);
 
     const handleTypeChange = (value) => {
@@ -367,11 +382,13 @@ const ApplicationForm = ({ open, close }) => {
                                             handleTypeChange(event.target.value)
                                         }
                                     >
-                                        {applicationTypes.map((type, index) => (
-                                            <MenuItem key={index} value={type.id}>
-                                                {type.name}
-                                            </MenuItem>
-                                        ))}
+                                        {applicationTypes
+                                            .filter(type => tenureship >= type.tenureship_required)
+                                            .map((type, index) => (
+                                                <MenuItem key={index} value={type.id}>
+                                                    {type.name}
+                                                </MenuItem>
+                                            ))}
                                     </TextField>
                                 </FormControl>
                             </Grid>

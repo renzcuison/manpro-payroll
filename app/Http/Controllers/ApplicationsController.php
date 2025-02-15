@@ -135,11 +135,26 @@ class ApplicationsController extends Controller
         $clientId = $user->client_id;
 
         $types = ApplicationTypesModel::where('client_id', $clientId)
-            ->select('id', 'name', 'require_files')
+            ->select('id', 'name', 'require_files', 'tenureship_required')
             ->where('deleted_at', NULL)
             ->get();
 
         return response()->json(['status' => 200, 'types' => $types]);
+    }
+
+    public function getTenureship()
+    {
+        //Log::info("ApplicationsController::getTenureship");
+
+        $user = Auth::user();
+        
+        $startDate = Carbon::parse($user->date_start);
+        
+        $currentDate = Carbon::now();
+        
+        $tenureshipDays = $startDate->diffInDays($currentDate);
+        
+        return response()->json(['status' => 200, 'tenureship' => $tenureshipDays]);
     }
 
     public function saveApplication(Request $request)
@@ -608,6 +623,8 @@ class ApplicationsController extends Controller
 
     public function getFullLeaveDays()
     {
+        //Log::info("ApplicationsController::getFullLeaveDays");
+
         $user = Auth::user();
         
         $department = $user->department;
@@ -624,7 +641,8 @@ class ApplicationsController extends Controller
         ->get();
 
         $dateCounts = [];
-    
+        
+        // COUNTS APPLICATIONS PER DAY
         foreach ($applications as $application) {
             $startDate = Carbon::parse($application->start_date);
             $endDate = Carbon::parse($application->end_date);
@@ -650,7 +668,7 @@ class ApplicationsController extends Controller
             }
         }
 
-        // Prepare the result showing all days with applications
+        // DISPLAYS ALL UNTIL ABOVE LOOP IS FIXED
         $fullDates = [];
         foreach ($dateCounts as $date => $count) {
             $fullDates[] = [
@@ -658,6 +676,10 @@ class ApplicationsController extends Controller
                 'applications_count' => $count
             ];
         }
+        // $fullDates = array_keys(array_filter($dateCounts, function($count) use ($deptLimit) {
+        //     return $count >= $deptLimit;
+        // }));
+
         Log::info($fullDates);
 
         return response()->json(['status' => 200, 'fullDates' => $applications]);
