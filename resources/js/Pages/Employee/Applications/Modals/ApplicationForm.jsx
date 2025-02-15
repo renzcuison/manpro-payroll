@@ -81,6 +81,14 @@ const ApplicationForm = ({ open, close }) => {
             .catch((error) => {
                 console.error("Error fetching application types:", error);
             });
+
+        axiosInstance
+            .get(`applications/getFullLeaveDays`, { headers })
+            .then((response) => {
+            })
+            .catch((error) => {
+                console.error("Error fetching Full Days:", error);
+            });
     }, []);
 
     const handleTypeChange = (value) => {

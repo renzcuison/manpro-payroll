@@ -191,6 +191,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
+
+        Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
     });
 
     Route::prefix('announcements')->group(function () {

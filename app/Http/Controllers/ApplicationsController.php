@@ -605,4 +605,62 @@ class ApplicationsController extends Controller
             return [];
         }
     }
+
+    public function getFullLeaveDays()
+    {
+        $user = Auth::user();
+        
+        $department = $user->department;
+        $deptId = $department->id;
+        $deptLimit = $department->leave_limit;
+        
+        $date = Carbon::now();
+
+        $applications = ApplicationsModel::whereHas('user', function($query) use ($deptId) {
+            $query->where('department_id', $deptId);
+        })
+        ->whereNotIn('status', ['Cancelled', 'Declined'])
+        ->where('duration_start', '>=', $date)
+        ->get();
+
+        $dateCounts = [];
+    
+        foreach ($applications as $application) {
+            $startDate = Carbon::parse($application->start_date);
+            $endDate = Carbon::parse($application->end_date);
+            
+            Log::info("Application Start: " . $startDate->toDateString() . ", End: " . $endDate->toDateString());
+            
+            $currentDate = $startDate;
+
+            // TO FIX: DOES NOT INCREMENT PROPERLY
+            while ($currentDate->lte($endDate)) {
+                $dateKey = $currentDate->toDateString();
+                if (!isset($dateCounts[$dateKey])) {
+                    $dateCounts[$dateKey] = 0;
+                }
+                $dateCounts[$dateKey]++;
+                Log::info("Date: " . $dateKey . ", Count: " . $dateCounts[$dateKey]);
+                
+                Log::info("Before Increment: " . $currentDate->toDateTimeString());
+                
+                $currentDate->addDay();
+                
+                Log::info("After Increment: " . $currentDate->toDateTimeString());
+            }
+        }
+
+        // Prepare the result showing all days with applications
+        $fullDates = [];
+        foreach ($dateCounts as $date => $count) {
+            $fullDates[] = [
+                'date' => $date,
+                'applications_count' => $count
+            ];
+        }
+        Log::info($fullDates);
+
+        return response()->json(['status' => 200, 'fullDates' => $applications]);
+
+    }
 }
