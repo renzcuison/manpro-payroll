@@ -40,8 +40,6 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-
 const ApplicationEdit = ({ open, close, appDetails }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
@@ -50,24 +48,32 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     // Form Fields
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
+    const [tenureship, setTenureship] = useState(0);
+
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
     const [applicationDuration, setApplicationDuration] = useState("");
+    const [fullDates, setFullDates] = useState([]);
+
     const [description, setDescription] = useState(appDetails.description);
+
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [fileNames, setFileNames] = useState([]);
     const [deleteAttachments, setDeleteAttachments] = useState([]);
     const [deleteImages, setDeleteImages] = useState([]);
 
-    // Form Requirement Sets
+    // Form Errors
     const [appTypeError, setAppTypeError] = useState(false);
+
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
+    const [dateRangeError, setDateRangeError] = useState(false);
+
     const [descriptionError, setDescriptionError] = useState(false);
     const [fileError, setFileError] = useState(false);
 
-    // Application Types
+    // Application Data Prep
     useEffect(() => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
@@ -76,6 +82,24 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             })
             .catch((error) => {
                 console.error("Error fetching application types:", error);
+            });
+
+        axiosInstance
+            .get(`applications/getTenureship`, { headers })
+            .then((response) => {
+                setTenureship(response.data.tenureship);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
+            });
+
+        axiosInstance
+            .get(`applications/getFullLeaveDays`, { headers })
+            .then((response) => {
+                setFullDates(response.data.fullDates);
+            })
+            .catch((error) => {
+                console.error("Error fetching Full Days:", error);
             });
 
     }, []);
@@ -191,6 +215,40 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
+    // Validate Date Range
+    const validateDates = (dateTime, type) => {
+        const dates = [];
+        let currentDate = new Date(fromDate);
+        let endDate = new Date(toDate);
+
+        // Set Date States
+        if (type === "From") {
+            setFromDate(dateTime);
+            currentDate = new Date(dateTime)
+
+            if (dateTime.isAfter(toDate)) {
+                setToDate(dateTime);
+                endDate = new Date(dateTime);
+            }
+
+        } else if (type === "To") {
+            setToDate(dateTime);
+            endDate = new Date(dateTime);
+        }
+
+        // Date-Full Date Comparison
+        while (currentDate <= endDate) {
+            dates.push(new Date(currentDate).toISOString().split('T')[0]);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        if (dates.some(date => fullDates.includes(date))) {
+            setDateRangeError(true);
+        } else {
+            setDateRangeError(false);
+        }
+    }
+
     // Input Verification
     const handleApplicationSubmit = (event) => {
         event.preventDefault();
@@ -238,6 +296,16 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "All Required Fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (dateRangeError) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Invalid Date!",
+                text: `One of the dates included is already full.`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -407,11 +475,13 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             handleTypeChange(event.target.value)
                                         }
                                     >
-                                        {applicationTypes.map((type, index) => (
-                                            <MenuItem key={index} value={type.id}>
-                                                {type.name}
-                                            </MenuItem>
-                                        ))}
+                                        {applicationTypes
+                                            .filter(type => tenureship >= type.tenureship_required)
+                                            .map((type, index) => (
+                                                <MenuItem key={index} value={type.id}>
+                                                    {type.name}
+                                                </MenuItem>
+                                            ))}
                                     </TextField>
                                 </FormControl>
                             </Grid>
@@ -423,18 +493,20 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     <DateTimePicker
                                         label="From"
                                         value={fromDate}
-                                        error={fromDateError}
                                         minDate={dayjs()}
                                         timeSteps={{ minutes: 1 }}
-                                        onChange={(newValue) => {
-                                            setFromDate(newValue);
-                                            if (newValue.isAfter(toDate)) {
-                                                setToDate(newValue);
+                                        onChange={(newValue) => validateDates(newValue, "From")}
+                                        shouldDisableDate={(day) => {
+                                            const dateString = day.format('YYYY-MM-DD');
+                                            return fullDates.includes(dateString);
+                                        }}
+                                        slotProps={{
+                                            textField: {
+                                                error: toDateError || dateRangeError,
+                                                readOnly: true,
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
                                     />
                                 </LocalizationProvider>
                             </Grid>
@@ -446,15 +518,20 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     <DateTimePicker
                                         label="To"
                                         value={toDate}
-                                        error={toDateError}
                                         minDateTime={fromDate}
                                         timeSteps={{ minutes: 1 }}
-                                        onChange={(newValue) => {
-                                            setToDate(newValue);
+                                        onChange={(newValue) => validateDates(newValue, "To")}
+                                        shouldDisableDate={(day) => {
+                                            const dateString = day.format('YYYY-MM-DD');
+                                            return fullDates.includes(dateString);
                                         }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
+                                        slotProps={{
+                                            textField: {
+                                                error: toDateError || dateRangeError,
+                                                readOnly: true,
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                            }
+                                        }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
