@@ -641,48 +641,30 @@ class ApplicationsController extends Controller
         ->get();
 
         $dateCounts = [];
-        
-        // COUNTS APPLICATIONS PER DAY
         foreach ($applications as $application) {
-            $startDate = Carbon::parse($application->start_date);
-            $endDate = Carbon::parse($application->end_date);
-            
-            Log::info("Application Start: " . $startDate->toDateString() . ", End: " . $endDate->toDateString());
-            
+            $startDate = Carbon::parse($application->duration_start);
+            $endDate = Carbon::parse($application->duration_end);
+
             $currentDate = $startDate;
 
-            // TO FIX: DOES NOT INCREMENT PROPERLY
-            while ($currentDate->lte($endDate)) {
+            while ($currentDate->lte($endDate)){
                 $dateKey = $currentDate->toDateString();
-                if (!isset($dateCounts[$dateKey])) {
+                if (!isset($dateCounts[$dateKey])){
                     $dateCounts[$dateKey] = 0;
                 }
                 $dateCounts[$dateKey]++;
-                Log::info("Date: " . $dateKey . ", Count: " . $dateCounts[$dateKey]);
-                
-                Log::info("Before Increment: " . $currentDate->toDateTimeString());
-                
                 $currentDate->addDay();
-                
-                Log::info("After Increment: " . $currentDate->toDateTimeString());
             }
+            
         }
 
-        // DISPLAYS ALL UNTIL ABOVE LOOP IS FIXED
         $fullDates = [];
         foreach ($dateCounts as $date => $count) {
-            $fullDates[] = [
-                'date' => $date,
-                'applications_count' => $count
-            ];
+            if ($count >= $deptLimit) {
+                $fullDates[] = $date;
+            }
         }
-        // $fullDates = array_keys(array_filter($dateCounts, function($count) use ($deptLimit) {
-        //     return $count >= $deptLimit;
-        // }));
-
-        Log::info($fullDates);
-
-        return response()->json(['status' => 200, 'fullDates' => $applications]);
-
+        
+        return response()->json(['status' => 200, 'fullDates' => $fullDates]);
     }
 }

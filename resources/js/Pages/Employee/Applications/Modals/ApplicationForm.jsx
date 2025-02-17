@@ -72,12 +72,11 @@ const ApplicationForm = ({ open, close }) => {
     const [fileError, setFileError] = useState(false);
 
 
-    // Application Types
+    // Application Data Prep
     useEffect(() => {
         axiosInstance
             .get(`applications/getApplicationTypes`, { headers })
             .then((response) => {
-                console.log(response.data.types);
                 setApplicationTypes(response.data.types);
             })
             .catch((error) => {
@@ -87,22 +86,20 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getTenureship`, { headers })
             .then((response) => {
-                console.log(response.data.tenureship);
                 setTenureship(response.data.tenureship);
             })
             .catch((error) => {
                 console.error("Error fetching tenureship duration:", error);
             });
 
-        {/*
-                axiosInstance
+        axiosInstance
             .get(`applications/getFullLeaveDays`, { headers })
             .then((response) => {
+                console.log(response.data.fullDates);
             })
             .catch((error) => {
                 console.error("Error fetching Full Days:", error);
             });
-                 */}
 
     }, []);
 
