@@ -305,7 +305,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Invalid Date!",
-                text: `One of the dates included is already full.`,
+                text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
