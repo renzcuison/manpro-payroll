@@ -71,8 +71,12 @@ Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword'
 
 //Unprotected
 Route::prefix('mobile')->group(function () {
-    Route::post('/verify_email', [AuthMobileController::class, 'verifyEmail']);
-    Route::post('/forgot_password/send_mail/{id}', [AuthMobileController::class, 'forgotPasswordMail']);
+    Route::post('/verifyEmail', [UserAuthMobileController::class, 'verifyEmail']);
+    Route::post('/forgotPassword/sendMail/{id}', [UserAuthMobileController::class, 'forgotPasswordMail']);
+
+    Route::post('/checkUser', [UserAuthMobileController::class, 'checkUser']);
+    Route::post('/sendVerifyCode', [UserAuthMobileController::class, 'verifyCode']);
+    Route::post('/login', [UserAuthMobileController::class, 'login']);
 });
 
 
