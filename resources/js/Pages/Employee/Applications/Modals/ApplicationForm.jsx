@@ -98,7 +98,6 @@ const ApplicationForm = ({ open, close }) => {
         axiosInstance
             .get(`applications/getFullLeaveDays`, { headers })
             .then((response) => {
-                console.log(response.data.fullDates);
                 setFullDates(response.data.fullDates);
             })
             .catch((error) => {

@@ -152,9 +152,9 @@ class ApplicationsController extends Controller
         
         $currentDate = Carbon::now();
         
-        $tenureshipDays = $startDate->diffInDays($currentDate);
+        $tenureshipMonths = $startDate->diffInMonths($currentDate);
         
-        return response()->json(['status' => 200, 'tenureship' => $tenureshipDays]);
+        return response()->json(['status' => 200, 'tenureship' => $tenureshipMonths]);
     }
 
     public function saveApplication(Request $request)
