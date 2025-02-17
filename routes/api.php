@@ -44,26 +44,30 @@ use App\Http\Controllers\PreviousFilterController;
 
 
 
-// Other Controllers
-use App\Http\Controllers\Mobile\AuthMobileController;
+// Mobile Controllers
+use App\Http\Controllers\Mobile\UserAuthMobileController;
+
+
+
+// Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
+
+
+
+
 
 use Illuminate\Support\Facades\Route;
 
 
 Route::post('/login', [UserAuthController::class, 'login']);
+Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
 
 Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
-
-Route::post('/signup', [UserAuthController::class, 'signup']);
-
 Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
 Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
 
-//Register
-Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
-Route::get('/sendNewEmployeeMailLink/{id}', [MailController::class, 'newEmployeeMailLink']);
+
 
 //Unprotected
 Route::prefix('mobile')->group(function () {
@@ -71,15 +75,7 @@ Route::prefix('mobile')->group(function () {
     Route::post('/forgot_password/send_mail/{id}', [AuthMobileController::class, 'forgotPasswordMail']);
 });
 
-Route::prefix('desktop')->group(function () {
-    Route::get('/getEmployees', [DesktopController::class, 'getEmployees']);
-});
 
-Route::post('/make-call', [VoiceController::class, 'makeCall']);
-Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
-Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
-Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
-Route::get('/token', [VoiceController::class, 'getToken']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -487,3 +483,19 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
 });
+
+
+
+//Register
+Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
+Route::get('/sendNewEmployeeMailLink/{id}', [MailController::class, 'newEmployeeMailLink']);
+
+Route::prefix('desktop')->group(function () {
+    Route::get('/getEmployees', [DesktopController::class, 'getEmployees']);
+});
+
+Route::post('/make-call', [VoiceController::class, 'makeCall']);
+Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
+Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
+Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
+Route::get('/token', [VoiceController::class, 'getToken']);
