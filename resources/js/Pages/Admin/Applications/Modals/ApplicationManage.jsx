@@ -354,12 +354,10 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
-                                                    border: '1px solid #e0e0e0',
-                                                    borderRadius: '4px',
                                                     padding: '4px 8px'
                                                 }}
                                             >
-                                                <Typography noWrap variant="caption" sx={{ color: 'text.secondary' }}>No Attached Documents</Typography>
+                                                <Typography noWrap variant="caption" sx={{ color: 'text.secondary' }}>-- No Attached Files --</Typography>
                                             </Box>
                                         )}
                                     </Grid>

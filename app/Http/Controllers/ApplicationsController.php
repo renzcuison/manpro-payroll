@@ -162,7 +162,6 @@ class ApplicationsController extends Controller
 
         //Log::info("ApplicationsController::saveApplication");
         $user = Auth::user();
-        Log::info($request);
 
         try {
             DB::beginTransaction();
@@ -277,27 +276,6 @@ class ApplicationsController extends Controller
 
             throw $e;
         }
-
-        /*
-        $application = ApplicationsModel::find($request->input('app_id'));
-
-        $application->type_id = $request->input('type_id');
-        $application->duration_start = $request->input('from_date');
-        $application->duration_end = $request->input('to_date');
-        $application->description = $request->input('description');
-
-        if ($request ->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $dateTime = now()->format('YmdHis');
-            $fileName = 'attachment_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-            $filePath = $file->storeAs('applications/employees', $fileName, 'public');
-            $application->attachment = $filePath;
-        }
-
-        $application->save();
-
-        return response()->json(['status' => 200, 'message' => 'Application Updated!', 'application' => $application], 200);
-        */
     }
 
     public function cancelApplication($id)
@@ -438,7 +416,6 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::saveLeaveCredits");
         $user = Auth::user();
-        Log::info($request);
 
         if($this->checkUser()){
             try {
@@ -470,7 +447,6 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::editLeaveCredits");
         $user = Auth::user();
-        Log::info($request);
 
         if($this->checkUser()){
             try {
