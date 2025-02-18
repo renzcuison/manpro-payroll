@@ -32,59 +32,6 @@ class UserAuthMobileController extends Controller
         }
     }
 
-    public function verifyCode(Request $request, $id)
-    {
-        log::info("UserAuthMobileController::verifyCode " . $id);
-        
-        try {
-            $code = $this->generateRandomCode(8);
-
-            log::info("Code: " . $code);
-
-            log::info("1");
-            $userInsert = UsersModel::find($id);
-            $userInsert->verify_code = $code;
-            $userInsert->is_verified = 0;
-            $userInsert->save();
-            // Query the database to retrieve user data
-            $user = DB::table('users')->select('email', 'first_name', 'last_name', 'user_name')->where('id', $id)->first();
-
-            if ($user) {
-                $fullname = $user->first_name . ' ' . $user->last_name;
-                $company = "ManPro";
-                $username = $user->user_name;
-                $email = $user->email;
-
-                $details = [
-                    'name' => $fullname,
-                    'company' => $company,
-                    'username' => $username,
-                    'verifyCode' => $code,
-                ];
-
-                Log::info("Sending email to $email");
-
-                Mail::to($email)->send(new VerifyCodeMail($details));
-
-                // Log successful email sending
-                Log::info("Login Verification Email sent successfully to $email");
-
-                return response()->json([ 'status' => 200, 'userData' => 'Success', 'code' => "Email"]);
-                
-            } else {
-                return response()->json([ 'status' => 404, 'userData' => 'User not found', ]);
-            }
-        } catch (\Exception $e) {
-            // Log the exception for debugging
-            Log::error("Error sending email: " . $e->getMessage());
-
-            return response()->json([
-                'status' => 500,
-                'userData' => 'Server error',
-            ]);
-        }
-    }
-
     public function login(Request $request)
     {
         log::info("UserAuthMobileController::login");
