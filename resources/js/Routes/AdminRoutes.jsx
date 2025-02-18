@@ -21,8 +21,8 @@ import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
-import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
-import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
+import WorkshiftsAdd from "../Pages/Admin/Workshifts/WorkshiftsAdd";
+import WorkshiftView from "../Pages/Admin/Workshifts/WorkshiftView";
 
 import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
 import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
