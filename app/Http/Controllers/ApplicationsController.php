@@ -89,11 +89,6 @@ class ApplicationsController extends Controller
         $applications = ApplicationsModel::where('client_id', $clientId)
                                  ->where('user_id', $user->id)
                                  ->get();
-
-        $applications = $applications->map(function($application) {
-            $application->attachment = basename($application->attachment);
-            return $application;
-        });
         
         return response()->json(['status' => 200, 'applications' => $applications]);
         
@@ -297,7 +292,7 @@ class ApplicationsController extends Controller
         $application->status = 'Cancelled';
         $application->save();
 
-        return response()->json(['status' => 200, 'message' => 'Application Cancelling Successful!'], 200);
+        return response()->json(['status' => 200, 'message' => 'Application successfully cancelled!'], 200);
     }
 
     public function manageApplication(Request $request)

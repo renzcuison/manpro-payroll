@@ -173,6 +173,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getApplications', [ApplicationsController::class, 'getApplications']);
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
+        Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
+        Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
+        
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
         Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
         
@@ -187,9 +190,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
-
-        Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
-        Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
     });
 
     Route::prefix('announcements')->group(function () {
