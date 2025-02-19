@@ -13,8 +13,8 @@ import Swal from "sweetalert2";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import AnnouncementForm from './Modals/AnnouncementForm';
-import AnnouncementPublishModal from './Modals/AnnouncementPublishModal';
+import AnnouncementAdd from './Modals/AnnouncementAdd';
+import AnnouncementPublish from './Modals/AnnouncementPublish';
 import AnnouncementEdit from './Modals/AnnouncementEdit';
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
@@ -44,13 +44,13 @@ const AnnouncementList = () => {
             });
     }
 
-    // ---------------- Announcement Form
-    const [openAnnouncementForm, setOpenAnnouncementForm] = useState(false);
-    const handleOpenAnnouncementForm = () => {
-        setOpenAnnouncementForm(true);
+    // ---------------- Announcement Modal
+    const [openAddAnnouncementModal, setOpenAddAnnouncementModal] = useState(false);
+    const handleOpenAnnouncementModal = () => {
+        setOpenAddAnnouncementModal(true);
     };
-    const handleCloseAnnouncementForm = () => {
-        setOpenAnnouncementForm(false);
+    const handleCloseAnnouncementModal = () => {
+        setOpenAddAnnouncementModal(false);
         fetchAnnouncements();
 
     };
@@ -151,7 +151,7 @@ const AnnouncementList = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleOpenAnnouncementForm}
+                            onClick={handleOpenAnnouncementModal}
                         >
                             <p className="m-0">
                                 <i className="fa fa-plus"></i> Add {" "}
@@ -318,14 +318,14 @@ const AnnouncementList = () => {
                     </Box>
                 </Box>
             </Box>
-            {openAnnouncementForm && (
-                <AnnouncementForm
-                    open={openAnnouncementForm}
-                    close={handleCloseAnnouncementForm}
+            {openAddAnnouncementModal && (
+                <AnnouncementAdd
+                    open={openAddAnnouncementModal}
+                    close={handleCloseAnnouncementModal}
                 />
             )}
             {openAnnouncementPublish && (
-                <AnnouncementPublishModal
+                <AnnouncementPublish
                     open={true}
                     close={handleCloseAnnouncementPublish}
                     announceInfo={openAnnouncementPublish}

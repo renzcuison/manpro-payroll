@@ -16,6 +16,8 @@ import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
+import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
+
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
@@ -60,6 +62,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
 
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
+
+            <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
