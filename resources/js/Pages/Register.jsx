@@ -1,4 +1,4 @@
-import React, {  useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { Box, Button, Typography, FormGroup, TextField, FormControl, List, ListItem, ListItemIcon, ListItemText, Link, Checkbox } from '@mui/material';
 
@@ -23,7 +23,7 @@ import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-d
 import Swal from "sweetalert2";
 
 export default function SignInCard() {
-
+    const navigate = useNavigate();
     const { login } = useAuth();
 
     const { user, isFetching } = useUser();
@@ -52,7 +52,7 @@ export default function SignInCard() {
 
     const checkInput = (event) => {
         event.preventDefault();
-        
+
         console.log("Unique Code: " + code);
 
         if (!firstName) {
@@ -97,7 +97,7 @@ export default function SignInCard() {
             setConfirmError(false);
         }
 
-        if ( !firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
+        if (!firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -106,7 +106,7 @@ export default function SignInCard() {
                 confirmButtonColor: '#177604',
             });
         } else {
-            if ( confirm != password ){
+            if (confirm != password) {
                 setConfirmError(true);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
@@ -178,15 +178,15 @@ export default function SignInCard() {
             <Box sx={{ display: 'flex', width: '100%', maxWidth: '1500px', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)', borderRadius: '12px', overflow: 'hidden' }} >
 
                 {/* Left Section */}
-                <Box sx={{ 
-                    flex: 1, 
-                    display: { xs: 'none', md: 'flex' }, 
-                    flexDirection: 'column', 
+                <Box sx={{
+                    flex: 1,
+                    display: { xs: 'none', md: 'flex' },
+                    flexDirection: 'column',
                     justifyContent: 'center',
-                    gap: 2, 
-                    maxWidth: '35%', 
-                    p: 4, 
-                    backgroundColor: '#f7f7f7' 
+                    gap: 2,
+                    maxWidth: '35%',
+                    p: 4,
+                    backgroundColor: '#f7f7f7'
                 }}>
                     <img src={manProLogo} style={{ maxWidth: '300px' }} />
 
@@ -245,11 +245,12 @@ export default function SignInCard() {
                         <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#177604' }}> <strong>Employee Registration Form</strong> </Typography>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -262,8 +263,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="middleName"
@@ -274,8 +276,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -288,8 +291,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '10%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '10%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="suffix"
@@ -299,15 +303,16 @@ export default function SignInCard() {
                                     onChange={(e) => setSuffix(e.target.value)}
                                 />
                             </FormControl>
-                        
+
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -320,8 +325,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -334,8 +340,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="phoneNumber"
@@ -348,11 +355,12 @@ export default function SignInCard() {
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '70%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '70%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="address"
@@ -363,8 +371,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
@@ -381,11 +390,12 @@ export default function SignInCard() {
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -399,8 +409,9 @@ export default function SignInCard() {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -420,13 +431,13 @@ export default function SignInCard() {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Submit </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
                 </Box>
 
             </Box>
         </Box>
 
-        
+
     );
 }
