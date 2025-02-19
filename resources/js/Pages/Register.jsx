@@ -1,92 +1,216 @@
-import React from 'react'
-import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import React, {  useState, useEffect, useRef } from 'react'
+
+import { Box, Button, Typography, FormGroup, TextField, FormControl } from '@mui/material';
+
+import axiosInstance, { getJWTHeader } from '../utils/axiosConfig';
+import { NavLink, useNavigate } from "react-router-dom";
+import manProLogo from '../../images/ManPro.png'
+
 import { useAuth } from "../hooks/useAuth";
+import { useUser } from "../hooks/useUser";
 
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-const Register = () => {
-    const { signup } = useAuth();
-    const { register, handleSubmit, formState: { errors } } = useForm();
+import Swal from "sweetalert2";
 
-    const onSubmit = async (data) => {
-        const res = await signup(data);
-        console.log(res);
-    }
+export default function SignInCard() {
+
+    const navigate = useNavigate()
+    const { login } = useAuth();
+
+    const { user, isFetching } = useUser();
+
     return (
-        <div id="page-container" className="main-container">
-            <div className="main-container">
-                <div className="bg-body-dark bg-pattern">
-                    <div className="row mx-0 justify-content-center">
-                        <div className="hero-static col-lg-6 col-xl-4">
-                            <div className="content content-full overflow-hidden">
-                                <form className="js-validation-signin py-30" onSubmit={handleSubmit(onSubmit)}>
-                                    <div className="block block-themed block-rounded block-shadow">
-                                        <div className="block-header bg-gd-dusk">
-                                            <h3 className="block-title">Please Sign In</h3>
-                                            <Link to="/" type="submit" className="text-white" data-toggle="click-ripple">
-                                                <i className="fa fa-arrow-left mr-5"></i> Back
-                                            </Link>
-                                        </div>
-                                        <div className="block-content my-20">
-                                            <div className="form-group">
-                                                <div className="col-12">
-                                                    <label >Firstname</label>
-                                                    <input type="text" className="form-control" id="register_firstname" {...register("firstname", { required: true })} name="firstname" />
-                                                </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <div className="col-12">
-                                                    <label >Lastname</label>
-                                                    <input type="text" className="form-control" id="register_lastname" {...register("lastname", { required: true })} name="lastname" />
-                                                </div>
-                                            </div>
-                                            <div className="form-group d-flex">
-                                                <div className="col-6">
-                                                    <label >Birthday</label>
-                                                    <input type="date" className="form-control" id="register_birthdate" {...register("birthdate", { required: true })} name="birthdate" />
-                                                </div>
-                                                <div className="col-6">
-                                                    <label >Contact Number</label>
-                                                    <input type="text" className="form-control" maxLength="11" {...register("contact_number", { required: true })} id="register_contact" name="contact_number" />
-                                                </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <div className="col-12">
-                                                    <label >Address</label>
-                                                    <input type="text" className="form-control" id="register_address" {...register("address", { required: true })} name="address" />
-                                                </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <div className="col-12">
-                                                    <label >Username</label>
-                                                    <input type="username" className="form-control" id="register_username" {...register("username", { required: true })} name="username" />
-                                                </div>
+        <Box sx={{ mx: 10, pt: 12 }}>
+            <div className='px-4 block-content bg-light' style={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}>
+                <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }}
+                    // onSubmit={checkInput}
+                    noValidate autoComplete="off" encType="multipart/form-data" >
 
-                                            </div>
-                                            <div className="form-group">
-                                                <div className="col-12">
-                                                    <label >Password</label>
-                                                    <input type="password" className="form-control" id="register_password" {...register("password", { required: true })} name="password" />
-                                                </div>
-                                            </div>
+                    <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }} > Employee Registration Form </Typography>
 
-                                            <div className="form-group mb-0 py-20">
-                                                <div className="col-sm-12 text-center  push">
-                                                    <button type="submit" className="btn btn-alt-primary" data-toggle="click-ripple">
-                                                        <i className="fa fa-user-plus mr-10"></i> Register
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+                    <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                        '& label.Mui-focused': {color: '#97a5ba'},
+                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                    }}>
+                        <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="firstName"
+                                label="First Name"
+                                variant="outlined"
+                                // value={firstName}
+                                // error={firstNameError}
+                                // onChange={(e) => setFirstName(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                id="middleName"
+                                label="Middle Name"
+                                variant="outlined"
+                                // value={middleName}
+                                // onChange={(e) => setMiddleName(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                id="lastName"
+                                label="Last Name"
+                                variant="outlined"
+                                // value={lastName}
+                                // error={lastNameError}
+                                // onChange={(e) => setLastName(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '10%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="suffix"
+                                label="Suffix"
+                                variant="outlined"
+                                // value={suffix}
+                                // onChange={(e) => setSuffix(e.target.value)}
+                            />
+                        </FormControl>
+                       
+                    </FormGroup>
+
+                    <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                        '& label.Mui-focused': {color: '#97a5ba'},
+                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                    }}>
+                        <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="userName"
+                                label="User Name"
+                                variant="outlined"
+                                // value={userName}
+                                // error={userNameError}
+                                // onChange={(e) => setUserName(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="emailAddress"
+                                label="Email Address"
+                                variant="outlined"
+                                // value={emailAddress}
+                                // error={emailAddressError}
+                                // onChange={(e) => setEmailAddress(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                id="phoneNumber"
+                                label="Phone Number"
+                                variant="outlined"
+                                // value={phoneNumber}
+                                // onChange={(e) => setPhoneNumber(e.target.value)}
+                            />
+                        </FormControl>
+                    </FormGroup>
+
+                    <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                        '& label.Mui-focused': {color: '#97a5ba'},
+                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                    }}>
+                        <FormControl sx={{ marginBottom: 3, width: '70%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                id="address"
+                                label="Address"
+                                variant="outlined"
+                                // value={address}
+                                // onChange={(e) => setAddress(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    id="birthdate"
+                                    label="Birth Date"
+                                    variant="outlined"
+                                    // onChange={(newValue) => setBirthdate(newValue)}
+                                    // slotProps={{
+                                        // textField: { required: true, error: birthdateError }
+                                    // }}
+                                />
+                            </LocalizationProvider>
+                        </FormControl>
+                    </FormGroup>
+
+                    <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                        '& label.Mui-focused': {color: '#97a5ba'},
+                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                    }}>
+                        <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="Password"
+                                label="Password"
+                                variant="outlined"
+                                type="password"
+                                // value={password}
+                                // error={passwordError}
+                                // onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </FormControl>
+
+                        <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        }}>
+                            <TextField
+                                required
+                                id="confirmPassword"
+                                label="Confirm Password"
+                                variant="outlined"
+                                type="password"
+                                // value={confirm}
+                                // error={confirmError}
+                                // onChange={(e) => setConfirm(e.target.value)}
+                            />
+                        </FormControl>
+                    </FormGroup>
+
+                    <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Employee </p>
+                        </Button>
+                    </Box>
+                    
+                </Box>
+            </div> 
+
+        </Box>
+    );
 }
-
-export default Register
