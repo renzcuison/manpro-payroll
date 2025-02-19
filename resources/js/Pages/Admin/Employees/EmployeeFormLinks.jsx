@@ -155,34 +155,42 @@ const EmployeeFormLinks = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            {formLinks.map((formlink) => (
-                                                <TableRow
-                                                    key={formlink.id}
+                                            {
+                                                formLinks.length > 0 ? (
+                                                    formLinks.map((formlink) => (
+                                                        <TableRow
+                                                            key={formlink.id}
+                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
+                                                        >
+                                                            <TableCell align="left">{formlink.unique_code}</TableCell>
+                                                            <TableCell align="center">{formlink.limit}</TableCell>
+                                                            <TableCell align="center">{formlink.used}</TableCell>
+                                                            <TableCell align="center">{dayjs(formlink.expiration).format("MMM D, YYYY h:mm A")}</TableCell>
+                                                            <TableCell align="center">{formlink.status}</TableCell>
+                                                            <TableCell align="center">{formlink.branch_id || "-"}</TableCell>
+                                                            <TableCell align="center">{formlink.department_id || "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                <Box display="flex">
+                                                                    <Tooltip title="Copy Link">
+                                                                        <IconButton onClick={() => handleLinkCopy(formlink.unique_code)}>
+                                                                            <ContentCopy />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Delete">
+                                                                        <IconButton onClick={() => handleLinkDelete(formlink.id)}>
+                                                                            <Delete />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                ) : <TableRow
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
-                                                    <TableCell align="left">{formlink.unique_code}</TableCell>
-                                                    <TableCell align="center">{formlink.limit}</TableCell>
-                                                    <TableCell align="center">{formlink.used}</TableCell>
-                                                    <TableCell align="center">{dayjs(formlink.expiration).format("MMM D, YYYY h:mm A")}</TableCell>
-                                                    <TableCell align="center">{formlink.status}</TableCell>
-                                                    <TableCell align="center">{formlink.branch_id || "-"}</TableCell>
-                                                    <TableCell align="center">{formlink.department_id || "-"}</TableCell>
-                                                    <TableCell align="center">
-                                                        <Box display="flex">
-                                                            <Tooltip title="Copy Link">
-                                                                <IconButton onClick={() => handleLinkCopy(formlink.unique_code)}>
-                                                                    <ContentCopy />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                            <Tooltip title="Delete">
-                                                                <IconButton onClick={() => handleLinkDelete(formlink.id)}>
-                                                                    <Delete />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </Box>
-                                                    </TableCell>
+                                                    <TableCell align="left" colSpan={8}>No Form Link</TableCell>
                                                 </TableRow>
-                                            ))}
+                                            }
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
