@@ -432,7 +432,7 @@ const HrDashboard = () => {
                                     <div className="block-content block-content-full">
                                         <Link to={"/hr/trainings"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {trainingCount ? trainingCount : 0} </div>
-                                            <div className="font-size-h5 font-w600" > Tranings </div>
+                                            <div className="font-size-h5 font-w600" > Trainings </div>
                                         </Link>
                                     </div>
                                 </div>

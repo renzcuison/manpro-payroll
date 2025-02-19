@@ -51,7 +51,9 @@ class AdminDashboardController extends Controller
             $counter['head_count'] = count($employees);
 
             // Get Applications
-            $applications = ApplicationsModel::where('client_id', $clientId)->get();
+            $applications = ApplicationsModel::where('client_id', $clientId)
+                ->where('status', 'Pending')
+                ->get();
             $counter['application_count'] = count($applications);
 
             // Get Announcements
