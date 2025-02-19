@@ -63,6 +63,8 @@ Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
 
+Route::post('/saveRegistration', [EmployeesController::class, 'saveRegistration']);
+
 Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
 Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
 Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
