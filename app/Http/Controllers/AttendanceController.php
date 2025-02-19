@@ -44,34 +44,34 @@ class AttendanceController extends Controller
         // log::info("AttendanceController::getEmployeeLatestAttendance");
 
         $user = Auth::user();
-    
+
         $latest_attendance = AttendanceLogsModel::where('user_id', $user->id)->latest('created_at')->first();
-    
-        return response()->json(['status' => 200,'latest_attendance' => $latest_attendance,]);
+
+        return response()->json(['status' => 200, 'latest_attendance' => $latest_attendance,]);
     }
 
     public function getEmployeeWorkDayAttendance(Request $request)
     {
         // Log::info("AttendanceController::getEmployeeWorkDayAttendance");
         $workDate = $request->input('work_date');
-    
+
         $user = Auth::user();
 
         $employeeId = $user->id;
         if ($this->checkUser() && $request->input('employee')) {
             $employeeId = $request->input('employee');
         }
-        
+
         $attendance = AttendanceLogsModel::where('user_id', $employeeId)->whereDate('timestamp', $workDate)->get();
 
-        return response()->json([ 'status' => 200, 'attendance' => $attendance ]);
+        return response()->json(['status' => 200, 'attendance' => $attendance]);
     }
-    
+
     public function saveEmployeeAttendance(Request $request)
     {
         // log::info("AttendanceController::saveEmployeeAttendance");
 
-        $validated = $request->validate([ 'action' => 'required' ]);
+        $validated = $request->validate(['action' => 'required']);
 
         $user = Auth::user();
 
@@ -85,11 +85,10 @@ class AttendanceController extends Controller
                     "action" => $request->action,
                     "method" => 1,
                 ]);
-                
-                DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -103,13 +102,13 @@ class AttendanceController extends Controller
     public function recordEmployeeAttendance(Request $request)
     {
         //log::info("AttendanceController::recordEmployeeAttendance");
-        $validated = $request->validate([ 'action' => 'required' ]);
+        $validated = $request->validate(['action' => 'required']);
 
 
         $user = Auth::user();
 
         if ($this->checkUser() && $validated) {
-            $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();            
+            $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
             try {
                 DB::beginTransaction();
 
@@ -120,11 +119,10 @@ class AttendanceController extends Controller
                     "timestamp" => $request->input('timestamp'),
                     "method" => 1,
                 ]);
-                
-                DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -138,30 +136,30 @@ class AttendanceController extends Controller
     public function getAttendanceLogs()
     {
         // Log::info("AttendanceController::getAttendanceLogs");
-    
+
         if ($this->checkUser()) {
             $user = Auth::user();
             $clientId = $user->client_id;
-    
+
             $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
             })->get();
-    
+
             return response()->json(['status' => 200, 'attendances' => $attendances]);
         }
-    
+
         return response()->json(['status' => 200, 'attendances' => null]);
     }
 
-    public function getEmployeeAttendanceLogs(Request $request) 
+    public function getEmployeeAttendanceLogs(Request $request)
     {
         // Log::info("AttendanceController::getAttendanceLogs");
 
         $user = Auth::user();
-        $fromDate = $request->input('from_date'); 
-        $toDate = $request->input('to_date'); 
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         $action = $request->input('action');
-        
+
         $query = AttendanceLogsModel::where('user_id', $user->id)
             ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
 
@@ -179,8 +177,8 @@ class AttendanceController extends Controller
         //Log::info("WorkScheduleController::getEmployeeAttendanceSummary");
 
         $user = Auth::user();
-        $fromDate = $request->input('summary_from_date'); 
-        $toDate = $request->input('summary_to_date'); 
+        $fromDate = $request->input('summary_from_date');
+        $toDate = $request->input('summary_to_date');
 
         $employeeId = $user->id;
         if ($this->checkUser() && $request->input('employee')) {
@@ -194,24 +192,24 @@ class AttendanceController extends Controller
             ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
             ->orderBy('al.timestamp', 'asc')
             ->get()
-            ->groupBy(function($log) {
+            ->groupBy(function ($log) {
                 return Carbon::parse($log->timestamp)->format('Y-m-d');
             })
             ->sortKeysDesc()
-            ->map(function($logs, $date) {
+            ->map(function ($logs, $date) {
                 // Find first time in
                 $timeIn = $logs->firstWhere('action', 'Duty In');
-                
+
                 // Find last time out
-                $timeOut = $logs->last(function($log) {
+                $timeOut = $logs->last(function ($log) {
                     return $log->action == 'Duty Out';
                 });
 
                 // Find first overtime in
                 $overtimeIn = $logs->firstWhere('action', 'Overtime In');
-                
+
                 // Find last overtime out
-                $overtimeOut = $logs->last(function($log) {
+                $overtimeOut = $logs->last(function ($log) {
                     return $log->action == 'Overtime Out';
                 });
 
@@ -222,8 +220,8 @@ class AttendanceController extends Controller
                 $count = $logs->count();
                 $dutyInFound = false;
                 $overtimeInFound = false;
-                $workStart = null;
-                $workEnd = null;
+                $workStart = Carbon::now();
+                $workEnd = Carbon::now();
 
                 // Total Shift Time Reader
                 if ($logs->first()->shift_type == "Regular") {
@@ -231,7 +229,7 @@ class AttendanceController extends Controller
                     $shiftEnd = Carbon::parse($logs->first()->first_time_out);
                     $breakStart = Carbon::parse($logs->first()->break_start);
                     $breakEnd = Carbon::parse($logs->first()->break_end);
-                    
+
                     $totalShiftTime = $shiftStart->diffInMinutes($shiftEnd) - $breakStart->diffInMinutes($breakEnd);
                     $totalShiftTime = max($totalShiftTime, 0);
                 } elseif ($logs->first()->shift_type == "Split") {
@@ -239,7 +237,7 @@ class AttendanceController extends Controller
                     $shiftFirstEnd = Carbon::parse($logs->first()->first_time_out);
                     $shiftSecondStart = Carbon::parse($logs->first()->second_time_in);
                     $shiftSecondEnd = Carbon::parse($logs->first()->second_time_out);
-                
+
                     $shiftFirstTime = $shiftFirstStart->diffInMinutes($shiftFirstEnd);
                     $shiftSecondTime = $shiftSecondStart->diffInMinutes($shiftSecondEnd);
                     $totalShiftTime = $shiftFirstTime + $shiftSecondTime;
@@ -263,7 +261,7 @@ class AttendanceController extends Controller
                         $workEnd = Carbon::parse($log->timestamp);
                         $dutyInFound = false;
                         $overtimeInFound = false;
-                
+
                         // Total Hours Calculation [PREP]
                         $workHoursStart = null;
                         $workHoursEnd = null;
@@ -296,11 +294,11 @@ class AttendanceController extends Controller
                             $workHoursStart = Carbon::parse($log->over_time_in);
                             $workHoursEnd = Carbon::parse($log->over_time_out);
                         }
-                
+
                         // Total Hours Calculation [MAIN]
                         if (
-                            $workStart->format('H:i:s') < $workHoursEnd->format('H:i:s') 
-                            && 
+                            $workStart->format('H:i:s') < $workHoursEnd->format('H:i:s')
+                            &&
                             $workEnd->format('H:i:s') > $workHoursStart->format('H:i:s')
                         ) {
                             // Normalizes dates to exclusively compare time
@@ -311,25 +309,25 @@ class AttendanceController extends Controller
                             $workHoursEndNormalized = $workHoursEnd->setDate($today->year, $today->month, $today->day);
                             $breakStartNormalized = $breakStart ? $breakStart->setDate($today->year, $today->month, $today->day) : null;
                             $breakEndNormalized = $breakEnd ? $breakEnd->setDate($today->year, $today->month, $today->day) : null;
-                
+
                             $startWithinWorkHours = max($workStartNormalized, $workHoursStartNormalized);
                             $endWithinWorkHours = min($workEndNormalized, $workHoursEndNormalized);
-                            
+
                             $timeWorked = $startWithinWorkHours->diffInMinutes($endWithinWorkHours);
-                            
+
                             // Remove Rendered Time during Break
                             if ($log->action == "Duty Out" && $log->shift_type == 'Regular' && $breakStartNormalized && $breakEndNormalized) {
                                 $breakOverlapStart = max($startWithinWorkHours, $breakStartNormalized);
                                 $breakOverlapEnd = min($endWithinWorkHours, $breakEndNormalized);
-                                
+
                                 if ($breakOverlapStart->format('H:i:s') < $breakOverlapEnd->format('H:i:s')) {
                                     $breakOverlap = $breakOverlapStart->diffInMinutes($breakOverlapEnd);
                                     $timeWorked -= $breakOverlap;
                                 }
-                                
-                                $timeWorked = max($timeWorked, 0); 
+
+                                $timeWorked = max($timeWorked, 0);
                             }
-                        
+
                             if ($log->action == "Duty Out") {
                                 $totalTime += $timeWorked;
                             } else { // action is "Overtime Out"
@@ -367,24 +365,24 @@ class AttendanceController extends Controller
         $attendances = AttendanceLogsModel::where('user_id', $user->id)
             ->orderBy('timestamp', 'asc')
             ->get()
-            ->groupBy(function($log) {
+            ->groupBy(function ($log) {
                 return Carbon::parse($log->timestamp)->format('Y-m-d');
             })
             ->sortKeysDesc()
-            ->map(function($logs, $date) {
+            ->map(function ($logs, $date) {
                 // Find first time in
                 $timeIn = $logs->firstWhere('action', 'Duty In');
-                
+
                 // Find last time out
-                $timeOut = $logs->last(function($log) {
+                $timeOut = $logs->last(function ($log) {
                     return $log->action == 'Duty Out';
                 });
 
                 // Find first overtime in
                 $overtimeIn = $logs->firstWhere('action', 'Overtime In');
-                
+
                 // Find last overtime out
-                $overtimeOut = $logs->last(function($log) {
+                $overtimeOut = $logs->last(function ($log) {
                     return $log->action == 'Overtime Out';
                 });
 
@@ -401,7 +399,5 @@ class AttendanceController extends Controller
             ->all();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
-
     }
-    
 }
