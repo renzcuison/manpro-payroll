@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
+import React, { useEffect, useState } from 'react';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { ContentCopy, Delete } from "@mui/icons-material";
+import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import PageHead from '../../../components/Table/PageHead';
+import PageToolbar from '../../../components/Table/PageToolbar';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { getComparator, stableSort } from '../../../components/utils/tableUtils';
+import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -25,9 +27,12 @@ const EmployeeFormLinks = () => {
 
     // ----- Fetch Form Links
     useEffect(() => {
+        fetchFormLinks();
+    }, []);
+
+    const fetchFormLinks = () => {
         axiosInstance.get('/employee/getFormLinks', { headers })
             .then((response) => {
-                console.log(response.data.form_links);
                 setFormLinks(response.data.form_links);
                 setIsLoading(false);
             })
@@ -35,7 +40,7 @@ const EmployeeFormLinks = () => {
                 console.error('Error fetching form links:', error);
                 setIsLoading(false);
             });
-    }, []);
+    }
 
     // ----- Generate Form Link
     const [openGenerateFormLink, setOpenGenerateFormLink] = useState(false);
@@ -44,8 +49,75 @@ const EmployeeFormLinks = () => {
     }
     const handleCloseGenerateFormLink = () => {
         setOpenGenerateFormLink(false);
+        fetchFormLinks();
     }
 
+    // ----- Menu Functions
+    const handleLinkCopy = (code) => {
+
+        const domain = window.location.origin;
+        const link = `${domain}/register/${code}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link).then(() => {
+                document.activeElement.blur();
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    text: "Link Copied to Clipboard",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                })
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        } else {
+            console.error('Clipboard API not available');
+        }
+    }
+    const handleLinkDelete = (id) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: 'Delete Form Link?',
+            text: `This action cannot be undone`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = { id: id };
+                axiosInstance
+                    .post(`employee/deleteFormLink`, data, {
+                        headers
+                    })
+                    .then((response) => {
+                        if (response.data.status === 200) {
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: `Form Link Deleted`,
+                                icon: "success",
+                                showConfirmButton: true,
+                                confirmButtonText: "Okay",
+                                confirmButtonColor: "#177604",
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                    fetchFormLinks();
+                                }
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error toggling Hidden Status:", error);
+                    });
+            }
+        });
+    }
 
     return (
         <Layout title={"EmployeesList"}>
@@ -71,14 +143,14 @@ const EmployeeFormLinks = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Code</TableCell>
-                                                <TableCell align="center">Limit</TableCell>
-                                                <TableCell align="center">Used</TableCell>
-                                                <TableCell align="center">Expiration</TableCell>
-                                                <TableCell align="center">Status</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="center" sx={{ width: "20%" }}>Code</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>Limit</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>Used</TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>Expiration</TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>Status</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>Branch</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>Department</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}></TableCell>
                                             </TableRow>
                                         </TableHead>
 
@@ -95,7 +167,20 @@ const EmployeeFormLinks = () => {
                                                     <TableCell align="center">{formlink.status}</TableCell>
                                                     <TableCell align="center">{formlink.branch_id || "-"}</TableCell>
                                                     <TableCell align="center">{formlink.department_id || "-"}</TableCell>
-                                                    <TableCell align="center">{formlink.unique_code}</TableCell>
+                                                    <TableCell align="center">
+                                                        <Box display="flex">
+                                                            <Tooltip title="Copy Link">
+                                                                <IconButton onClick={() => handleLinkCopy(formlink.unique_code)}>
+                                                                    <ContentCopy />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title="Delete">
+                                                                <IconButton onClick={() => handleLinkDelete(formlink.id)}>
+                                                                    <Delete />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </Box>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>

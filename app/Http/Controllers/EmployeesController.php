@@ -254,8 +254,36 @@ class EmployeesController extends Controller
         }
     }
 
+    public function deleteFormLink(Request $request)
+    {
+        // log::info("EmployeesController::deleteFormLink");
+        $user = Auth::user();
+        Log::info($request);
+
+        if ($this->checkUser()) {
+
+            try {
+                DB::beginTransaction();
+
+                UserFormsModel::where('id', $request->input('id'))->update(['deleted_by' => $user->id]);
+                UserFormsModel::where('id', $request->input('id'))->delete();
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
     function generateRandomCode($length)
     {
+        // log::info("EmployeesController::generateRandomCode");
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         $result = '';
         $charsLength = strlen($chars);

@@ -116,6 +116,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
+        Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
     });
 
     Route::prefix('benefits')->group(function () {
