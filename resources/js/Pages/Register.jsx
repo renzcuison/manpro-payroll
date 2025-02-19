@@ -9,7 +9,6 @@ import BuildIcon from '@mui/icons-material/Build';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 
 import axiosInstance, { getJWTHeader } from '../utils/axiosConfig';
-import { NavLink, useNavigate } from "react-router-dom";
 import manProLogo from '../../images/ManPro.png'
 
 import { useAuth } from "../hooks/useAuth";
@@ -19,14 +18,160 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+
 import Swal from "sweetalert2";
 
 export default function SignInCard() {
 
-    const navigate = useNavigate()
     const { login } = useAuth();
 
     const { user, isFetching } = useUser();
+
+    const { code } = useParams();
+
+    const [firstNameError, setFirstNameError] = useState(false);
+    const [lastNameError, setLastNameError] = useState(false);
+    const [userNameError, setUserNameError] = useState(false);
+    const [emailAddressError, setEmailAddressError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [birthdateError, setBirthdateError] = useState(false);
+    const [confirmError, setConfirmError] = useState(false);
+
+    const [firstName, setFirstName] = useState('');
+    const [middleName, setMiddleName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [suffix, setSuffix] = useState('');
+    const [userName, setUserName] = useState('');
+    const [emailAddress, setEmailAddress] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [address, setAddress] = useState('');
+    const [birthdate, setBirthdate] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirm, setConfirm] = useState('');
+
+    const checkInput = (event) => {
+        event.preventDefault();
+        
+        console.log("Unique Code: " + code);
+
+        if (!firstName) {
+            setFirstNameError(true);
+        } else {
+            setFirstNameError(false);
+        }
+
+        if (!lastName) {
+            setLastNameError(true);
+        } else {
+            setLastNameError(false);
+        }
+
+        if (!userName) {
+            setUserNameError(true);
+        } else {
+            setUserNameError(false);
+        }
+
+        if (!emailAddress) {
+            setEmailAddressError(true);
+        } else {
+            setEmailAddressError(false);
+        }
+
+        if (!birthdate) {
+            setBirthdateError(true);
+        } else {
+            setBirthdateError(false);
+        }
+
+        if (!password) {
+            setPasswordError(true);
+        } else {
+            setPasswordError(false);
+        }
+
+        if (!confirm) {
+            setConfirmError(true);
+        } else {
+            setConfirmError(false);
+        }
+
+        if ( !firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            if ( confirm != password ){
+                setConfirmError(true);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Password does not match!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            } else {
+                new Swal({
+                    customClass: { container: "my-swal" },
+                    title: "Are you sure?",
+                    text: "You want to save this client?",
+                    icon: "warning",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Save',
+                    confirmButtonColor: '#177604',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel',
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        saveInput(event);
+                    }
+                });
+            }
+        }
+    };
+
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const data = {
+            code: code,
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            suffix: suffix,
+            userName: userName,
+            emailAddress: emailAddress,
+            birthdate: birthdate,
+            phoneNumber: phoneNumber,
+            address: address,
+            password: password,
+        };
+
+        axiosInstance.post('/saveRegistration', data)
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Account Registered Successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/login`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', padding: '0 2rem' }} >
@@ -37,7 +182,7 @@ export default function SignInCard() {
                     flex: 1, 
                     display: { xs: 'none', md: 'flex' }, 
                     flexDirection: 'column', 
-                    justifyContent: 'center', // Center vertically
+                    justifyContent: 'center',
                     gap: 2, 
                     maxWidth: '35%', 
                     p: 4, 
@@ -95,9 +240,7 @@ export default function SignInCard() {
 
                 {/* Right Section (Sign-in form) */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', p: 4, backgroundColor: 'white', maxWidth: '65%' }} >
-                    <Box component="form" sx={{ mx: 6, mt: 3, mb: 2 }}
-                        // onSubmit={checkInput}
-                        noValidate autoComplete="off" encType="multipart/form-data" >
+                    <Box component="form" sx={{ mx: 6, mt: 3, mb: 2 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
                         <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#177604' }}> <strong>Employee Registration Form</strong> </Typography>
 
@@ -113,9 +256,9 @@ export default function SignInCard() {
                                     id="firstName"
                                     label="First Name"
                                     variant="outlined"
-                                    // value={firstName}
-                                    // error={firstNameError}
-                                    // onChange={(e) => setFirstName(e.target.value)}
+                                    value={firstName}
+                                    error={firstNameError}
+                                    onChange={(e) => setFirstName(e.target.value)}
                                 />
                             </FormControl>
 
@@ -126,8 +269,8 @@ export default function SignInCard() {
                                     id="middleName"
                                     label="Middle Name"
                                     variant="outlined"
-                                    // value={middleName}
-                                    // onChange={(e) => setMiddleName(e.target.value)}
+                                    value={middleName}
+                                    onChange={(e) => setMiddleName(e.target.value)}
                                 />
                             </FormControl>
 
@@ -135,12 +278,13 @@ export default function SignInCard() {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
+                                    required
                                     id="lastName"
                                     label="Last Name"
                                     variant="outlined"
-                                    // value={lastName}
-                                    // error={lastNameError}
-                                    // onChange={(e) => setLastName(e.target.value)}
+                                    value={lastName}
+                                    error={lastNameError}
+                                    onChange={(e) => setLastName(e.target.value)}
                                 />
                             </FormControl>
 
@@ -148,12 +292,11 @@ export default function SignInCard() {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
-                                    required
                                     id="suffix"
                                     label="Suffix"
                                     variant="outlined"
-                                    // value={suffix}
-                                    // onChange={(e) => setSuffix(e.target.value)}
+                                    value={suffix}
+                                    onChange={(e) => setSuffix(e.target.value)}
                                 />
                             </FormControl>
                         
@@ -171,9 +314,9 @@ export default function SignInCard() {
                                     id="userName"
                                     label="User Name"
                                     variant="outlined"
-                                    // value={userName}
-                                    // error={userNameError}
-                                    // onChange={(e) => setUserName(e.target.value)}
+                                    value={userName}
+                                    error={userNameError}
+                                    onChange={(e) => setUserName(e.target.value)}
                                 />
                             </FormControl>
 
@@ -185,9 +328,9 @@ export default function SignInCard() {
                                     id="emailAddress"
                                     label="Email Address"
                                     variant="outlined"
-                                    // value={emailAddress}
-                                    // error={emailAddressError}
-                                    // onChange={(e) => setEmailAddress(e.target.value)}
+                                    value={emailAddress}
+                                    error={emailAddressError}
+                                    onChange={(e) => setEmailAddress(e.target.value)}
                                 />
                             </FormControl>
 
@@ -198,8 +341,8 @@ export default function SignInCard() {
                                     id="phoneNumber"
                                     label="Phone Number"
                                     variant="outlined"
-                                    // value={phoneNumber}
-                                    // onChange={(e) => setPhoneNumber(e.target.value)}
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
                                 />
                             </FormControl>
                         </FormGroup>
@@ -215,8 +358,8 @@ export default function SignInCard() {
                                     id="address"
                                     label="Address"
                                     variant="outlined"
-                                    // value={address}
-                                    // onChange={(e) => setAddress(e.target.value)}
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
                                 />
                             </FormControl>
 
@@ -228,10 +371,10 @@ export default function SignInCard() {
                                         id="birthdate"
                                         label="Birth Date"
                                         variant="outlined"
-                                        // onChange={(newValue) => setBirthdate(newValue)}
-                                        // slotProps={{
-                                            // textField: { required: true, error: birthdateError }
-                                        // }}
+                                        onChange={(newValue) => setBirthdate(newValue)}
+                                        slotProps={{
+                                            textField: { required: true, error: birthdateError }
+                                        }}
                                     />
                                 </LocalizationProvider>
                             </FormControl>
@@ -250,9 +393,9 @@ export default function SignInCard() {
                                     label="Password"
                                     variant="outlined"
                                     type="password"
-                                    // value={password}
-                                    // error={passwordError}
-                                    // onChange={(e) => setPassword(e.target.value)}
+                                    value={password}
+                                    error={passwordError}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                             </FormControl>
 
@@ -265,9 +408,9 @@ export default function SignInCard() {
                                     label="Confirm Password"
                                     variant="outlined"
                                     type="password"
-                                    // value={confirm}
-                                    // error={confirmError}
-                                    // onChange={(e) => setConfirm(e.target.value)}
+                                    value={confirm}
+                                    error={confirmError}
+                                    onChange={(e) => setConfirm(e.target.value)}
                                 />
                             </FormControl>
                         </FormGroup>

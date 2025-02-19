@@ -150,6 +150,63 @@ class EmployeesController extends Controller
         }    
     }
 
+    public function saveRegistration(Request $request)
+    {
+        log::info("EmployeesController::saveRegistration");
+        log::info($request);
+
+        $validated = $request->validate([
+            'firstName' => 'required',
+            'lastName' => 'required',
+            'userName' => 'required',
+            'emailAddress' => 'required',
+            'birthdate' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            log::info($request);
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $password = Hash::make($request->password);
+        
+                UsersModel::create([
+                    "user_name" => $request->userName,
+                    "first_name" => $request->firstName,
+                    "middle_name" => $request->middleName,
+                    "last_name" => $request->lastName,
+                    "suffix" => $request->suffix,
+                    "birth_date" => $request->birthdate,
+        
+                    "address" => $request->address,
+                    "contact_number" => $request->phoneNumber,
+                    "email" => $request->emailAddress,
+                    "password" => $password,
+        
+                    "user_type" => "Employee",
+                    "client_id" => $client->id,
+                ]);
+                
+                DB::commit();
+            
+                return response()->json([ 'status' => 200 ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }    
+    }
+
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
