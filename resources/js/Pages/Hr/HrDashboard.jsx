@@ -43,6 +43,75 @@ const years = () => {
 };
 
 const HrDashboard = () => {
+
+    const queryParameters = new URLSearchParams(window.location.search);
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const navigate = useNavigate();
+    const colors = ["#2a800f", "#e9ab13"];
+
+    const [headCount, setHeadCount] = useState();
+    const [applicationCount, setApplicationCount] = useState();
+    const [announcementCount, setAnnouncementCount] = useState();
+    const [trainingCount, setTrainingCount] = useState();
+    const [averageAge, setAverageAge] = useState();
+    const [averageTenure, setAverageTenure] = useState();
+
+    const [presentCount, setPresentCount] = useState(0);
+    const [absentCount, setAbsentCount] = useState(0);
+    const [onLeaveCount, setOnLeaveCount] = useState(0);
+
+    useEffect(() => {
+        axiosInstance
+            .get(`adminDashboard/getDashboardCounters`, { headers })
+            .then((response) => {
+                console.log(response.data.counter);
+                console.log(response.data.average);
+                setHeadCount(response.data.counter.head_count);
+                setApplicationCount(response.data.counter.application_count);
+                setAnnouncementCount(response.data.counter.announcement_count);
+                setTrainingCount(response.data.counter.training_count);
+                setAverageAge(response.data.average.age);
+                setAverageTenure(response.data.average.tenure);
+            });
+    }, []);
+
+    const attendancePieChart = {
+        labels: ['Present', 'Absent', 'On Leave'],
+        datasets: [
+            {
+                /*
+                data: [
+                    totalPresent ? totalPresent : 0,
+                    totalAbsent ? totalAbsent : 0,
+                    totalOnLeave ? totalOnLeave : 0
+                ],
+                */
+                data: [
+                    75,
+                    5,
+                    20,
+                ],
+                backgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
+                hoverBackgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
+            },
+        ],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { usePointStyle: true },
+            },
+        },
+    };
+
+    //PRE-UPDATE STATES AND FUNCTIONS - DO NOT REMOVE UNTIL ALL IS UPDATED
+    const oldFunctions = () => {
+        /*
     const queryParameters = new URLSearchParams(window.location.search);
     const [searchParams, setSearchParams] = useSearchParams();
     const [absencesChart, setAbsencesChart] = useState([]);
@@ -229,32 +298,6 @@ const HrDashboard = () => {
         navigate(`hr/profile?employeeID=` + user_id);
     };
 
-    const chartData = {
-        labels: ['Present', 'Absent', 'On Leave'],
-        datasets: [
-            {
-                data: [
-                    totalPresent ? totalPresent : 0,
-                    totalAbsent ? totalAbsent : 0,
-                    totalOnLeave ? totalOnLeave : 0
-                ],
-                backgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
-                hoverBackgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
-            },
-        ],
-    };
-    
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { usePointStyle: true },
-            },
-        },
-    };
-
     const barChartData = {
         labels: branchNames,
         datasets: [
@@ -269,7 +312,7 @@ const HrDashboard = () => {
             },
         ],
     };
-    
+
     const barChartOptions = {
         maintainAspectRatio: false,
         plugins: {
@@ -292,7 +335,7 @@ const HrDashboard = () => {
             },
         ],
     };
-    
+
     const pieChartOptions = {
         maintainAspectRatio: false,
         width: 500,
@@ -304,121 +347,114 @@ const HrDashboard = () => {
             },
         },
     };
-    
+    */
+    }
+
     return (
         <Layout>
             <Box sx={{ mx: 12 }}>
                 <div className="content-heading  d-flex justify-content-between p-0">
-                    <h5 className="pt-3">Overview</h5>
-                    {/*<div className="font-size-h5 font-w600" style={{ margin: 0 }}>
-                         <FormControl size="small">
-                            <InputLabel id="demo-simple-select-label">CutOff</InputLabel>
-                            <Select
-                                labelId="demo-simple-select-label"
-                                id="cutoff"
-                                value={selectCutoff}
-                                label="Cutoff"
-                                onChange={handleChangeCutoff}
-                                sx={{ width: '120px', marginRight: '10px' }}
-                            >
-                                <MenuItem value={0}>All</MenuItem>
-                                <MenuItem value={1}>First</MenuItem>
-                                <MenuItem value={2}>Second</MenuItem>
-                            </Select>
-                        </FormControl> 
-                        <FormControl size="small">
-                            <InputLabel id="demo-simple-select-label"> Month </InputLabel>
-                            <Select labelId="demo-simple-select-label" id="month_attendance" value={selectMonth} label="Month" onChange={handleChangeMonth} sx={{ width: "120px", marginRight: "10px" }} >
-                                <MenuItem value={1}>January</MenuItem>
-                                <MenuItem value={2}>February</MenuItem>
-                                <MenuItem value={3}>March</MenuItem>
-                                <MenuItem value={4}>April</MenuItem>
-                                <MenuItem value={5}>May</MenuItem>
-                                <MenuItem value={6}>June</MenuItem>
-                                <MenuItem value={7}>July</MenuItem>
-                                <MenuItem value={8}>August</MenuItem>
-                                <MenuItem value={9}>September</MenuItem>
-                                <MenuItem value={10}>October</MenuItem>
-                                <MenuItem value={11}>November</MenuItem>
-                                <MenuItem value={12}>December</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <FormControl size="small">
-                            <InputLabel id="demo-simple-select-label"> Year </InputLabel>
-                            <Select labelId="demo-simple-select-label" id="month_attendance" value={selectYear} label="Year" onChange={handleChangeYear} sx={{ width: "120px", marginRight: "10px" }} >
-                                {allYears.map((year, i) => (
-                                    <MenuItem value={year} key={i}>{year}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </div>*/}
+                    <h5 className="pt-3">Dashboard</h5>
                 </div>
 
                 <div className="row g-2" style={{ marginTop: 25 }} >
                     <div className="col-lg-9 col-sm-12">
+                        {/* First Data Row */}
                         <div className="row g-2" >
+                            {/* Head Count */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
+                                <div
+                                    className="block"
+                                    style={{
+                                        backgroundColor: "white",
+                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                                        height: "165px",
+                                        borderLeft: "4px solid #2a800f",
+                                        paddingLeft: "12px"
+                                    }} >
                                     <div className="block-content block-content-full">
                                         <Link to="/hr/employees" style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> { headCount ? headCount : 0 } </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {headCount ? headCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Head Count </div>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Application Count*/}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px"  }} >
+                                <div
+                                    className="block"
+                                    style={{
+                                        backgroundColor: "white",
+                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                                        height: "165px",
+                                        borderLeft: "4px solid #2a800f",
+                                        paddingLeft: "12px"
+                                    }} >
                                     <div className="block-content block-content-full">
                                         <Link to={"/hr/applications"} style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> {totalApplications ? totalApplications : 0} </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {applicationCount ? applicationCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Applications </div>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Announcement Count */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px"  }} >
+                                <div
+                                    className="block"
+                                    style={{
+                                        backgroundColor: "white",
+                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                                        height: "165px",
+                                        borderLeft: "4px solid #2a800f",
+                                        paddingLeft: "12px"
+                                    }} >
                                     <div className="block-content block-content-full">
                                         <Link to={"/hr/announcements"} style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> {totalAnnouncements ? totalAnnouncements : 0} </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {announcementCount ? announcementCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Announcements </div>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
+                        </div>
+                        {/* Second Data Row*/}
                         <div className="row g-2" style={{ marginTop: 25 }} >
+                            {/* Trainings */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px"  }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
                                     <div className="block-content block-content-full">
                                         <Link to={"/hr/trainings"} style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> {totalTrainings ? totalTrainings : 0} </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {trainingCount ? trainingCount : 0} </div>
                                             <div className="font-size-h5 font-w600" > Tranings </div>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
 
+
+                            {/* Average Age */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px"  }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
                                     <div className="block-content block-content-full">
                                         <Link to={`/hr/employees`} style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> {averageAge ? averageAge : 0} years </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {averageAge ? averageAge : 0} years </div>
                                             <div className="font-size-h5 font-w600" > Average Employee Age </div>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Average Tenureship */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px"  }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
                                     <div className="block-content block-content-full">
                                         <Link to={`/hr/employees`} style={{ color: "#777777" }} >
-                                            <div className="font-size-h1 font-w600" style={{ paddingTop: 13 }}> {workExist === true ? (averageTenure ? averageTenure : 0) : 0} year(s) </div>
+                                            <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {averageTenure ? averageTenure : 0} years </div>
                                             <div className="font-size-h5 font-w600"> Average Employee Tenure </div>
                                         </Link>
                                     </div>
@@ -426,22 +462,25 @@ const HrDashboard = () => {
                             </div>
                         </div>
                     </div>
-
+                    {/* Attendance Pie */}
                     <div className="col-lg-3 col-sm-12">
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-header">
                                 <h5 className="block-title">Employee Attendance</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Doughnut data={chartData} options={chartOptions} />
+                                <Doughnut data={attendancePieChart} options={chartOptions} />
                             </div>
                         </div>
                     </div>
 
+
                 </div>
-                
+                {/* Chart Row */}
                 <div className="row" style={{ marginTop: 25 }}>
-                    <div className="col-lg-7 col-sm-12" style={{ marginBottom: 30 }}>
+                    {/* Branch Chart */}
+                    {/*
+                        <div className="col-lg-7 col-sm-12" style={{ marginBottom: 30 }}>
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-header">
                                 <h5 className="block-title">Employee Count by Branch</h5>
@@ -451,8 +490,11 @@ const HrDashboard = () => {
                             </div>
                         </div>
                     </div>
+                    */}
 
-                    <div className="col-lg-5 col-sm-12" style={{ marginBottom: 30 }} >
+                    {/* Salary Chart */}
+                    {/*
+                        <div className="col-lg-5 col-sm-12" style={{ marginBottom: 30 }} >
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-header">
                                 <h5 className="block-title">Employee Count by Salary Range</h5>
@@ -462,10 +504,13 @@ const HrDashboard = () => {
                             </div>
                         </div>
                     </div>
+                    */}
                 </div>
-
-                <div className="row">
-
+                {/* Temporary Div Wrap for Attendance*/}
+                <div>
+                    {/* Attendance */}
+                    {/* 
+                    <div className="row">
                     <div className="col-lg-12 col-sm-12" style={{ marginBottom: 30 }} >
                         <div className="block" style={{ backgroundColor: "white" }}>
                             <div className="block-content block-content-full">
@@ -479,7 +524,7 @@ const HrDashboard = () => {
                                     <div style={{ height: "560px", overflow: "auto", }} >
                                         <TableContainer>
                                             <Table className="table table-md table-striped table-vcenter">
-                                                <PageHead order={order} orderBy={orderBy} onRequestSort={ handleRequestSort } headCells={headCells} />
+                                                <PageHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} headCells={headCells} />
 
                                                 <TableBody sx={{ cursor: "pointer" }} >
                                                     {recentAttendances.length !=
@@ -487,15 +532,15 @@ const HrDashboard = () => {
                                                         stableSort(
                                                             recentAttendances, getComparator(order, orderBy)
                                                         )
-                                                            .slice( page * rowsPerPage, page * rowsPerPage + rowsPerPage )
+                                                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                                             .map(
-                                                                ( attendance, index ) => {
+                                                                (attendance, index) => {
                                                                     return (
-                                                                        <TableRow key={ index } hover role="checkbox" tabIndex={ -1 } onClick={() => handleNavigateAttendance( attendance.user_id ) } >
+                                                                        <TableRow key={index} hover role="checkbox" tabIndex={-1} onClick={() => handleNavigateAttendance(attendance.user_id)} >
                                                                             <TableCell className="text-left">
                                                                                 {attendance.profile_pic ? (
-                                                                                    <img src={ location.origin + "/storage/" + attendance.profile_pic } style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />) : (
-                                                                                    <img src={ HomeLogo } style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />
+                                                                                    <img src={location.origin + "/storage/" + attendance.profile_pic} style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />) : (
+                                                                                    <img src={HomeLogo} style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />
                                                                                 )}
 
                                                                                 {" "}
@@ -504,7 +549,7 @@ const HrDashboard = () => {
                                                                             <TableCell>
                                                                                 <div className="d-flex justify-content-end">
                                                                                     <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} >
-                                                                                        {moment( attendance.morning_in ).format( "hh:mm a" )}
+                                                                                        {moment(attendance.morning_in).format("hh:mm a")}
                                                                                     </Typography>
                                                                                 </div>
                                                                             </TableCell>
@@ -512,7 +557,7 @@ const HrDashboard = () => {
                                                                                 <div className="d-flex justify-content-start">
                                                                                     <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: attendance.afternoon_out ? "#e24e45" : "#e9ab13", }} >
                                                                                         {" "}
-                                                                                        {attendance.afternoon_out ? moment( attendance.afternoon_out ).format("hh:mm a" ) : "Ongoing.."}
+                                                                                        {attendance.afternoon_out ? moment(attendance.afternoon_out).format("hh:mm a") : "Ongoing.."}
                                                                                     </Typography>
                                                                                 </div>
                                                                             </TableCell>
@@ -521,7 +566,7 @@ const HrDashboard = () => {
                                                                 }
                                                             )
                                                     ) : (
-                                                        <TableRow hover role="checkbox" tabIndex={-1} onClick={() => handleNavigateAttendance( attendance.user_id ) } >
+                                                        <TableRow hover role="checkbox" tabIndex={-1} onClick={() => handleNavigateAttendance(attendance.user_id)} >
                                                             <TableCell colSpan={4}>
                                                                 {" "}
                                                                 {"No Data Found"}
@@ -529,7 +574,7 @@ const HrDashboard = () => {
                                                         </TableRow>
                                                     )}
                                                     {emptyRows > 0 && (
-                                                        <TableRow style={{ height:53 * emptyRows, }} >
+                                                        <TableRow style={{ height: 53 * emptyRows, }} >
                                                             <TableCell colSpan={6} />
                                                         </TableRow>
                                                     )}
@@ -537,13 +582,15 @@ const HrDashboard = () => {
                                             </Table>
                                         </TableContainer>
 
-                                        <TablePagination rowsPerPageOptions={[5, 10, 25]} component="div" count={recentAttendances.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={ handleChangeRowsPerPage } sx={{ ".MuiTablePagination-actions": { marginBottom: "20px", }, ".MuiInputBase-root": { marginBottom: "20px", }, }} />
+                                        <TablePagination rowsPerPageOptions={[5, 10, 25]} component="div" count={recentAttendances.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ ".MuiTablePagination-actions": { marginBottom: "20px", }, ".MuiInputBase-root": { marginBottom: "20px", }, }} />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                </div>
+                */}
                 </div>
             </Box>
         </Layout>

@@ -205,7 +205,7 @@ class EmployeesController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 400, 'message' => "Invalid Form Link"]);
+            return response()->json(['status' => 400, 'message' => "Invalid Form Data"]);
         }
     }
 
