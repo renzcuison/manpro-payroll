@@ -16,11 +16,11 @@ class CreateUserFormsTable extends Migration
         Schema::create('user_forms', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('client_id');
-            $table->string('unique_code', 16);
+            $table->string('unique_code', 16)->unique();
             $table->integer('limit');
             $table->integer('used');
             $table->dateTime('expiration');
-            $table->enum('status', ['Unused','Partially Used','Used'])->default('Unused');
+            $table->enum('status', ['Unused', 'Partially Used', 'Used'])->default('Unused');
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('deleted_by');
             $table->softDeletes();

@@ -7,7 +7,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-const EmployeesList = () => {
+const EmployeeFormLinks = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -28,15 +28,15 @@ const EmployeesList = () => {
             });
     }, []);
 
-    // ----- Menu Items
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
+    // ----- Generate Form Link
+    const [openGenerateFormLinkModal, setOpenGenerateFormLinkModal] = useState(false);
+    const handleOpenGenerateFormLinkModal = () => {
+        setOpenGenerateFormLinkModal(true);
+    }
+    const handleCloseGenerateFormLinkModal = () => {
+        setOpenGenerateFormLinkModal(false);
+    }
+
 
     return (
         <Layout title={"EmployeesList"}>
@@ -44,51 +44,11 @@ const EmployeesList = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employees </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Form Links </Typography>
 
-                        {/*
-                        <Link to="/admin/employees/add">
-                            <Button variant="contained" color="primary">
-                                <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                            </Button>
-                        </Link>
-                         */}
-
-                        <Button
-                            id="employee-menu"
-                            variant="contained"
-                            color="primary"
-                            aria-controls={open ? 'emp-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? 'true' : undefined}
-                            onClick={handleMenuOpen}
-                        >
+                        <Button variant="contained" color="primary" onClick={handleOpenGenerateFormLinkModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
-                        <Menu
-                            id="emp-menu"
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleMenuClose}
-                            MenuListProps={{
-                                'aria-labelledby': 'employee_menu',
-                            }}
-                        >
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/add"
-                                onClick={handleMenuClose}
-                            >
-                                Add Employee
-                            </MenuItem>
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/formlinks"
-                                onClick={handleMenuClose}
-                            >
-                                Employee Form Links
-                            </MenuItem>
-                        </Menu>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -140,4 +100,4 @@ const EmployeesList = () => {
     )
 }
 
-export default EmployeesList
+export default EmployeeFormLinks

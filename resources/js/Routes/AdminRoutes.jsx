@@ -7,6 +7,7 @@ import Error404 from "../Pages/Errors/Error404";
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
+import EmployeeFormLinks from "../Pages/Admin/Employees/EmployeeFormLinks";
 
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
 import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
@@ -47,6 +48,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
             <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
             <Route path="employees/add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
+            <Route path="employees/formlinks" element={<ProtectedRoute element={<EmployeeFormLinks />} user={user} />} />
 
             <Route path="employees/benefits" element={<ProtectedRoute element={<BenefitsList />} user={user} />} />
             <Route path="employees/benefits/:benefitName" element={<ProtectedRoute element={<BenefitView />} user={user} />} />
