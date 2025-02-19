@@ -65,14 +65,16 @@ const HrDashboard = () => {
         axiosInstance
             .get(`adminDashboard/getDashboardCounters`, { headers })
             .then((response) => {
-                console.log(response.data.counter);
-                console.log(response.data.average);
                 setHeadCount(response.data.counter.head_count);
                 setApplicationCount(response.data.counter.application_count);
                 setAnnouncementCount(response.data.counter.announcement_count);
                 setTrainingCount(response.data.counter.training_count);
+
                 setAverageAge(response.data.average.age);
                 setAverageTenure(response.data.average.tenure);
+
+                setPresentCount(response.data.attendance.present_count);
+                setOnLeaveCount(response.data.attendance.onleave_count);
             });
     }, []);
 
@@ -88,9 +90,9 @@ const HrDashboard = () => {
                 ],
                 */
                 data: [
-                    75,
-                    5,
-                    20,
+                    presentCount,
+                    headCount ? headCount - presentCount - onLeaveCount : 0,
+                    onLeaveCount,
                 ],
                 backgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
                 hoverBackgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],

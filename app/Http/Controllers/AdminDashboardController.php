@@ -44,7 +44,8 @@ class AdminDashboardController extends Controller
             $counter = [];
             $average = [];
             $attendance = [];
-            //============================================================== DATA ROWS
+
+            // ---- Counter Rows ---- //
             // Get Employees
             $employees = UsersModel::where('client_id', $clientId)->get();
             $counter['head_count'] = count($employees);
@@ -88,7 +89,7 @@ class AdminDashboardController extends Controller
                 $average['tenure'] = round($totalTenure / $employees->count(), 1);
             }
 
-            //============================================================== ATTENDANCE PIE CHART
+            // ---- Attendance Pie Chart ---- //
             // Present Counter
             $attendance['present_count'] = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
