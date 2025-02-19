@@ -7,6 +7,8 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import GenerateFormLink from "./Modals/GenerateFormLink";
+
 const EmployeeFormLinks = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -29,12 +31,12 @@ const EmployeeFormLinks = () => {
     }, []);
 
     // ----- Generate Form Link
-    const [openGenerateFormLinkModal, setOpenGenerateFormLinkModal] = useState(false);
-    const handleOpenGenerateFormLinkModal = () => {
-        setOpenGenerateFormLinkModal(true);
+    const [openGenerateFormLink, setOpenGenerateFormLink] = useState(false);
+    const handleOpenGenerateFormLink = () => {
+        setOpenGenerateFormLink(true);
     }
-    const handleCloseGenerateFormLinkModal = () => {
-        setOpenGenerateFormLinkModal(false);
+    const handleCloseGenerateFormLink = () => {
+        setOpenGenerateFormLink(false);
     }
 
 
@@ -46,7 +48,7 @@ const EmployeeFormLinks = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Form Links </Typography>
 
-                        <Button variant="contained" color="primary" onClick={handleOpenGenerateFormLinkModal}>
+                        <Button variant="contained" color="primary" onClick={handleOpenGenerateFormLink}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
                     </Box>
@@ -96,7 +98,13 @@ const EmployeeFormLinks = () => {
 
                 </Box>
             </Box>
-        </Layout >
+            {openGenerateFormLink && (
+                <GenerateFormLink
+                    open={openGenerateFormLink}
+                    close={handleCloseGenerateFormLink}
+                />
+            )}
+        </Layout>
     )
 }
 

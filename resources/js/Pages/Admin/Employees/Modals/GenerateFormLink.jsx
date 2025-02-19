@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText, DateTimePicker } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
 import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -6,7 +6,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
@@ -14,44 +14,63 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+
 const GenerateFormLink = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [leaveType, setLeaveType] = useState('');
-    const [leaveTypeSet, setLeaveTypeSet] = useState([]);
-    const [creditCount, setCreditCount] = useState('');
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
 
-    const [leaveTypeError, setLeaveTypeError] = useState(false);
+    const [useLimit, setUseLimit] = useState(1);
+    const [expirationDate, setExpirationDate] = useState(dayjs());
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedDepartment, setSelectedDepartment] = useState('');
 
-    const [leaveCredits, setLeaveCredits] = useState([]);
+    const [useLimitError, setUseLimitError] = useState(false);
+    const [expirationDateError, setExpirationDateError] = useState(false);
 
-    const [expirationDate, setExpirationDate] = useState(null);
-
+    // ---- Departments and Branches
     useEffect(() => {
+        axiosInstance.get('/settings/getBranches', { headers })
+            .then((response) => {
+                setBranches(response.data.branches);
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+            });
+        axiosInstance.get('/settings/getDepartments', { headers })
+            .then((response) => {
+                setDepartments(response.data.departments);
+            }).catch((error) => {
+                console.error('Error fetching departments:', error);
+            });
     }, []);
 
-    /*
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!leaveType) {
-            setLeaveTypeError(true);
+        if (!useLimit) {
+            setUseLimitError(true);
         } else {
-            setLeaveTypeError(false);
+            setUseLimitError(false);
         }
-        if (!creditCount) {
-            setCreditCountError(true);
+        if (!expirationDate) {
+            setExpirationDateError(true);
         } else {
-            setCreditCountError(false);
+            setExpirationDateError(false);
         }
 
-        if (!leaveType || !creditCount) {
+        if (!useLimit || !expirationDate) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "All Required fields must be filled!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -61,10 +80,10 @@ const GenerateFormLink = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to add this leave credit?",
+                text: "Do you want to generate a form link?",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: 'Save',
+                confirmButtonText: 'Generate',
                 confirmButtonColor: '#177604',
                 showCancelButton: true,
                 cancelButtonText: 'Cancel',
@@ -74,31 +93,32 @@ const GenerateFormLink = ({ open, close }) => {
                 }
             });
         }
-    };
+    }
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const data = {
-            emp_id: empId,
-            app_type_id: leaveType,
-            credit_count: creditCount,
+            use_limit: useLimit,
+            expiry_date: expirationDate.format("YYYY-MM-DD HH:mm:ss"),
+            branch: selectedBranch,
+            department: selectedDepartment
         };
 
-        axiosInstance.post('/applications/saveLeaveCredits', data, { headers })
+        console.log(data);
+
+        axiosInstance.post('/employee/saveFormLink', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     document.activeElement.blur();
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Leave Credits added successfully!",
+                        text: "Form Link generated successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        close();
+                        //close();
                     });
                 }
             })
@@ -106,8 +126,7 @@ const GenerateFormLink = ({ open, close }) => {
                 console.error('Error:', error);
             });
 
-    };
-    */
+    }
 
     return (
         <>
@@ -130,7 +149,7 @@ const GenerateFormLink = ({ open, close }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}>
-                            Add Leave Credit
+                            Generate Form Link
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -144,30 +163,29 @@ const GenerateFormLink = ({ open, close }) => {
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
+                            {/* Use Limit */}
                             <FormControl sx={{
-                                mt: 1,
-                                marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                mt: 1, marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
-                                    id="credits"
-                                    label="Credits"
+                                    id="limit"
+                                    label="Use Limit"
                                     variant="outlined"
-                                    value={creditCount}
-                                    error={creditCountError}
+                                    value={useLimit}
+                                    error={useLimitError}
                                     type="number"
                                     inputProps={{
                                         min: 0,
                                         step: 1
                                     }}
-                                    onChange={(e) => setCreditCount(e.target.value)}
+                                    onChange={(e) => setUseLimit(e.target.value)}
                                 />
                             </FormControl>
-
+                            {/* Expiration Date */}
                             <FormControl sx={{
-                                mt: 1,
-                                marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
+                                mt: 1, marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider
@@ -188,11 +206,45 @@ const GenerateFormLink = ({ open, close }) => {
                                     />
                                 </LocalizationProvider>
                             </FormControl>
+                            {/* Department Selection */}
+                            <FormControl sx={{
+                                mt: 1, marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    select
+                                    id="department"
+                                    label="Department"
+                                    value={selectedDepartment}
+                                    onChange={(event) => setSelectedDepartment(event.target.value)}
+                                >
+                                    {departments.map((department) => (
+                                        <MenuItem key={department.id} value={department.id}> {department.name} ({department.acronym}) </MenuItem>
+                                    ))}
+                                </TextField>
+                            </FormControl>
+                            {/* Branch Selection */}
+                            <FormControl sx={{
+                                mt: 1, marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    select
+                                    id="branch"
+                                    label="Branch"
+                                    value={selectedBranch}
+                                    onChange={(event) => setSelectedBranch(event.target.value)}
+                                >
+                                    {branches.map((branch) => (
+                                        <MenuItem key={branch.id} value={branch.id}> {branch.name} ({branch.acronym}) </MenuItem>
+                                    ))}
+                                </TextField>
+                            </FormControl>
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Leave Credit </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Generate </p>
                             </Button>
                         </Box>
                     </Box>

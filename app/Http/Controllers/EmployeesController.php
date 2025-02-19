@@ -83,14 +83,14 @@ class EmployeesController extends Controller
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
             $employees = $client->employees;
-    
+
             $enrichedEmployees = $employees->map(function ($employee) {
                 return $this->enrichEmployeeDetails($employee);
             });
-    
+
             return response()->json(['status' => 200, 'employees' => $enrichedEmployees]);
-        }    
-    
+        }
+
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
@@ -118,7 +118,7 @@ class EmployeesController extends Controller
                 DB::beginTransaction();
 
                 $password = Hash::make($request->password);
-        
+
                 UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
@@ -126,20 +126,19 @@ class EmployeesController extends Controller
                     "last_name" => $request->lastName,
                     "suffix" => $request->suffix,
                     "birth_date" => $request->birthdate,
-        
+
                     "address" => $request->address,
                     "contact_number" => $request->phoneNumber,
                     "email" => $request->emailAddress,
                     "password" => $password,
-        
+
                     "user_type" => "Employee",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200 ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -147,21 +146,21 @@ class EmployeesController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
 
-        $user = Auth::user();            
+        $user = Auth::user();
         $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
-    
+
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
             $employee = $this->enrichEmployeeDetails($employee);
             return response()->json(['status' => 200, 'employee' => $employee]);
-        }    
-    
+        }
+
         return response()->json(['status' => 200, 'employee' => null]);
     }
 
@@ -188,11 +187,10 @@ class EmployeesController extends Controller
                 $employee->date_start = $request->startDate;
                 $employee->date_end = $request->endDate;
                 $employee->save();
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200 ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -200,6 +198,58 @@ class EmployeesController extends Controller
 
                 throw $e;
             }
-        }    
+        }
+    }
+
+    public function saveFormLink(Request $request)
+    {
+        // log::info("EmployeesController::saveFormLink");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            try {
+                DB::beginTransaction();
+
+                $uniqueCode = $this->generateRandomCode(16);
+                while (UserFormsModel::where('unique_code', $uniqueCode)->exists()) {
+                    $uniqueCode = $this->generateRandomCode(16);
+                    //Log::info("Regenerating code: " . $uniqueCode);
+                }
+
+                UserFormsModel::create([
+                    "client_id" => $user->client_id,
+                    "unique_code" => $uniqueCode,
+                    "limit" => $request->input('use_limit'),
+                    "expiration" => $request->input('expiry_date'),
+                    "branch_id" => $request->input('branch'),
+                    "department_id" => $request->input('department'),
+                    "created_by" => $user->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
+    function generateRandomCode($length)
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $result = '';
+        $charsLength = strlen($chars);
+
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[rand(0, $charsLength - 1)];
+        }
+
+        return $result;
     }
 }

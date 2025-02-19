@@ -108,7 +108,6 @@ const AddLeaveCredit = ({ open, close, empId }) => {
                         customClass: { container: 'my-swal' },
                         text: "Leave Credits added successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',

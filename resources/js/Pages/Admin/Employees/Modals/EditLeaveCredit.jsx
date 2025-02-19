@@ -73,7 +73,6 @@ const LeaveCreditEdit = ({ open, close, leaveData }) => {
                         customClass: { container: 'my-swal' },
                         text: "Leave Credits edited successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',

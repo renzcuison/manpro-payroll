@@ -79,7 +79,7 @@ Route::prefix('mobile')->group(function () {
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    
+
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
@@ -110,9 +110,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('employee')->group(function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
-        Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);
 
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);
+
+        Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
     });
 
     Route::prefix('benefits')->group(function () {
@@ -148,7 +150,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
 
         Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
-
     });
 
     Route::prefix('attendance')->group(function () {
@@ -159,7 +160,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeLatestAttendance', [AttendanceController::class, 'getEmployeeLatestAttendance']);
         Route::get('/getEmployeeWorkDayAttendance', [AttendanceController::class, 'getEmployeeWorkDayAttendance']);
-        
+
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
     });
@@ -175,10 +176,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
-        
+
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
         Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
-        
+
         Route::get('/downloadAttachment/{id}', [ApplicationsController::class, 'downloadAttachment']);
         Route::get('/getApplicationFiles/{id}', [ApplicationsController::class, 'getApplicationFiles']);
 
@@ -203,7 +204,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getThumbnail/{id}', [AnnouncementsController::class, 'getThumbnail']);
         Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
         Route::get('/getAnnouncementFiles/{id}', [AnnouncementsController::class, 'getAnnouncementFiles']);
-        
+
         Route::get('/toggleHide/{id}', [AnnouncementsController::class, 'toggleHide']);
     });
 
@@ -299,10 +300,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Reports
     Route::get('/getReport', [ReportsController::class, 'getReport']);
     Route::get('/getReports', [ReportsController::class, 'getReports']);
-    
+
     Route::post('/saveReport', [ReportsController::class, 'saveReport']);
     Route::post('/editReport', [ReportsController::class, 'editReport']);
-    
+
     Route::get('/getReportTypes', [ReportsController::class, 'getReportTypes']);
     Route::post('/saveReportType', [ReportsController::class, 'saveReportType']);
     Route::post('/saveReportViewer', [ReportsController::class, 'saveReportViewer']);
@@ -397,7 +398,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/addEmployeeAttendance', [HrAttendanceController::class, 'addEmployeeAttendance']);
 
     Route::get('/getUserSchedule', [HrAttendanceController::class, 'getUserSchedule']);
-    
+
 
     // Hr applications
     Route::get('/applications', [HrApplicationsController::class, 'getApplications']);

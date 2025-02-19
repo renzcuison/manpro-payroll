@@ -22,6 +22,8 @@ class UserFormsModel extends Model
         'used',
         'expiration',
         'status',
+        'branch_id',
+        'department_id',
         'created_by',
         'deleted_by',
     ];
