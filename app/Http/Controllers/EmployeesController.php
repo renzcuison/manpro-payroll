@@ -163,18 +163,17 @@ class EmployeesController extends Controller
             'password' => 'required',
         ]);
 
-        if ($this->checkUser() && $validated) {
+        $formLink = UserFormsModel::where('unique_code', $request->input('code'))->first();
 
-            log::info($request);
+        if ($validated && $formLink) {
 
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
+            $client = ClientsModel::find($formLink->client_id);
 
             try {
                 DB::beginTransaction();
 
                 $password = Hash::make($request->password);
-        
+
                 UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
@@ -182,20 +181,22 @@ class EmployeesController extends Controller
                     "last_name" => $request->lastName,
                     "suffix" => $request->suffix,
                     "birth_date" => $request->birthdate,
-        
+
                     "address" => $request->address,
                     "contact_number" => $request->phoneNumber,
                     "email" => $request->emailAddress,
                     "password" => $password,
-        
+
+                    "branch_id" => $formLink->branch_id,
+                    "department_id" => $formLink->department_id,
+
                     "user_type" => "Employee",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200 ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -203,7 +204,9 @@ class EmployeesController extends Controller
 
                 throw $e;
             }
-        }    
+        } else {
+            return response()->json(['status' => 400, 'message' => "Invalid Form Link"]);
+        }
     }
 
     public function getEmployeeDetails(Request $request)
