@@ -7,6 +7,12 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+
 import GenerateFormLink from "./Modals/GenerateFormLink";
 
 const EmployeeFormLinks = () => {
@@ -14,18 +20,19 @@ const EmployeeFormLinks = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    const [formLinks, setFormLinks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
 
-    // ----- Fetch Employees
+    // ----- Fetch Form Links
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
+        axiosInstance.get('/employee/getFormLinks', { headers })
             .then((response) => {
-                setEmployees(response.data.employees);
+                console.log(response.data.form_links);
+                setFormLinks(response.data.form_links);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching clients:', error);
+                console.error('Error fetching form links:', error);
                 setIsLoading(false);
             });
     }, []);
@@ -64,29 +71,31 @@ const EmployeeFormLinks = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Name</TableCell>
+                                                <TableCell align="center">Code</TableCell>
+                                                <TableCell align="center">Limit</TableCell>
+                                                <TableCell align="center">Used</TableCell>
+                                                <TableCell align="center">Expiration</TableCell>
+                                                <TableCell align="center">Status</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Status</TableCell>
-                                                <TableCell align="center">Type</TableCell>
+                                                <TableCell align="center"></TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {employees.map((employee) => (
+                                            {formLinks.map((formlink) => (
                                                 <TableRow
-                                                    key={employee.id}
-                                                    component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
+                                                    key={formlink.id}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                                    <TableCell align="left">{formlink.unique_code}</TableCell>
+                                                    <TableCell align="center">{formlink.limit}</TableCell>
+                                                    <TableCell align="center">{formlink.used}</TableCell>
+                                                    <TableCell align="center">{dayjs(formlink.expiration).format("MMM D, YYYY h:mm A")}</TableCell>
+                                                    <TableCell align="center">{formlink.status}</TableCell>
+                                                    <TableCell align="center">{formlink.branch_id || "-"}</TableCell>
+                                                    <TableCell align="center">{formlink.department_id || "-"}</TableCell>
+                                                    <TableCell align="center">{formlink.unique_code}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>

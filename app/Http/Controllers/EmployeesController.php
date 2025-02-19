@@ -201,6 +201,20 @@ class EmployeesController extends Controller
         }
     }
 
+    public function getFormLinks()
+    {
+        // log::info("EmployeesController::getFormLinks");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $formLinks = UserFormsModel::where('client_id', $user->client_id)
+                ->get();
+
+            return response()->json(['status' => 200, 'form_links' => $formLinks]);
+        }
+    }
+
     public function saveFormLink(Request $request)
     {
         // log::info("EmployeesController::saveFormLink");
