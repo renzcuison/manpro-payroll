@@ -33,10 +33,19 @@ export default function SignInCard() {
             <Box sx={{ display: 'flex', width: '100%', maxWidth: '1500px', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)', borderRadius: '12px', overflow: 'hidden' }} >
 
                 {/* Left Section */}
-                <Box sx={{ flex: 1, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: 2, maxWidth: '35%', p: 4, backgroundColor: '#f7f7f7' }}  >
+                <Box sx={{ 
+                    flex: 1, 
+                    display: { xs: 'none', md: 'flex' }, 
+                    flexDirection: 'column', 
+                    justifyContent: 'center', // Center vertically
+                    gap: 2, 
+                    maxWidth: '35%', 
+                    p: 4, 
+                    backgroundColor: '#f7f7f7' 
+                }}>
                     <img src={manProLogo} style={{ maxWidth: '300px' }} />
 
-                    <List>
+                    <List sx={{ width: '100%' }}>
                         <ListItem>
                             <ListItemIcon>
                                 <BuildIcon sx={{ color: '#177604' }} />
