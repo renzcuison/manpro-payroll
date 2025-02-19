@@ -104,8 +104,6 @@ const GenerateFormLink = ({ open, close }) => {
             department: selectedDepartment
         };
 
-        console.log(data);
-
         axiosInstance.post('/employee/saveFormLink', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
@@ -118,7 +116,7 @@ const GenerateFormLink = ({ open, close }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        //close();
+                        close();
                     });
                 }
             })
