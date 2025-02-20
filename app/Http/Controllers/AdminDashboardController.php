@@ -44,8 +44,6 @@ class AdminDashboardController extends Controller
             $counter = [];
             $average = [];
             $attendance = [];
-            $branchNames = [];
-            $branchCount = [];
 
             // ---- Counter Rows ---- //
             // Get Employees
@@ -126,25 +124,69 @@ class AdminDashboardController extends Controller
                 })
                 ->all();
 
-            $branchCount = collect($branchData)->pluck('count', 'branch_id');
-            Log::info($branchCount);
+            // Salary Range
+            $salaryRange = [];
 
-            /*
-            $branches = HrBranch::where('team', $team)->get();
-            $branchNames = array();
-            $branchEmployees = array();
+            $payRange1 = UsersModel::where('client_id', $clientId)
+                ->whereBetween(DB::raw('CASE 
+                    WHEN salary_type = "Hourly" THEN salary * 160
+                    WHEN salary_type = "Daily" THEN salary * 20
+                    WHEN salary_type = "Weekly" THEN salary * 4
+                    WHEN salary_type = "Bi-Monthly" THEN salary * 2
+                    WHEN salary_type = "Monthly" THEN salary
+                    ELSE 0 END'), [10000, 20000])
+                ->count();
 
-            foreach ( $branches as $branch ) {
-                $branchNames[] = $branch->branch_name;
-                $branchEmployees[] = $users->where('team', $team)->where('category', $branch->branch_name)->count();
-            }
-            */
+            $payRange2 = UsersModel::where('client_id', $clientId)
+                ->whereBetween(DB::raw('CASE 
+                    WHEN salary_type = "Hourly" THEN salary * 160
+                    WHEN salary_type = "Daily" THEN salary * 20
+                    WHEN salary_type = "Weekly" THEN salary * 4
+                    WHEN salary_type = "Bi-Monthly" THEN salary * 2
+                    WHEN salary_type = "Monthly" THEN salary
+                    ELSE 0 END'), [20001, 30000])
+                ->count();
+
+            $payRange3 = UsersModel::where('client_id', $clientId)
+                ->whereBetween(DB::raw('CASE 
+                    WHEN salary_type = "Hourly" THEN salary * 160
+                    WHEN salary_type = "Daily" THEN salary * 20
+                    WHEN salary_type = "Weekly" THEN salary * 4
+                    WHEN salary_type = "Bi-Monthly" THEN salary * 2
+                    WHEN salary_type = "Monthly" THEN salary
+                    ELSE 0 END'), [30001, 40000])
+                ->count();
+
+            $payRange4 = UsersModel::where('client_id', $clientId)
+                ->whereBetween(DB::raw('CASE 
+                    WHEN salary_type = "Hourly" THEN salary * 160
+                    WHEN salary_type = "Daily" THEN salary * 20
+                    WHEN salary_type = "Weekly" THEN salary * 4
+                    WHEN salary_type = "Bi-Monthly" THEN salary * 2
+                    WHEN salary_type = "Monthly" THEN salary
+                    ELSE 0 END'), [40001, 50000])
+                ->count();
+
+            $payRange5 = UsersModel::where('client_id', $clientId)
+                ->where(DB::raw('CASE 
+                    WHEN salary_type = "Hourly" THEN salary * 160
+                    WHEN salary_type = "Daily" THEN salary * 20
+                    WHEN salary_type = "Weekly" THEN salary * 4
+                    WHEN salary_type = "Bi-Monthly" THEN salary * 2
+                    WHEN salary_type = "Monthly" THEN salary
+                    ELSE 0 END'), '>', 50000)
+                ->count();
+
+            $salaryRange = [$payRange1, $payRange2, $payRange3, $payRange4, $payRange5];
+            Log::info($salaryRange);
 
             return response()->json([
                 'status' => 200,
                 'counter' => $counter,
                 'average' => $average,
-                'attendance' => $attendance
+                'attendance' => $attendance,
+                'branches' => $branchData,
+                'salary_range' => $salaryRange
             ]);
         }
     }

@@ -16,6 +16,7 @@ import HomeLogo from "../../../images/ManProTab.png";
 import { Doughnut } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
 import { Pie } from 'react-chartjs-2';
+import { forEach } from "lodash";
 
 const headCells = [
     {
@@ -61,6 +62,11 @@ const HrDashboard = () => {
     const [absentCount, setAbsentCount] = useState(0);
     const [onLeaveCount, setOnLeaveCount] = useState(0);
 
+    const [branchNames, setBranchNames] = useState([]);
+    const [branchCount, setBranchCount] = useState([]);
+
+    const [salaryRange, setSalaryRange] = useState([]);
+
     useEffect(() => {
         axiosInstance
             .get(`adminDashboard/getDashboardCounters`, { headers })
@@ -75,31 +81,34 @@ const HrDashboard = () => {
 
                 setPresentCount(response.data.attendance.present_count);
                 setOnLeaveCount(response.data.attendance.onleave_count);
+
+                const brNames = {};
+                const brCount = {};
+                for (const [branchId, branch] of Object.entries(response.data.branches)) {
+                    brNames[branchId] = branch.name;
+                    brCount[branchId] = branch.count || 0;
+                }
+                setBranchNames(brNames);
+                setBranchCount(brCount);
+                setSalaryRange(response.data.salary_range);
             });
     }, []);
 
+    // Attendance Pie Chart
     const attendancePieChart = {
         labels: ['Present', 'Absent', 'On Leave'],
         datasets: [
             {
-                /*
-                data: [
-                    totalPresent ? totalPresent : 0,
-                    totalAbsent ? totalAbsent : 0,
-                    totalOnLeave ? totalOnLeave : 0
-                ],
-                */
                 data: [
                     presentCount,
                     headCount ? headCount - presentCount - onLeaveCount : 0,
                     onLeaveCount,
                 ],
-                backgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
-                hoverBackgroundColor: ['#2a800f', '#e9ab13', '#1e90ff'],
+                backgroundColor: ['#177604', '#E9AB13', '#1E90FF'],
+                hoverBackgroundColor: ['#1A8F07', '#F0B63D', '#56A9FF'],
             },
         ],
     };
-
     const attendancePieOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -111,31 +120,53 @@ const HrDashboard = () => {
         },
     };
 
-    // const branchBarChart = {
-    //     labels: branchNames,
-    //     datasets: [
-    //         {
-    //             label: 'Employees',
-    //             backgroundColor: 'rgba(42,128,15,0.4)',
-    //             borderColor: 'rgba(75,192,192,1)',
-    //             borderWidth: 1,
-    //             hoverBackgroundColor: 'rgba(42,128,15,0.6)',
-    //             hoverBorderColor: 'rgba(75,192,192,1)',
-    //             data: branchEmployees,
-    //         },
-    //     ],
-    // };
+    // Branch Bar Chart
+    const branchBarChart = {
+        labels: Object.values(branchNames),
+        datasets: [
+            {
+                label: 'Employees',
+                backgroundColor: '#177604',
+                hoverBackgroundColor: '#1A8F07',
+                data: Object.values(branchCount),
+            },
+        ],
+    };
+    const branchBarOptions = {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            x: { stacked: true },
+            y: { stacked: true, suggestedMin: 0 },
+        },
+    };
 
-    // const branchBarOptions = {
-    //     maintainAspectRatio: false,
-    //     plugins: {
-    //         legend: { display: false },
-    //     },
-    //     scales: {
-    //         x: { stacked: true },
-    //         y: { stacked: true, suggestedMin: 0 },
-    //     },
-    // };
+    // Salary Pie Chart
+    const salaryPieChart = {
+        labels: ['10,000 - 20,000', '20,001 - 30,000', '30,001 - 40,000', '40,001 - 50,000', '50,000+'],
+        datasets: [
+            {
+                label: 'Employees',
+                data: salaryRange,
+                backgroundColor: ['#177604', '#E9AB13', '#1E90FF', '#D84C6E', '#6A3F9B'],
+                hoverBackgroundColor: ['#1A8F07', '#F0B63D', '#56A9FF', '#ff6384', '#8A5AC4']
+            },
+        ],
+    };
+
+    const salaryPieOptions = {
+        maintainAspectRatio: false,
+        width: 500,
+        height: 500,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: { fontColor: 'black' },
+            },
+        },
+    };
 
     //PRE-UPDATE STATES AND FUNCTIONS - DO NOT REMOVE UNTIL ALL IS UPDATED
     const oldFunctions = () => {
@@ -192,10 +223,10 @@ const HrDashboard = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
     const colors = ["#2a800f", "#e9ab13"];
-
+    
     useEffect(() => {
         getAnalaytics(selectMonth, selectYear);
-
+    
         axiosInstance
             .get(`/dashboard_employees/${dateToday}`, { headers })
             .then((response) => {
@@ -225,11 +256,11 @@ const HrDashboard = () => {
                 setRecentApplication(response.data.applications);
             });
     }, [selectMonth, selectYear]);
-
+    
     const getAnalaytics = (month, year) => {
         let dates = [];
         dates = [month, year];
-
+    
         axiosInstance
             .get(`/dashboard_Analytics/${dates}`, { headers })
             .then((response) => {
@@ -245,28 +276,28 @@ const HrDashboard = () => {
                 setTotalUsersChart(response.data.totalUsers);
             });
     };
-
+    
     const handleNavigateAttendance = (user_id) => {
         const month = moment().month() + 1;
         const year = moment().year();
         navigate(`/hr/attendance?month=${month != 10 && month != 11 && month != 12 ? "0" + month : month}&year=${year}&user_id=${user_id}`);
     };
-
+    
     const handleRequestSort = (_event, property) => {
         const isAsc = orderBy === property && order === "asc";
         setOrder(isAsc ? "desc" : "asc");
         setOrderBy(property);
     };
-
+    
     const handleChangePage = (_event, newPage) => {
         setPage(newPage);
     };
-
+    
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(event.target.value);
         setPage(0);
     };
-
+    
     const handleFilter = (event) => {
         const filtered = recentAttendances.filter((attdn) =>
             `${attdn?.fname} ${attdn?.lname}`.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase())
@@ -277,9 +308,9 @@ const HrDashboard = () => {
             setRecentAttendances(filterAttendance);
         }
     };
-
+    
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - recentAttendances.length) : 0;
-
+    
     const handleChangeYear = (e) => {
         const newYear = e.target.value;
         setSelectYear(newYear);
@@ -287,7 +318,7 @@ const HrDashboard = () => {
             ["year"]: newYear,
         });
     };
-
+    
     const handleChangeExpandAttendance = () => {
         if (expandedAttendance === true) {
             setExpandedAttendance(false);
@@ -295,7 +326,7 @@ const HrDashboard = () => {
             setExpandedAttendance(true);
         }
     };
-
+    
     const handleChangeExpandWorkdays = () => {
         if (expandedWorkdays === true) {
             setExpandedWorkdays(false);
@@ -303,7 +334,7 @@ const HrDashboard = () => {
             setExpandedWorkdays(true);
         }
     };
-
+    
     const handleChangeExpandHistory = () => {
         if (expandedHistory === true) {
             setExpandedHistory(false);
@@ -311,22 +342,22 @@ const HrDashboard = () => {
             setExpandedHistory(true);
         }
     };
-
+    
     const handleChangeMonth = (e) => {
         const newMonth = e.target.value;
         setSelectMonth(newMonth);
     };
-
+    
     const handleChangeCutoff = (e) => {
         const newCutoff = e.target.value;
         setSelectCutoff(newCutoff);
     };
-
+    
     const usersProfile = (user_id) => {
         navigate(`hr/profile?employeeID=` + user_id);
     };
-
-    const pieChartData = {
+    
+    const salaryPieChart = {
         labels: ['10,001 - 15,000', '15,001 - 20,000', '20,001 - 25,000', '25,001 - 30,000'],
         datasets: [
             {
@@ -337,8 +368,8 @@ const HrDashboard = () => {
             },
         ],
     };
-
-    const pieChartOptions = {
+    
+    const salaryPieOptions = {
         maintainAspectRatio: false,
         width: 500,
         height: 500,
@@ -474,8 +505,7 @@ const HrDashboard = () => {
                 {/* Chart Row */}
                 <div className="row" style={{ marginTop: 25 }}>
                     {/* Branch Chart */}
-                    {/*
-                        <div className="col-lg-7 col-sm-12" style={{ marginBottom: 30 }}>
+                    <div className="col-lg-7 col-sm-12" style={{ marginBottom: 30 }}>
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-header">
                                 <h5 className="block-title">Employee Count by Branch</h5>
@@ -485,21 +515,19 @@ const HrDashboard = () => {
                             </div>
                         </div>
                     </div>
-                    */}
+
 
                     {/* Salary Chart */}
-                    {/*
-                        <div className="col-lg-5 col-sm-12" style={{ marginBottom: 30 }} >
+                    <div className="col-lg-5 col-sm-12" style={{ marginBottom: 30 }} >
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-header">
                                 <h5 className="block-title">Employee Count by Salary Range</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Pie data={pieChartData} options={pieChartOptions} />
+                                <Pie data={salaryPieChart} options={salaryPieOptions} />
                             </div>
                         </div>
                     </div>
-                    */}
                 </div>
                 {/* Temporary Div Wrap for Attendance*/}
                 <div>
