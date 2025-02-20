@@ -35,7 +35,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const TraningsAdd = ({ open, close }) => {
+const TrainingsAdd = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -504,4 +504,4 @@ const TraningsAdd = ({ open, close }) => {
     );
 };
 
-export default TraningsAdd;
+export default TrainingsAdd;

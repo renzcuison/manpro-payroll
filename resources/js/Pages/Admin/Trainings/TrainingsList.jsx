@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 
-import TraningsAdd from './Modals/TraningsAdd';
+import TraningsAdd from './Modals/TrainingsAdd';
 
 const TrainingsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -19,6 +19,7 @@ const TrainingsList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(false);
+    const [trainings, setTrainings] = useState([]);
 
     const [openAddTrainingModal, setOpenAddTrainingModal] = useState(false);
 
@@ -61,7 +62,11 @@ const TrainingsList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-
+                                            <TableRow>
+                                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                    No Trainings Found
+                                                </TableCell>
+                                            </TableRow>
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
