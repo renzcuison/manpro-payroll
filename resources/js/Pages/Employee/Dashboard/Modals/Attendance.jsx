@@ -353,18 +353,41 @@ const Attendance = ({ open, close }) => {
                             </>
                         ) : null}
 
-                        {/*Overtime Shift------------------------------*/}
-                        {firstDutyFinished &&
-                            ((workShift.shift_type == "Regular" && firstShiftExpired) ||
-                                (workShift.shift_type == "Split" && secondShiftExpired)) ? (
-                            <AttendanceButtons
-                                label="Overtime"
-                                onTimeIn={handleTimeInOut}
-                                onTimeOut={handleTimeInOut}
-                                disableTimeIn={onDuty}
-                                disableTimeOut={false}
-                                shiftType="Overtime"
-                            />
+                        {/*Overtime/End of Day ------------------------*/}
+                        {(workShift.shift_type === "Regular" && firstShiftExpired) ||
+                            (workShift.shift_type === "Split" && secondShiftExpired) ? (
+                            firstDutyFinished ? (
+                                (() => {
+                                    if (exactTime < workHour.over_time_in) {
+                                        return (
+                                            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                                Overtime Available at {workHour.over_time_in}
+                                            </Box>
+                                        );
+                                    } else if (exactTime >= workHour.over_time_in && exactTime <= workHour.over_time_out) {
+                                        return (
+                                            <AttendanceButtons
+                                                label="Overtime"
+                                                onTimeIn={handleTimeInOut}
+                                                onTimeOut={handleTimeInOut}
+                                                disableTimeIn={onDuty}
+                                                disableTimeOut={false}
+                                                shiftType="Overtime"
+                                            />
+                                        );
+                                    } else {
+                                        return (
+                                            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                                Day has Ended
+                                            </Box>
+                                        );
+                                    }
+                                })()
+                            ) : (
+                                <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                    Day has Ended
+                                </Box>
+                            )
                         ) : null}
                     </Grid>
                     {/*Attendance Logs------------------------------*/}

@@ -213,7 +213,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('adminDashboard')->group(function () {
-        Route::get('/getDashboardCounters', [AdminDashboardController::class, 'getDashboardCounters']);
+        Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
+        Route::get('/getTodaysAttendance', [AdminDashboardController::class, 'getTodaysAttendance']);
     });
 
 
