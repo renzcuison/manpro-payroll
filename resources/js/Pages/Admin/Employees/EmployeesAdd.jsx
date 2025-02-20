@@ -106,7 +106,7 @@ const EmployeesAdd = () => {
                 new Swal({
                     customClass: { container: "my-swal" },
                     title: "Are you sure?",
-                    text: "You want to save this client?",
+                    text: "You want to save this employee?",
                     icon: "warning",
                     showConfirmButton: true,
                     confirmButtonText: 'Save',
