@@ -29,7 +29,6 @@ class CreateTrainingsTable extends Migration
             $table->foreign('training_course_id')->references('id')->on('training_courses');
             $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('created_by')->references('id')->on('users');
-
         });
     }
 
@@ -40,6 +39,6 @@ class CreateTrainingsTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('trainings');
     }
 }

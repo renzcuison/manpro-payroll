@@ -17,6 +17,8 @@ class CreateTrainingVideoTable extends Migration
             $table->id();
             $table->unsignedBigInteger('training_id');
             $table->string('path', 256);
+            $table->softDeletes();
+            $table->timestamps();
 
             $table->foreign('training_id')->references('id')->on('trainings');
         });
