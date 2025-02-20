@@ -6,7 +6,7 @@ use App\Models\UsersModel;
 use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
-
+use App\Models\BranchesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +44,8 @@ class AdminDashboardController extends Controller
             $counter = [];
             $average = [];
             $attendance = [];
+            $branchNames = [];
+            $branchCount = [];
 
             // ---- Counter Rows ---- //
             // Get Employees
@@ -109,6 +111,34 @@ class AdminDashboardController extends Controller
                 ->whereDate('duration_end', '>=', $today)
                 ->distinct('user_id')
                 ->count('user_id');
+
+            // ---- Chart Row ---- //
+            // Branch Employees
+            $branchData = $employees->groupBy('branch_id')
+                ->mapWithKeys(function ($employeesInBranch, $branchId) {
+                    $branchName = $employeesInBranch->first()->branch->name;
+                    return [
+                        $branchId => [
+                            'name' => $branchName,
+                            'count' => $employeesInBranch->count(),
+                        ]
+                    ];
+                })
+                ->all();
+
+            $branchCount = collect($branchData)->pluck('count', 'branch_id');
+            Log::info($branchCount);
+
+            /*
+            $branches = HrBranch::where('team', $team)->get();
+            $branchNames = array();
+            $branchEmployees = array();
+
+            foreach ( $branches as $branch ) {
+                $branchNames[] = $branch->branch_name;
+                $branchEmployees[] = $users->where('team', $team)->where('category', $branch->branch_name)->count();
+            }
+            */
 
             return response()->json([
                 'status' => 200,

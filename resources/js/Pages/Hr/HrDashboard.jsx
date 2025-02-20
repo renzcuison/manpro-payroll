@@ -100,7 +100,7 @@ const HrDashboard = () => {
         ],
     };
 
-    const chartOptions = {
+    const attendancePieOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -110,6 +110,32 @@ const HrDashboard = () => {
             },
         },
     };
+
+    // const branchBarChart = {
+    //     labels: branchNames,
+    //     datasets: [
+    //         {
+    //             label: 'Employees',
+    //             backgroundColor: 'rgba(42,128,15,0.4)',
+    //             borderColor: 'rgba(75,192,192,1)',
+    //             borderWidth: 1,
+    //             hoverBackgroundColor: 'rgba(42,128,15,0.6)',
+    //             hoverBorderColor: 'rgba(75,192,192,1)',
+    //             data: branchEmployees,
+    //         },
+    //     ],
+    // };
+
+    // const branchBarOptions = {
+    //     maintainAspectRatio: false,
+    //     plugins: {
+    //         legend: { display: false },
+    //     },
+    //     scales: {
+    //         x: { stacked: true },
+    //         y: { stacked: true, suggestedMin: 0 },
+    //     },
+    // };
 
     //PRE-UPDATE STATES AND FUNCTIONS - DO NOT REMOVE UNTIL ALL IS UPDATED
     const oldFunctions = () => {
@@ -300,32 +326,6 @@ const HrDashboard = () => {
         navigate(`hr/profile?employeeID=` + user_id);
     };
 
-    const barChartData = {
-        labels: branchNames,
-        datasets: [
-            {
-                label: 'Employees',
-                backgroundColor: 'rgba(42,128,15,0.4)',
-                borderColor: 'rgba(75,192,192,1)',
-                borderWidth: 1,
-                hoverBackgroundColor: 'rgba(42,128,15,0.6)',
-                hoverBorderColor: 'rgba(75,192,192,1)',
-                data: branchEmployees,
-            },
-        ],
-    };
-
-    const barChartOptions = {
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-        },
-        scales: {
-            x: { stacked: true },
-            y: { stacked: true, suggestedMin: 0 },
-        },
-    };
-
     const pieChartData = {
         labels: ['10,001 - 15,000', '15,001 - 20,000', '20,001 - 25,000', '25,001 - 30,000'],
         datasets: [
@@ -359,7 +359,8 @@ const HrDashboard = () => {
                     <h5 className="pt-3">Dashboard</h5>
                 </div>
 
-                <div className="row g-2" style={{ marginTop: 25 }} >
+                <div className="row g-2" style={{ marginTop: 25 }}>
+                    {/* Data Counts */}
                     <div className="col-lg-9 col-sm-12">
                         {/* First Data Row */}
                         <div className="row g-2" >
@@ -382,7 +383,6 @@ const HrDashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Application Count*/}
                             <div className="col-lg-4 col-sm-12">
                                 <div
@@ -402,7 +402,6 @@ const HrDashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Announcement Count */}
                             <div className="col-lg-4 col-sm-12">
                                 <div
@@ -422,7 +421,6 @@ const HrDashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                         {/* Second Data Row*/}
                         <div className="row g-2" style={{ marginTop: 25 }} >
@@ -437,8 +435,6 @@ const HrDashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
-
                             {/* Average Age */}
                             <div className="col-lg-4 col-sm-12">
                                 <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
@@ -450,7 +446,6 @@ const HrDashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Average Tenureship */}
                             <div className="col-lg-4 col-sm-12">
                                 <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
@@ -471,12 +466,10 @@ const HrDashboard = () => {
                                 <h5 className="block-title">Employee Attendance</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Doughnut data={attendancePieChart} options={chartOptions} />
+                                <Doughnut data={attendancePieChart} options={attendancePieOptions} />
                             </div>
                         </div>
                     </div>
-
-
                 </div>
                 {/* Chart Row */}
                 <div className="row" style={{ marginTop: 25 }}>
@@ -488,7 +481,7 @@ const HrDashboard = () => {
                                 <h5 className="block-title">Employee Count by Branch</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Bar data={barChartData} options={barChartOptions} />
+                                <Bar data={branchBarChart} options={branchBarOptions} />
                             </div>
                         </div>
                     </div>
