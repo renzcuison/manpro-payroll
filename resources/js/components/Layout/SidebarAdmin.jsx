@@ -318,7 +318,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 })}
 
                                 <StyledNav to={`/admin/announcements`} >
-                                    <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
+                                    <i className="fa fa-bullhorn" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
                                 </StyledNav>
 
                                 <StyledNav to={`/admin/trainings`} >
@@ -326,7 +326,7 @@ const Sidebar = ({ children, closeMini }) => {
                                 </StyledNav>
 
                                 <StyledNav to={`/admin/performance-evaluation`} >
-                                    <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
+                                    <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                 </StyledNav>
 
                                 {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
