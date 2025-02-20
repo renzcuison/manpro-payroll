@@ -15,10 +15,10 @@ class CreateTrainingImagesTable extends Migration
     {
         Schema::create('training_images', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInterger('training_id');
-            $table->int('order', 2);
-            $table->string('path', 128);
-            $table->softDelete();
+            $table->unsignedBigInteger('training_id');
+            $table->integer('order');
+            $table->string('path', 256);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('training_id')->references('id')->on('trainings');

@@ -16,11 +16,10 @@ class CreateTrainingVideoTable extends Migration
         Schema::create('training_video', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('training_id');
-            $table->string('path', 128);
+            $table->string('path', 256);
 
             $table->foreign('training_id')->references('id')->on('trainings');
-
-    });
+        });
     }
 
     /**
