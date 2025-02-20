@@ -32,10 +32,10 @@ class AdminDashboardController extends Controller
         return false;
     }
 
-    public function getDashboardCounters()
+    public function getDashboardData()
     {
 
-        // Log::info("AdminDashboardController::getDashboardCounters");
+        // Log::info("AdminDashboardController::getDashboardData");
         $user = Auth::user();
 
         if ($this->checkUser()) {

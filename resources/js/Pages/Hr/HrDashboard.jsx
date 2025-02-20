@@ -59,7 +59,6 @@ const HrDashboard = () => {
     const [averageTenure, setAverageTenure] = useState();
 
     const [presentCount, setPresentCount] = useState(0);
-    const [absentCount, setAbsentCount] = useState(0);
     const [onLeaveCount, setOnLeaveCount] = useState(0);
 
     const [branchNames, setBranchNames] = useState([]);
@@ -67,9 +66,11 @@ const HrDashboard = () => {
 
     const [salaryRange, setSalaryRange] = useState([]);
 
+    const [todaysAttendance, setTodaysAttendance] = useState([]);
+
     useEffect(() => {
         axiosInstance
-            .get(`adminDashboard/getDashboardCounters`, { headers })
+            .get(`adminDashboard/getDashboardData`, { headers })
             .then((response) => {
                 setHeadCount(response.data.counter.head_count);
                 setApplicationCount(response.data.counter.application_count);
@@ -91,6 +92,13 @@ const HrDashboard = () => {
                 setBranchNames(brNames);
                 setBranchCount(brCount);
                 setSalaryRange(response.data.salary_range);
+            });
+
+        axiosInstance
+            .get(`adminDashboard/getTodaysAttendance`, { headers })
+            .then((response) => {
+                console.log(response.data.attendances);
+                setTodaysAttendance(response.data.attendances);
             });
     }, []);
 
@@ -167,221 +175,6 @@ const HrDashboard = () => {
             },
         },
     };
-
-    //PRE-UPDATE STATES AND FUNCTIONS - DO NOT REMOVE UNTIL ALL IS UPDATED
-    const oldFunctions = () => {
-        /*
-    const queryParameters = new URLSearchParams(window.location.search);
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [absencesChart, setAbsencesChart] = useState([]);
-    const [applicationsChart, setApplicationsChart] = useState([]);
-    const [tardinessChart, setTardinessChart] = useState([]);
-    const [underTimeChart, setUnderTimeChart] = useState([]);
-    const [workDayChart, setWorkDayChart] = useState([]);
-    const [salariesChart, setSalariesChart] = useState([]);
-    const [deductionChart, setDeductionChart] = useState([]);
-    const [benefitsChart, setBenefitsChart] = useState([]);
-    const [netpayChart, setNetpayChart] = useState([]);
-    const [totalUsersChart, setTotalUsersChart] = useState([]);
-    const [headCount, setHeadCount] = useState();
-    const [totalPresent, setTotalPresent] = useState();
-    const [totalAbsent, setTotalAbsent] = useState();
-    const [totalOnLeave, setTotalOnLeave] = useState();
-    const [totalTrainings, setTotalTrainings] = useState();
-    const [totalAnnouncements, setTotalAnnouncements] = useState();
-    const [totalApplications, setTotalApplications] = useState();
-    const [averageAge, setAverageAge] = useState();
-    const [averageTenure, setAverageTenure] = useState();
-    const [workExist, setWorkExist] = useState();
-    const [range, setRange] = useState();
-    const [branchNames, setBranchNames] = useState();
-    const [branchEmployees, setBranchEmployees] = useState();
-    const [recentAttendances, setRecentAttendances] = useState([]);
-    const [filterAttendance, setFilterAttendance] = useState([]);
-    const [recentApplication, setRecentApplication] = useState([]);
-    const [selectYear, setSelectYear] = useState(
-        searchParams.get("year")
-            ? searchParams.get("year")
-            : moment().format("YYYY")
-    );
-    const [selectMonth, setSelectMonth] = useState(
-        searchParams.get("month")
-            ? searchParams.get("month")
-            : moment().format("M")
-    );
-    const allYears = years();
-    const [order, setOrder] = useState("asc");
-    const [orderBy, setOrderBy] = useState("calories");
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const dateToday = moment().format("YYYY-MM-D 00:00:00");
-    const applicationDates = moment().format("YYYY-MM-D 00:00:00");
-    const [expandedAttendance, setExpandedAttendance] = useState(true);
-    const [expandedWorkdays, setExpandedWorkdays] = useState(true);
-    const [expandedHistory, setExpandedHistory] = useState(true);
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
-    const colors = ["#2a800f", "#e9ab13"];
-    
-    useEffect(() => {
-        getAnalaytics(selectMonth, selectYear);
-    
-        axiosInstance
-            .get(`/dashboard_employees/${dateToday}`, { headers })
-            .then((response) => {
-                setHeadCount(response.data.headCount);
-                setTotalPresent(response.data.present);
-                setTotalAbsent(response.data.absent);
-                setTotalOnLeave(response.data.onLeave);
-                setTotalApplications(response.data.totalApplications);
-                setTotalTrainings(response.data.totalTrainings);
-                setTotalAnnouncements(response.data.totalAnnouncements);
-                setAverageAge(response.data.averageAge);
-                setAverageTenure(response.data.averageTenure);
-                setWorkExist(response.data.workExist);
-                setRange(response.data.range);
-                setBranchNames(response.data.branchNames);
-                setBranchEmployees(response.data.branchEmployees);
-            });
-        axiosInstance
-            .get(`/dashboard_recentAttendance/${dateToday}`, { headers })
-            .then((response) => {
-                setRecentAttendances(response.data.attendances);
-                setFilterAttendance(response.data.attendances);
-            });
-        axiosInstance
-            .get(`/dashboard_recentApplication/${dateToday}`, { headers })
-            .then((response) => {
-                setRecentApplication(response.data.applications);
-            });
-    }, [selectMonth, selectYear]);
-    
-    const getAnalaytics = (month, year) => {
-        let dates = [];
-        dates = [month, year];
-    
-        axiosInstance
-            .get(`/dashboard_Analytics/${dates}`, { headers })
-            .then((response) => {
-                setApplicationsChart(response.data.totalApplications);
-                setAbsencesChart(response.data.totalAbsences);
-                setTardinessChart(response.data.totalTardiness);
-                setUnderTimeChart(response.data.totalUndertime);
-                setWorkDayChart(response.data.totalWorkdays);
-                setSalariesChart(response.data.totalSalaries);
-                setDeductionChart(response.data.totalDeduction);
-                setNetpayChart(response.data.totalNetpay);
-                setBenefitsChart(response.data.totalBenefits);
-                setTotalUsersChart(response.data.totalUsers);
-            });
-    };
-    
-    const handleNavigateAttendance = (user_id) => {
-        const month = moment().month() + 1;
-        const year = moment().year();
-        navigate(`/hr/attendance?month=${month != 10 && month != 11 && month != 12 ? "0" + month : month}&year=${year}&user_id=${user_id}`);
-    };
-    
-    const handleRequestSort = (_event, property) => {
-        const isAsc = orderBy === property && order === "asc";
-        setOrder(isAsc ? "desc" : "asc");
-        setOrderBy(property);
-    };
-    
-    const handleChangePage = (_event, newPage) => {
-        setPage(newPage);
-    };
-    
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(event.target.value);
-        setPage(0);
-    };
-    
-    const handleFilter = (event) => {
-        const filtered = recentAttendances.filter((attdn) =>
-            `${attdn?.fname} ${attdn?.lname}`.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase())
-        );
-        if (event.target.value != "") {
-            setRecentAttendances(filtered);
-        } else {
-            setRecentAttendances(filterAttendance);
-        }
-    };
-    
-    const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - recentAttendances.length) : 0;
-    
-    const handleChangeYear = (e) => {
-        const newYear = e.target.value;
-        setSelectYear(newYear);
-        setSearchParams({
-            ["year"]: newYear,
-        });
-    };
-    
-    const handleChangeExpandAttendance = () => {
-        if (expandedAttendance === true) {
-            setExpandedAttendance(false);
-        } else {
-            setExpandedAttendance(true);
-        }
-    };
-    
-    const handleChangeExpandWorkdays = () => {
-        if (expandedWorkdays === true) {
-            setExpandedWorkdays(false);
-        } else {
-            setExpandedWorkdays(true);
-        }
-    };
-    
-    const handleChangeExpandHistory = () => {
-        if (expandedHistory === true) {
-            setExpandedHistory(false);
-        } else {
-            setExpandedHistory(true);
-        }
-    };
-    
-    const handleChangeMonth = (e) => {
-        const newMonth = e.target.value;
-        setSelectMonth(newMonth);
-    };
-    
-    const handleChangeCutoff = (e) => {
-        const newCutoff = e.target.value;
-        setSelectCutoff(newCutoff);
-    };
-    
-    const usersProfile = (user_id) => {
-        navigate(`hr/profile?employeeID=` + user_id);
-    };
-    
-    const salaryPieChart = {
-        labels: ['10,001 - 15,000', '15,001 - 20,000', '20,001 - 25,000', '25,001 - 30,000'],
-        datasets: [
-            {
-                label: 'Employees',
-                data: range,
-                backgroundColor: ['#2a800f', '#e9ab13', '#1e90ff', '#ff6384'],
-                hoverBackgroundColor: ['#2a800f', '#e9ab13', '#1e90ff', '#ff6384']
-            },
-        ],
-    };
-    
-    const salaryPieOptions = {
-        maintainAspectRatio: false,
-        width: 500,
-        height: 500,
-        plugins: {
-            legend: {
-                position: 'right',
-                labels: { fontColor: 'black' },
-            },
-        },
-    };
-    */
-    }
 
     return (
         <Layout>
