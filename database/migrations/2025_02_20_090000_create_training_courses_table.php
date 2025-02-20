@@ -16,11 +16,12 @@ class CreateTrainingCoursesTable extends Migration
         Schema::create('training_courses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
 
+            $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('created_by')->references('id')->on('users');
-    
         });
     }
 
@@ -31,6 +32,6 @@ class CreateTrainingCoursesTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('training_courses');
     }
 }
