@@ -10,7 +10,7 @@ use App\Http\Controllers\ApplicationsController;
 use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
-use App\Http\Controllers\WorkDaysController;
+use App\Http\Controllers\AdminDashboardController;
 
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
@@ -210,6 +210,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getAnnouncementFiles/{id}', [AnnouncementsController::class, 'getAnnouncementFiles']);
 
         Route::get('/toggleHide/{id}', [AnnouncementsController::class, 'toggleHide']);
+    });
+
+    Route::prefix('adminDashboard')->group(function () {
+        Route::get('/getDashboardCounters', [AdminDashboardController::class, 'getDashboardCounters']);
     });
 
 
