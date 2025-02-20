@@ -11,6 +11,8 @@ use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\TrainingsController;
+
 
 // use App\Http\Controllers\NewControllerName;
 // use App\Http\Controllers\NewControllerName;
