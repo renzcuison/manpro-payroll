@@ -219,6 +219,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getTodaysAttendance', [AdminDashboardController::class, 'getTodaysAttendance']);
     });
 
+    Route::prefix('trainings')->group(function () {
+        Route::get('/getTrainingCourses', [TrainingsController::class, 'getTrainingCourses']);
+    });
+
 
 
 
