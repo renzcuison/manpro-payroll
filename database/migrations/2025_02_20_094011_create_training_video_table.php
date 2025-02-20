@@ -16,7 +16,7 @@ class CreateTrainingVideoTable extends Migration
         Schema::create('training_video', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('training_id');
-            $table->string('path', 256);
+            $table->string('url', 256);
             $table->softDeletes();
             $table->timestamps();
 

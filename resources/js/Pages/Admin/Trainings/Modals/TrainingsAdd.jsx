@@ -58,6 +58,11 @@ const TrainingsAdd = ({ open, close }) => {
     const [trainingDuration, setTrainingDuration] = useState("");
 
     const [description, setDescription] = useState("");
+    const [image, setImage] = useState([]);
+    const [coverImage, setCoverImage] = useState(null);
+    const [linkInput, setLinkInput] = useState('');
+    const [links, setLinks] = useState([]);
+
 
     // Form Errors
     const [courseError, setCourseError] = useState(false);
@@ -67,6 +72,8 @@ const TrainingsAdd = ({ open, close }) => {
     const [toDateError, setToDateError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
+    const [imageError, setImageError] = useState(false);
+    const [coverImageError, setCoverImageError] = useState(false);
 
     // Training Courses
     useEffect(() => {
@@ -100,14 +107,138 @@ const TrainingsAdd = ({ open, close }) => {
         setTrainingDuration(durationInfo);
     }, [fromDate, toDate]);
 
+    // Image Handlers
+    const handleImageUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, image.length, 20, 5242880, "image");
+        if (validFiles) {
+            setImage(prev => [...prev, ...files]);
+        }
+    };
+    const handleDeleteImage = (index) => {
+        setImage(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+    };
+
+    // Cover Image Handler
+    const handleCoverUpload = (input) => {
+        const file = input.target.files[0];
+        if (file && file.size > 5242880) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Too Large!",
+                text: `The file size limit is 5 MB!`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            setCoverImage(file);
+        }
+    }
+
+    // Validate Files
+    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
+        if (newFiles.length + currentFileCount > countLimit) {
+            // The File Limit has been Exceeded
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Limit Reached!",
+                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return false;
+        } else {
+            let largeFiles = 0;
+            newFiles.forEach((file) => {
+                if (file.size > sizeLimit) {
+                    largeFiles++;
+                }
+            });
+            if (largeFiles > 0) {
+                // A File is Too Large
+                document.activeElement.blur();
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "File Too Large!",
+                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: "#177604",
+                });
+                return false;
+            } else {
+                // All File Criteria Met
+                return true;
+            }
+        }
+    }
+    const getFileSize = (size) => {
+        if (size === 0) return "0 Bytes";
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        const k = 1024;
+        const i = Math.floor(Math.log(size) / Math.log(k));
+        return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    // Link Handlers
+    const handleLinkAdd = (event) => {
+        const newLink = linkInput.trim();
+        if (isValidUrl(newLink) && links.length < 10) {
+            setLinks(prev => [...prev, newLink]);
+            event.target.value = '';
+        } else if (links.length >= 10) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Link Limit Reached!",
+                text: "You can only have up to 10 links at a time.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Invalid URL!",
+                text: "Please enter a valid URL starting with http:// or https://",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        }
+    };
+    const handleDeleteLink = (index) => {
+        setLinks(prevLinks =>
+            prevLinks.filter((_, i) => i !== index)
+        );
+    };
+
+    // Validate Links
+    const isValidUrl = (url) => {
+        try {
+            new URL(url);
+            return url.startsWith('http://') || url.startsWith('https://');
+        } catch {
+            return false;
+        }
+    };
+
     const checkInput = (event) => {
         event.preventDefault();
 
         console.log(course);
         console.log(title);
+        console.log(coverImage);
         console.log(fromDate);
         console.log(toDate);
         console.log(description);
+        console.log(image);
+        console.log(links);
 
         if (!course) {
             setCourseError(true);
@@ -148,7 +279,7 @@ const TrainingsAdd = ({ open, close }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    console.log("happy days");                   //saveInput(event);
+                    saveInput(event);                   //saveInput(event);
                 }
             });
         }
@@ -158,20 +289,25 @@ const TrainingsAdd = ({ open, close }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        // const formData = new FormData();
-        // formData.append("title", title);
-        // formData.append("description", description);
-        // formData.append("thumbnail", thumbnailIndex);
-        // if (attachment.length > 0) {
-        //     attachment.forEach(file => {
-        //         formData.append('attachment[]', file);
-        //     });
-        // }
-        // if (image.length > 0) {
-        //     image.forEach(file => {
-        //         formData.append('image[]', file);
-        //     });
-        // }
+        const formData = new FormData();
+        formData.append("course", course);
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("cover_image", coverImage);
+        if (links.length > 0) {
+            links.forEach(link => {
+                formData.append('link[]', link);
+            });
+        }
+        if (image.length > 0) {
+            image.forEach(file => {
+                formData.append('image[]', file);
+            });
+        }
+
+        console.log(formData);
 
         // axiosInstance.post("/announcements/saveAnnouncement", formData, { headers })
         //     .then((response) => {
@@ -249,7 +385,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Title Field */}
-                            <Grid item xs={12}>
+                            <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -268,6 +404,50 @@ const TrainingsAdd = ({ open, close }) => {
                                     <FormHelperText>
                                         {title.length}/{128}
                                     </FormHelperText>
+                                </FormControl>
+                            </Grid>
+                            {/* Cover Image */}
+                            <Grid item xs={6}>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        fullWidth
+                                        label="Cover Image"
+                                        variant="outlined"
+                                        value={coverImage ? `${coverImage.name}, ${getFileSize(coverImage.size)}` : ""}
+                                        error={coverImageError}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            document.getElementById('image-upload').click();
+                                        }}
+                                        InputProps={{
+                                            readOnly: true,
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    {coverImage && (
+                                                        <IconButton
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setCoverImage(null);
+                                                            }}
+                                                            size="small"
+                                                            sx={{ marginLeft: '8px' }}
+                                                        >
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    )}
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        helperText="Upload a cover image (.png, .jpg, .jpeg), 5 MB size limit"
+                                    />
+                                    <input
+                                        accept=".png, .jpg, .jpeg"
+                                        id="image-upload"
+                                        type="file"
+                                        name="image"
+                                        style={{ display: "none" }}
+                                        onChange={handleCoverUpload}
+                                    />
                                 </FormControl>
                             </Grid>
                             {/* From Date */}
@@ -365,6 +545,167 @@ const TrainingsAdd = ({ open, close }) => {
                                     </div>
                                 </FormControl>
 
+                            </Grid>
+                            {/* Link Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: "space-between", alignItems: 'center', flexGrow: 1 }}>
+                                                <Typography noWrap>
+                                                    Links
+                                                </Typography>
+                                                <TextField
+                                                    variant="outlined"
+                                                    placeholder="Enter URL (e.g., https://example.com)"
+                                                    size="small"
+                                                    value={linkInput}
+                                                    onChange={(event) => setLinkInput(event.target.value)}
+                                                    sx={{ width: "80%" }}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <Button
+                                                                variant="contained"
+                                                                size="small"
+                                                                sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: '8px' }}
+                                                                onClick={handleLinkAdd}
+                                                            >
+                                                                <p className="m-0">
+                                                                    <i className="fa fa-plus"></i> Add
+                                                                </p>
+                                                            </Button>
+                                                        ),
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Links
+                                            </Typography>
+                                            {links.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {/* Added Links */}
+                                        {links.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {links.map((link, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{link}</Typography>
+                                                        <IconButton onClick={() => handleDeleteLink(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Image Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Images
+                                                </Typography>
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 20 Files, 5 MB Each
+                                            </Typography>
+                                            {image.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {/* Added Images */}
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
                             </Grid>
                             {/* Submit Button */}
                             <Grid
