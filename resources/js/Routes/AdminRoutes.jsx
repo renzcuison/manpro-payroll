@@ -18,6 +18,9 @@ import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 
+import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
+import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
+
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
@@ -64,6 +67,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
 
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} />} />
+
+            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
+            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
