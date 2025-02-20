@@ -7,6 +7,7 @@ use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationFilesModel;
 use App\Models\LeaveCreditsModel;
 use App\Models\TrainingCoursesModel;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -36,13 +37,13 @@ class TrainingsController extends Controller
 
     public function getTrainingCourses()
     {
-        // Log::info("TrainingsController::getTrainingCourses");
+        Log::info("TrainingsController::getTrainingCourses");
         $user = Auth::user();
 
         if ($this->checkUser()) {
 
             $courses = TrainingCoursesModel::where('client_id', $user->client_id)->get();
-
+            Log::info($courses);
             return response()->json(['status' => 200, 'courses' => $courses]);
         }
     }

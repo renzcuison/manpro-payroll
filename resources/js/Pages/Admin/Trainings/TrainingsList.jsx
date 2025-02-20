@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 
-import TraningsAdd from './Modals/TrainingsAdd';
+import TrainingsAdd from './Modals/TrainingsAdd';
 
 const TrainingsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -77,9 +77,8 @@ const TrainingsList = () => {
             </Box>
 
             {openAddTrainingModal && (
-                <TraningsAdd open={openAddTrainingModal} close={handleCloseAddTrainingModal} />
+                <TrainingsAdd open={openAddTrainingModal} close={handleCloseAddTrainingModal} />
             )}
-
         </Layout>
     )
 }

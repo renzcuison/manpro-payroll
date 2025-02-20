@@ -73,6 +73,7 @@ const TrainingsAdd = ({ open, close }) => {
         axiosInstance
             .get(`trainings/getTrainingCourses`, { headers })
             .then((response) => {
+                console.log(response.data.courses);
                 setTrainingCourses(response.data.courses);
             })
             .catch((error) => {
@@ -80,6 +81,96 @@ const TrainingsAdd = ({ open, close }) => {
             });
 
     }, []);
+
+    const [attachment, setAttachment] = useState([]);
+    const [image, setImage] = useState([]);
+    const [thumbnailIndex, setThumbnailIndex] = useState(null);
+
+    // Attachment Handlers
+    const handleAttachmentUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, attachment.length, 5, 10485760, "document");
+        if (validFiles) {
+            setAttachment(prev => [...prev, ...files]);
+        }
+    };
+
+    const handleDeleteAttachment = (index) => {
+        setAttachment(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
+    };
+
+    // Image Handlers
+    const handleImageUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
+        if (validFiles) {
+            setImage(prev => [...prev, ...files]);
+        }
+    };
+
+    const handleDeleteImage = (index) => {
+        if (thumbnailIndex !== null) {
+            if (index === thumbnailIndex) {
+                setThumbnailIndex(null);
+            } else if (index < thumbnailIndex) {
+                setThumbnailIndex(thumbnailIndex - 1);
+            }
+        }
+        setImage(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+    };
+
+    // Validate Files
+    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
+        if (newFiles.length + currentFileCount > countLimit) {
+            // The File Limit has been Exceeded
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Limit Reached!",
+                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return false;
+        } else {
+            let largeFiles = 0;
+            newFiles.forEach((file) => {
+                if (file.size > sizeLimit) {
+                    largeFiles++;
+                }
+            });
+            if (largeFiles > 0) {
+                // A File is Too Large
+                document.activeElement.blur();
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "File Too Large!",
+                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: "#177604",
+                });
+                return false;
+            } else {
+                // All File Criteria Met
+                return true;
+            }
+        }
+    }
+
+    const getFileSize = (size) => {
+        if (size === 0) return "0 Bytes";
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        const k = 1024;
+        const i = Math.floor(Math.log(size) / Math.log(k));
+        return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
 
     // Duration Calculation
     useEffect(() => {
@@ -103,17 +194,6 @@ const TrainingsAdd = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        console.log(course);
-        console.log(title);
-        console.log(fromDate);
-        console.log(toDate);
-        console.log(description);
-
-        if (!course) {
-            setCourseError(true);
-        } else {
-            setCourseError(false);
-        }
         if (!title) {
             setTitleError(true);
         } else {
@@ -125,7 +205,7 @@ const TrainingsAdd = ({ open, close }) => {
             setDescriptionError(false);
         }
 
-        if (!course || !title || !description || !fromDate || !toDate) {
+        if (!course || !title || !description) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -139,7 +219,7 @@ const TrainingsAdd = ({ open, close }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to save this training?",
+                text: "Do you want to submit this announcement?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -148,7 +228,7 @@ const TrainingsAdd = ({ open, close }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    console.log("happy days");                   //saveInput(event);
+                    saveInput(event);
                 }
             });
         }
@@ -158,20 +238,20 @@ const TrainingsAdd = ({ open, close }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        // const formData = new FormData();
-        // formData.append("title", title);
-        // formData.append("description", description);
-        // formData.append("thumbnail", thumbnailIndex);
-        // if (attachment.length > 0) {
-        //     attachment.forEach(file => {
-        //         formData.append('attachment[]', file);
-        //     });
-        // }
-        // if (image.length > 0) {
-        //     image.forEach(file => {
-        //         formData.append('image[]', file);
-        //     });
-        // }
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("thumbnail", thumbnailIndex);
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
+            });
+        }
+        if (image.length > 0) {
+            image.forEach(file => {
+                formData.append('image[]', file);
+            });
+        }
 
         // axiosInstance.post("/announcements/saveAnnouncement", formData, { headers })
         //     .then((response) => {
@@ -288,7 +368,7 @@ const TrainingsAdd = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: fromDateError,
+                                                error: fromDateError || dateRangeError,
                                                 readOnly: true,
                                             }
                                         }}
@@ -308,7 +388,7 @@ const TrainingsAdd = ({ open, close }) => {
                                         onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError,
+                                                error: toDateError || dateRangeError,
                                                 readOnly: true,
                                             }
                                         }}
@@ -365,6 +445,177 @@ const TrainingsAdd = ({ open, close }) => {
                                     </div>
                                 </FormControl>
 
+                            </Grid>
+                            {/* Attachment Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Documents
+                                                </Typography>
+                                                <input
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
+                                                    id="attachment-upload"
+                                                    type="file"
+                                                    name="attachment"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleAttachmentUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: "auto" }}
+                                                    onClick={() => document.getElementById('attachment-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 5 Files, 10 MB Each
+                                            </Typography>
+                                            {attachment.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {/* Added Attachments */}
+                                        {attachment.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {attachment.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Image Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                <Typography noWrap>
+                                                    Images
+                                                </Typography>
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Files, 5 MB Each
+                                            </Typography>
+                                            {image.length > 0 && (
+                                                <Stack direction="row" spacing={1}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Set Thumbnail
+                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Remove
+                                                    </Typography>
+                                                </Stack>
+                                            )}
+                                        </Stack>
+                                        {/* Added Images */}
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <Stack direction="row" spacing={3}>
+                                                            <Radio
+                                                                checked={thumbnailIndex === index}
+                                                                onChange={() => setThumbnailIndex(index)}
+                                                                name="thumbnail"
+                                                                inputProps={{ 'aria-label': `Choose ${file.name} as thumbnail` }}
+                                                            />
+                                                            <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                                <Cancel />
+                                                            </IconButton>
+                                                        </Stack>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
                             </Grid>
                             {/* Submit Button */}
                             <Grid
