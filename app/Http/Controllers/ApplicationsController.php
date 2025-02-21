@@ -67,9 +67,9 @@ class ApplicationsController extends Controller
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
                     'emp_suffix' => $employee->suffix,
-                    'emp_branch' => $branch->name,
-                    'emp_department' => $department->name,
-                    'emp_job_title' => $job_title->name
+                    'emp_branch' => $branch->name ?? '',
+                    'emp_department' => $department->name ?? '',
+                    'emp_job_title' => $job_title->name ?? ''
                 ];
             }
 
@@ -81,7 +81,7 @@ class ApplicationsController extends Controller
 
     public function getMyApplications()
     {
-        //Log::info("ApplicationsController::getApplicationTypes");
+        //Log::info("ApplicationsController::getMyApplications");
 
         $user = Auth::user();
         $clientId = $user->client_id;
@@ -461,9 +461,7 @@ class ApplicationsController extends Controller
 
             $creditCount = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
 
-            $leaveInfo = LeaveCreditsModel::where('user_id', $empId)
-                ->where('application_type_id', $appTypeId)
-                ->first();
+            $leaveInfo = LeaveCreditsModel::where('user_id', $empId)->where('application_type_id', $appTypeId)->first();
             $leaveInfo->used = $leaveInfo->used + $creditCount;
             $leaveInfo->save();
         }
