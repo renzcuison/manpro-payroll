@@ -71,7 +71,7 @@ class TrainingsController extends Controller
         $user = Auth::user();
         Log::info($request);
 
-        /*
+
         if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
@@ -126,7 +126,7 @@ class TrainingsController extends Controller
         } else {
             return response()->json(['status' => 200]);
         }
-        */
+
         return response()->json(['status' => 200]);
     }
 

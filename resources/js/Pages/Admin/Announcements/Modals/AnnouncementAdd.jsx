@@ -167,7 +167,7 @@ const AnnouncementAdd = ({ open, close }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to submit this announcement?",
+                text: "Do you want to save this announcement?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -213,7 +213,7 @@ const AnnouncementAdd = ({ open, close }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `Your announcement has been submitted!`,
+                    text: `Your announcement has been saved!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",
@@ -522,7 +522,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                 >
                                     <p className="m-0">
                                         <i className="fa fa-floppy-o mr-2 mt-1"></i>
-                                        {" "}Submit Announcement{" "}
+                                        {" "}Save Announcement{" "}
                                     </p>
                                 </Button>
                             </Grid>

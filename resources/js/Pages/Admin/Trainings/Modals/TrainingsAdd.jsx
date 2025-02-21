@@ -53,8 +53,8 @@ const TrainingsAdd = ({ open, close }) => {
     const [course, setCourse] = useState('');
     const [title, setTitle] = useState("");
 
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
+    const [startDate, setFromDate] = useState(dayjs());
+    const [endDate, setToDate] = useState(dayjs());
     const [trainingDuration, setTrainingDuration] = useState("");
 
     const [description, setDescription] = useState("");
@@ -90,7 +90,7 @@ const TrainingsAdd = ({ open, close }) => {
 
     // Duration Calculation
     useEffect(() => {
-        const duration = dayjs.duration(toDate.diff(fromDate));
+        const duration = dayjs.duration(endDate.diff(startDate));
 
         const days = duration.days();
         const hours = duration.hours();
@@ -105,7 +105,7 @@ const TrainingsAdd = ({ open, close }) => {
         const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
 
         setTrainingDuration(durationInfo);
-    }, [fromDate, toDate]);
+    }, [startDate, endDate]);
 
     // Image Handlers
     const handleImageUpload = (input) => {
@@ -189,10 +189,22 @@ const TrainingsAdd = ({ open, close }) => {
     // Link Handlers
     const handleLinkAdd = (event) => {
         const newLink = linkInput.trim();
-        if (isValidUrl(newLink) && links.length < 10) {
+        if (!links.includes(newLink) && isValidUrl(newLink) && links.length < 10) {
             setLinks(prev => [...prev, newLink]);
+            setLinkInput('');
             event.target.value = '';
+        } else if (links.includes(newLink)) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Duplicate Link!",
+                text: "This URL is already added.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
         } else if (links.length >= 10) {
+            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Link Limit Reached!",
@@ -202,6 +214,7 @@ const TrainingsAdd = ({ open, close }) => {
                 confirmButtonColor: "#177604",
             });
         } else {
+            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Invalid URL!",
@@ -245,18 +258,18 @@ const TrainingsAdd = ({ open, close }) => {
         } else {
             setDescriptionError(false);
         }
-        if (!fromDate) {
+        if (!startDate) {
             setFromDateError(true);
         } else {
             setFromDateError(false);
         }
-        if (!toDate) {
+        if (!endDate) {
             setToDateError(true);
         } else {
             setToDateError(false);
         }
 
-        if (!course || !title || !description || !fromDate || !toDate) {
+        if (!course || !title || !description || !startDate || !endDate) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -293,8 +306,8 @@ const TrainingsAdd = ({ open, close }) => {
         formData.append("course", course);
         formData.append("title", title);
         formData.append("description", description);
-        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("start_date", startDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("end_date", endDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("cover_image", coverImage);
         if (links.length > 0) {
             links.forEach(link => {
@@ -309,31 +322,31 @@ const TrainingsAdd = ({ open, close }) => {
 
         console.log(formData);
 
-        // axiosInstance.post("/announcements/saveAnnouncement", formData, { headers })
-        //     .then((response) => {
-        //         document.activeElement.blur();
-        //         document.body.removeAttribute("aria-hidden");
-        //         Swal.fire({
-        //             customClass: { container: "my-swal" },
-        //             title: "Success!",
-        //             text: `Your announcement has been submitted!`,
-        //             icon: "success",
-        //             showConfirmButton: true,
-        //             confirmButtonText: "Okay",
-        //             confirmButtonColor: "#177604",
-        //         }).then((res) => {
-        //             if (res.isConfirmed) {
-        //                 close();
-        //                 document.body.setAttribute("aria-hidden", "true");
-        //             } else {
-        //                 document.body.setAttribute("aria-hidden", "true");
-        //             }
-        //         });
-        //     })
-        //     .catch((error) => {
-        //         console.error("Error:", error);
-        //         document.body.setAttribute("aria-hidden", "true");
-        //     });
+        axiosInstance.post("/trainings/saveTraining", formData, { headers })
+            .then((response) => {
+                document.activeElement.blur();
+                document.body.removeAttribute("aria-hidden");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `Your training has been saved!`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        //close();
+                        document.body.setAttribute("aria-hidden", "true");
+                    } else {
+                        document.body.setAttribute("aria-hidden", "true");
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
     };
 
     return (
@@ -450,19 +463,19 @@ const TrainingsAdd = ({ open, close }) => {
                                     />
                                 </FormControl>
                             </Grid>
-                            {/* From Date */}
+                            {/* Start Date */}
                             <Grid item xs={4}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="From"
-                                        value={fromDate}
+                                        label="Starts"
+                                        value={startDate}
                                         minDate={dayjs()}
                                         timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setFromDate(newValue);
-                                            if (newValue.isAfter(toDate)) {
+                                            if (newValue.isAfter(endDate)) {
                                                 setToDate(newValue);
                                             }
                                         }}
@@ -475,15 +488,15 @@ const TrainingsAdd = ({ open, close }) => {
                                     />
                                 </LocalizationProvider>
                             </Grid>
-                            {/* To Date */}
+                            {/* End Date */}
                             <Grid item xs={4}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DateTimePicker
-                                        label="To"
-                                        value={toDate}
-                                        minDateTime={fromDate}
+                                        label="Ends"
+                                        value={endDate}
+                                        minDateTime={startDate}
                                         timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{

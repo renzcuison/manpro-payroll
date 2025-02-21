@@ -24,6 +24,7 @@ class CreateTrainingsTable extends Migration
             $table->enum('status', ['Pending', 'Active', 'Inactive', 'Hidden'])->default('Pending');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->timestamps();
 
             $table->foreign('training_course_id')->references('id')->on('training_courses');
             $table->foreign('client_id')->references('id')->on('clients');
