@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, IconButton } from '@mui/material';
-import { MoreVert } from "@mui/icons-material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { Edit } from "@mui/icons-material";
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead';
@@ -47,6 +47,30 @@ const TrainingsList = () => {
         fetchTrainings();
     };
 
+    const getDuration = (duration) => {
+        const trainingDuration = duration || 0;
+
+        const days = Math.floor(trainingDuration / 1440);
+        const remainingMinutes = trainingDuration % 1440;
+        const hours = Math.floor(remainingMinutes / 60) % 24;
+        const minutes = remainingMinutes % 60;
+
+        let actualDuration = [];
+        if (days > 0) {
+            actualDuration.push(`${days} Day${days > 1 ? 's' : ''}${hours > 0 || minutes > 0 ? ',' : ''}`);
+        }
+        if (hours > 0) {
+            actualDuration.push(`${hours} Hour${hours > 1 ? 's' : ''}${minutes > 0 ? ',' : ''}`);
+        }
+        if (minutes > 0 || (days === 0 && hours === 0)) {
+            actualDuration.push(`${minutes} Minute${minutes > 1 ? 's' : ''}`);
+        }
+        actualDuration = actualDuration.join(' ') || '0 Minutes';
+
+        return actualDuration;
+    }
+
+
     return (
         <Layout title={"TrainingsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -71,56 +95,71 @@ const TrainingsList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                <TableCell align="center" sx={{ width: "18%" }}>
                                                     Title
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                <TableCell align="center" sx={{ width: "18%" }}>
                                                     Created On
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                <TableCell align="center" sx={{ width: "18%" }}>
                                                     Start Date
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                <TableCell align="center" sx={{ width: "18%" }}>
                                                     End Date
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                <TableCell align="center" sx={{ width: "18%" }}>
                                                     Duration
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
-                                                    Status
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>
-                                                    Action
-                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }} />
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {trainings.length > 0 ? (
-                                                trainings.map((training, index) => {
-                                                    return (
-                                                        <TableRow
-                                                            key={training.id}
-                                                            sx={{
-                                                                p: 1,
-                                                                backgroundColor:
-                                                                    index % 2 === 0
-                                                                        ? "#f8f8f8"
-                                                                        : "#ffffff",
-                                                            }}
-                                                        >
-                                                            <TableCell align="center">{training.title}</TableCell>
-                                                            <TableCell align="center">{training.created_at}</TableCell>
-                                                            <TableCell align="center">{training.start_date}</TableCell>
-                                                            <TableCell align="center">{training.end_date}</TableCell>
-                                                            <TableCell align="center"> - </TableCell>
-                                                            <TableCell align="center">{training.status}</TableCell>
-                                                            <TableCell align="center"> ... </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                }
+                                                trainings.map((training, index) => (
+                                                    <TableRow
+                                                        key={training.id}
+                                                        sx={{
+                                                            p: 1,
+                                                            backgroundColor:
+                                                                index % 2 === 0
+                                                                    ? "#f8f8f8"
+                                                                    : "#ffffff",
+                                                        }}
+                                                    >
+                                                        <TableCell align="center">
+                                                            {training.title.length > 40
+                                                                ? (`${training.title.slice(0, 37)}...`)
+                                                                : training.title}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {dayjs(training.created_at).format('MMM DD, YYYY h:mm A')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {dayjs(training.start_date).format('MMM DD, YYYY h:mm A')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {dayjs(training.end_date).format('MMM DD, YYYY h:mm A')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {getDuration(training.duration)}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            <Tooltip title="Edit Training">
+                                                                <IconButton
+                                                                    size='small'
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        console.log(`Editing Training ${training.id}`);
+                                                                    }}>
+                                                                    <Edit />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
                                                 )
                                             ) : <TableRow>
-                                                <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1, }}>
                                                     No Trainings Found
                                                 </TableCell>
                                             </TableRow>}

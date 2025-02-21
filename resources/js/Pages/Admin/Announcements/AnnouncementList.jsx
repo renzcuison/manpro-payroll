@@ -216,11 +216,11 @@ const AnnouncementList = () => {
                                                                         : announcements.title}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm a')}
+                                                                    {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm A')}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {announcements.published
-                                                                        ? dayjs(announcements.published).format('MMM DD, YYYY h:mm a')
+                                                                        ? dayjs(announcements.published).format('MMM DD, YYYY h:mm A')
                                                                         : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
