@@ -21,6 +21,7 @@ class TrainingsModel extends Model
         'status',
         'start_date',
         'end_date',
+        'duration',
     ];
 
 
