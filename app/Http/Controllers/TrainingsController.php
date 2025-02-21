@@ -8,6 +8,7 @@ use App\Models\TrainingCoursesModel;
 use App\Models\TrainingsVideoModel;
 use App\Models\TrainingCViewsModel;
 use App\Models\TrainingImagesModel;
+use App\Models\TrainingVideoModel;
 use App\Models\TrainingViewsModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -73,50 +74,36 @@ class TrainingsController extends Controller
 
                 $dateTime = now()->format('YmdHis');
 
-                //COVER PATH FUNCTION
-                // if ($request->hasFile('cover_photo')) {
-                //     $file = $request->file('cover_photo');
-                //     $coverPath = $file->store('trainings/covers', 'public');
-                // }
-
-                /*
-                const formData = new FormData();
-                formData.append("course", course);
-                formData.append("title", title);
-                formData.append("description", description);
-                formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
-                formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
-                formData.append("cover_image", coverImage);
-                if (links.length > 0) {
-                    links.forEach(link => {
-                        formData.append('link[]', link);
-                    });
+                if ($request->hasFile('cover_image')) {
+                    $cover = $request->file('cover_image');
+                    $coverName = pathinfo($cover->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $cover->getClientOriginalExtension();
+                    $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
                 }
-                if (image.length > 0) {
-                    image.forEach(file => {
-                        formData.append('image[]', file);
-                    });
-                }
-
-                */
 
                 $training = TrainingsModel::create([
                     'training_course_id' => $request->input('course'),
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'cover_photo' => null, //$coverPath
+                    'cover_photo' => $coverPath,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'client_id' => $user->client_id,
                     'created_by' => $user->id,
                 ]);
 
+                foreach ($request->input('link') as $link) {
+                    TrainingVideoModel::create([
+                        'training_id' => $training->id,
+                        'url' => $link
+                    ]);
+                }
+
                 if ($request->hasFile('image')) {
                     foreach ($request->file('image') as $index => $file) {
                         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('trainings/images', $fileName, 'public');
                         TrainingImagesModel::create([
-                            'application_id' => $training->id,
+                            'training_id' => $training->id,
                             'order' => $index + 1,
                             'path' => $filePath,
                         ]);
@@ -133,7 +120,8 @@ class TrainingsController extends Controller
         }
     }
 
-    public function updateTraining(Request $request, $id)
+    // Update for Readability
+    public function updateTraining(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
@@ -145,7 +133,7 @@ class TrainingsController extends Controller
 
         try {
             $user = Auth::user();
-            $training = TrainingsModel::where('id', $id)->where('client_id', $user->client_id)->first();
+            $training = TrainingsModel::where('id', $request->input('id'))->where('client_id', $user->client_id)->first();
 
             if (!$training) {
                 return response()->json(['status' => 404, 'message' => 'Training not found']);
@@ -166,67 +154,69 @@ class TrainingsController extends Controller
         }
     }
 
-    public function deleteTraining($id)
-    {
-        $training = TrainingsModel::find($id);
-
-        if (!$training) {
-            return response()->json(['status' => 404, 'message' => 'Training not found']);
-        }
-
-        try {
-            DB::beginTransaction();
-            $training->delete();
-            DB::commit();
-            return response()->json(['status' => 200, 'message' => 'Training deleted successfully']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Error deleting training: " . $e->getMessage());
-            return response()->json(['status' => 500, 'message' => 'Error deleting training']);
-        }
-    }
-
-    public function trackTrainingView($trainingId)
+    public function deleteTraining(Request $request)
     {
         $user = Auth::user();
 
-        // Check if training exists
-        $training = TrainingsModel::find($trainingId);
-        if (!$training) {
-            return response()->json(['status' => 404, 'message' => 'Training not found'], 404);
+        if ($this->checkUser()) {
+            $training = TrainingsModel::find($request->input('id'));
+
+            try {
+                DB::beginTransaction();
+                $training->delete();
+                DB::commit();
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                throw $e;
+            }
         }
-
-        // Check if the user already viewed this training
-        $existingView = TrainingViewsModel::where('user_id', $user->id)
-            ->where('training_id', $trainingId)
-            ->first();
-
-        if ($existingView) {
-            // Update timestamp (updated_at)
-            $existingView->touch();
-        } else {
-            // Create new view record
-            TrainingViewsModel::create([
-                'user_id' => $user->id,
-                'training_id' => $trainingId,
-            ]);
-        }
-
-        return response()->json(['status' => 200, 'message' => 'Training view recorded']);
     }
 
-    public function getTrainingViews($trainingId)
+    //Admin Only, Simplify Code, if Not Admin, Return 'views' = null, not 401
+    public function getTrainingViews(Request $request)
     {
-        $training = TrainingsModel::find($trainingId);
+        $training = TrainingsModel::find($request->input('id'));
 
         if (!$training) {
             return response()->json(['status' => 404, 'message' => 'Training not found'], 404);
         }
 
-        $views = TrainingViewsModel::where('training_id', $trainingId)
+        $views = TrainingViewsModel::where('training_id', $request->input('id'))
             ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json(['status' => 200, 'views' => $views]);
     }
+
+    /*
+    getTrainingMedia
+
+    Request $request - only input is id
+    get All Training Videos and Training Images by id
+
+    $trainingvideo->training_id  and $trainingvideo->training_id must match with id (query)
+    
+    Training Videos must be Str Array, Training Images must be Base 64 Array
+
+    return 'status', 'training_videos', 'training_images'
+    */
+
+    /*
+    getMyTrainings
+
+    - getTrainings by client_id and status "Published"
+    
+    return status, trainings
+    */
+
+    /*
+    getTrainingCovers
+
+    - get Cover Images based on the list of visible trainings in Employee Page
+    - Return Base 64 Array
+    - use getThumbnails in AnnouncementController as Reference
+
+    */
 }
