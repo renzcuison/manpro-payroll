@@ -45,13 +45,19 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [payroll, setPayroll] = useState([]);
+    const [employee, setEmployee] = useState([]);
+    const [benefits, setBenefits] = useState([]);
+    const [summaries, setSummaries] = useState([]);
+
+    const [earnings, setEarnings] = useState([]);
+    const [deductions, setDeductions] = useState([]);
 
     useEffect(() => {
 
-        console.log("================================");
-        console.log("selectedPayroll    : " + selectedPayroll);
-        console.log("currentStartDate   : " + currentStartDate);
-        console.log("currentEndDate     : " + currentEndDate);
+        // console.log("================================");
+        // console.log("selectedPayroll    : " + selectedPayroll);
+        // console.log("currentStartDate   : " + currentStartDate);
+        // console.log("currentEndDate     : " + currentEndDate);
 
         const data = {
             selectedPayroll: selectedPayroll,
@@ -61,14 +67,33 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
         axiosInstance.get(`/payroll/payrollDetails`, { params: data, headers })
             .then((response) => {
-                console.log(response);
                 setPayroll(response.data.payroll);
+                setBenefits(response.data.benefits);
+                setSummaries(response.data.summaries);
+
+                setEarnings(response.data.earnings);
+                setDeductions(response.data.deductions);
+                
+                getEmployeeData(response.data.payroll.employeeId);
             })
             .catch((error) => {
                 console.error('Error fetching payroll details:', error);
             });
 
     }, []);
+
+    const getEmployeeData = (employeeId) => {
+        const data = { username: employeeId };
+
+        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    setEmployee(response.data.employee);
+                }
+            }).catch((error) => {
+                console.error('Error fetching employee:', error);
+            });
+    };
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -82,59 +107,112 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="lg" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '1200px', maxWidth: '1500px', marginBottom: '5%' }}}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                <DialogTitle sx={{ padding: 4 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Employee Payslip </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                <DialogContent sx={{ px: 5, pb: 5 }}>
+                    <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <Box display="flex" flexDirection="column" alignItems="center" sx={{ marginTop: '20px' }}>
+                        <Box display="flex" flexDirection="column" alignItems="center" sx={{ mt: 1 }}>
                             <Box component="div"sx={{backgroundImage: `url(${HomeLogo})`,backgroundSize: 'contain',backgroundRepeat: 'no-repeat',backgroundPosition: 'center', height: 105, width: 300}} />
-                            <Typography sx={{ marginTop: '5px', marginBottom: '20px' }}> Online Payslip </Typography>
-                            <Typography sx={{ marginTop: '5px', marginBottom: '20px' }}> Pay Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)}</Typography>
+                            <Typography sx={{ marginTop: '5px' }}> Online Payslip </Typography>
+                            <Typography sx={{ marginTop: '5px' }}> Pay Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)}</Typography>
                         </Box>
 
-                        <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                <TableHead>
-                                <TableRow>
-                                    <TableCell>Dessert (100g serving)</TableCell>
-                                    <TableCell align="right">Calories</TableCell>
-                                    <TableCell align="right">Fat&nbsp;(g)</TableCell>
-                                    <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-                                    <TableCell align="right">Protein&nbsp;(g)</TableCell>
-                                </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                {/* {rows.map((row) => (
-                                    <TableRow
-                                    key={row.name}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    >
-                                    <TableCell component="th" scope="row">
-                                        {row.name}
-                                    </TableCell>
-                                    <TableCell align="right">{row.calories}</TableCell>
-                                    <TableCell align="right">{row.fat}</TableCell>
-                                    <TableCell align="right">{row.carbs}</TableCell>
-                                    <TableCell align="right">{row.protein}</TableCell>
-                                    </TableRow>
-                                ))} */}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        <Grid container spacing={4} sx={{ px: 8 }}>
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Earnings</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Amount</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {earnings.map((earning) => (
+                                                <TableRow key={earning.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{earning.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
 
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
-                            </Button>
-                        </Box>
+                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Deductions</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Amount</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {deductions.map((deduction) => (
+                                                <TableRow key={deduction.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {deductions ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
 
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Benefits</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Employer Share</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Employee Share</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {benefits.map((benefit) => (
+                                                <TableRow key={benefit.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{benefit.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employerAmount) : "Loading..."}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+
+                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Summary</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {summaries.map((summary) => (
+                                                <TableRow key={summary.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{summary.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {summaries ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(summary.amount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
                     </Box>
+
+                    <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
+                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
+                        </Button>
+                    </Box>
+
                 </DialogContent>
             </Dialog >
         </>
