@@ -85,13 +85,12 @@ class ApplicationsController extends Controller
 
         $user = Auth::user();
         $clientId = $user->client_id;
-        
+
         $applications = ApplicationsModel::where('client_id', $clientId)
-                                 ->where('user_id', $user->id)
-                                 ->get();
-        
+            ->where('user_id', $user->id)
+            ->get();
+
         return response()->json(['status' => 200, 'applications' => $applications]);
-        
     }
 
     public function getDashboardApplications()
@@ -119,7 +118,6 @@ class ApplicationsController extends Controller
         }
 
         return response()->json(['status' => 200, 'applications' => $applications]);
-
     }
 
     public function getApplicationTypes()
@@ -142,13 +140,13 @@ class ApplicationsController extends Controller
         //Log::info("ApplicationsController::getTenureship");
 
         $user = Auth::user();
-        
+
         $startDate = Carbon::parse($user->date_start);
-        
+
         $currentDate = Carbon::now();
-        
+
         $tenureshipMonths = $startDate->diffInMonths($currentDate);
-        
+
         return response()->json(['status' => 200, 'tenureship' => $tenureshipMonths]);
     }
 
@@ -175,8 +173,8 @@ class ApplicationsController extends Controller
 
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
-                foreach ($request->file('attachment') as $file){
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                foreach ($request->file('attachment') as $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -188,8 +186,8 @@ class ApplicationsController extends Controller
 
             // Adding Files - Images
             if ($request->hasFile('image')) {
-                foreach ($request->file('image') as $index => $file){
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                foreach ($request->file('image') as $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -198,11 +196,10 @@ class ApplicationsController extends Controller
                     ]);
                 }
             }
-            
-            DB::commit();
-            
-            return response()->json([ 'status' => 200 ]);
 
+            DB::commit();
+
+            return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -210,7 +207,6 @@ class ApplicationsController extends Controller
 
             throw $e;
         }
-            
     }
 
     public function editApplication(Request $request)
@@ -231,15 +227,15 @@ class ApplicationsController extends Controller
             $application->save();
 
             // Remove Files
-            $deleteFiles = array_merge($request->input('deleteImages'),$request->input('deleteAttachments'));
+            $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
             ApplicationFilesModel::whereIn('id', $deleteFiles)->delete();
 
             $dateTime = now()->format('YmdHis');
 
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
-                foreach ($request->file('attachment') as $file){
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                foreach ($request->file('attachment') as $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -251,8 +247,8 @@ class ApplicationsController extends Controller
 
             // Adding Files - Images
             if ($request->hasFile('image')) {
-                foreach ($request->file('image') as $index => $file){
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                foreach ($request->file('image') as $index => $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
                     ApplicationFilesModel::create([
                         'application_id' => $application->id,
@@ -263,7 +259,6 @@ class ApplicationsController extends Controller
             }
 
             DB::commit();
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -274,7 +269,7 @@ class ApplicationsController extends Controller
     }
 
     public function cancelApplication($id)
-    {   
+    {
         //Log::info("ApplicationsController::cancelApplication");
 
         $application = ApplicationsModel::find($id);
@@ -296,7 +291,7 @@ class ApplicationsController extends Controller
     }
 
     public function manageApplication(Request $request)
-    {   
+    {
         //Log::info("ApplicationsController::manageApplication");
         $user = Auth::user();
 
@@ -314,7 +309,7 @@ class ApplicationsController extends Controller
             $empId = $request->input('app_emp_id');
             $appTypeId = $request->input('app_type_id');
 
-            switch($request->input('app_response')) {
+            switch ($request->input('app_response')) {
                 case 'Approve':
                     $this->deductLeaveCredits($startDate, $endDate, $empId, $appTypeId);
                     $application->status = "Approved";
@@ -326,34 +321,32 @@ class ApplicationsController extends Controller
                     break;
             }
             $application->save();
-            
+
             return response()->json(['status' => 200, 'message' => $message], 200);
         } else {
             return response()->json(['status' => 200, 'message' => null], 200);
         }
-
     }
 
     public function getApplicationFiles($id)
     {
         //Log::info("AnnouncementsController::getFileNames");
         $user = Auth::user();
-        
+
         $files = ApplicationFilesModel::where('application_id', $id)
-                ->select('id', 'path', 'type')
-                ->get();
+            ->select('id', 'path', 'type')
+            ->get();
 
-                $filenames = [];
-                foreach($files as $file){
-                    $filenames[] = [
-                        'id' => $file->id,
-                        'filename' => basename($file->path),
-                        'type' => $file->type
-                    ];
-                }
+        $filenames = [];
+        foreach ($files as $file) {
+            $filenames[] = [
+                'id' => $file->id,
+                'filename' => basename($file->path),
+                'type' => $file->type
+            ];
+        }
 
-            return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
-        
+        return response()->json(['status' => 200, 'filenames' => $filenames ? $filenames : null]);
     }
 
     public function downloadAttachment($id)
@@ -384,12 +377,12 @@ class ApplicationsController extends Controller
         $clientId = $user->client_id;
 
         $leaves = LeaveCreditsModel::where('client_id', $clientId)
-                                 ->where('user_id', $id)
-                                 ->get();
+            ->where('user_id', $id)
+            ->get();
 
         $leaveCredits = [];
 
-        foreach($leaves as $leave) {
+        foreach ($leaves as $leave) {
             $app_type = $leave->type;
 
             $leaveCredits[] = [
@@ -404,7 +397,6 @@ class ApplicationsController extends Controller
         }
 
         return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
-
     }
 
     public function saveLeaveCredits(Request $request)
@@ -412,10 +404,10 @@ class ApplicationsController extends Controller
         //Log::info("ApplicationsController::saveLeaveCredits");
         $user = Auth::user();
 
-        if($this->checkUser()){
+        if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
-    
+
                 LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
                     'user_id' => $request->input('emp_id'),
@@ -423,16 +415,15 @@ class ApplicationsController extends Controller
                     'number' => $request->input('credit_count'),
                     'used' => 0
                 ]);
-                
+
                 DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
-    
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-    
+
                 //Log::error("Error saving: " . $e->getMessage());
-    
+
                 throw $e;
             }
         }
@@ -443,15 +434,14 @@ class ApplicationsController extends Controller
         //Log::info("ApplicationsController::editLeaveCredits");
         $user = Auth::user();
 
-        if($this->checkUser()){
+        if ($this->checkUser()) {
             try {
-    
+
                 $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
                 $leaveCredit->number  = $request->input('credit_count');
                 $leaveCredit->save();
-                
-                return response()->json([ 'status' => 200 ]);
-    
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 //Log::error("Error saving: " . $e->getMessage());
                 throw $e;
@@ -461,7 +451,7 @@ class ApplicationsController extends Controller
 
     public function deductLeaveCredits(Carbon $startDate, Carbon $endDate, $empId, $appTypeId)
     {
-        if($this->checkUser()){
+        if ($this->checkUser()) {
             $dayCount = $this->getNumberOfDays($startDate, $endDate);
 
             $numberOfDays = $dayCount['numberOfDays'];
@@ -472,8 +462,8 @@ class ApplicationsController extends Controller
             $creditCount = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
 
             $leaveInfo = LeaveCreditsModel::where('user_id', $empId)
-                                    ->where('application_type_id', $appTypeId)
-                                    ->first();
+                ->where('application_type_id', $appTypeId)
+                ->first();
             $leaveInfo->used = $leaveInfo->used + $creditCount;
             $leaveInfo->save();
         }
@@ -482,18 +472,18 @@ class ApplicationsController extends Controller
     public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
     {
         //Log::info("ApplicationsController::getNumberOfDays");
-    
+
         // Initialize counters
         $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
         $numberOfSaturday = 0;
         $numberOfSunday = 0;
         $numberOfHoliday = 0;
-    
+
         // Fetch Philippine holidays from Nager.Date API
         $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-    
+
         $currentDate = $startDate->copy();
-    
+
         while ($currentDate <= $endDate) {
             // Check for Saturday or Sunday
             if ($currentDate->isSaturday()) {
@@ -501,17 +491,17 @@ class ApplicationsController extends Controller
             } elseif ($currentDate->isSunday()) {
                 $numberOfSunday++;
             }
-    
+
             // Check if it's a holiday
             $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
             if (in_array($holidayDate, $holidays)) {
                 $numberOfHoliday++;
             }
-    
+
             // Move to the next day
             $currentDate->addDay();
         }
-    
+
         // Return the results
         return [
             'numberOfDays' => $numberOfDays,
@@ -527,19 +517,19 @@ class ApplicationsController extends Controller
 
         $holidays = [];
         $countryCode = 'PH';
-    
+
         // Fetch holidays for each year in the range
         for ($year = $startYear; $year <= $endYear; $year++) {
             $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
-    
+
             $response = Http::get($url);
-    
+
             if ($response->successful()) {
                 $data = $response->json();
-    
+
                 // Log the API response for debugging
                 //Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
-    
+
                 // Ensure $data is an array before iterating
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
@@ -553,7 +543,7 @@ class ApplicationsController extends Controller
                 Log::error($response->body());
             }
         }
-    
+
         return $holidays;
     }
 
@@ -600,17 +590,17 @@ class ApplicationsController extends Controller
         $department = $user->department;
         $deptId = $department->id;
         $deptLimit = $department->leave_limit;
-        
+
         $branch = $user->branch;
         $branchId = $branch->id;
         $branchLimit = $branch->leave_limit;
 
         $deptFullDates = $this->getFullDayCount("department_id", $deptId, $deptLimit); // Gets Department Capped Dates
         $branchFullDates = $this->getFullDayCount("branch_id", $branchId, $branchLimit); // Gets Branch Capped Dates
-        
+
         $fullDates = array_values(array_unique(array_merge($deptFullDates, $branchFullDates)));
-        
-        return response() ->json(['status' => 200, 'fullDates' => $fullDates]);
+
+        return response()->json(['status' => 200, 'fullDates' => $fullDates]);
     }
 
     public function getFullDayCount(String $column, $id, $limit)
@@ -618,23 +608,23 @@ class ApplicationsController extends Controller
         // Log::info("ApplicationsController::getFullDayCount");
 
         $date = Carbon::now();
-        $applications = ApplicationsModel::whereHas('user', function($query) use ($column, $id) {
-                    $query->where($column, $id);
-                })
-                ->whereNotIn('status', ['Cancelled', 'Declined'])
-                ->where('duration_start', '>=', $date)
-                ->get();
-        
+        $applications = ApplicationsModel::whereHas('user', function ($query) use ($column, $id) {
+            $query->where($column, $id);
+        })
+            ->whereNotIn('status', ['Cancelled', 'Declined'])
+            ->where('duration_start', '>=', $date)
+            ->get();
+
         $dateCounts = [];
         foreach ($applications as $application) {
             $startDate = Carbon::parse($application->duration_start);
             $endDate = Carbon::parse($application->duration_end);
-        
+
             $currentDate = $startDate;
-        
-            while ($currentDate->lte($endDate)){
+
+            while ($currentDate->lte($endDate)) {
                 $dateKey = $currentDate->toDateString();
-                if (!isset($dateCounts[$dateKey])){
+                if (!isset($dateCounts[$dateKey])) {
                     $dateCounts[$dateKey] = 0;
                 }
                 $dateCounts[$dateKey]++;

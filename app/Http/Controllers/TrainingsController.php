@@ -7,6 +7,7 @@ use App\Models\TrainingCoursesModel;
 
 use App\Models\TrainingsVideoModel;
 use App\Models\TrainingCViewsModel;
+use App\Models\TrainingImagesModel;
 use App\Models\TrainingViewsModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,8 @@ class TrainingsController extends Controller
             try {
                 DB::beginTransaction();
 
+                $dateTime = now()->format('YmdHis');
+
                 //COVER PATH FUNCTION
                 // if ($request->hasFile('cover_photo')) {
                 //     $file = $request->file('cover_photo');
@@ -108,8 +111,17 @@ class TrainingsController extends Controller
                     'created_by' => $user->id,
                 ]);
 
-
-
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $index => $file) {
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('trainings/images', $fileName, 'public');
+                        TrainingImagesModel::create([
+                            'application_id' => $training->id,
+                            'order' => $index + 1,
+                            'path' => $filePath,
+                        ]);
+                    }
+                }
                 DB::commit();
 
                 return response()->json(['status' => 200]);
