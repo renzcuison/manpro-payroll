@@ -34,16 +34,6 @@ const PerformanceEvaluationList = () => {
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
-                        
-                         {
-                        <Link to="/admin/performance-evaluation/add">
-                            <Button variant="contained" color="primary">
-                                <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                            </Button>
-                        </Link>
-                         }
-
-
                         <Button
                             id="performance-evaluation-menu"
                             variant="contained"
