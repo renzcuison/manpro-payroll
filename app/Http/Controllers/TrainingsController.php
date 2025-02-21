@@ -51,6 +51,7 @@ class TrainingsController extends Controller
 
     public function getTrainings()
     {
+        //Log::info("TrainingsController::getTrainings");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -66,8 +67,11 @@ class TrainingsController extends Controller
 
     public function saveTraining(Request $request)
     {
+        //Log::info("TrainingsController::saveTraining");
         $user = Auth::user();
+        Log::info($request);
 
+        /*
         if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
@@ -115,9 +119,15 @@ class TrainingsController extends Controller
             } catch (\Exception $e) {
                 DB::rollBack();
 
+                Log::error("Error saving: " . $e->getMessage());
+
                 throw $e;
             }
+        } else {
+            return response()->json(['status' => 200]);
         }
+        */
+        return response()->json(['status' => 200]);
     }
 
     // Update for Readability
@@ -151,26 +161,6 @@ class TrainingsController extends Controller
             return response()->json(['status' => 200, 'message' => 'Training updated successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => 'Error updating training', 'error' => $e->getMessage()]);
-        }
-    }
-
-    public function deleteTraining(Request $request)
-    {
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            $training = TrainingsModel::find($request->input('id'));
-
-            try {
-                DB::beginTransaction();
-                $training->delete();
-                DB::commit();
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                throw $e;
-            }
         }
     }
 

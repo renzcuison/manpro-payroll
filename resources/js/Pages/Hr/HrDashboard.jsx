@@ -94,12 +94,12 @@ const HrDashboard = () => {
                 setSalaryRange(response.data.salary_range);
             });
 
-        axiosInstance
-            .get(`adminDashboard/getTodaysAttendance`, { headers })
-            .then((response) => {
-                console.log(response.data.attendances);
-                setTodaysAttendance(response.data.attendances);
-            });
+        // axiosInstance
+        //     .get(`adminDashboard/getTodaysAttendance`, { headers })
+        //     .then((response) => {
+        //         console.log(response.data.attendances);
+        //         setTodaysAttendance(response.data.attendances);
+        //     });
     }, []);
 
     // Attendance Pie Chart

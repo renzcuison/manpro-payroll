@@ -6,7 +6,7 @@ use App\Models\UsersModel;
 use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\BranchesModel;
+use App\Models\TrainingsModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -62,8 +62,10 @@ class AdminDashboardController extends Controller
                 ->where('hidden', false)
                 ->count();
 
-            // Get Trainings (TABLE NOT YET ADDED, PLACEHOLDER USED)
-            $counter['training_count'] = 0;
+            // Get Trainings 
+            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)
+                ->where('status', 'Active')
+                ->count();
 
             // Get Average Age with Decimal Precision
             if ($employees->count() > 0) {
@@ -178,7 +180,7 @@ class AdminDashboardController extends Controller
                 ->count();
 
             $salaryRange = [$payRange1, $payRange2, $payRange3, $payRange4, $payRange5];
-            Log::info($salaryRange);
+            //Log::info($salaryRange);
 
             return response()->json([
                 'status' => 200,

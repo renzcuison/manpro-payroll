@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingsModel extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'trainings';
 
@@ -19,6 +18,7 @@ class TrainingsModel extends Model
         'cover_photo',
         'client_id',
         'created_by',
+        'status',
         'start_date',
         'end_date',
     ];
