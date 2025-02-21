@@ -255,6 +255,16 @@ const TrainingsAdd = ({ open, close }) => {
         } else {
             setDescriptionError(false);
         }
+        if (!fromDate) {
+            setFromDateError(true);
+        } else {
+            setFromDateError(false);
+        }
+        if (!toDate) {
+            setToDateError(true);
+        } else {
+            setToDateError(false);
+        }
 
         if (!course || !title || !description || !fromDate || !toDate) {
             document.activeElement.blur();
@@ -417,7 +427,7 @@ const TrainingsAdd = ({ open, close }) => {
                                         error={coverImageError}
                                         onClick={(event) => {
                                             event.stopPropagation();
-                                            document.getElementById('image-upload').click();
+                                            document.getElementById('cover-image-upload').click();
                                         }}
                                         InputProps={{
                                             readOnly: true,
@@ -442,7 +452,7 @@ const TrainingsAdd = ({ open, close }) => {
                                     />
                                     <input
                                         accept=".png, .jpg, .jpeg"
-                                        id="image-upload"
+                                        id="cover-image-upload"
                                         type="file"
                                         name="image"
                                         style={{ display: "none" }}
