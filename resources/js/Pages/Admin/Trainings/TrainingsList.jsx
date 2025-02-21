@@ -29,7 +29,6 @@ const TrainingsList = () => {
     const fetchTrainings = () => {
         axiosInstance.get('/trainings/getTrainings', { headers })
             .then((response) => {
-                console.log(response.data.trainings);
                 setTrainings(response.data.trainings);
                 setIsLoading(false);
             })

@@ -20,7 +20,8 @@ import {
     MenuItem,
     Stack,
     Radio,
-    Checkbox
+    Checkbox,
+    Link
 } from "@mui/material";
 import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -44,7 +45,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const TrainingsAdd = ({ open, close, trainingInfo }) => {
+const TrainingsEdit = ({ open, close, trainingInfo }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -70,9 +71,9 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
     const [links, setLinks] = useState([]);
 
     const [oldLinks, setOldLinks] = useState([]);
-    const [deleteLinks, setDeletedLinks] = useState([]);
+    const [deleteLinks, setDeleteLinks] = useState([]);
     const [oldImages, setOldImages] = useState([]);
-    const [deleteImages, setDeletedImages] = useState([]);
+    const [deleteImages, setDeleteImages] = useState([]);
 
     // Form Errors
     const [courseError, setCourseError] = useState(false);
@@ -111,6 +112,7 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
     useEffect(() => {
         axiosInstance.get(`trainings/getTrainingMedia/${trainingInfo.id}`, { headers })
             .then((response) => {
+                console.log(response.data.links);
                 console.log(response.data.images);
                 setOldLinks(response.data.links);
                 setOldImages(response.data.images);
@@ -254,8 +256,21 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
         }
     };
 
+    const mediaCountError = (message, type) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `${type} Limit Reached!`,
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    }
+
     const checkInput = (event) => {
         event.preventDefault();
+
         if (!course) {
             setCourseError(true);
         } else {
@@ -305,7 +320,7 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveInput(event);                   //saveInput(event);
+                    //saveInput(event);                   //saveInput(event);
                 }
             });
         }
@@ -332,6 +347,20 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
             image.forEach(file => {
                 formData.append('image[]', file);
             });
+        }
+        if (deleteLinks.length > 0) {
+            deleteLinks.forEach(del => {
+                formData.append('deleteLinks[]', del);
+            });
+        } else {
+            formData.append('deleteLinks[]', null);
+        }
+        if (deleteImages.length > 0) {
+            deleteImages.forEach(del => {
+                formData.append('deleteImages[]', del);
+            });
+        } else {
+            formData.append('deleteImages[]', null);
         }
 
         axiosInstance.post("/trainings/saveTraining", formData, { headers })
@@ -366,7 +395,7 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Training </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training </Typography>
                         <IconButton onClick={close}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
@@ -712,6 +741,72 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
                                                 ))}
                                             </Stack>
                                         )}
+                                        {(oldLinks) && (
+                                            <>
+                                                <Stack direction="row" spacing={1}
+                                                    sx={{
+                                                        pt: 1,
+                                                        pr: 1,
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        width: "100%",
+                                                    }}
+                                                >
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Current Links
+                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Remove
+                                                    </Typography>
+                                                </Stack>
+                                                {oldLinks.map((link, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            mt: 1,
+                                                            p: 1,
+                                                            borderRadius: "2px",
+                                                            border: '1px solid',
+                                                            borderColor: deleteLinks.includes(link.id)
+                                                                ? "#f44336"
+                                                                : "#e0e0e0"
+                                                        }}
+                                                    >
+                                                        <Typography variant="body2" noWrap>
+                                                            <Link to={link.url}>
+                                                                {link.url}
+                                                            </Link>
+                                                        </Typography>
+                                                        <Checkbox
+                                                            checked={deleteLinks.includes(link.id)}
+                                                            onChange={() => {
+                                                                const oldLinkCount = oldLinks.length - deleteLinks.length;
+                                                                setDeleteLinks(prevImages => {
+                                                                    if (prevImages.includes(link.id)) {
+                                                                        if (links.length + oldLinkCount == 10) {
+                                                                            mediaCountError("You can only have up to 10 links at a time.", "Link");
+                                                                            return prevImages;
+                                                                        } else {
+                                                                            return prevImages.filter(id => id !== link.id);
+                                                                        }
+                                                                    } else {
+                                                                        return [...prevImages, link.id];
+                                                                    }
+                                                                });
+                                                            }}
+                                                            sx={{
+                                                                '&.Mui-checked': {
+                                                                    color: "#f44336",
+                                                                },
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                ))}
+                                            </>
+                                        )}
                                     </Box>
                                 </FormControl>
                             </Grid>
@@ -831,11 +926,11 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
                                                         <Checkbox
                                                             checked={deleteImages.includes(filename.id)}
                                                             onChange={() => {
-                                                                const oldFileCount = imageFiles.length - deleteImages.length;
+                                                                const oldImageCount = oldImages.length - deleteImages.length;
                                                                 setDeleteImages(prevImages => {
                                                                     if (prevImages.includes(filename.id)) {
-                                                                        if (image.length + oldFileCount == 10) {
-                                                                            fileCountError("You can only have up to 10 images at a time.");
+                                                                        if (image.length + oldImageCount == 20) {
+                                                                            mediaCountError("You can only have up to 20 images at a time.", "Image");
                                                                             return prevImages;
                                                                         } else {
                                                                             return prevImages.filter(id => id !== filename.id);
@@ -887,4 +982,4 @@ const TrainingsAdd = ({ open, close, trainingInfo }) => {
     );
 };
 
-export default TrainingsAdd;
+export default TrainingsEdit;
