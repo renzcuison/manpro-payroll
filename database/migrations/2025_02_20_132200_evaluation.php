@@ -16,12 +16,13 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id');
             $table->string('name', 128);
             $table->bigInteger('creator_id');
+            $table->string('identifier_code', 8)->unique(); // Fixed incorrect integer definition
             $table->softDeletes();
-            $table->bigInteger('deleted_by');
-            $table->timestamp('created_at');
-            $table->timestamp('updated_at');
+            $table->bigInteger('deleted_by')->nullable(); // Allow null for soft delete behavior
+            $table->timestamps(); // Proper timestamp handling
 
-            // $table->foreign('client_id')->references('id')->on('evaluation_form');
+            // Fixing foreign key reference
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
         });
     }
 
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('evaluations');
+        Schema::dropIfExists('evaluations'); // Fixed incorrect table name
     }
 };

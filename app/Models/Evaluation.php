@@ -15,7 +15,6 @@ class Evaluation extends Model
 
     protected $fillable = [
         'client_id',
-        'team',
         'name',
         'creator_id',
         'is_deleted',
