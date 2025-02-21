@@ -271,11 +271,12 @@ class PayrollController extends Controller
             $benefits[] = [ 'name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount ];
         }
 
+        $benefits[] = [ 'name' => "Total", 'employeeAmount' => $employeeShare, 'employerAmount' => $employerShare ];
+
         log::info("================================");
         log::info("Total Employee Share     :" . $employeeShare);
         log::info("Total Employer Share     :" . $employerShare);
         
-        // Getting Logs Data Per Day
         $distinctDays = $logs->groupBy(function ($log) {
             return \Carbon\Carbon::parse($log->timestamp)->toDateString();
         });
@@ -297,10 +298,10 @@ class PayrollController extends Controller
         $perHour = $perDay / 8;
         $perMin = $perHour / 60;
 
-        $deductionsForAbsent = $perDay * $numberOfAbsentDays;
+        $absents = $perDay * $numberOfAbsentDays;
 
         $payroll = [
-            'employeeId' => $employee->id,
+            'employeeId' => $employee->user_name,
             'startDate' => $startDate,
             'endDate' => $endDate,
             'numberOfPresent' => $numberOfPresent,
@@ -315,10 +316,41 @@ class PayrollController extends Controller
             'perDay' => $perDay,
             'perMin' => $perMin,
             'employeeShare' => $employeeShare,
+            'employerShare' => $employerShare,
         ];
 
-        log::info($payroll);
+        $basicPay = $perCutOff;
+        $overTimePay = 0;
+        $holidayPay = 0;
 
-        return response()->json(['status' => 200, 'payroll' => $payroll, 'benefits' => $benefits]);
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay;
+
+        $earnings = [
+            ['name' => 'Basic Pay', 'amount' => $basicPay],
+            ['name' => 'Over Time Pay', 'amount' => $overTimePay],
+            ['name' => 'Holiday Pay', 'amount' => $holidayPay],
+            ['name' => 'Total', 'amount' => $totalEarnings],
+        ];
+
+        $tardiness = 0;
+        $cashAdvance = 0;
+
+        $totalDeductions =  $employeeShare + $absents + $tardiness + $cashAdvance;
+
+        $deductions = [
+            ['name' => 'Benefits', 'amount' => $employeeShare],
+            ['name' => 'Absents', 'amount' => $absents],
+            ['name' => 'Tardiness', 'amount' => $tardiness],
+            ['name' => 'Cash Advance', 'amount' => $cashAdvance],
+            ['name' => 'Total', 'amount' => $totalDeductions],
+        ];
+
+        $summaries = [
+            ['name' => 'Total Earnings', 'amount' => $totalEarnings],
+            ['name' => 'Total Deductions', 'amount' => $totalDeductions],
+            ['name' => 'Net Pay', 'amount' => $totalEarnings - $totalDeductions],
+        ];
+
+        return response()->json(['status' => 200, 'payroll' => $payroll, 'benefits' => $benefits, 'earnings' => $earnings, 'deductions' => $deductions, 'summaries' => $summaries]);
     }
 }

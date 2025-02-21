@@ -356,8 +356,7 @@ const ApplicationForm = ({ open, close }) => {
         let parts = [];
         if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
         if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0)
-            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+        if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
 
         const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
 
@@ -371,66 +370,33 @@ const ApplicationForm = ({ open, close }) => {
                 fullWidth
                 maxWidth="md"
                 PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "700px" },
-                        maxWidth: '800px',
-                        marginBottom: '5%'
-                    }
+                    style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' }
                 }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
-                            {" "}Create Application{" "}
-                        </Typography>
-                        <IconButton onClick={close}>
-                            <i className="si si-close"></i>
-                        </IconButton>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Application </Typography>
+                        <IconButton onClick={close}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
-                    <Box
-                        component="form"
-                        onSubmit={handleApplicationSubmit}
-                        noValidate
-                        autoComplete="off"
-                    >
+                    <Box component="form" onSubmit={handleApplicationSubmit} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12} sx={{ mt: 1 }}>
                                 <FormControl
                                     fullWidth
                                     sx={{
-                                        "& label.Mui-focused": {
-                                            color: "#97a5ba",
-                                        },
+                                        "& label.Mui-focused": { color: "#97a5ba" },
                                         "& .MuiOutlinedInput-root": {
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#97a5ba",
-                                            },
+                                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
                                         },
                                     }}
                                 >
-                                    <TextField
-                                        required
-                                        select
-                                        id="application-type"
-                                        label="Application Type"
-                                        value={appType}
-                                        error={appTypeError}
-                                        onChange={(event) =>
-                                            handleTypeChange(event.target.value)
-                                        }
-                                    >
-                                        {applicationTypes
-                                            .filter(type => tenureship >= type.tenureship_required)
+                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value) } >
+                                        {applicationTypes.filter(type => tenureship >= type.tenureship_required)
                                             .map((type, index) => (
-                                                <MenuItem key={index} value={type.id}>
-                                                    {type.name}
-                                                </MenuItem>
+                                                <MenuItem key={index} value={type.id}> {type.name} </MenuItem>
                                             ))}
                                     </TextField>
                                 </FormControl>
