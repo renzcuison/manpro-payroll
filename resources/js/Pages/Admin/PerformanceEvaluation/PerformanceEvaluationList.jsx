@@ -13,6 +13,19 @@ const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
+
+    
+    // ----- Menu Items
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const open = Boolean(anchorEl);
+    const handleMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -21,12 +34,34 @@ const PerformanceEvaluationList = () => {
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
-
-                        <Link to="admin/performance-evaluation/add">
-                            <Button variant="contained" color="primary">
-                                <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                            </Button>
-                        </Link>
+                        <Button
+                            id="performance-evaluation-menu"
+                            variant="contained"
+                            color="primary"
+                            aria-controls={open ? 'perf-eval-menu' : undefined}
+                            aria-haspopup="true"
+                            aria-expanded={open ? 'true' : undefined}
+                            onClick={handleMenuOpen}
+                        >
+                            <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                        </Button>
+                        <Menu
+                            id="perf-eval-menu"
+                            anchorEl={anchorEl}
+                            open={open}
+                            onClose={handleMenuClose}
+                            MenuListProps={{
+                                'aria-labelledby': 'performance-evaluation-menu',
+                            }}
+                        >
+                            <MenuItem
+                                component={Link}
+                                to="/admin/performance-evaluation/add"
+                                onClick={handleMenuClose}
+                            >
+                                New Form
+                            </MenuItem>
+                        </Menu>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
