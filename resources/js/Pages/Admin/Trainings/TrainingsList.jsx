@@ -21,6 +21,22 @@ const TrainingsList = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [trainings, setTrainings] = useState([]);
 
+    useEffect(() => {
+        fetchTrainings();
+    }, []);
+
+    const fetchTrainings = () => {
+        axiosInstance.get('/trainings/getTrainings', { headers })
+            .then((response) => {
+                setTrainings(response.data.trainings);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching trainings:', error);
+                setIsLoading(false);
+            });
+    }
+
     const [openAddTrainingModal, setOpenAddTrainingModal] = useState(false);
 
     const handleOpenAddTrainingModal = () => {
@@ -28,6 +44,7 @@ const TrainingsList = () => {
     };
     const handleCloseAddTrainingModal = () => {
         setOpenAddTrainingModal(false);
+        fetchTrainings();
     };
 
     return (
@@ -54,19 +71,46 @@ const TrainingsList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}> Title </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}> Date Created </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}> Publish Date </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}> Status </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}> Action </TableCell>
+                                                <TableCell align="center"> Title </TableCell>
+                                                <TableCell align="center"> Created On </TableCell>
+                                                <TableCell align="center"> Start Date </TableCell>
+                                                <TableCell align="center"> End Date </TableCell>
+                                                <TableCell align="center"> Duration </TableCell>
+                                                <TableCell align="center"> Status </TableCell>
+                                                <TableCell align="center"></TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            <TableRow>
+                                            {trainings.length > 0 ? (
+                                                trainings.map((training, index) => {
+                                                    return (
+                                                        <TableRow
+                                                            key={training.id}
+                                                            sx={{
+                                                                p: 1,
+                                                                backgroundColor:
+                                                                    index % 2 === 0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                            }}
+                                                        >
+                                                            <TableCell align="center">{training.title}</TableCell>
+                                                            <TableCell align="center">{training.created_at}</TableCell>
+                                                            <TableCell align="center">{training.start_date}</TableCell>
+                                                            <TableCell align="center">{training.end_date}</TableCell>
+                                                            <TableCell align="center"> - </TableCell>
+                                                            <TableCell align="center">{training.status}</TableCell>
+                                                            <TableCell align="center"> ... </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                }
+                                                )
+                                            ) : <TableRow>
                                                 <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
                                                     No Trainings Found
                                                 </TableCell>
-                                            </TableRow>
+                                            </TableRow>}
+
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

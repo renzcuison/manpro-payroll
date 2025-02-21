@@ -336,7 +336,7 @@ const TrainingsAdd = ({ open, close }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        //close();
+                        close();
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");

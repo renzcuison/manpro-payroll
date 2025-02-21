@@ -37,18 +37,6 @@ class TrainingsController extends Controller
         return false;
     }
 
-    public function getTrainingCourses()
-    {
-        //Log::info("TrainingsController::getTrainingCourses");
-        $user = Auth::user();
-        if ($this->checkUser()) {
-            $courses = TrainingCoursesModel::where('client_id', $user->client_id)->get();
-            return response()->json(['status' => 200, 'courses' => $courses]);
-        } else {
-            return response()->json(['status' => 200, 'courses' => null]);
-        }
-    }
-
     public function getTrainings()
     {
         //Log::info("TrainingsController::getTrainings");
@@ -62,6 +50,18 @@ class TrainingsController extends Controller
             return response()->json(['status' => 200, 'trainings' => $trainings]);
         } else {
             return response()->json(['status' => 200, 'trainings' => null]);
+        }
+    }
+
+    public function getTrainingCourses()
+    {
+        //Log::info("TrainingsController::getTrainingCourses");
+        $user = Auth::user();
+        if ($this->checkUser()) {
+            $courses = TrainingCoursesModel::where('client_id', $user->client_id)->get();
+            return response()->json(['status' => 200, 'courses' => $courses]);
+        } else {
+            return response()->json(['status' => 200, 'courses' => null]);
         }
     }
 
