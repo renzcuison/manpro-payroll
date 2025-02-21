@@ -18,10 +18,10 @@ class CreateTrainingsTable extends Migration
             $table->unsignedBigInteger('training_course_id');
             $table->string('title', 128);
             $table->string('description', 512);
-            $table->string('cover_photo', 256);
+            $table->string('cover_photo', 256)->nullable();
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('created_by');
-            $table->softDeletes();
+            $table->enum('status', ['Pending', 'Active', 'Inactive', 'Hidden'])->default('Pending');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
 
