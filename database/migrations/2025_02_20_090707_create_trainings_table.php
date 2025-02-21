@@ -19,7 +19,6 @@ class CreateTrainingsTable extends Migration
             $table->string('title', 128);
             $table->string('description', 512);
             $table->string('cover_photo', 256);
-            $table->time('duration');
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('created_by');
             $table->softDeletes();

@@ -7,7 +7,7 @@ use App\Models\TrainingCoursesModel;
 
 use App\Models\TrainingsVideoModel;
 use App\Models\TrainingCViewsModel;
-
+use App\Models\TrainingViewsModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,83 +41,83 @@ class TrainingsController extends Controller
         $user = Auth::user();
         if ($this->checkUser()) {
             $courses = TrainingCoursesModel::where('client_id', $user->client_id)->get();
-            //Log::info($courses);
             return response()->json(['status' => 200, 'courses' => $courses]);
+        } else {
+            return response()->json(['status' => 200, 'courses' => null]);
         }
-        return response()->json(['status' => 403, 'message' => 'Unauthorized']);
     }
 
-    public function getMyTrainingCourses()
+    public function getTrainings()
     {
         $user = Auth::user();
 
-        // Ensure client_id exists in the trainings table before using it
-        $query = TrainingsModel::where('user_id', $user->id);
+        if ($this->checkUser()) {
+            if ($this->checkUser()) {
+                $trainings = TrainingsModel::where('client_id', $user->client_id)->get();
+            }
 
-        // Only apply client_id filtering if it exists in the table
-        if (Schema::hasColumn('trainings', 'client_id')) {
-            $query->where('client_id', $user->client_id);
+            return response()->json(['status' => 200, 'trainings' => $trainings]);
+        } else {
+            return response()->json(['status' => 200, 'trainings' => null]);
         }
-
-        $trainings = $query->get();
-
-        if ($trainings->isEmpty()) {
-            return response()->json(['status' => 404, 'message' => 'No trainings found'], 404);
-        }
-
-        return response()->json(['status' => 200, 'trainings' => $trainings]);
-    }
-
-    public function getTrainingById($id)
-    {
-        $user = Auth::user();
-        $training = TrainingsModel::with(['videos', 'views'])
-            ->where('id', $id)
-            ->where('client_id', $user->client_id)
-            ->first();
-
-        if (!$training) {
-            return response()->json(['status' => 404, 'message' => 'Training not found']);
-        }
-
-        return response()->json([
-            'status' => 200,
-            'training' => $training,
-            'videos' => $training->videos,
-            'views_count' => $training->views->count(),
-        ]);
     }
 
     public function saveTraining(Request $request)
     {
         $user = Auth::user();
 
-        try {
-            DB::beginTransaction();
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
 
-            $training = TrainingsModel::create([
-                'training_course_id' => $request->input('training_course_id'),
-                'title' => $request->input('title'),
-                'description' => $request->input('description') ?? "",
-                'cover_photo' => null,
-                'duration' => $request->input('duration'),
-                'client_id' => $user->client_id,
-                'created_by' => $user->id,
-                'start_date' => $request->input('start_date'),
-                'end_date' => $request->input('end_date'),
-            ]);
+                //COVER PATH FUNCTION
+                // if ($request->hasFile('cover_photo')) {
+                //     $file = $request->file('cover_photo');
+                //     $coverPath = $file->store('trainings/covers', 'public');
+                // }
 
-            if ($request->hasFile('cover_photo')) {
-                $file = $request->file('cover_photo');
-                $filePath = $file->store('trainings/covers', 'public');
-                $training->update(['cover_photo' => $filePath]);
+                /*
+                const formData = new FormData();
+                formData.append("course", course);
+                formData.append("title", title);
+                formData.append("description", description);
+                formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
+                formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+                formData.append("cover_image", coverImage);
+                if (links.length > 0) {
+                    links.forEach(link => {
+                        formData.append('link[]', link);
+                    });
+                }
+                if (image.length > 0) {
+                    image.forEach(file => {
+                        formData.append('image[]', file);
+                    });
+                }
+
+                */
+
+                $training = TrainingsModel::create([
+                    'training_course_id' => $request->input('course'),
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'cover_photo' => null, //$coverPath
+                    'start_date' => $request->input('start_date'),
+                    'end_date' => $request->input('end_date'),
+                    'client_id' => $user->client_id,
+                    'created_by' => $user->id,
+                ]);
+
+
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                throw $e;
             }
-
-            DB::commit();
-            return response()->json(['status' => 200, 'message' => 'Training saved successfully']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['status' => 500, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -185,7 +185,7 @@ class TrainingsController extends Controller
         }
 
         // Check if the user already viewed this training
-        $existingView = TrainingView::where('user_id', $user->id)
+        $existingView = TrainingViewsModel::where('user_id', $user->id)
             ->where('training_id', $trainingId)
             ->first();
 
@@ -194,7 +194,7 @@ class TrainingsController extends Controller
             $existingView->touch();
         } else {
             // Create new view record
-            TrainingView::create([
+            TrainingViewsModel::create([
                 'user_id' => $user->id,
                 'training_id' => $trainingId,
             ]);
@@ -211,7 +211,7 @@ class TrainingsController extends Controller
             return response()->json(['status' => 404, 'message' => 'Training not found'], 404);
         }
 
-        $views = TrainingView::where('training_id', $trainingId)
+        $views = TrainingViewsModel::where('training_id', $trainingId)
             ->orderBy('created_at', 'desc')
             ->get();
 

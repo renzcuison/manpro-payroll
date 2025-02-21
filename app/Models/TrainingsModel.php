@@ -17,7 +17,6 @@ class TrainingsModel extends Model
         'title',
         'description',
         'cover_photo',
-        'duration',
         'client_id',
         'created_by',
         'start_date',
@@ -30,7 +29,7 @@ class TrainingsModel extends Model
         return $this->belongsTo(ClientsModel::class, 'client_id');
     }
 
-    public function creator()
+    public function createdBy()
     {
         return $this->belongsTo(UsersModel::class, 'created_by');
     }

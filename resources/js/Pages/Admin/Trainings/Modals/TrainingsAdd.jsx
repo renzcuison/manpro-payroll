@@ -230,16 +230,6 @@ const TrainingsAdd = ({ open, close }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-
-        console.log(course);
-        console.log(title);
-        console.log(coverImage);
-        console.log(fromDate);
-        console.log(toDate);
-        console.log(description);
-        console.log(image);
-        console.log(links);
-
         if (!course) {
             setCourseError(true);
         } else {

@@ -18,6 +18,7 @@ class CreateTrainingCoursesTable extends Migration
             $table->string('name');
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('created_by');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients');
