@@ -34,4 +34,14 @@ class TrainingsModel extends Model
     {
         return $this->belongsTo(UsersModel::class, 'created_by');
     }
+
+    public function videos()
+    {
+        return $this->hasMany(TrainingVideoModel::class, 'training_id');
+    }
+
+    public function views()
+    {
+        return $this->hasMany(TrainingViewsModel::class, 'training_id');
+    }
 }
