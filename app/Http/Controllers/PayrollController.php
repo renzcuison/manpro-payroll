@@ -13,14 +13,14 @@ use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
-use App\Models\BenefitsModel;
+use App\Models\ApplicationsModel;
+use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
 
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
@@ -100,7 +100,7 @@ class PayrollController extends Controller
                 $data = $response->json();
     
                 // Log the API response for debugging
-                Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
+                // Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
     
                 // Ensure $data is an array before iterating
                 if (is_array($data)) {
@@ -246,7 +246,7 @@ class PayrollController extends Controller
 
         foreach ($employeeBenefits as $employeeBenefit) {
 
-            log::info("================================");
+            // log::info("================================");
 
             $benefit = $employeeBenefit->benefit;
 
@@ -260,10 +260,10 @@ class PayrollController extends Controller
                 $employerAmount = $benefit->employer_amount * 1;
             }
 
-            log::info("Type                     :" . $benefit->type);
-            log::info("Name                     :" . $benefit->name);
-            log::info("employeeShare            :" . $employeeAmount);
-            log::info("employerShare            :" . $employerAmount);
+            // log::info("Type                     :" . $benefit->type);
+            // log::info("Name                     :" . $benefit->name);
+            // log::info("employeeShare            :" . $employeeAmount);
+            // log::info("employerShare            :" . $employerAmount);
 
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
@@ -273,9 +273,48 @@ class PayrollController extends Controller
 
         $benefits[] = [ 'name' => "Total", 'employeeAmount' => $employeeShare, 'employerAmount' => $employerShare ];
 
-        log::info("================================");
-        log::info("Total Employee Share     :" . $employeeShare);
-        log::info("Total Employer Share     :" . $employerShare);
+        // log::info("================================");
+        // log::info("Total Employee Share     :" . $employeeShare);
+        // log::info("Total Employer Share     :" . $employerShare);
+
+        $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id')->where('client_id', $employee->client_id)->get();
+
+        log::info($startDate);
+        log::info($endDate);
+
+        foreach ($applicationTypes as $applicationType) {
+            $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
+                ->where('type_id', $applicationType->id)->where('status', "Approved")
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->where(function ($q) use ($startDate, $endDate) {
+                        $q->where('duration_start', '<=', $endDate) // Starts before or within the range
+                        ->where('duration_end', '>=', $startDate); // Ends after or within the range
+                    });
+                })->get();
+
+            log::info($applications);
+        
+            foreach ($applications as $app) {
+                $appStart = \Carbon\Carbon::parse($app->duration_start)->startOfDay(); // Ensure day start
+                $appEnd = \Carbon\Carbon::parse($app->duration_end)->endOfDay(); // Ensure day end
+                $start = \Carbon\Carbon::parse($startDate);
+                $end = \Carbon\Carbon::parse($endDate);
+        
+                // Calculate the actual overlapping period
+                $overlapStart = max($appStart, $start);
+                $overlapEnd = min($appEnd, $end);
+        
+                // Get the number of days
+                $days = $overlapStart->diffInDays($overlapEnd) + 1;
+        
+                log::info("Application ID: {$app->id}, Overlapping Days: {$days}");
+            }
+        }
+        
+
+
+
+
         
         $distinctDays = $logs->groupBy(function ($log) {
             return \Carbon\Carbon::parse($log->timestamp)->toDateString();
