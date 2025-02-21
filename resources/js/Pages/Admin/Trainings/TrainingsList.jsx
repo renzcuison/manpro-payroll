@@ -71,13 +71,27 @@ const TrainingsList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center"> Title </TableCell>
-                                                <TableCell align="center"> Created On </TableCell>
-                                                <TableCell align="center"> Start Date </TableCell>
-                                                <TableCell align="center"> End Date </TableCell>
-                                                <TableCell align="center"> Duration </TableCell>
-                                                <TableCell align="center"> Status </TableCell>
-                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Title
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Created On
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Start Date
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    End Date
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Duration
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Status
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}>
+                                                    Action
+                                                </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -106,7 +120,7 @@ const TrainingsList = () => {
                                                 }
                                                 )
                                             ) : <TableRow>
-                                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
+                                                <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1, }}>
                                                     No Trainings Found
                                                 </TableCell>
                                             </TableRow>}

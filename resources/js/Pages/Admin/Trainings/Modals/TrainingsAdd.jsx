@@ -55,7 +55,10 @@ const TrainingsAdd = ({ open, close }) => {
 
     const [startDate, setFromDate] = useState(dayjs());
     const [endDate, setToDate] = useState(dayjs());
-    const [trainingDuration, setTrainingDuration] = useState("");
+
+    const [trainingDuration, setTrainingDuration] = useState(0);
+    const [trainingMinutes, setTrainingMinutes] = useState(0);
+    const [trainingHours, setTrainingHours] = useState(0);
 
     const [description, setDescription] = useState("");
     const [image, setImage] = useState([]);
@@ -88,24 +91,14 @@ const TrainingsAdd = ({ open, close }) => {
 
     }, []);
 
-    // Duration Calculation
+    // Training Duration
     useEffect(() => {
-        const duration = dayjs.duration(endDate.diff(startDate));
+        const trainingHoursNumber = parseInt(trainingHours) || 0;
+        const trainingMinutesNumber = parseInt(trainingMinutes) || 0;
 
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0)
-            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
-        setTrainingDuration(durationInfo);
-    }, [startDate, endDate]);
+        const duration = (trainingHoursNumber * 60) + trainingMinutesNumber;
+        setTrainingDuration(duration);
+    }, [trainingHours, trainingMinutes]);
 
     // Image Handlers
     const handleImageUpload = (input) => {
@@ -308,6 +301,7 @@ const TrainingsAdd = ({ open, close }) => {
         formData.append("description", description);
         formData.append("start_date", startDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("end_date", endDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("duration", trainingDuration);
         formData.append("cover_image", coverImage);
         if (links.length > 0) {
             links.forEach(link => {
@@ -319,8 +313,6 @@ const TrainingsAdd = ({ open, close }) => {
                 formData.append('image[]', file);
             });
         }
-
-        console.log(formData);
 
         axiosInstance.post("/trainings/saveTraining", formData, { headers })
             .then((response) => {
@@ -509,18 +501,80 @@ const TrainingsAdd = ({ open, close }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* Duration */}
-                            <Grid item xs={4}>
-                                <FormControl fullWidth>
-                                    <TextField
-                                        label="Duration"
-                                        value={trainingDuration}
-                                        InputProps={{ readOnly: true }}
-                                    ></TextField>
-                                </FormControl>
+                            <Grid item container xs={4} spacing={1}>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            type="number"
+                                            label="Duration"
+                                            value={trainingHours}
+                                            onChange={(event) => {
+                                                if (event.target.value) {
+                                                    setTrainingHours(event.target.value)
+                                                } else {
+                                                    setTrainingHours(0);
+                                                }
+
+                                            }}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Hr
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                ),
+                                                inputProps: {
+                                                    min: 0,
+                                                },
+                                            }}
+                                            inputProps={{
+                                                pattern: '[0-9]*',
+                                                inputMode: 'numeric',
+                                            }}
+                                        />
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            type="number"
+                                            value={trainingMinutes}
+                                            onChange={(event) => {
+                                                if (event.target.value) {
+                                                    if (event.target.value > 59) {
+                                                        setTrainingMinutes(59);
+                                                    } else {
+                                                        setTrainingMinutes(event.target.value)
+                                                    }
+                                                } else {
+                                                    setTrainingMinutes(0);
+                                                }
+                                            }}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Min
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                ),
+                                                inputProps: {
+                                                    min: 0,
+                                                    max: 59,
+                                                },
+                                            }}
+                                            inputProps={{
+                                                pattern: '[0-9]*',
+                                                inputMode: 'numeric',
+                                            }}
+                                        />
+                                    </FormControl>
+                                </Grid>
                             </Grid>
                             {/* Description Field */}
                             <Grid item xs={12}>
-                                <FormControl error={descriptionError} sx={{ width: '100%' }}>
+                                <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
                                             id='description'

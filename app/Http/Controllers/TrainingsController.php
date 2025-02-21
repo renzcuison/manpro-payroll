@@ -91,6 +91,7 @@ class TrainingsController extends Controller
                     'cover_photo' => $coverPath,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
+                    'duration' => $request->input('duration'),
                     'client_id' => $user->client_id,
                     'created_by' => $user->id,
                 ]);
@@ -130,7 +131,7 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    // Update for Readability
+    // Needs Update
     public function updateTraining(Request $request)
     {
         $request->validate([
@@ -164,7 +165,7 @@ class TrainingsController extends Controller
         }
     }
 
-    //Admin Only, Simplify Code, if Not Admin, Return 'views' = null, not 401
+    // Needs Update
     public function getTrainingViews(Request $request)
     {
         $training = TrainingsModel::find($request->input('id'));
