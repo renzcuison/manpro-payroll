@@ -131,54 +131,30 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    // Needs Update
-    public function updateTraining(Request $request)
+    public function getTrainingMedia($id)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'cover_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        //Log::info("TrainingsController::getTrainingMedia");
+        $user = Auth::user();
 
-        try {
-            $user = Auth::user();
-            $training = TrainingsModel::where('id', $request->input('id'))->where('client_id', $user->client_id)->first();
-
-            if (!$training) {
-                return response()->json(['status' => 404, 'message' => 'Training not found']);
-            }
-
-            if ($request->hasFile('cover_photo')) {
-                if ($training->cover_photo) {
-                    Storage::disk('public')->delete($training->cover_photo);
-                }
-                $training->cover_photo = $request->file('cover_photo')->store('trainings/covers', 'public');
-            }
-
-            $training->update($request->only(['title', 'description', 'start_date', 'end_date']));
-
-            return response()->json(['status' => 200, 'message' => 'Training updated successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 500, 'message' => 'Error updating training', 'error' => $e->getMessage()]);
-        }
-    }
-
-    // Needs Update
-    public function getTrainingViews(Request $request)
-    {
-        $training = TrainingsModel::find($request->input('id'));
-
-        if (!$training) {
-            return response()->json(['status' => 404, 'message' => 'Training not found'], 404);
-        }
-
-        $views = TrainingViewsModel::where('training_id', $request->input('id'))
-            ->orderBy('created_at', 'desc')
+        $links = TrainingVideoModel::where('training_id', $id)
+            ->select('id', 'url')
             ->get();
 
-        return response()->json(['status' => 200, 'views' => $views]);
+        $files = TrainingImagesModel::where('training_id', $id)
+            ->select('id', 'order', 'path')
+            ->orderBy('order', 'asc')
+            ->get();
+
+        $images = [];
+        foreach ($files as $file) {
+            $images[] = [
+                'id' => $file->id,
+                'order' => $file->order,
+                'filename' => basename($file->path),
+            ];
+        }
+
+        return response()->json(['status' => 200, 'links' => $links, 'images' => $images ? $images : null]);
     }
 
     /*

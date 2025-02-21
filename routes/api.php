@@ -222,6 +222,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('trainings')->group(function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
         Route::get('/getTrainingCourses', [TrainingsController::class, 'getTrainingCourses']);
+        Route::get('/getTrainingMedia/{id}', [TrainingsController::class, 'getTrainingMedia']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);
     });

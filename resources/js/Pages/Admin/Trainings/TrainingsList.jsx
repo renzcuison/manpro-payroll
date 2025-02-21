@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import dayjs from "dayjs";
 
 import TrainingsAdd from './Modals/TrainingsAdd';
+import TrainingsEdit from './Modals/TrainingsEdit';
 
 const TrainingsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -28,6 +29,7 @@ const TrainingsList = () => {
     const fetchTrainings = () => {
         axiosInstance.get('/trainings/getTrainings', { headers })
             .then((response) => {
+                console.log(response.data.trainings);
                 setTrainings(response.data.trainings);
                 setIsLoading(false);
             })
@@ -36,16 +38,6 @@ const TrainingsList = () => {
                 setIsLoading(false);
             });
     }
-
-    const [openAddTrainingModal, setOpenAddTrainingModal] = useState(false);
-
-    const handleOpenAddTrainingModal = () => {
-        setOpenAddTrainingModal(true);
-    };
-    const handleCloseAddTrainingModal = () => {
-        setOpenAddTrainingModal(false);
-        fetchTrainings();
-    };
 
     const getDuration = (duration) => {
         const trainingDuration = duration || 0;
@@ -70,6 +62,25 @@ const TrainingsList = () => {
         return actualDuration;
     }
 
+    // Add Training Modal
+    const [openAddTrainingModal, setOpenAddTrainingModal] = useState(false);
+    const handleOpenAddTrainingModal = () => {
+        setOpenAddTrainingModal(true);
+    };
+    const handleCloseAddTrainingModal = () => {
+        setOpenAddTrainingModal(false);
+        fetchTrainings();
+    };
+
+    // Edit Training Modal
+    const [openEditTrainingModal, setOpenEditTrainingModal] = useState(false);
+    const handleOpenEditTrainingModal = (training) => {
+        setOpenEditTrainingModal(training);
+    };
+    const handleCloseEditTrainingModal = () => {
+        setOpenEditTrainingModal(false);
+        fetchTrainings();
+    };
 
     return (
         <Layout title={"TrainingsList"}>
@@ -149,7 +160,7 @@ const TrainingsList = () => {
                                                                     size='small'
                                                                     onClick={(event) => {
                                                                         event.stopPropagation();
-                                                                        console.log(`Editing Training ${training.id}`);
+                                                                        handleOpenEditTrainingModal(training);
                                                                     }}>
                                                                     <Edit />
                                                                 </IconButton>
@@ -175,6 +186,13 @@ const TrainingsList = () => {
 
             {openAddTrainingModal && (
                 <TrainingsAdd open={openAddTrainingModal} close={handleCloseAddTrainingModal} />
+            )}
+            {openEditTrainingModal && (
+                <TrainingsEdit
+                    open={true}
+                    close={handleCloseEditTrainingModal}
+                    trainingInfo={openEditTrainingModal}
+                />
             )}
         </Layout>
     )
