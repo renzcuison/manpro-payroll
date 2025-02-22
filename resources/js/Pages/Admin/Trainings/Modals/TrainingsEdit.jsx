@@ -363,31 +363,31 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
             formData.append('deleteImages[]', null);
         }
 
-        axiosInstance.post("/trainings/saveTraining", formData, { headers })
-            .then((response) => {
-                document.activeElement.blur();
-                document.body.removeAttribute("aria-hidden");
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Your training has been saved!`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close();
-                        document.body.setAttribute("aria-hidden", "true");
-                    } else {
-                        document.body.setAttribute("aria-hidden", "true");
-                    }
-                });
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                document.body.setAttribute("aria-hidden", "true");
-            });
+        // axiosInstance.post("/trainings/editTraining", formData, { headers })
+        //     .then((response) => {
+        //         document.activeElement.blur();
+        //         document.body.removeAttribute("aria-hidden");
+        //         Swal.fire({
+        //             customClass: { container: "my-swal" },
+        //             title: "Success!",
+        //             text: `Your training has been saved!`,
+        //             icon: "success",
+        //             showConfirmButton: true,
+        //             confirmButtonText: "Okay",
+        //             confirmButtonColor: "#177604",
+        //         }).then((res) => {
+        //             if (res.isConfirmed) {
+        //                 close();
+        //                 document.body.setAttribute("aria-hidden", "true");
+        //             } else {
+        //                 document.body.setAttribute("aria-hidden", "true");
+        //             }
+        //         });
+        //     })
+        //     .catch((error) => {
+        //         console.error("Error:", error);
+        //         document.body.setAttribute("aria-hidden", "true");
+        //     });
     };
 
     return (
