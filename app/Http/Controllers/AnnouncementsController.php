@@ -42,11 +42,36 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $announcements = AnnouncementsModel::where('client_id', $clientId)->get();
+            $announcements = AnnouncementsModel::where('client_id', $clientId)
+                ->with(['acknowledgements', 'branches', 'departments'])
+                ->get();
+
+            $announcementData = $announcements->map(function ($announcement) {
+                // Acknowledged
+                $ackCount = $announcement->acknowledgements->count();
+
+                // Total Recipients
+                $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
+                $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
+
+                $recCount = UsersModel::whereIn('branch_id', $branches)->orWhereIn('department_id', $departments)->distinct()->count('id');
+
+                return [
+                    'id' => $announcement->id,
+                    'title' => $announcement->title,
+                    'description' => $announcement->description,
+                    'status' => $announcement->status,
+                    'created_by' => $announcement->user_id,
+                    'created_at' => $announcement->created_at,
+                    'acknowledged' => $ackCount,
+                    'recipients' => $recCount,
+                ];
+            })->all();
+
 
             return response()->json([
                 'status' => 200,
-                'announcements' => $announcements,
+                'announcements' => $announcementData,
             ]);
         } else {
             return response()->json(['status' => 200, 'announcements' => null]);

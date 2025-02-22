@@ -35,4 +35,9 @@ class AnnouncementsModel extends Model
     {
         return $this->hasMany(AnnouncementDepartmentsModel::class, 'announcement_id');
     }
+
+    public function acknowledgements()
+    {
+        return $this->hasMany(AnnouncementAcknowledgementsModel::class, 'announcement_id');
+    }
 }
