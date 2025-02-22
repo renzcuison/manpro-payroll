@@ -28,7 +28,7 @@ class EvaluationController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
+        $user = DB::table('users')->select('*')->where('user_id', $userID)->first();
 
         try {
             DB::beginTransaction();
@@ -37,7 +37,6 @@ class EvaluationController extends Controller
 
             if ( !$existingEvaluation ) {
                 $newEvaluation = Evaluation::create([
-                    "team"   => $user->team,
                     "name"   => $request->formName,
                     'creator_id' => $user->user_id,
                 ]);
@@ -76,8 +75,8 @@ class EvaluationController extends Controller
         try {
             DB::beginTransaction();
 
-            $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
-            $evaluation = Evaluation::where('team', $user->team)->where('id', $request->id)->first();
+            $user = DB::table('users')->select('*')->where('user_id', $userID)->first();
+            $evaluation = Evaluation::where('id', $request->id)->first();
 
             $evaluation->name = $request->name;
             $evaluation->save();
