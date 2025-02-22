@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnnouncementAcknowledgementsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AnnouncementFilesModel;
 use App\Models\AnnouncementBranchesModel;
 use App\Models\AnnouncementDepartmentsModel;
+use App\Models\UsersModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,17 +36,20 @@ class AnnouncementsController extends Controller
 
     public function getAnnouncements()
     {
-        //Log::info("AnnouncementsController::getAnnouncements");
+        // Log::info("AnnouncementsController::getAnnouncements");
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $announcements = AnnouncementsModel::where('client_id',$clientId)->get();
+            $announcements = AnnouncementsModel::where('client_id', $clientId)->get();
 
-            return response()->json([ 'status' => 200, 'announcements' => $announcements]);
+            return response()->json([
+                'status' => 200,
+                'announcements' => $announcements,
+            ]);
         } else {
-            return response()->json([ 'status' => 200, 'announcements' => null]);
+            return response()->json(['status' => 200, 'announcements' => null]);
         }
     }
 
@@ -54,19 +59,18 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         // Branch Announcements
-        $branches = AnnouncementsModel::whereHas('branches', function($query) use ($user) {
+        $branches = AnnouncementsModel::whereHas('branches', function ($query) use ($user) {
             $query->where('branch_id', $user->branch_id);
-        })->where('hidden', false)->get();
+        })->where('status', 'Published')->get();
 
         // Department Announcements
-        $departments = AnnouncementsModel::whereHas('departments', function($query) use ($user) {
+        $departments = AnnouncementsModel::whereHas('departments', function ($query) use ($user) {
             $query->where('department_id', $user->department_id);
-        })->where('hidden', false)->get();
+        })->where('status', 'Published')->get();
 
         $announcements = $branches->merge($departments)->unique('id');
 
         return response()->json(['status' => 200, 'announcements' => $announcements]);
-    
     }
 
     public function saveAnnouncement(Request $request)
@@ -75,9 +79,9 @@ class AnnouncementsController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()){
+        if ($this->checkUser()) {
             try {
-                
+
                 DB::beginTransaction();
 
                 // Announcement Entry
@@ -86,15 +90,14 @@ class AnnouncementsController extends Controller
                     'client_id' => $user->client_id,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'published' => null
                 ]);
-                
+
                 $dateTime = now()->format('YmdHis');
 
                 // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
-                    foreach ($request->file('attachment') as $file){
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    foreach ($request->file('attachment') as $file) {
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -107,8 +110,8 @@ class AnnouncementsController extends Controller
 
                 // Adding Files - Images
                 if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file){
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    foreach ($request->file('image') as $index => $file) {
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -118,22 +121,20 @@ class AnnouncementsController extends Controller
                         ]);
                     }
                 }
-                
+
                 DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
-    
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-    
+
                 Log::error("Error saving: " . $e->getMessage());
-    
+
                 throw $e;
             }
         } else {
-            return response()->json([ 'status' => 200 ]);
+            return response()->json(['status' => 200]);
         }
-
     }
 
     public function publishAnnouncement(Request $request)
@@ -145,16 +146,15 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             try {
-                
+
                 DB::beginTransaction();
 
                 $announcement = AnnouncementsModel::find($request->input('announcement'));
-            
-                $dateTime = now();
-                $announcement->published = $dateTime;
+
+                $announcement->status = "Published";
                 $announcement->save();
 
-                foreach($request->input('departments') as $key => $departmentId){
+                foreach ($request->input('departments') as $key => $departmentId) {
                     //Log::info($announcementId . " " . $departmentId);
                     AnnouncementDepartmentsModel::create([
                         'announcement_id' => $announcement->id,
@@ -162,32 +162,27 @@ class AnnouncementsController extends Controller
                     ]);
                 }
 
-                foreach($request->input('branches') as $key => $branchId){
+                foreach ($request->input('branches') as $key => $branchId) {
                     //Log::info($announcementId . " " . $branchId);
                     AnnouncementBranchesModel::create([
                         'announcement_id' => $announcement->id,
                         'branch_id' => $branchId
                     ]);
                 }
-                
+
                 DB::commit();
-                
-                return response()->json([ 'status' => 200 ]);
-    
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-    
+
                 Log::error("Error saving: " . $e->getMessage());
-    
+
                 throw $e;
             }
-
-            
         } else {
-            return response()->json([ 'status' => 200]);
+            return response()->json(['status' => 200]);
         }
-
-
     }
 
     public function getThumbnail($id)
@@ -200,8 +195,8 @@ class AnnouncementsController extends Controller
             //Log::info($id);
 
             $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $id)
-            ->where('thumbnail', true)
-            ->first();
+                ->where('thumbnail', true)
+                ->first();
 
             $thumbnail = null;
             $thumbnail = null;
@@ -209,9 +204,9 @@ class AnnouncementsController extends Controller
                 $thumbnail = base64_encode(Storage::disk('public')->get($thumbnailFile->path));
             }
 
-            return response()->json([ 'status' => 200, 'thumbnail' => $thumbnail]);
+            return response()->json(['status' => 200, 'thumbnail' => $thumbnail]);
         } else {
-            return response()->json([ 'status' => 200, 'thumbnail' => null]);
+            return response()->json(['status' => 200, 'thumbnail' => null]);
         }
     }
 
@@ -222,7 +217,7 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         $announcementIds = $request->input('announcementIds', []);
-        
+
         $thumbnails = array_fill_keys($announcementIds, null);
 
         $thumbnailFiles = AnnouncementFilesModel::whereIn('announcement_id', $announcementIds)
@@ -232,7 +227,7 @@ class AnnouncementsController extends Controller
         $thumbnailFiles->each(function ($file) use (&$thumbnails) {
             $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
         });
-        
+
         return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
     }
 
@@ -242,7 +237,7 @@ class AnnouncementsController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()){
+        if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
 
@@ -253,7 +248,7 @@ class AnnouncementsController extends Controller
                 $announcement->description = $request->input('description');
                 $announcement->save();
 
-                $deleteFiles = array_merge($request->input('deleteImages'),$request->input('deleteAttachments'));
+                $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
 
                 // Remove Thumbnail
                 AnnouncementFilesModel::whereIn('id', $deleteFiles)
@@ -267,8 +262,8 @@ class AnnouncementsController extends Controller
 
                 // Adding Files - Documents
                 if ($request->hasFile('attachment')) {
-                    foreach ($request->file('attachment') as $file){
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    foreach ($request->file('attachment') as $file) {
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -281,9 +276,9 @@ class AnnouncementsController extends Controller
 
                 // Adding Files - Images
                 if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file){
+                    foreach ($request->file('image') as $index => $file) {
                         // Replace Thumbnail if Applicable
-                        if ($index == $request->input('thumbnail')){
+                        if ($index == $request->input('thumbnail')) {
                             $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
                                 ->where('thumbnail', true)
                                 ->first();
@@ -292,7 +287,7 @@ class AnnouncementsController extends Controller
                                 $oldThumbnail->save();
                             }
                         }
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME). '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
@@ -304,12 +299,11 @@ class AnnouncementsController extends Controller
                 }
 
                 DB::commit();
-
             } catch (\Exception $e) {
                 DB::rollBack();
-    
+
                 Log::error("Error saving: " . $e->getMessage());
-    
+
                 throw $e;
             }
         }
@@ -319,48 +313,51 @@ class AnnouncementsController extends Controller
     {
         //Log::info("AnnouncementsController::getFileNames");
         $user = Auth::user();
-        
-        if ($this->checkUser()){
+
+        if ($this->checkUser()) {
             $files = AnnouncementFilesModel::where('announcement_id', $id)
                 ->select('id', 'path', 'type')
                 ->get();
 
-                $filenames = [];
-                foreach($files as $file){
-                    $filenames[] = [
-                        'id' => $file->id,
-                        'filename' => basename($file->path),
-                        'type' => $file->type
-                    ];
-                }
+            $filenames = [];
+            foreach ($files as $file) {
+                $filenames[] = [
+                    'id' => $file->id,
+                    'filename' => basename($file->path),
+                    'type' => $file->type
+                ];
+            }
 
-            return response()->json([ 'status' => 200, 'filenames' => $filenames ? $filenames : null ]);
+            return response()->json(['status' => 200, 'filenames' => $filenames ? $filenames : null]);
         } else {
-            return response()->json([ 'status' => 200, 'filenames' => null ]);
+            return response()->json(['status' => 200, 'filenames' => null]);
         }
-        
     }
 
     public function toggleHide($id)
     {
         //Log::info("AnnouncementsController::toggleHide");
         $user = Auth::user();
-        
-        if ($this->checkUser()){
-            
+
+        if ($this->checkUser()) {
+
             $announcement = AnnouncementsModel::find($id);
 
             if (!$announcement) {
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
             }
 
-            $announcement->hidden = !$announcement->hidden;
+            $announcement->status = $announcement->status === 'Published' ? 'Hidden' : 'Published';
             $announcement->save();
 
-            return response()->json([ 'status' => 200 ]);
+            return response()->json(['status' => 200]);
         } else {
-            return response()->json([ 'status' => 200 ]);
+            return response()->json(['status' => 200]);
         }
-        
+    }
+
+    public function getAcknowledgements()
+    {
+        //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
     }
 }

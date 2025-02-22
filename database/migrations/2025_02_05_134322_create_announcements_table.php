@@ -19,8 +19,7 @@ class CreateAnnouncementsTable extends Migration
             $table->unsignedBigInteger('client_id');
             $table->string('title', 128);
             $table->string('description', 512);
-            $table->dateTime('published')->nullable();
-            $table->boolean('hidden')->default(0);
+            $table->enum('status', ['Pending', 'Published', 'Hidden'])->default('Pending');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

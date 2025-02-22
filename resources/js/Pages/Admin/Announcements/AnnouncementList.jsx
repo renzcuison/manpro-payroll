@@ -47,6 +47,7 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 import { first } from "lodash";
+import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -341,17 +342,13 @@ const AnnouncementList = () => {
                                                                 <Typography sx={{
                                                                     fontWeight: "bold",
                                                                     color:
-                                                                        !announcement.published
+                                                                        announcement.status == "Pending"
                                                                             ? "#e9ae20"
-                                                                            : !announcement.hidden
+                                                                            : announcement.status == "Published"
                                                                                 ? "#177604"
                                                                                 : "#f57c00"
                                                                 }}>
-                                                                    {!announcement.published
-                                                                        ? "Pending"
-                                                                        : !announcement.hidden
-                                                                            ? "Published"
-                                                                            : "Hidden"}
+                                                                    {announcement.status}
                                                                 </Typography>
                                                             </CardContent>
                                                             {/* Acknowledgement and Options */}
@@ -363,7 +360,7 @@ const AnnouncementList = () => {
                                                                         alignItems: 'center',
                                                                     }}>
                                                                         <Typography variant="body2" color="text.secondary">
-                                                                            40/50 Acknowledged
+                                                                            10/10 Acknowledged
                                                                         </Typography>
 
                                                                     </Box>
@@ -394,7 +391,7 @@ const AnnouncementList = () => {
                                                                             "aria-labelledby": `application-menu-${announcement.id}`,
                                                                         }}>
                                                                         {/* Editing */}
-                                                                        {!announcement.published && (
+                                                                        {announcement.status == "Pending" && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
@@ -405,7 +402,7 @@ const AnnouncementList = () => {
                                                                             </MenuItem>
                                                                         )}
                                                                         {/* Publishing */}
-                                                                        {!announcement.published && (
+                                                                        {announcement.status == "Pending" && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
@@ -416,15 +413,15 @@ const AnnouncementList = () => {
                                                                             </MenuItem>
                                                                         )}
                                                                         {/* Hide Toggle */}
-                                                                        {(announcement.published) && (
+                                                                        {announcement.status != "Pending" && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleToggleHide(!announcement.hidden, announcement.id);
+                                                                                    handleToggleHide(announcement.status == "Published", announcement.id);
                                                                                     handleMenuClose(announcement.id);
                                                                                 }}
                                                                             >
-                                                                                {announcement.hidden ? 'Show' : 'Hide'}
+                                                                                {announcement.status == "Hidden" ? 'Show' : 'Hide'}
                                                                             </MenuItem>
                                                                         )}
                                                                         <MenuItem
