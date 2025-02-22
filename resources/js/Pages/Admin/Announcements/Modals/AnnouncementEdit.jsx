@@ -173,7 +173,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    const handleAnnouncementSubmit = (event) => {
+    const checkInput = (event) => {
         event.preventDefault();
 
         if (!title) {
@@ -210,13 +210,13 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    editAnnouncement(event);
+                    saveInput(event);
                 }
             });
         }
     }
 
-    const editAnnouncement = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
         const formData = new FormData();
@@ -266,7 +266,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        close();
+                        close(true);
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
@@ -301,7 +301,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Edit Announcement{" "}
                         </Typography>
-                        <IconButton onClick={close}>
+                        <IconButton onClick={() => close(false)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
@@ -310,7 +310,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box
                         component="form"
-                        onSubmit={handleAnnouncementSubmit}
+                        onSubmit={checkInput}
                         noValidate
                         autoComplete="off"
                     >

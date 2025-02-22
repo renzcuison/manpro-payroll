@@ -1,14 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, IconButton } from '@mui/material';
+import React, { useEffect, useState } from "react";
+import {
+    Table,
+    TableHead,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableRow,
+    TablePagination,
+    Box,
+    Typography,
+    Button,
+    Menu,
+    MenuItem,
+    TextField,
+    Stack,
+    Grid,
+    CircularProgress,
+    FormControl,
+    InputLabel,
+    Select,
+    breadcrumbsClasses,
+    Card,
+    CardMedia,
+    CardContent,
+    CardActions,
+    Pagination,
+    IconButton
+} from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
-import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead';
-import PageToolbar from '../../../components/Table/PageToolbar';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { getComparator, stableSort } from '../../../components/utils/tableUtils';
-import Swal from "sweetalert2";
-
+import moment from "moment";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import Layout from "../../../components/Layout/Layout";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import PageHead from "../../../components/Table/PageHead";
+import PageToolbar from "../../../components/Table/PageToolbar";
+import {
+    Link,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
+import {
+    getComparator,
+    stableSort,
+} from "../../../components/utils/tableUtils";
+import { first } from "lodash";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -24,10 +62,22 @@ const AnnouncementList = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    // ---------------- Announcement Data States
     const [isLoading, setIsLoading] = useState(true);
-
-    // ---------------- Announcement List
+    const [imageLoading, setImageLoading] = useState(true);
     const [announcements, setAnnouncements] = useState([]);
+    const [announcementReload, setAnnouncementReload] = useState(true);
+
+    // ---------------- Pagination States
+    const [currentPage, setCurrentPage] = useState(1);
+    const [announcementsPerPage] = useState(9);
+    const [totalAnnouncements, setTotalAnnouncements] = useState(0);
+
+    const lastAnnouncement = currentPage * announcementsPerPage;
+    const firstAnnouncement = lastAnnouncement - announcementsPerPage;
+    const pageAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
+
+    // ---------------- Announcement List API
     useEffect(() => {
         fetchAnnouncements();
     }, []);
@@ -36,23 +86,97 @@ const AnnouncementList = () => {
         axiosInstance.get('/announcements/getAnnouncements', { headers })
             .then((response) => {
                 setAnnouncements(response.data.announcements);
+                setTotalAnnouncements(response.data.announcements.length);
+                setAnnouncementReload(false);
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
+
     }
+
+    // ---------------- Announcement Image API
+    useEffect(() => {
+        if (!announcementReload) {
+            setAnnouncementReload(true);
+        }
+        fetchPageThumbnails();
+    }, [announcementReload, firstAnnouncement, lastAnnouncement]);
+
+    // ---------------- Announcement Thumbnail Loader
+    const fetchPageThumbnails = () => {
+        if (announcements.length > 0) {
+            const pagedAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
+            const announcementIds = pagedAnnouncements.map(announcement => announcement.id);
+
+            axiosInstance.post('/announcements/getPageThumbnails', { announcementIds }, { headers })
+                .then((response) => {
+                    const thumbnails = response.data.thumbnails;
+
+                    setAnnouncements(prevAnnouncements => {
+                        const updatedAnnouncements = [...prevAnnouncements];
+
+                        pagedAnnouncements.forEach((announcement, paginatedIndex) => {
+                            const globalIndex = prevAnnouncements.indexOf(announcement);
+
+                            if (paginatedIndex < thumbnails.length && thumbnails[paginatedIndex] !== null) {
+                                const byteCharacters = window.atob(thumbnails[paginatedIndex]);
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: 'image/png' });
+                                updatedAnnouncements[globalIndex] = { ...announcement, thumbnail: URL.createObjectURL(blob) };
+                            } else {
+                                updatedAnnouncements[globalIndex] = { ...announcement };
+                            }
+                        });
+                        return updatedAnnouncements;
+                    });
+
+                    setImageLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching thumbnails:', error);
+                    setImageLoading(false);
+                });
+        } else {
+            console.log("No Request Needed");
+        }
+    };
+
+    // ---------------- Pagination Controls
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+        setImageLoading(true);
+        fetchPageThumbnails();
+    };
+
+    // ---------------- Image Cleanup
+    useEffect(() => {
+        return () => {
+            console.log("closed");
+            announcements.forEach(announcement => {
+                if (announcement.thumbnail && announcement.thumbnail.startsWith('blob:')) {
+                    URL.revokeObjectURL(announcement.thumbnail);
+                }
+            });
+        };
+    }, []);
 
     // ---------------- Announcement Modal
     const [openAddAnnouncementModal, setOpenAddAnnouncementModal] = useState(false);
     const handleOpenAnnouncementModal = () => {
         setOpenAddAnnouncementModal(true);
     };
-    const handleCloseAnnouncementModal = () => {
+    const handleCloseAnnouncementModal = (reload) => {
         setOpenAddAnnouncementModal(false);
-        fetchAnnouncements();
-
+        if (reload) {
+            fetchAnnouncements();
+        }
     };
 
     // ---------------- Announcement Publishing
@@ -60,9 +184,11 @@ const AnnouncementList = () => {
     const handleOpenAnnouncementPublish = (announcement) => {
         setOpenAnnouncementPublish(announcement)
     }
-    const handleCloseAnnouncementPublish = () => {
+    const handleCloseAnnouncementPublish = (reload) => {
         setOpenAnnouncementPublish(null);
-        fetchAnnouncements();
+        if (reload) {
+            fetchAnnouncements();
+        }
     }
 
     // ---------------- Announcement Editing
@@ -70,9 +196,11 @@ const AnnouncementList = () => {
     const handleOpenAnnouncementEdit = (announcement) => {
         setOpenAnnouncementEdit(announcement)
     }
-    const handleCloseAnnouncementEdit = () => {
+    const handleCloseAnnouncementEdit = (reload) => {
         setOpenAnnouncementEdit(null);
-        fetchAnnouncements();
+        if (reload) {
+            fetchAnnouncements();
+        }
     }
 
     // ---------------- Application Hiding
@@ -140,12 +268,13 @@ const AnnouncementList = () => {
         }));
     };
 
+
     return (
-        <Layout title={"AnnouncementsList"}>
-            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
+        <Layout title={"AnnouncementList"}>
+            <Box sx={{ width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
-                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Announcements
                         </Typography>
                         <Button
@@ -159,160 +288,184 @@ const AnnouncementList = () => {
                         </Button>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                {" "}
-                                <TableContainer
-                                    style={{ overflowX: "auto" }}
-                                    sx={{ minHeight: 400 }}
+                                <Grid
+                                    container
+                                    rowSpacing={2}
+                                    columnSpacing={{ xs: 1, sm: 2 }}
+                                    sx={{
+                                        ...(pageAnnouncements.length === 0 ? { justifyContent: "center" } : {}),
+                                    }}
                                 >
-                                    <Table aria-label="simple table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}>
-                                                    Title
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}>
-                                                    Date Created
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}>
-                                                    Publish Date
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "22.5%" }}>
-                                                    Status
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>
-                                                    Action
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {announcements.length > 0 ? (
-                                                announcements.map(
-                                                    (announcements, index) => {
-
-                                                        if (!menuStates[announcements.id]) {
-                                                            menuStates[announcements.id] = { open: false, anchorEl: null, };
-                                                        }
-
-                                                        return (
-                                                            <TableRow
-                                                                key={announcements.id}
-                                                                sx={{
-                                                                    p: 1,
-                                                                    backgroundColor:
-                                                                        index % 2 === 0
-                                                                            ? "#f8f8f8"
-                                                                            : "#ffffff",
+                                    {pageAnnouncements.length > 0 ? (
+                                        pageAnnouncements.map(
+                                            (announcement, index) => {
+                                                if (!menuStates[announcement.id]) {
+                                                    menuStates[announcement.id] = { open: false, anchorEl: null, };
+                                                }
+                                                return (
+                                                    <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                        <Card sx={{ borderRadius: 2 }}>
+                                                            {/* Card Thumbnail */}
+                                                            {imageLoading ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        display: 'flex',
+                                                                        justifyContent: 'center',
+                                                                        alignItems: 'center',
+                                                                        height: '180px'
+                                                                    }}
+                                                                >
+                                                                    <CircularProgress />
+                                                                </Box>
+                                                            ) : (
+                                                                <CardMedia
+                                                                    sx={{ height: '180px' }}
+                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
+                                                                    title={`${announcement.title}_Thumbnail`}
+                                                                />
+                                                            )}
+                                                            {/* Card Content */}
+                                                            <CardContent>
+                                                                {/* Announcement Title */}
+                                                                <Typography variant="h6" component="div">
+                                                                    {announcement.title}
+                                                                </Typography>
+                                                                {/* Announcement Status */}
+                                                                <Typography sx={{
+                                                                    fontWeight: "bold",
+                                                                    color:
+                                                                        !announcement.published
+                                                                            ? "#e9ae20"
+                                                                            : !announcement.hidden
+                                                                                ? "#177604"
+                                                                                : "#f57c00"
                                                                 }}>
-                                                                <TableCell align="center">
-                                                                    {announcements.title.length > 40
-                                                                        ? (`${announcements.title.slice(0, 37)}...`)
-                                                                        : announcements.title}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {dayjs(announcements.created_at).format('MMM DD, YYYY h:mm A')}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {announcements.published
-                                                                        ? dayjs(announcements.published).format('MMM DD, YYYY h:mm A')
-                                                                        : "-"}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {!announcements.published
+                                                                    {!announcement.published
                                                                         ? "Pending"
-                                                                        : !announcements.hidden
+                                                                        : !announcement.hidden
                                                                             ? "Published"
                                                                             : "Hidden"}
-                                                                </TableCell>
-                                                                <TableCell align="center">
+                                                                </Typography>
+                                                            </CardContent>
+                                                            {/* Acknowledgement and Options */}
+                                                            <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
+                                                                <Stack direction="row" spacing={1} sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                                    {/* Acknowledgement */}
+                                                                    <Box display="flex" sx={{
+                                                                        mt: 2,
+                                                                        alignItems: 'center',
+                                                                    }}>
+                                                                        <Typography variant="body2" color="text.secondary">
+                                                                            40/50 Acknowledged
+                                                                        </Typography>
+
+                                                                    </Box>
+                                                                    {/* Options */}
                                                                     <IconButton
                                                                         aria-label="more"
-                                                                        aria-controls={menuStates[announcements.id]?.open
-                                                                            ? `announcement-menu-${announcements.id}`
+                                                                        aria-controls={menuStates[announcement.id]?.open
+                                                                            ? `announcement-menu-${announcement.id}`
                                                                             : undefined
                                                                         }
                                                                         aria-haspopup="true"
                                                                         onClick={(event) => {
                                                                             event.stopPropagation();
-                                                                            handleMenuOpen(event, announcements.id);
+                                                                            handleMenuOpen(event, announcement.id);
                                                                         }}>
                                                                         <MoreVert />
                                                                     </IconButton>
-                                                                    <Menu id={`announcement-menu-${announcements.id}`}
-                                                                        anchorEl={menuStates[announcements.id]?.anchorEl}
-                                                                        open={menuStates[announcements.id]?.open || false}
+                                                                    <Menu id={`announcement-menu-${announcement.id}`}
+                                                                        anchorEl={menuStates[announcement.id]?.anchorEl}
+                                                                        open={menuStates[announcement.id]?.open || false}
                                                                         onClose={(event) => {
                                                                             event.stopPropagation();
                                                                             handleMenuClose(
-                                                                                announcements.id
+                                                                                announcement.id
                                                                             );
                                                                         }}
                                                                         MenuListProps={{
-                                                                            "aria-labelledby": `application-menu-${announcements.id}`,
+                                                                            "aria-labelledby": `application-menu-${announcement.id}`,
                                                                         }}>
                                                                         {/* Editing */}
-                                                                        {!announcements.published && (
+                                                                        {!announcement.published && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleOpenAnnouncementEdit(announcements);
-                                                                                    handleMenuClose(announcements.id);
+                                                                                    handleOpenAnnouncementEdit(announcement);
+                                                                                    handleMenuClose(announcement.id);
                                                                                 }}>
                                                                                 Edit
                                                                             </MenuItem>
                                                                         )}
                                                                         {/* Publishing */}
-                                                                        {!announcements.published && (
+                                                                        {!announcement.published && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleOpenAnnouncementPublish(announcements);
-                                                                                    handleMenuClose(announcements.id);
+                                                                                    handleOpenAnnouncementPublish(announcement);
+                                                                                    handleMenuClose(announcement.id);
                                                                                 }}>
                                                                                 Publish
                                                                             </MenuItem>
                                                                         )}
                                                                         {/* Hide Toggle */}
-                                                                        {(announcements.published) && (
+                                                                        {(announcement.published) && (
                                                                             <MenuItem
                                                                                 onClick={(event) => {
                                                                                     event.stopPropagation();
-                                                                                    handleToggleHide(!announcements.hidden, announcements.id);
-                                                                                    handleMenuClose(announcements.id);
+                                                                                    handleToggleHide(!announcement.hidden, announcement.id);
+                                                                                    handleMenuClose(announcement.id);
                                                                                 }}
                                                                             >
-                                                                                {announcements.hidden ? 'Show' : 'Hide'}
+                                                                                {announcement.hidden ? 'Show' : 'Hide'}
                                                                             </MenuItem>
                                                                         )}
                                                                         <MenuItem
                                                                             onClick={(event) => {
                                                                                 event.stopPropagation();
-                                                                                handleMenuClose(announcements.id);
+                                                                                handleMenuClose(announcement.id);
                                                                             }}>
                                                                             Close Menu
                                                                         </MenuItem>
                                                                     </Menu>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    }
-                                                )
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1, }}>
-                                                        No Announcements Found
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                                                </Stack>
+                                                            </CardActions>
+                                                        </Card>
+                                                    </Grid>
+                                                );
+                                            }
+                                        )
+                                    ) : (
+                                        // No Announcements
+                                        <>
+                                            <Box sx={{ mt: 5, p: 3, bgcolor: "#ffffff", borderRadius: 3, width: '100%', maxWidth: 350, textAlign: 'center' }}>
+                                                No Announcements
+                                            </Box>
+                                        </>
+                                    )}
+                                </Grid>
+                                {/* Pagination Controls */}
+                                {totalAnnouncements > announcementsPerPage && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                        <Pagination
+                                            shape="rounded"
+                                            count={Math.ceil(totalAnnouncements / announcementsPerPage)}
+                                            page={currentPage}
+                                            onChange={handleChangePage}
+                                            color="primary"
+                                            size="large"
+                                            showFirstButton
+                                            showLastButton
+                                        />
+                                    </Box>
+                                )}
                             </>
                         )}
                     </Box>
@@ -339,7 +492,7 @@ const AnnouncementList = () => {
                 />
             )}
         </Layout>
-    )
-}
+    );
+};
 
-export default AnnouncementList
+export default AnnouncementList;

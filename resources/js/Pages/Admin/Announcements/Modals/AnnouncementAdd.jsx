@@ -139,7 +139,7 @@ const AnnouncementAdd = ({ open, close }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    const handleAnnouncementSubmit = (event) => {
+    const checkInput = (event) => {
         event.preventDefault();
 
         if (!title) {
@@ -176,14 +176,14 @@ const AnnouncementAdd = ({ open, close }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveAnnouncement(event);
+                    saveInput(event);
                 }
             });
         }
 
     }
 
-    const saveAnnouncement = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
 
@@ -220,7 +220,7 @@ const AnnouncementAdd = ({ open, close }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        close();
+                        close(true);
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
@@ -254,7 +254,7 @@ const AnnouncementAdd = ({ open, close }) => {
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Create Announcement{" "}
                         </Typography>
-                        <IconButton onClick={close}>
+                        <IconButton onClick={() => close(false)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
@@ -263,7 +263,7 @@ const AnnouncementAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box
                         component="form"
-                        onSubmit={handleAnnouncementSubmit}
+                        onSubmit={checkInput}
                         noValidate
                         autoComplete="off"
                     >

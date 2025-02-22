@@ -127,13 +127,13 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                 cancelButtonText: 'Cancel',
             }).then((res) => {
                 if (res.isConfirmed) {
-                    publishAnnouncement();
+                    saveInput();
                 }
             });
         }
     };
 
-    const publishAnnouncement = () => {
+    const saveInput = () => {
         const data = {
             announcement: announceInfo.id,
             departments: selectedDepartments,
@@ -176,7 +176,7 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
         if (imagePath && imagePath.startsWith('blob:')) {
             URL.revokeObjectURL(imagePath);
         }
-        close();
+        close(true);
     }
 
     return (
@@ -200,7 +200,7 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Publish Announcement{" "}
                         </Typography>
-                        <IconButton onClick={close}>
+                        <IconButton onClick={() => close(false)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
