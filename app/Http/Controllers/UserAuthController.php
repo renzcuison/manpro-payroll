@@ -32,7 +32,7 @@ class UserAuthController extends Controller
     {
         log::info("UserAuthController::checkUser");
 
-        $fields = $request->validate([ 'user' => 'required|string', 'pass' => 'required|string' ]);
+        $fields = $request->validate(['user' => 'required|string', 'pass' => 'required|string']);
 
         $user = UsersModel::where('user_name', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
 
@@ -43,10 +43,10 @@ class UserAuthController extends Controller
 
         if ($user && Hash::check($request->input('pass'), $user->password)) {
             log::info("Valid User");
-            return response()->json([ 'success' => 1, 'user' => $user->id, 'email' => $user->email]);
+            return response()->json(['success' => 1, 'user' => $user->id, 'email' => $user->email]);
         } else {
             log::info("Invalid User");
-            return response()->json([ 'success' => 0 ]);
+            return response()->json(['success' => 0]);
         }
     }
 
@@ -89,6 +89,7 @@ class UserAuthController extends Controller
     public function login(Request $request)
     {
         log::info("UserAuthController::login");
+        //log::info($request);
 
         $fields = $request->validate([
             'username' => 'required|string',
@@ -97,7 +98,7 @@ class UserAuthController extends Controller
         ]);
 
         $user = UsersModel::where(function ($query)
-        
+
         use ($fields) {
             $query->where('user_name', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
         })->first();
@@ -106,7 +107,7 @@ class UserAuthController extends Controller
             $user->token = $user->createToken('userAppToken')->plainTextToken;
             $user->id    = $user->user_id;
 
-            return response(['success' => 1,'user' => $user], 200);
+            return response(['success' => 1, 'user' => $user], 200);
         } else {
             return response(["error" => "Wrong Username or Password"]);
         }
@@ -122,8 +123,8 @@ class UserAuthController extends Controller
 
         $user = UsersModel::where('id', $userID)->first();
         $user->tokens()->delete();
-        
-        return [ 'message' => 'Logged out' ];
+
+        return ['message' => 'Logged out'];
     }
 
     protected function getUserDetailsById($user_id)

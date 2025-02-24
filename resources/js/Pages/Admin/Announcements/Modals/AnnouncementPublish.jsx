@@ -13,7 +13,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 
-
 const AnnouncementPublish = ({ open, close, announceInfo }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
@@ -235,7 +234,14 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                                     </Typography>
                                     <div
                                         id="description"
-                                        style={{ maxHeight: '100px', overflow: 'hidden' }}
+                                        style={{
+                                            maxHeight: '100px',
+                                            overflow: 'hidden',
+                                            wordWrap: 'break-word',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'break-word',
+                                            whiteSpace: 'pre-wrap',
+                                        }}
                                         dangerouslySetInnerHTML={{ __html: announceInfo.description }}
                                     />
                                 </CardContent>

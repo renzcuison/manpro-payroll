@@ -25,7 +25,8 @@ import {
     CardContent,
     CardActions,
     Pagination,
-    IconButton
+    IconButton,
+    CardActionArea
 } from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
 import moment from "moment";
@@ -55,6 +56,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import AnnouncementAdd from './Modals/AnnouncementAdd';
 import AnnouncementPublish from './Modals/AnnouncementPublish';
 import AnnouncementEdit from './Modals/AnnouncementEdit';
+import AnnouncementManage from './Modals/AnnouncementManage';
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -204,6 +206,18 @@ const AnnouncementList = () => {
         }
     }
 
+    // ---------------- Announcement Manager
+    const [openAnnouncementManage, setOpenAnnouncementManage] = useState(null);
+    const handleOpenAnnouncementManage = (announcement) => {
+        setOpenAnnouncementManage(announcement)
+    }
+    const handleCloseAnnouncementManage = (reload) => {
+        setOpenAnnouncementManage(null);
+        if (reload) {
+            fetchAnnouncements();
+        }
+    }
+
     // ---------------- Application Hiding
     const handleToggleHide = (toggle, id) => {
         document.activeElement.blur();
@@ -312,49 +326,48 @@ const AnnouncementList = () => {
                                                 }
                                                 return (
                                                     <Grid item key={index} xs={12} sm={6} lg={4}>
-                                                        <Card sx={{ borderRadius: 2 }}>
-                                                            {/* Card Thumbnail */}
-                                                            {imageLoading ? (
-                                                                <Box
-                                                                    sx={{
-                                                                        display: 'flex',
-                                                                        justifyContent: 'center',
-                                                                        alignItems: 'center',
-                                                                        height: '180px'
-                                                                    }}
-                                                                >
-                                                                    <CircularProgress />
-                                                                </Box>
-                                                            ) : (
-                                                                <CardMedia
-                                                                    sx={{ height: '180px' }}
-                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                    title={`${announcement.title}_Thumbnail`}
-                                                                />
-                                                            )}
-                                                            {/* Card Content */}
-                                                            <CardContent>
-                                                                {/* Announcement Title */}
-                                                                <Typography variant="h6" component="div">
-                                                                    {announcement.title}
-                                                                </Typography>
-                                                                {/* Announcement Status */}
-                                                                <Typography sx={{
-                                                                    fontWeight: "bold",
-                                                                    color:
-                                                                        announcement.status == "Pending"
-                                                                            ? "#e9ae20"
-                                                                            : announcement.status == "Published"
-                                                                                ? "#177604"
-                                                                                : "#f57c00"
-                                                                }}>
-                                                                    {announcement.status}
-                                                                </Typography>
-                                                            </CardContent>
-                                                            {/* Acknowledgement and Options */}
-                                                            <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
-                                                                <Stack direction="row" spacing={1} sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                                    {/* Acknowledgement */}
+                                                        <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
+                                                            <Card sx={{ borderRadius: 2 }}>
+                                                                {/* Card Thumbnail */}
+                                                                {imageLoading ? (
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'center',
+                                                                            alignItems: 'center',
+                                                                            height: '180px'
+                                                                        }}
+                                                                    >
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                ) : (
+                                                                    <CardMedia
+                                                                        sx={{ height: '180px' }}
+                                                                        image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
+                                                                        title={`${announcement.title}_Thumbnail`}
+                                                                    />
+                                                                )}
+                                                                {/* Card Content */}
+                                                                <CardContent>
+                                                                    {/* Announcement Title */}
+                                                                    <Typography variant="h6" component="div">
+                                                                        {announcement.title}
+                                                                    </Typography>
+                                                                    {/* Announcement Status */}
+                                                                    <Typography sx={{
+                                                                        fontWeight: "bold",
+                                                                        color:
+                                                                            announcement.status == "Pending"
+                                                                                ? "#e9ae20"
+                                                                                : announcement.status == "Published"
+                                                                                    ? "#177604"
+                                                                                    : "#f57c00"
+                                                                    }}>
+                                                                        {announcement.status}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                                {/* Acknowledgement and Options */}
+                                                                <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
                                                                     <Box display="flex" sx={{
                                                                         mt: 2,
                                                                         alignItems: 'center',
@@ -364,79 +377,10 @@ const AnnouncementList = () => {
                                                                                 ? "Not Yet Published"
                                                                                 : `${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
                                                                         </Typography>
-
                                                                     </Box>
-                                                                    {/* Options */}
-                                                                    <IconButton
-                                                                        aria-label="more"
-                                                                        aria-controls={menuStates[announcement.id]?.open
-                                                                            ? `announcement-menu-${announcement.id}`
-                                                                            : undefined
-                                                                        }
-                                                                        aria-haspopup="true"
-                                                                        onClick={(event) => {
-                                                                            event.stopPropagation();
-                                                                            handleMenuOpen(event, announcement.id);
-                                                                        }}>
-                                                                        <MoreVert />
-                                                                    </IconButton>
-                                                                    <Menu id={`announcement-menu-${announcement.id}`}
-                                                                        anchorEl={menuStates[announcement.id]?.anchorEl}
-                                                                        open={menuStates[announcement.id]?.open || false}
-                                                                        onClose={(event) => {
-                                                                            event.stopPropagation();
-                                                                            handleMenuClose(
-                                                                                announcement.id
-                                                                            );
-                                                                        }}
-                                                                        MenuListProps={{
-                                                                            "aria-labelledby": `application-menu-${announcement.id}`,
-                                                                        }}>
-                                                                        {/* Editing */}
-                                                                        {announcement.status == "Pending" && (
-                                                                            <MenuItem
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    handleOpenAnnouncementEdit(announcement);
-                                                                                    handleMenuClose(announcement.id);
-                                                                                }}>
-                                                                                Edit
-                                                                            </MenuItem>
-                                                                        )}
-                                                                        {/* Publishing */}
-                                                                        {announcement.status == "Pending" && (
-                                                                            <MenuItem
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    handleOpenAnnouncementPublish(announcement);
-                                                                                    handleMenuClose(announcement.id);
-                                                                                }}>
-                                                                                Publish
-                                                                            </MenuItem>
-                                                                        )}
-                                                                        {/* Hide Toggle */}
-                                                                        {announcement.status != "Pending" && (
-                                                                            <MenuItem
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    handleToggleHide(announcement.status == "Published", announcement.id);
-                                                                                    handleMenuClose(announcement.id);
-                                                                                }}
-                                                                            >
-                                                                                {announcement.status == "Hidden" ? 'Show' : 'Hide'}
-                                                                            </MenuItem>
-                                                                        )}
-                                                                        <MenuItem
-                                                                            onClick={(event) => {
-                                                                                event.stopPropagation();
-                                                                                handleMenuClose(announcement.id);
-                                                                            }}>
-                                                                            Close Menu
-                                                                        </MenuItem>
-                                                                    </Menu>
-                                                                </Stack>
-                                                            </CardActions>
-                                                        </Card>
+                                                                </CardActions>
+                                                            </Card>
+                                                        </CardActionArea>
                                                     </Grid>
                                                 );
                                             }
@@ -488,6 +432,13 @@ const AnnouncementList = () => {
                     open={true}
                     close={handleCloseAnnouncementEdit}
                     announceInfo={openAnnouncementEdit}
+                />
+            )}
+            {openAnnouncementManage && (
+                <AnnouncementManage
+                    open={true}
+                    close={handleCloseAnnouncementManage}
+                    announceInfo={openAnnouncementManage}
                 />
             )}
         </Layout>
