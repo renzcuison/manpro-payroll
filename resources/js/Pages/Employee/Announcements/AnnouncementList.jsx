@@ -23,8 +23,10 @@ import {
     Card,
     CardMedia,
     CardContent,
-    Pagination
+    Pagination,
+    IconButton
 } from "@mui/material";
+import { TaskAlt } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -34,6 +36,7 @@ import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
 import PageToolbar from "../../../components/Table/PageToolbar";
+import Swal from "sweetalert2";
 import {
     Link,
     useNavigate,
@@ -45,6 +48,7 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 import { first } from "lodash";
+import { CardActions } from "@material-ui/core";
 
 const AnnouncementList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -86,7 +90,6 @@ const AnnouncementList = () => {
 
     }
 
-    // ---------------- Announcement Image API
     useEffect(() => {
         if (!announcementReload) {
             setAnnouncementReload(true);
@@ -134,6 +137,46 @@ const AnnouncementList = () => {
         } else {
             console.log("No Request Needed");
         }
+    };
+
+    // ---------------- Acknowledge Announcement
+    const handleAcknowledgeAnnouncement = (unicode) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Acknowledge Announcement?",
+            text: "Do you want to acknowledge this announcement?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Yes",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    code: unicode
+                };
+                axiosInstance
+                    .post(`announcements/acknowledgeAnnouncement`, data, {
+                        headers,
+                    })
+                    .then((response) => {
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Announcement Acknowledged`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error acknowledging announcment:", error);
+                    });
+            }
+        });
     };
 
     // ---------------- Pagination Controls
@@ -208,6 +251,13 @@ const AnnouncementList = () => {
                                                                 dangerouslySetInnerHTML={{ __html: announcement.description }}
                                                             />
                                                         </CardContent>
+                                                        <CardActions>
+                                                            <IconButton
+                                                                onClick={() => handleAcknowledgeAnnouncement(announcement.unique_code)}
+                                                            >
+                                                                <TaskAlt />
+                                                            </IconButton>
+                                                        </CardActions>
                                                     </Card>
                                                 </Grid>
                                             )

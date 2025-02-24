@@ -48,6 +48,7 @@ dayjs.extend(duration);
 
 import AnnouncementPublish from './AnnouncementPublish';
 import AnnouncementEdit from './AnnouncementEdit';
+import AnnouncementAcknowledgements from "./AnnouncementAcknowledgements";
 
 const AnnouncementManage = ({ open, close, announceInfo }) => {
 
@@ -57,6 +58,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
+    const [files, setFiles] = useState([]);
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -67,6 +69,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     // ----------- Additional Details
     useEffect(() => {
         getAnnouncementThumbnail();
+        getAnnouncementFiles();
         if (announceInfo.status != "Pending") {
             getAnnouncementBranchDepts();
         }
@@ -106,6 +109,15 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             setExitReload(true);
             announcementReloader();
         }
+    }
+
+    // ---------------- Announcement Acknowledgements
+    const [openAnnouncementAcknowledgements, setOpenAnnouncementAcknowledgements] = useState(null);
+    const handleOpenAnnouncementAcknowledgements = (unicode) => {
+        setOpenAnnouncementAcknowledgements(unicode)
+    }
+    const handleCloseAnnouncementAcknowledgements = () => {
+        setOpenAnnouncementAcknowledgements(null);
     }
 
     // ---------------- Application Hiding
@@ -160,6 +172,17 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             });
         getAnnouncementThumbnail();
         getAnnouncementBranchDepts();
+    }
+
+    // ---------------- Announcement Files
+    const getAnnouncementFiles = () => {
+        axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
+            .then((response) => {
+                setFiles(response.data.filenames);
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
     }
 
     // ---------------- Thumbnail
@@ -325,7 +348,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 {announcement.status != "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
-                                                            handleMenuClose();
+                                                            handleOpenAnnouncementAcknowledgements(announcement.unique_code);
                                                         }}>
                                                         View Acknowledgements
                                                     </MenuItem>
@@ -434,7 +457,25 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                 Attachments
                             </Grid>
                             <Grid item xs={10}>
-                                insert an image, insert another image, insert another image, insert another image, insert another image
+                                {files.length > 0 && (files.map((file, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            mt: 1,
+                                            p: 1,
+                                            borderRadius: "2px",
+                                            border: '1px solid',
+                                            borderColor: "#e0e0e0"
+                                        }}
+                                    >
+                                        <Typography variant="body2" noWrap>
+                                            {file.filename}
+                                        </Typography>
+                                    </Box>
+                                )))}
                             </Grid>
                         </Grid>
                     </Box>
@@ -451,6 +492,13 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         open={true}
                         close={handleCloseAnnouncementEdit}
                         announceInfo={openAnnouncementEdit}
+                    />
+                )}
+                {openAnnouncementAcknowledgements && (
+                    <AnnouncementAcknowledgements
+                        open={true}
+                        close={handleCloseAnnouncementAcknowledgements}
+                        uniCode={openAnnouncementAcknowledgements}
                     />
                 )}
             </Dialog >

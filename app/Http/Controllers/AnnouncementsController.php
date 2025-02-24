@@ -444,12 +444,59 @@ class AnnouncementsController extends Controller
     {
         //Log::info("AnnouncementsController::acknowledgeAnnouncement");
         $user = Auth::user();
+
+        try {
+            DB::beginTransaction();
+
+            $announcement = AnnouncementsModel::where('unique_code', $request->input('code'))->select('id')->first();
+
+            AnnouncementAcknowledgementsModel::create([
+                'user_id' => $user->id,
+                'announcement_id' => $announcement->id,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
     }
 
     public function getAcknowledgements($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
         $user = Auth::user();
+        if ($this->checkUser()) {
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->select('id')
+                ->first();
+
+            $acks = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->get();
+
+            $acknowledgements = [];
+
+            foreach ($acks as $ack) {
+                $emp = $ack->user;
+
+                $acknowledgements[] = [
+                    'emp_id' => $emp->user_id,
+                    'emp_first_name' => $emp->first_name,
+                    'emp_middle_name' => $emp->middle_name ?? '',
+                    'emp_last_name' => $emp->last_name,
+                    'emp_suffix' => $emp->suffix ?? '',
+                    'timestamp' => $ack->created_at,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements]);
+        } else {
+            return response()->json(['status' => 200, 'acknowledgements' => null]);
+        }
     }
 
     function generateRandomCode($length)
