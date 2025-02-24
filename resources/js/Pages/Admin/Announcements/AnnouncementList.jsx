@@ -147,7 +147,7 @@ const AnnouncementList = () => {
                     setImageLoading(false);
                 });
         } else {
-            console.log("No Request Needed");
+            //console.log("No Request Needed");
         }
     };
 
@@ -161,7 +161,7 @@ const AnnouncementList = () => {
     // ---------------- Image Cleanup
     useEffect(() => {
         return () => {
-            console.log("closed");
+            //console.log("closed");
             announcements.forEach(announcement => {
                 if (announcement.thumbnail && announcement.thumbnail.startsWith('blob:')) {
                     URL.revokeObjectURL(announcement.thumbnail);
@@ -182,29 +182,6 @@ const AnnouncementList = () => {
         }
     };
 
-    // ---------------- Announcement Publishing
-    const [openAnnouncementPublish, setOpenAnnouncementPublish] = useState(null);
-    const handleOpenAnnouncementPublish = (announcement) => {
-        setOpenAnnouncementPublish(announcement)
-    }
-    const handleCloseAnnouncementPublish = (reload) => {
-        setOpenAnnouncementPublish(null);
-        if (reload) {
-            fetchAnnouncements();
-        }
-    }
-
-    // ---------------- Announcement Editing
-    const [openAnnouncementEdit, setOpenAnnouncementEdit] = useState(null);
-    const handleOpenAnnouncementEdit = (announcement) => {
-        setOpenAnnouncementEdit(announcement)
-    }
-    const handleCloseAnnouncementEdit = (reload) => {
-        setOpenAnnouncementEdit(null);
-        if (reload) {
-            fetchAnnouncements();
-        }
-    }
 
     // ---------------- Announcement Manager
     const [openAnnouncementManage, setOpenAnnouncementManage] = useState(null);
@@ -217,71 +194,6 @@ const AnnouncementList = () => {
             fetchAnnouncements();
         }
     }
-
-    // ---------------- Application Hiding
-    const handleToggleHide = (toggle, id) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: `${toggle ? "Hide" : "Show"} Announcement?`,
-            text: `The Announcement will be ${toggle ? "hidden from" : "visible to"} employees`,
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: toggle ? "Hide" : "Show",
-            confirmButtonColor: "#E9AE20",
-            showCancelButton: true,
-            cancelButtonText: "Cancel",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                axiosInstance
-                    .get(`announcements/toggleHide/${id}`, {
-                        headers
-                    })
-                    .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Your Announcement is now ${toggle ? "hidden" : "visible"}`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        }).then((res) => {
-                            if (res.isConfirmed) {
-                                fetchAnnouncements();
-                            }
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error toggling Hidden Status:", error);
-                    });
-            }
-        });
-    };
-
-    // ---------------- Menu Items
-    const [menuStates, setMenuStates] = useState({});
-    const handleMenuOpen = (event, id) => {
-        setMenuStates((prevStates) => ({
-            ...prevStates,
-            [id]: {
-                ...prevStates[id],
-                open: true,
-                anchorEl: event.currentTarget,
-            },
-        }));
-    };
-
-    const handleMenuClose = (id) => {
-        setMenuStates((prevStates) => ({
-            ...prevStates,
-            [id]: {
-                ...prevStates[id],
-                open: false,
-                anchorEl: null,
-            },
-        }));
-    };
 
 
     return (
@@ -320,70 +232,65 @@ const AnnouncementList = () => {
                                 >
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
-                                            (announcement, index) => {
-                                                if (!menuStates[announcement.id]) {
-                                                    menuStates[announcement.id] = { open: false, anchorEl: null, };
-                                                }
-                                                return (
-                                                    <Grid item key={index} xs={12} sm={6} lg={4}>
-                                                        <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
-                                                            <Card sx={{ borderRadius: 2 }}>
-                                                                {/* Card Thumbnail */}
-                                                                {imageLoading ? (
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: 'flex',
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center',
-                                                                            height: '180px'
-                                                                        }}
-                                                                    >
-                                                                        <CircularProgress />
-                                                                    </Box>
-                                                                ) : (
-                                                                    <CardMedia
-                                                                        sx={{ height: '180px' }}
-                                                                        image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                        title={`${announcement.title}_Thumbnail`}
-                                                                    />
-                                                                )}
-                                                                {/* Card Content */}
-                                                                <CardContent>
-                                                                    {/* Announcement Title */}
-                                                                    <Typography variant="h6" component="div">
-                                                                        {announcement.title}
-                                                                    </Typography>
-                                                                    {/* Announcement Status */}
-                                                                    <Typography sx={{
-                                                                        fontWeight: "bold",
-                                                                        color:
-                                                                            announcement.status == "Pending"
-                                                                                ? "#e9ae20"
-                                                                                : announcement.status == "Published"
-                                                                                    ? "#177604"
-                                                                                    : "#f57c00"
-                                                                    }}>
-                                                                        {announcement.status}
-                                                                    </Typography>
-                                                                </CardContent>
-                                                                {/* Acknowledgement and Options */}
-                                                                <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
-                                                                    <Box display="flex" sx={{
-                                                                        mt: 2,
+                                            (announcement, index) => (
+                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                    <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
+                                                        <Card sx={{ borderRadius: 2 }}>
+                                                            {/* Card Thumbnail */}
+                                                            {imageLoading ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        display: 'flex',
+                                                                        justifyContent: 'center',
                                                                         alignItems: 'center',
-                                                                    }}>
-                                                                        <Typography variant="body2" color="text.secondary">
-                                                                            {announcement.status == "Pending"
-                                                                                ? "Not Yet Published"
-                                                                                : `${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
-                                                                        </Typography>
-                                                                    </Box>
-                                                                </CardActions>
-                                                            </Card>
-                                                        </CardActionArea>
-                                                    </Grid>
-                                                );
-                                            }
+                                                                        height: '180px'
+                                                                    }}
+                                                                >
+                                                                    <CircularProgress />
+                                                                </Box>
+                                                            ) : (
+                                                                <CardMedia
+                                                                    sx={{ height: '180px' }}
+                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
+                                                                    title={`${announcement.title}_Thumbnail`}
+                                                                />
+                                                            )}
+                                                            {/* Card Content */}
+                                                            <CardContent>
+                                                                {/* Announcement Title */}
+                                                                <Typography variant="h6" component="div">
+                                                                    {announcement.title}
+                                                                </Typography>
+                                                                {/* Announcement Status */}
+                                                                <Typography sx={{
+                                                                    fontWeight: "bold",
+                                                                    color:
+                                                                        announcement.status == "Pending"
+                                                                            ? "#e9ae20"
+                                                                            : announcement.status == "Published"
+                                                                                ? "#177604"
+                                                                                : "#f57c00"
+                                                                }}>
+                                                                    {announcement.status}
+                                                                </Typography>
+                                                            </CardContent>
+                                                            {/* Acknowledgement and Options */}
+                                                            <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
+                                                                <Box display="flex" sx={{
+                                                                    mt: 2,
+                                                                    alignItems: 'center',
+                                                                }}>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        {announcement.status == "Pending"
+                                                                            ? "Not Yet Published"
+                                                                            : `${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </CardActions>
+                                                        </Card>
+                                                    </CardActionArea>
+                                                </Grid>
+                                            )
                                         )
                                     ) : (
                                         // No Announcements
@@ -418,20 +325,6 @@ const AnnouncementList = () => {
                 <AnnouncementAdd
                     open={openAddAnnouncementModal}
                     close={handleCloseAnnouncementModal}
-                />
-            )}
-            {openAnnouncementPublish && (
-                <AnnouncementPublish
-                    open={true}
-                    close={handleCloseAnnouncementPublish}
-                    announceInfo={openAnnouncementPublish}
-                />
-            )}
-            {openAnnouncementEdit && (
-                <AnnouncementEdit
-                    open={true}
-                    close={handleCloseAnnouncementEdit}
-                    announceInfo={openAnnouncementEdit}
                 />
             )}
             {openAnnouncementManage && (

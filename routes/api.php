@@ -209,14 +209,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
 
-        Route::get('/getAnnouncementDetails/{id}', [AnnouncementsController::class, 'getAnnouncementDetails']);
-        Route::get('/getAnnouncementBranchDepts/{id}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
+        Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
+        Route::get('/getAnnouncementBranchDepts/{code}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
 
-        Route::get('/getThumbnail/{id}', [AnnouncementsController::class, 'getThumbnail']);
+        Route::get('/getThumbnail/{code}', [AnnouncementsController::class, 'getThumbnail']);
         Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
-        Route::get('/getAnnouncementFiles/{id}', [AnnouncementsController::class, 'getAnnouncementFiles']);
+        Route::get('/getAnnouncementFiles/{code}', [AnnouncementsController::class, 'getAnnouncementFiles']);
 
-        Route::get('/toggleHide/{id}', [AnnouncementsController::class, 'toggleHide']);
+        Route::get('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
+
+        Route::post('/acknowledgeAnnouncement', [AnnouncementsController::class, 'acknowledgeAnnouncement']);
+        Route::get('/getAcknowledgements/{code}', [AnnouncementsController::class, 'getAcknowledgements']);
     });
 
     Route::prefix('adminDashboard')->group(function () {

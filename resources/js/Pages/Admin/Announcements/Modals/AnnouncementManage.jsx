@@ -62,6 +62,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [departments, setDepartments] = useState([]);
 
     const [announcement, setAnnouncement] = useState(announceInfo);
+    const [exitReload, setExitReload] = useState(false);
 
     // ----------- Additional Details
     useEffect(() => {
@@ -89,7 +90,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const handleCloseAnnouncementPublish = (reload) => {
         setOpenAnnouncementPublish(null);
         if (reload) {
-            fetchAnnouncements();
+            setExitReload(true);
+            announcementReloader();
         }
     }
 
@@ -101,12 +103,13 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const handleCloseAnnouncementEdit = (reload) => {
         setOpenAnnouncementEdit(null);
         if (reload) {
-            fetchAnnouncements();
+            setExitReload(true);
+            announcementReloader();
         }
     }
 
     // ---------------- Application Hiding
-    const handleToggleHide = (toggle, id) => {
+    const handleToggleHide = (toggle, code) => {
         document.activeElement.blur();
         Swal.fire({
             customClass: { container: "my-swal" },
@@ -121,7 +124,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }).then((res) => {
             if (res.isConfirmed) {
                 axiosInstance
-                    .get(`announcements/toggleHide/${id}`, {
+                    .get(`announcements/toggleHide/${code}`, {
                         headers
                     })
                     .then((response) => {
@@ -148,7 +151,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     // ---------------- Announcement Detail Reloader
     const announcementReloader = () => {
-        axiosInstance.get(`/announcements/getAnnouncementDetails/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setAnnouncement(response.data.announcement);
             })
@@ -161,7 +164,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     // ---------------- Thumbnail
     const getAnnouncementThumbnail = () => {
-        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 if (response.data.thumbnail) {
                     const byteCharacters = window.atob(response.data.thumbnail);
@@ -188,7 +191,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     // ---------------- Recipient Branch and Departments
     const getAnnouncementBranchDepts = () => {
-        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(response.data.branches);
                 setDepartments(response.data.departments);
@@ -219,7 +222,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
                             {" "}Announcement Details{" "}
                         </Typography>
-                        <IconButton onClick={() => close(false)}>
+                        <IconButton onClick={() => close(exitReload)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
@@ -283,7 +286,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleOpenAnnouncementEdit(announcement);
-                                                            handleMenuClose(announcement.id);
+                                                            handleMenuClose();
                                                         }}>
                                                         Edit
                                                     </MenuItem>
@@ -294,7 +297,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleOpenAnnouncementPublish(announcement);
-                                                            handleMenuClose(announcement.id);
+                                                            handleMenuClose();
                                                         }}>
                                                         Publish
                                                     </MenuItem>
@@ -304,8 +307,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            handleToggleHide(announcement.status == "Published", announcement.id);
-                                                            handleMenuClose(announcement.id);
+                                                            handleToggleHide(announcement.status == "Published", announcement.unique_code);
+                                                            handleMenuClose();
                                                         }}
                                                     >
                                                         {announcement.status == "Hidden" ? 'Show' : 'Hide'}
@@ -396,7 +399,12 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                    ) : null}
+                                    ) :
+                                        <Grid item xs={12} align="center">
+                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                -- Publishing Data Unavailable --
+                                            </Typography>
+                                        </Grid>}
                                 </Grid>
                             </Grid>
                             <Grid item xs={12} sx={{ my: 0 }} >

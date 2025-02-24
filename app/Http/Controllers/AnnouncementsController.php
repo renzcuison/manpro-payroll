@@ -59,6 +59,7 @@ class AnnouncementsController extends Controller
 
                 return [
                     'id' => $announcement->id,
+                    'unique_code' => $announcement->unique_code,
                     'title' => $announcement->title,
                     'description' => $announcement->description,
                     'status' => $announcement->status,
@@ -99,13 +100,13 @@ class AnnouncementsController extends Controller
         return response()->json(['status' => 200, 'announcements' => $announcements]);
     }
 
-    public function getAnnouncementDetails($id)
+    public function getAnnouncementDetails($code)
     {
         //Log::info("AnnouncementsController::saveAnnouncement");
 
         $user = Auth::user();
 
-        $announcement = AnnouncementsModel::where('id', $id)->first();
+        $announcement = AnnouncementsModel::where('unique_code', $code)->first();
 
         return response()->json(['status' => 200, 'announcement' => $announcement]);
     }
@@ -121,8 +122,17 @@ class AnnouncementsController extends Controller
 
                 DB::beginTransaction();
 
+                $uniqueCode = $this->generateRandomCode(16);
+                while (AnnouncementsModel::where('unique_code', $uniqueCode)->exists()) {
+                    $uniqueCode = $this->generateRandomCode(16);
+                    //Log::info("Regenerating code: " . $uniqueCode);
+                }
+
+                Log::info($uniqueCode);
+
                 // Announcement Entry
                 $announcement = AnnouncementsModel::create([
+                    'unique_code' => $uniqueCode,
                     'user_id' => $user->id,
                     'client_id' => $user->client_id,
                     'title' => $request->input('title'),
@@ -186,8 +196,7 @@ class AnnouncementsController extends Controller
 
                 DB::beginTransaction();
 
-                $announcement = AnnouncementsModel::find($request->input('announcement'));
-
+                $announcement = AnnouncementsModel::where('unique_code', $request->input('announcement'))->first();
                 $announcement->status = "Published";
                 $announcement->save();
 
@@ -222,14 +231,19 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getAnnouncementBranchDepts($id)
+    public function getAnnouncementBranchDepts($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementBranchDepts");
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $branches = AnnouncementBranchesModel::where('announcement_id', $id)
+
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->select('id')
+                ->first();
+
+            $branches = AnnouncementBranchesModel::where('announcement_id', $announcement->id)
                 ->join('branches', 'announcement_branches.branch_id', '=', 'branches.id')
                 ->select('announcement_branches.announcement_id', 'branches.acronym')
                 ->distinct()
@@ -237,7 +251,7 @@ class AnnouncementsController extends Controller
                 ->unique()
                 ->toArray();
 
-            $departments = AnnouncementDepartmentsModel::where('announcement_id', $id)
+            $departments = AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)
                 ->join('departments', 'announcement_departments.department_id', '=', 'departments.id')
                 ->select('announcement_departments.announcement_id', 'departments.acronym')
                 ->distinct()
@@ -251,7 +265,7 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getThumbnail($id)
+    public function getThumbnail($code)
     {
         //Log::info("AnnouncementsController::getThumbnail");
 
@@ -259,8 +273,11 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             //Log::info($id);
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->select('id')
+                ->first();
 
-            $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $id)
+            $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $announcement->id)
                 ->where('type', "Thumbnail")
                 ->first();
 
@@ -300,6 +317,7 @@ class AnnouncementsController extends Controller
     public function editAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::editAnnouncement");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -308,7 +326,7 @@ class AnnouncementsController extends Controller
                 DB::beginTransaction();
 
                 //Announcement Update
-                $announcement = AnnouncementsModel::find($request->input('id'));
+                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
 
                 $announcement->title = $request->input('title');
                 $announcement->description = $request->input('description');
@@ -370,13 +388,18 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getAnnouncementFiles($id)
+    public function getAnnouncementFiles($code)
     {
-        //Log::info("AnnouncementsController::getFileNames");
+        //Log::info("AnnouncementsController::getAnnouncementFiles");
         $user = Auth::user();
 
+
         if ($this->checkUser()) {
-            $files = AnnouncementFilesModel::where('announcement_id', $id)
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->select('id')
+                ->first();
+
+            $files = AnnouncementFilesModel::where('announcement_id', $announcement->id)
                 ->select('id', 'path', 'type')
                 ->get();
 
@@ -395,14 +418,14 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function toggleHide($id)
+    public function toggleHide($code)
     {
         //Log::info("AnnouncementsController::toggleHide");
         $user = Auth::user();
 
         if ($this->checkUser()) {
 
-            $announcement = AnnouncementsModel::find($id);
+            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
 
             if (!$announcement) {
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
@@ -417,8 +440,29 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getAcknowledgements()
+    public function acknowledgeAnnouncement(Request $request)
+    {
+        //Log::info("AnnouncementsController::acknowledgeAnnouncement");
+        $user = Auth::user();
+    }
+
+    public function getAcknowledgements($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
+        $user = Auth::user();
+    }
+
+    function generateRandomCode($length)
+    {
+        // log::info("AnnouncementsController::generateRandomCode");
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $result = '';
+        $charsLength = strlen($chars);
+
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[rand(0, $charsLength - 1)];
+        }
+
+        return $result;
     }
 }

@@ -55,7 +55,7 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                 console.error('Error fetching departments:', error);
             });
 
-        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 if (response.data.thumbnail) {
                     const byteCharacters = window.atob(response.data.thumbnail);
@@ -134,7 +134,7 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
 
     const saveInput = () => {
         const data = {
-            announcement: announceInfo.id,
+            announcement: announceInfo.unique_code,
             departments: selectedDepartments,
             branches: selectedBranches,
         };

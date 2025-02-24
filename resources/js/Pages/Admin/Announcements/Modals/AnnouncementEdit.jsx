@@ -61,7 +61,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     // Get Existing Files
     useEffect(() => {
-        axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.id}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setFileNames(response.data.filenames);
             })
@@ -226,7 +226,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("id", announceInfo.id);
+        formData.append("unique_code", announceInfo.unique_code);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("thumbnail", thumbnailIndex);
