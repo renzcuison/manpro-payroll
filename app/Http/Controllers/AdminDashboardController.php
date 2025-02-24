@@ -58,8 +58,7 @@ class AdminDashboardController extends Controller
 
             // Get Announcements
             $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)
-                ->whereNotNull('published')
-                ->where('hidden', false)
+                ->where('status', "Published")
                 ->count();
 
             // Get Trainings 

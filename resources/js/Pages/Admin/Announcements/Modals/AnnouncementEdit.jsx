@@ -20,7 +20,8 @@ import {
     MenuItem,
     Stack,
     Radio,
-    Checkbox
+    Checkbox,
+    Chip
 } from "@mui/material";
 import { Cancel, CheckBox, CheckBoxRounded } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -113,13 +114,18 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     // Collects Old Files by Type
     const oldFileCompiler = (fileType) => {
-        if (fileNames) {
-            return fileNames.filter(filename => filename.type === fileType);
-        } else {
+        if (!fileNames) {
             return [];
         }
 
-    }
+        if (fileType === "Document") {
+            return fileNames.filter(filename => filename.type === "Document");
+        } else if (fileType === "Image") {
+            return fileNames.filter(filename => filename.type === "Image" || filename.type === "Thumbnail");
+        } else {
+            return [];
+        }
+    };
 
     // Validate Files
     const validateFiles = (newFiles, currentFileCount, oldFileCount, countLimit, sizeLimit, docType) => {

@@ -138,11 +138,11 @@ class AnnouncementsController extends Controller
                     foreach ($request->file('image') as $index => $file) {
                         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
+                        $thumbnail = $index == $request->input('thumbnail');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
-                            'type' => "Image",
+                            'type' => $thumbnail ? "Thumbnail" : "Image",
                             'path' => $filePath,
-                            'thumbnail' => $index == $request->input('thumbnail'),
                         ]);
                     }
                 }
@@ -220,7 +220,7 @@ class AnnouncementsController extends Controller
             //Log::info($id);
 
             $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $id)
-                ->where('thumbnail', true)
+                ->where('type', "Thumbnail")
                 ->first();
 
             $thumbnail = null;
@@ -246,7 +246,7 @@ class AnnouncementsController extends Controller
         $thumbnails = array_fill_keys($announcementIds, null);
 
         $thumbnailFiles = AnnouncementFilesModel::whereIn('announcement_id', $announcementIds)
-            ->where('thumbnail', true)
+            ->where('type', "Thumbnail")
             ->get();
 
         $thumbnailFiles->each(function ($file) use (&$thumbnails) {
@@ -275,11 +275,6 @@ class AnnouncementsController extends Controller
 
                 $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
 
-                // Remove Thumbnail
-                AnnouncementFilesModel::whereIn('id', $deleteFiles)
-                    ->where('thumbnail', true)
-                    ->update(['thumbnail' => false]);
-
                 // Remove Files
                 AnnouncementFilesModel::whereIn('id', $deleteFiles)->delete();
 
@@ -305,20 +300,20 @@ class AnnouncementsController extends Controller
                         // Replace Thumbnail if Applicable
                         if ($index == $request->input('thumbnail')) {
                             $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
-                                ->where('thumbnail', true)
+                                ->where('type', "Thumbnail")
                                 ->first();
                             if ($oldThumbnail) {
-                                $oldThumbnail->thumbnail = false;
+                                $oldThumbnail->type = "Image";
                                 $oldThumbnail->save();
                             }
                         }
+                        $newThumbnail = $index == $request->input('thumbnail');
                         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('announcements/images', $fileName, 'public');
                         AnnouncementFilesModel::create([
                             'announcement_id' => $announcement->id,
-                            'type' => "Image",
+                            'type' => $newThumbnail ? "Thumbnail" : "Image",
                             'path' => $filePath,
-                            'thumbnail' => $index == $request->input('thumbnail'),
                         ]);
                     }
                 }

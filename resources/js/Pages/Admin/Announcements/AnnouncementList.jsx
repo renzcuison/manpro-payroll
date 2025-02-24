@@ -86,7 +86,6 @@ const AnnouncementList = () => {
     const fetchAnnouncements = () => {
         axiosInstance.get('/announcements/getAnnouncements', { headers })
             .then((response) => {
-                console.log(response.data.announcements);
                 setAnnouncements(response.data.announcements);
                 setTotalAnnouncements(response.data.announcements.length);
                 setAnnouncementReload(false);

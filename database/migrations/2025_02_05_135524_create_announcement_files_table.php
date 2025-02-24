@@ -16,9 +16,8 @@ class CreateAnnouncementFilesTable extends Migration
         Schema::create('announcement_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('announcement_id');
-            $table->enum('type',['Image', 'Document']);
+            $table->enum('type', ['Image', 'Document', 'Thumbnail']);
             $table->string('path', 256);
-            $table->boolean('thumbnail');
             $table->timestamps();
             $table->softDeletes();
 

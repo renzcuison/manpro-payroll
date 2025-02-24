@@ -19,6 +19,5 @@ class AnnouncementFilesModel extends Model
         'announcement_id',
         'type',
         'path',
-        'thumbnail',
     ];
 }
