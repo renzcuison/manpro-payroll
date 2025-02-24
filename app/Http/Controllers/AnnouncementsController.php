@@ -7,6 +7,7 @@ use App\Models\AnnouncementsModel;
 use App\Models\AnnouncementFilesModel;
 use App\Models\AnnouncementBranchesModel;
 use App\Models\AnnouncementDepartmentsModel;
+use App\Models\BranchesModel;
 use App\Models\UsersModel;
 
 use Illuminate\Http\Request;
@@ -96,6 +97,17 @@ class AnnouncementsController extends Controller
         $announcements = $branches->merge($departments)->unique('id');
 
         return response()->json(['status' => 200, 'announcements' => $announcements]);
+    }
+
+    public function getAnnouncementDetails($id)
+    {
+        //Log::info("AnnouncementsController::saveAnnouncement");
+
+        $user = Auth::user();
+
+        $announcement = AnnouncementsModel::where('id', $id)->first();
+
+        return response()->json(['status' => 200, 'announcement' => $announcement]);
     }
 
     public function saveAnnouncement(Request $request)
@@ -207,6 +219,35 @@ class AnnouncementsController extends Controller
             }
         } else {
             return response()->json(['status' => 200]);
+        }
+    }
+
+    public function getAnnouncementBranchDepts($id)
+    {
+        //Log::info("AnnouncementsController::getAnnouncementBranchDepts");
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $branches = AnnouncementBranchesModel::where('announcement_id', $id)
+                ->join('branches', 'announcement_branches.branch_id', '=', 'branches.id')
+                ->select('announcement_branches.announcement_id', 'branches.acronym')
+                ->distinct()
+                ->pluck('acronym')
+                ->unique()
+                ->toArray();
+
+            $departments = AnnouncementDepartmentsModel::where('announcement_id', $id)
+                ->join('departments', 'announcement_departments.department_id', '=', 'departments.id')
+                ->select('announcement_departments.announcement_id', 'departments.acronym')
+                ->distinct()
+                ->pluck('acronym')
+                ->unique()
+                ->toArray();
+
+            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments]);
+        } else {
+            return response()->json(['status' => 200, 'branches' => null, 'departments' => null]);
         }
     }
 

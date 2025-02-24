@@ -58,32 +58,17 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
 
-    // ----------- AnnouncementDetails
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
+
+    const [announcement, setAnnouncement] = useState(announceInfo);
+
+    // ----------- Additional Details
     useEffect(() => {
-        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
-            .then((response) => {
-                if (response.data.thumbnail) {
-                    const byteCharacters = window.atob(response.data.thumbnail);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'image/png' });
-
-                    setImagePath(URL.createObjectURL(blob));
-                    console.log(announceInfo);
-                } else {
-                    setImagePath("../../../../images/ManProTab.png");
-                }
-                setImageLoading(false);
-
-            })
-            .catch((error) => {
-                console.error('Error fetching thumbnail:', error);
-                setImagePath("../../../../images/ManProTab.png");
-                setImageLoading(false);
-            });
+        getAnnouncementThumbnail();
+        if (announceInfo.status != "Pending") {
+            getAnnouncementBranchDepts();
+        }
     }, []);
 
     // Announcement Menu
@@ -120,6 +105,98 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }
     }
 
+    // ---------------- Application Hiding
+    const handleToggleHide = (toggle, id) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `${toggle ? "Hide" : "Show"} Announcement?`,
+            text: `The Announcement will be ${toggle ? "hidden from" : "visible to"} employees`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: toggle ? "Hide" : "Show",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                axiosInstance
+                    .get(`announcements/toggleHide/${id}`, {
+                        headers
+                    })
+                    .then((response) => {
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Your Announcement is now ${toggle ? "hidden" : "visible"}`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                announcementReloader();
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error toggling Hidden Status:", error);
+                    });
+            }
+        });
+    };
+
+    // ---------------- Announcement Detail Reloader
+    const announcementReloader = () => {
+        axiosInstance.get(`/announcements/getAnnouncementDetails/${announceInfo.id}`, { headers })
+            .then((response) => {
+                setAnnouncement(response.data.announcement);
+            })
+            .catch((error) => {
+                console.error('Error fetching updated announcement details', error);
+            });
+        getAnnouncementThumbnail();
+        getAnnouncementBranchDepts();
+    }
+
+    // ---------------- Thumbnail
+    const getAnnouncementThumbnail = () => {
+        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.id}`, { headers })
+            .then((response) => {
+                if (response.data.thumbnail) {
+                    const byteCharacters = window.atob(response.data.thumbnail);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'image/png' });
+
+                    setImagePath(URL.createObjectURL(blob));
+                } else {
+                    setImagePath("../../../../images/ManProTab.png");
+                }
+                setImageLoading(false);
+
+            })
+            .catch((error) => {
+                console.error('Error fetching thumbnail:', error);
+                setImagePath("../../../../images/ManProTab.png");
+                setImageLoading(false);
+            });
+    }
+
+    // ---------------- Recipient Branch and Departments
+    const getAnnouncementBranchDepts = () => {
+        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.id}`, { headers })
+            .then((response) => {
+                setBranches(response.data.branches);
+                setDepartments(response.data.departments);
+            })
+            .catch((error) => {
+                console.error('Error fetching published branch/departments:', error);
+            });
+    }
 
     return (
         <>
@@ -162,7 +239,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                 }}>
                                     <img
                                         src={imagePath}
-                                        alt={`${announceInfo.title} thumbnail`}
+                                        alt={`${announcement.title} thumbnail`}
                                         style={{
                                             width: '100%',
                                             height: '100%',
@@ -179,7 +256,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     <Grid item xs={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                             <Typography variant="h6" component="div">
-                                                {announceInfo.title}
+                                                {announcement.title}
                                             </Typography>
                                             <IconButton
                                                 id="basic-button"
@@ -200,10 +277,56 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     'aria-labelledby': 'basic-button',
                                                 }}
                                             >
-                                                <MenuItem onClick={() => handleOpenAnnouncementEdit(announceInfo)}>Edit</MenuItem>
-                                                <MenuItem onClick={() => handleOpenAnnouncementPublish(announceInfo)}>Publish</MenuItem>
-                                                <MenuItem onClick={handleMenuClose}>Open in New Page</MenuItem>
-                                                <MenuItem onClick={handleMenuClose}>View Acknowledgements</MenuItem>
+                                                {/* Editing */}
+                                                {announcement.status == "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenAnnouncementEdit(announcement);
+                                                            handleMenuClose(announcement.id);
+                                                        }}>
+                                                        Edit
+                                                    </MenuItem>
+                                                )}
+                                                {/* Publishing */}
+                                                {announcement.status == "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenAnnouncementPublish(announcement);
+                                                            handleMenuClose(announcement.id);
+                                                        }}>
+                                                        Publish
+                                                    </MenuItem>
+                                                )}
+                                                {/* Toggle Hide */}
+                                                {announcement.status != "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleHide(announcement.status == "Published", announcement.id);
+                                                            handleMenuClose(announcement.id);
+                                                        }}
+                                                    >
+                                                        {announcement.status == "Hidden" ? 'Show' : 'Hide'}
+                                                    </MenuItem>
+                                                )}
+                                                {announcement.status != "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Open in New Page
+                                                    </MenuItem>
+                                                )}
+                                                {announcement.status != "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            handleMenuClose();
+                                                        }}>
+                                                        View Acknowledgements
+                                                    </MenuItem>
+                                                )}
                                                 <MenuItem onClick={handleMenuClose}>Close Menu</MenuItem>
                                             </Menu>
                                         </Stack>
@@ -220,43 +343,46 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             sx={{
                                                 fontWeight: "bold",
                                                 color:
-                                                    announceInfo.status == "Pending"
+                                                    announcement.status == "Pending"
                                                         ? "#e9ae20"
-                                                        : announceInfo.status == "Published"
+                                                        : announcement.status == "Published"
                                                             ? "#177604"
                                                             : "#f57c00"
                                             }}
                                         >
-                                            {announceInfo.status.toUpperCase()}
+                                            {announcement.status.toUpperCase()}
                                         </Typography>
                                     </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Publishment Details*/}
-                                    {announceInfo.status != "Pending" ? (
+                                    {announcement.status != "Pending" ? (
                                         <Grid item container xs={12} spacing={1}>
                                             <Grid item xs={12} align="left">
                                                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                     Publishment Details
                                                 </Typography>
                                             </Grid>
+                                            {/* Branches */}
                                             <Grid item xs={5} align="left">
                                                 Branches
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Typography sx={{ fontWeight: "bold", }}>
-                                                    MNL, DVO
+                                                    {branches.length > 0 ? branches.join(', ') : 'N/A'}
                                                 </Typography>
                                             </Grid>
+                                            {/* Departments */}
                                             <Grid item xs={5} align="left">
                                                 Departments
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Typography sx={{ fontWeight: "bold", }}>
-                                                    HR, FN, PR
+                                                    {departments.length > 0 ? departments.join(', ') : 'N/A'}
                                                 </Typography>
                                             </Grid>
+                                            {/* Acknowledgement Count */}
                                             <Grid item xs={5} align="left">
                                                 Acknowledged
                                             </Grid>

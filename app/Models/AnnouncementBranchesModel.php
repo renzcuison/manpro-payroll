@@ -22,4 +22,8 @@ class AnnouncementBranchesModel extends Model
     {
         return $this->belongsTo(AnnouncementsModel::class, 'announcement_id');
     }
+    public function branch()
+    {
+        return $this->belongsTo(BranchesModel::class, 'branch_id');
+    }
 }
