@@ -79,14 +79,8 @@ const ApplicationsList = () => {
     };
 
     return (
-        <Layout title={"EmployeesList"}>
-            <Box
-                sx={{
-                    overflowX: "scroll",
-                    width: "100%",
-                    whiteSpace: "nowrap",
-                }}
-            >
+        <Layout title={"ApplicationsList"}>
+            <Box sx={{ overflowX: "scroll", width: "100%", whiteSpace: "nowrap", }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box
                         sx={{
@@ -98,10 +92,8 @@ const ApplicationsList = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}
-                            Applications{" "}
+                            {" "}Applications{" "}
                         </Typography>
-                        <></>
                     </Box>
 
                     <Box

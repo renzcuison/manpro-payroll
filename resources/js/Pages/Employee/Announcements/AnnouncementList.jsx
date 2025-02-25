@@ -23,6 +23,7 @@ import {
     Card,
     CardMedia,
     CardContent,
+    CardActionArea,
     Pagination,
     IconButton
 } from "@mui/material";
@@ -135,7 +136,7 @@ const AnnouncementList = () => {
                     setImageLoading(false);
                 });
         } else {
-            console.log("No Request Needed");
+            //console.log("No Request Needed");
         }
     };
 
@@ -189,7 +190,6 @@ const AnnouncementList = () => {
     // ---------------- Image Cleanup
     useEffect(() => {
         return () => {
-            console.log("closed");
             announcements.forEach(announcement => {
                 if (announcement.thumbnail && announcement.thumbnail.startsWith('blob:')) {
                     URL.revokeObjectURL(announcement.thumbnail);
@@ -216,49 +216,62 @@ const AnnouncementList = () => {
                             </Box>
                         ) : (
                             <>
-                                <Grid container rowSpacing={2} columnSpacing={{ xs: 2, sm: 3, }} sx={{ justifyContent: "center" }}>
+                                <Grid
+                                    container
+                                    rowSpacing={3}
+                                    columnSpacing={{ xs: 2, sm: 3 }}
+                                    sx={{
+                                        ...(pageAnnouncements.length === 0 ? { justifyContent: "center" } : {}),
+                                    }}
+                                >
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
-                                                    <Card sx={{ maxWidth: 350 }}>
-                                                        {imageLoading ? (
-                                                            <Box
-                                                                sx={{
-                                                                    display: 'flex',
-                                                                    justifyContent: 'center',
-                                                                    alignItems: 'center',
-                                                                    height: '180px'
-                                                                }}
-                                                            >
-                                                                <CircularProgress />
-                                                            </Box>
-                                                        ) : (
-                                                            <CardMedia
-                                                                sx={{ height: '180px' }}
-                                                                image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                title={`${announcement.title}_Thumbnail`}
-                                                            />
-                                                        )}
+                                                    <CardActionArea component={Link} to={`/employee/announcement/${announcement.unique_code}`}>
+                                                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                                            {/* Card Thumbnail */}
+                                                            {imageLoading ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        display: 'flex',
+                                                                        justifyContent: 'center',
+                                                                        alignItems: 'center',
+                                                                        height: '180px'
+                                                                    }}
+                                                                >
+                                                                    <CircularProgress />
+                                                                </Box>
+                                                            ) : (
+                                                                <CardMedia
+                                                                    sx={{ height: '180px' }}
+                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
+                                                                    title={`${announcement.title}_Thumbnail`}
+                                                                />
+                                                            )}
+                                                            {/* Card Content */}
+                                                            <CardContent>
+                                                                {/* Announcement Title */}
+                                                                <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
+                                                                    {announcement.title}
+                                                                </Typography>
+                                                                {/* Announcement Details */}
+                                                                <Typography variant="body2" sx={{ my: 1, color: "text.secondary" }}>
+                                                                    {`Posted ${dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}`}
+                                                                </Typography>
+                                                            </CardContent>
+                                                            {/*
+                                                                <CardActions>
+                                                                <IconButton
+                                                                    onClick={() => handleAcknowledgeAnnouncement(announcement.unique_code)}
+                                                                >
+                                                                    <TaskAlt />
+                                                                </IconButton>
+                                                            </CardActions>
+                                                            */}
 
-                                                        <CardContent>
-                                                            <Typography gutterBottom variant="h6" component="div">
-                                                                {announcement.title}
-                                                            </Typography>
-                                                            <div
-                                                                id="description"
-                                                                style={{ height: '100px', overflow: 'hidden' }}
-                                                                dangerouslySetInnerHTML={{ __html: announcement.description }}
-                                                            />
-                                                        </CardContent>
-                                                        <CardActions>
-                                                            <IconButton
-                                                                onClick={() => handleAcknowledgeAnnouncement(announcement.unique_code)}
-                                                            >
-                                                                <TaskAlt />
-                                                            </IconButton>
-                                                        </CardActions>
-                                                    </Card>
+                                                        </Card>
+                                                    </CardActionArea>
                                                 </Grid>
                                             )
                                         )

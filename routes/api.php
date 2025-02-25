@@ -210,6 +210,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
 
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
+        Route::get('/getEmployeeAnnouncementDetails/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementDetails']);
         Route::get('/getAnnouncementBranchDepts/{code}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
 
         Route::get('/getThumbnail/{code}', [AnnouncementsController::class, 'getThumbnail']);

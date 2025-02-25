@@ -126,6 +126,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                         <Tab label="Not Acknowledged" value="2" />
                                     </TabList>
                                 </Box>
+                                {/* Acknowledged */}
                                 <TabPanel value="1" sx={{ p: 0, maxHeight: "400px", overflowY: "auto", width: "100%" }}>
                                     <List sx={{ width: "100%" }}>
                                         {acknowledgements.length > 0 ? (
@@ -150,6 +151,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
 
                                     </List>
                                 </TabPanel>
+                                {/* Unacknowledged */}
                                 <TabPanel value="2" sx={{ p: 0, maxHeight: "400px", overflowY: "auto", width: "100%" }}>
                                     <List sx={{ width: "100%" }}>
                                         {unAcknowledged.length > 0 ? (

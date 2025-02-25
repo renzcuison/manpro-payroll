@@ -102,13 +102,40 @@ class AnnouncementsController extends Controller
 
     public function getAnnouncementDetails($code)
     {
-        //Log::info("AnnouncementsController::saveAnnouncement");
+        //Log::info("AnnouncementsController::getAnnouncementDetails");
 
         $user = Auth::user();
 
-        $announcement = AnnouncementsModel::where('unique_code', $code)->first();
+        if ($this->checkUser()) {
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->firstOrFail();
 
-        return response()->json(['status' => 200, 'announcement' => $announcement]);
+            return response()->json(['status' => 200, 'announcement' => $announcement]);
+        } else {
+            return response()->json(['status' => 200, 'announcement' => null]);
+        }
+    }
+
+    public function getEmployeeAnnouncementDetails($code)
+    {
+        //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
+
+        $user = Auth::user();
+
+        $announcement = AnnouncementsModel::where('unique_code', $code)
+            ->with('acknowledgements')
+            ->firstOrFail();
+
+        $acknowledged = $announcement->acknowledgements()
+            ->where('user_id', $user->id)
+            ->exists();
+
+        $announcement->acknowledged = $acknowledged;
+
+        $announcementData = $announcement->toArray();
+        unset($announcementData['acknowledgements']);
+
+        return response()->json(['status' => 200, 'announcement' => $announcementData]);
     }
 
     public function saveAnnouncement(Request $request)

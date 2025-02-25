@@ -224,8 +224,8 @@ const AnnouncementList = () => {
                             <>
                                 <Grid
                                     container
-                                    rowSpacing={2}
-                                    columnSpacing={{ xs: 1, sm: 2 }}
+                                    rowSpacing={3}
+                                    columnSpacing={{ xs: 2, sm: 3 }}
                                     sx={{
                                         ...(pageAnnouncements.length === 0 ? { justifyContent: "center" } : {}),
                                     }}
@@ -235,7 +235,7 @@ const AnnouncementList = () => {
                                             (announcement, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
                                                     <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
-                                                        <Card sx={{ borderRadius: 2 }}>
+                                                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                                                             {/* Card Thumbnail */}
                                                             {imageLoading ? (
                                                                 <Box
