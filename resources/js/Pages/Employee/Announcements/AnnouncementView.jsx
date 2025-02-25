@@ -24,9 +24,10 @@ import {
     CardMedia,
     CardContent,
     Pagination,
-    IconButton
+    IconButton,
+    Divider,
 } from "@mui/material";
-import { TaskAlt } from "@mui/icons-material";
+import { TaskAlt, MoreVert } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -50,6 +51,10 @@ import {
 import { first } from "lodash";
 import { CardActions } from "@material-ui/core";
 
+import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
+import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
+import XlsImage from '../../../../images/FileTypeIcons/Excel_file_icon.png';
+
 const AnnouncementView = () => {
     const { code } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
@@ -60,17 +65,103 @@ const AnnouncementView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [announcement, setAnnouncement] = useState([]);
 
+    const [imagePath, setImagePath] = useState("");
+    const [imageLoading, setImageLoading] = useState(true);
+    const [files, setFiles] = useState([]);
+
     // ---------------- Announcement List API
     useEffect(() => {
+        getAnnouncementDetails();
+        getAnnouncementThumbnail();
+    }, []);
+
+    // Announcement Details
+    const getAnnouncementDetails = () => {
         axiosInstance.get(`/announcements/getEmployeeAnnouncementDetails/${code}`, { headers })
             .then((response) => {
-                console.log(response.data.announcement);
                 setAnnouncement(response.data.announcement);
             })
             .catch((error) => {
                 console.error('Error fetching announcement details', error);
             });
-    }, []);
+    }
+
+    // Announcement Thumbnail
+    const getAnnouncementThumbnail = () => {
+        axiosInstance.get(`/announcements/getThumbnail/${code}`, { headers })
+            .then((response) => {
+                if (response.data.thumbnail) {
+                    const byteCharacters = window.atob(response.data.thumbnail);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'image/png' });
+
+                    setImagePath(URL.createObjectURL(blob));
+                } else {
+                    setImagePath("../../../../images/ManProTab.png");
+                }
+                setImageLoading(false);
+
+            })
+            .catch((error) => {
+                console.error('Error fetching thumbnail:', error);
+                setImagePath("../../../../images/ManProTab.png");
+                setImageLoading(false);
+            });
+    }
+
+    // Announcement Menu
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const menuOpen = Boolean(anchorEl);
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    // Acknowledge Announcement
+    const handleAcknowledgeAnnouncement = () => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Acknowledge Announcement?",
+            text: "Do you want to acknowledge this announcement?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Yes",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    code: code
+                };
+                axiosInstance
+                    .post(`announcements/acknowledgeAnnouncement`, data, {
+                        headers,
+                    })
+                    .then((response) => {
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Announcement Acknowledged`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error acknowledging announcment:", error);
+                    });
+            }
+        });
+    };
 
     return (
         <Layout title={"AnnouncementView"}>
@@ -78,7 +169,7 @@ const AnnouncementView = () => {
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Announcement Title
+                            Announcement
                         </Typography>
                     </Box>
 
@@ -89,9 +180,141 @@ const AnnouncementView = () => {
                             </Box>
                         ) : (
                             <>
-                                <Box>
-                                    {announcement.title}
-                                </Box>
+                                <Grid container columnSpacing={4} rowSpacing={2}>
+                                    {/* Core Information */}
+                                    <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                        <Grid item container spacing={1} sx={{ mb: 1 }}>
+                                            {/* Title and Action Menu */}
+                                            <Grid item xs={12}>
+                                                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography variant="h5">
+                                                        {announcement.title}
+                                                    </Typography>
+                                                    <IconButton
+                                                        id="basic-button"
+                                                        size="small"
+                                                        aria-controls={open ? 'basic-menu' : undefined}
+                                                        aria-haspopup="true"
+                                                        aria-expanded={open ? 'true' : undefined}
+                                                        onClick={handleMenuClick}
+                                                    >
+                                                        <MoreVert />
+                                                    </IconButton>
+                                                    <Menu
+                                                        id="basic-menu"
+                                                        anchorEl={anchorEl}
+                                                        open={menuOpen}
+                                                        onClose={handleMenuClose}
+                                                        MenuListProps={{
+                                                            'aria-labelledby': 'basic-button',
+                                                        }}
+                                                    >
+                                                        {/* Acknowledgement */}
+                                                        {!announcement.acknowledged && (
+                                                            <MenuItem
+                                                                onClick={(event) => {
+                                                                    event.stopPropagation();
+                                                                    handleAcknowledgeAnnouncement();
+                                                                    handleMenuClose();
+                                                                }}>
+                                                                Acknowledge Announcement
+                                                            </MenuItem>
+                                                        )}
+                                                        <MenuItem onClick={handleMenuClose}>Close Menu</MenuItem>
+                                                    </Menu>
+                                                </Stack>
+                                            </Grid>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                            {/* Posting Date */}
+                                            <Grid item xs={5} align="left">
+                                                Posted
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography sx={{ fontWeight: "bold", }}>
+                                                    {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                </Typography>
+                                            </Grid>
+                                            {/* Acknowledgement Status */}
+                                            {announcement.acknowledged ? (
+                                                <>
+                                                    <Grid item xs={5} align="left">
+                                                        Acknowledged on
+                                                    </Grid>
+                                                    <Grid item xs={7} align="left">
+                                                        <Typography sx={{ fontWeight: "bold", }}>
+                                                            {dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A")}
+                                                        </Typography>
+                                                    </Grid>
+                                                </>
+                                            )
+                                                : <Grid item xs={12} align="left">
+                                                    You have not acknowledged this announcement yet
+                                                </Grid>}
+                                            {/* Recipient Branch/Department */}
+                                            <Grid item xs={12} align="left">
+                                                {`This announcement is posted for your ${announcement.department_matched && announcement.branch_matched
+                                                    ? "branch and department"
+                                                    : announcement.department_matched ? "department"
+                                                        : "branch"
+                                                    } `}
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                    {/* Thumbnail */}
+                                    <Grid item xs={5}>
+                                        <Box sx={{
+                                            position: 'relative',
+                                            width: '100%',
+                                            height: 200,
+                                            borderRadius: "4px",
+                                            border: '2px solid #e0e0e0',
+                                        }}>
+                                            <img
+                                                src={imagePath}
+                                                alt={`${announcement.title} thumbnail`}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: "4px",
+                                                }}
+                                            />
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    {/* Description */}
+                                    <Grid item xs={12} >
+                                        <div
+                                            id="description"
+                                            style={{
+                                                wordWrap: 'break-word',
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'break-word',
+                                                whiteSpace: 'pre-wrap',
+                                            }}
+                                            dangerouslySetInnerHTML={{ __html: announcement.description }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    {/* Images */}
+                                    <Grid item container xs={6} spacing={2}>
+                                        <Grid item xs={12} align="left">
+                                            Images
+                                        </Grid>
+                                    </Grid>
+                                    {/* Documents */}
+                                    <Grid item container xs={6} spacing={2}>
+                                        <Grid item xs={12} align="left">
+                                            Documents
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
                             </>
                         )}
                     </Box>

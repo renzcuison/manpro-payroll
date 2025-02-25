@@ -123,17 +123,27 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         $announcement = AnnouncementsModel::where('unique_code', $code)
-            ->with('acknowledgements')
+            ->with(['acknowledgements', 'branches', 'departments'])
             ->firstOrFail();
 
-        $acknowledged = $announcement->acknowledgements()
+        $acknowledgement = $announcement->acknowledgements()
             ->where('user_id', $user->id)
-            ->exists();
+            ->first();
+
+        $acknowledged = $acknowledgement !== null;
+        $acknowledgementTimestamp = $acknowledged ? $acknowledgement->created_at : null;
 
         $announcement->acknowledged = $acknowledged;
+        $announcement->ack_timestamp = $acknowledgementTimestamp;
+
+        $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
+        $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
+
+        $announcement->branch_matched = in_array($user->branch_id, $branches);
+        $announcement->department_matched = in_array($user->department_id, $departments);
 
         $announcementData = $announcement->toArray();
-        unset($announcementData['acknowledgements']);
+        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments']);
 
         return response()->json(['status' => 200, 'announcement' => $announcementData]);
     }
@@ -295,26 +305,20 @@ class AnnouncementsController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()) {
-            //Log::info($id);
-            $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id')
-                ->first();
+        $announcement = AnnouncementsModel::where('unique_code', $code)
+            ->select('id')
+            ->first();
 
-            $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $announcement->id)
-                ->where('type', "Thumbnail")
-                ->first();
+        $thumbnailFile = AnnouncementFilesModel::where('announcement_id', $announcement->id)
+            ->where('type', "Thumbnail")
+            ->first();
 
-            $thumbnail = null;
-            $thumbnail = null;
-            if ($thumbnailFile) {
-                $thumbnail = base64_encode(Storage::disk('public')->get($thumbnailFile->path));
-            }
-
-            return response()->json(['status' => 200, 'thumbnail' => $thumbnail]);
-        } else {
-            return response()->json(['status' => 200, 'thumbnail' => null]);
+        $thumbnail = null;
+        if ($thumbnailFile) {
+            $thumbnail = base64_encode(Storage::disk('public')->get($thumbnailFile->path));
         }
+
+        return response()->json(['status' => 200, 'thumbnail' => $thumbnail]);
     }
 
     public function getPageThumbnails(Request $request)

@@ -205,14 +205,14 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
                     setImagePath(URL.createObjectURL(blob));
                 } else {
-                    setImagePath("../../../../images/ManProTab.png");
+                    setImagePath("../../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
 
             })
             .catch((error) => {
                 console.error('Error fetching thumbnail:', error);
-                setImagePath("../../../../images/ManProTab.png");
+                setImagePath("../../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
     }
