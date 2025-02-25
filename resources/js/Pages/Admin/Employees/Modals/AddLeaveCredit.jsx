@@ -124,30 +124,13 @@ const AddLeaveCredit = ({ open, close, empId }) => {
 
     return (
         <>
-            <Dialog
-                open={open}
-                fullWidth
-                maxWidth="md"
-                PaperProps={{
-                    style: {
-                        padding: '16px',
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: '800px',
-                        maxWidth: '1000px',
-                        marginBottom: '5%'
-                    }
-                }}
+            <Dialog open={open} fullWidth maxWidth="md"
+                PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}
             >
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}>
-                            Add Leave Credit
-                        </Typography>
-                        <IconButton onClick={close}>
-                            <i className="si si-close"></i>
-                        </IconButton>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Leave Credit </Typography>
+                        <IconButton onClick={close}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 
