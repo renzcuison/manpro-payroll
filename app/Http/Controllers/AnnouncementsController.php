@@ -125,10 +125,7 @@ class AnnouncementsController extends Controller
                 $uniqueCode = $this->generateRandomCode(16);
                 while (AnnouncementsModel::where('unique_code', $uniqueCode)->exists()) {
                     $uniqueCode = $this->generateRandomCode(16);
-                    //Log::info("Regenerating code: " . $uniqueCode);
                 }
-
-                Log::info($uniqueCode);
 
                 // Announcement Entry
                 $announcement = AnnouncementsModel::create([
@@ -317,7 +314,7 @@ class AnnouncementsController extends Controller
     public function editAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::editAnnouncement");
-        Log::info($request);
+        //Log::info($request);
 
         $user = Auth::user();
 
@@ -498,7 +495,7 @@ class AnnouncementsController extends Controller
 
             $acknowledgedUsers = $announcement->acknowledgements->pluck('user_id')->unique()->toArray();
 
-            Log::info($acknowledgedUsers);
+            //Log::info($acknowledgedUsers);
 
             $unacknowledged = UsersModel::where('client_id', $clientId)
                 ->where(function ($query) use ($branches, $departments) {
@@ -523,7 +520,7 @@ class AnnouncementsController extends Controller
                 })
                 ->all();
 
-            Log::info($unacknowledged);
+            //Log::info($unacknowledged);
 
             return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
         } else {
