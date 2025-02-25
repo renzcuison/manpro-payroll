@@ -335,7 +335,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                                         >
                                                             <Box sx={{ display: 'flex' }}>
                                                                 {fileIcon.icon && <fileIcon.icon sx={{ mr: 1, color: fileIcon.color }} />}
-                                                                <Typography noWrap sx={{ textDecoration: "underline" }}>{file.filename}</Typography>
+                                                                <Typography noWrap>{file.filename}</Typography>
                                                             </Box>
                                                             <Tooltip title="Download File">
                                                                 <IconButton onClick={() => handleFileDownload(file.filename, file.id)} size="small">

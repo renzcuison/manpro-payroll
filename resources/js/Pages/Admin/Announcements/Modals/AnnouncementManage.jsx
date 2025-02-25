@@ -27,7 +27,7 @@ import {
     Table,
     Menu,
 } from "@mui/material";
-import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload, MoreVert } from "@mui/icons-material";
+import { PictureAsPdf, Description, InsertPhoto, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -36,6 +36,10 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
+
+import PdfImage from '../../../../../images/FileTypeIcons/PDF_file_icon.png';
+import DocImage from '../../../../../images/FileTypeIcons/Docx_file_icon.png';
+import XlsImage from '../../../../../images/FileTypeIcons/Excel_file_icon.png';
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -150,6 +154,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             confirmButtonColor: "#177604",
                         }).then((res) => {
                             if (res.isConfirmed) {
+                                setExitReload(true);
                                 announcementReloader();
                             }
                         });
@@ -223,6 +228,41 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 console.error('Error fetching published branch/departments:', error);
             });
     }
+
+    // ----------- Dynamic File Icon
+    const getFileIcon = (filename) => {
+        const fileType = filename
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+        let src = null;
+        let color = null;
+
+        switch (fileType) {
+            case "png":
+            case "jpg":
+            case "jpeg":
+                // REPLACE WITH DOMAIN IN PRODUCTION
+                src = `../../../../../../storage/announcements/images/${filename}`;
+                break;
+            case "doc":
+            case "docx":
+                src = DocImage;
+                break;
+            case "pdf":
+                src = PdfImage;
+                break;
+            case "xls":
+            case "xlsx":
+                src = XlsImage;
+                break;
+            default:
+                src = null;
+        }
+
+        return src;
+    };
 
     return (
         <>
@@ -456,26 +496,66 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             <Grid item xs={2}>
                                 Attachments
                             </Grid>
-                            <Grid item xs={10}>
-                                {files.length > 0 && (files.map((file, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            mt: 1,
-                                            p: 1,
-                                            borderRadius: "2px",
-                                            border: '1px solid',
-                                            borderColor: "#e0e0e0"
-                                        }}
-                                    >
-                                        <Typography variant="body2" noWrap>
-                                            {file.filename}
-                                        </Typography>
-                                    </Box>
-                                )))}
+                            <Grid container item xs={10} spacing={2}>
+                                {files.length > 0 && (files.map((file, index) => {
+                                    const fileIcon = getFileIcon(file.filename);
+                                    return (
+                                        <Grid key={index} item xs={3}>
+                                            <Box sx={{
+                                                p: 1,
+                                                borderRadius: "4px",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                '&:hover': {
+                                                    backgroundColor: '#e0e0e0',
+                                                },
+                                                position: "relative"
+                                            }}>
+                                                {file.type == "Thumbnail" && (
+                                                    <Box sx={{
+                                                        borderRadius: "20%",
+                                                        backgroundColor: 'white',
+                                                        position: "absolute",
+                                                        top: 4,
+                                                        left: 4,
+                                                        zIndex: 1
+                                                    }}>
+                                                        <Tooltip title="Thumbnail">
+                                                            <InsertPhoto size="small" sx={{ color: "#42a5f5" }} />
+                                                        </Tooltip>
+                                                    </Box>
+                                                )}
+                                                {fileIcon && (
+                                                    <img
+                                                        src={fileIcon}
+                                                        alt={`${file.filename}`}
+                                                        loading="lazy"
+                                                        style={{
+                                                            height: 64,
+                                                            marginRight: 8
+                                                        }}
+                                                    />
+                                                )}
+                                                <Typography
+                                                    sx={{
+                                                        selfAlign: "center",
+                                                        textAlign: "center",
+                                                        maxWidth: "100%",
+                                                        wordBreak: "break-word",
+                                                        display: "-webkit-box",
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: "vertical",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis"
+                                                    }}
+                                                >
+                                                    {file.filename}
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                    );
+                                }))}
                             </Grid>
                         </Grid>
                     </Box>
