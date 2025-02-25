@@ -24,7 +24,14 @@ import {
     TableBody,
     TableRow,
     TableCell,
+    List,
+    ListItem,
+    ListItemAvatar,
+    ListItemText,
+    Avatar,
+    Tab
 } from "@mui/material";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -41,6 +48,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [acknowledgements, setAcknowledgements] = useState([]);
+    const [unAcknowledged, setUnAcknowledged] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -50,12 +58,18 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
             })
             .then((response) => {
                 setAcknowledgements(response.data.acknowledgements);
+                setUnAcknowledged(response.data.unacknowledged);
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error("Error fetching acknowledgements:", error);
             });
     }, []);
+
+    const [viewTab, setViewTab] = useState('1');
+    const handleTabChange = (event, newValue) => {
+        setViewTab(newValue);
+    }
 
     return (
         <>
@@ -68,8 +82,8 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
-                        minWidth: { xs: "100%", sm: "500px" },
-                        maxWidth: "560px",
+                        minWidth: { xs: "100%", sm: "400px" },
+                        maxWidth: "450px",
                         marginBottom: "5%",
                     },
                 }}
@@ -83,7 +97,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                         }}
                     >
                         <Typography variant="h5" sx={{ marginLeft: 1, fontWeight: "bold" }} >
-                            {" "}Acknowledgements{" "}
+                            {" "}Recipients{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -104,40 +118,64 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
-                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                Employee
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
-                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                Timestamp
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {acknowledgements.map((ack, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell align="left" sx={{ pl: 0 }}>
-                                                {" "}
-                                                {ack.emp_first_name}{" "}
-                                                {ack.emp_middle_name || ""}{" "}
-                                                {ack.emp_last_name}{" "}
-                                                {ack.emp_suffix || ""}{" "}
-                                            </TableCell>
-                                            <TableCell align="left" sx={{ pl: 0 }}>
-                                                {dayjs(ack.timestamp).format("YYYY-DD-MM HH:mm:ss")}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        <Box >
+                            <TabContext value={viewTab}>
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                    <TabList onChange={handleTabChange} aria-label="Acknowledgement Tabs">
+                                        <Tab label="Acknowledged" value="1" />
+                                        <Tab label="Not Acknowledged" value="2" />
+                                    </TabList>
+                                </Box>
+                                <TabPanel value="1" sx={{ p: 0, maxHeight: "400px", overflowY: "auto", width: "100%" }}>
+                                    <List sx={{ width: "100%" }}>
+                                        {acknowledgements.length > 0 ? (
+                                            acknowledgements.map((ack, index) => (
+                                                <ListItem key={index} align="flex-start">
+                                                    <ListItemAvatar>
+                                                        <Avatar alt={`${ack.emp_first_name}_Avatar`} src={"../../../../../images/avatarpic.jpg"} />
+                                                    </ListItemAvatar>
+                                                    <ListItemText
+                                                        primary={`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`}
+                                                        secondary={`Acknowledged ${dayjs(ack.timestamp).format("MMM D, YYYY    h:mm A")}`}
+                                                    />
+                                                </ListItem>
+                                            ))
+                                        )
+                                            :
+                                            <Box fullWidth sx={{ justifyContent: "center", alignItems: "center" }}>
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    -- No Acknowledgements --
+                                                </Typography>
+                                            </Box>}
+
+                                    </List>
+                                </TabPanel>
+                                <TabPanel value="2" sx={{ p: 0, maxHeight: "400px", overflowY: "auto", width: "100%" }}>
+                                    <List sx={{ width: "100%" }}>
+                                        {unAcknowledged.length > 0 ? (
+                                            unAcknowledged.map((unAck, index) => (
+                                                <ListItem key={index} align="flex-start">
+                                                    <ListItemAvatar>
+                                                        <Avatar alt={`${unAck.emp_first_name}_Avatar`} src={"../../../../../images/avatarpic.jpg"} />
+                                                    </ListItemAvatar>
+                                                    <ListItemText
+                                                        primary={`${unAck.emp_first_name} ${unAck.emp_middle_name || ''} ${unAck.emp_last_name} ${unAck.emp_suffix || ''}`}
+                                                        secondary="Not Yet Acknowledged"
+                                                    />
+                                                </ListItem>
+                                            ))
+                                        )
+                                            :
+                                            <Box fullWidth sx={{ justifyContent: "center", alignItems: "center" }}>
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    -- Announcement acknowledged by all recipients --
+                                                </Typography>
+                                            </Box>}
+
+                                    </List>
+                                </TabPanel>
+                            </TabContext>
+                        </Box>
                     )}
                 </DialogContent>
             </Dialog>

@@ -258,7 +258,7 @@ const AnnouncementList = () => {
                                                             {/* Card Content */}
                                                             <CardContent>
                                                                 {/* Announcement Title */}
-                                                                <Typography variant="h6" component="div">
+                                                                <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
                                                                     {announcement.title}
                                                                 </Typography>
                                                                 {/* Announcement Status */}

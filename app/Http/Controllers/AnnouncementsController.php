@@ -472,28 +472,60 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
         $user = Auth::user();
         if ($this->checkUser()) {
+
+            $clientId = $user->client_id;
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id')
-                ->first();
+                ->with(['acknowledgements', 'branches', 'departments'])
+                ->firstOrFail();
 
-            $acks = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->get();
-
-            $acknowledgements = [];
-
-            foreach ($acks as $ack) {
+            // Acknowledged Users
+            $acknowledgements = $announcement->acknowledgements->map(function ($ack) {
                 $emp = $ack->user;
 
-                $acknowledgements[] = [
-                    'emp_id' => $emp->user_id,
+                return [
+                    'emp_id' => $emp->id,
                     'emp_first_name' => $emp->first_name,
                     'emp_middle_name' => $emp->middle_name ?? '',
                     'emp_last_name' => $emp->last_name,
                     'emp_suffix' => $emp->suffix ?? '',
                     'timestamp' => $ack->created_at,
                 ];
-            }
+            })->all();
 
-            return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements]);
+            // Unacknowledged Users
+            $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
+            $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
+
+            $acknowledgedUsers = $announcement->acknowledgements->pluck('user_id')->unique()->toArray();
+
+            Log::info($acknowledgedUsers);
+
+            $unacknowledged = UsersModel::where('client_id', $clientId)
+                ->where(function ($query) use ($branches, $departments) {
+                    if (!empty($branches)) {
+                        $query->whereIn('branch_id', $branches);
+                    }
+                    if (!empty($departments)) {
+                        $query->orWhereIn('department_id', $departments);
+                    }
+                })
+                ->whereNotIn('id', $acknowledgedUsers)
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix')
+                ->get()
+                ->map(function ($employee) {
+                    return [
+                        'emp_id' => $employee->id,
+                        'emp_first_name' => $employee->first_name,
+                        'emp_middle_name' => $employee->middle_name ?? '',
+                        'emp_last_name' => $employee->last_name,
+                        'emp_suffix' => $employee->suffix ?? ''
+                    ];
+                })
+                ->all();
+
+            Log::info($unacknowledged);
+
+            return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
         } else {
             return response()->json(['status' => 200, 'acknowledgements' => null]);
         }

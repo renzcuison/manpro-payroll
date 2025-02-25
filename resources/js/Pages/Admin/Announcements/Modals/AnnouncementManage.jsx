@@ -365,18 +365,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Publish
                                                     </MenuItem>
                                                 )}
-                                                {/* Toggle Hide */}
-                                                {announcement.status != "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            handleToggleHide(announcement.status == "Published", announcement.unique_code);
-                                                            handleMenuClose();
-                                                        }}
-                                                    >
-                                                        {announcement.status == "Hidden" ? 'Show' : 'Hide'}
-                                                    </MenuItem>
-                                                )}
                                                 {announcement.status != "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
@@ -391,6 +379,18 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                             handleOpenAnnouncementAcknowledgements(announcement.unique_code);
                                                         }}>
                                                         View Acknowledgements
+                                                    </MenuItem>
+                                                )}
+                                                {/* Toggle Hide */}
+                                                {announcement.status != "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleHide(announcement.status == "Published", announcement.unique_code);
+                                                            handleMenuClose();
+                                                        }}
+                                                    >
+                                                        {announcement.status == "Hidden" ? 'Show' : 'Hide'}
                                                     </MenuItem>
                                                 )}
                                                 <MenuItem onClick={handleMenuClose}>Close Menu</MenuItem>
@@ -450,7 +450,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             </Grid>
                                             {/* Acknowledgement Count */}
                                             <Grid item xs={5} align="left">
-                                                Acknowledged
+                                                Acknowledged by
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Typography
