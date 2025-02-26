@@ -26,8 +26,11 @@ import {
     TableCell,
     Table,
     Menu,
+    ImageList,
+    ImageListItem,
+    ImageListItemBar
 } from "@mui/material";
-import { PictureAsPdf, Description, InsertPhoto, MoreVert } from "@mui/icons-material";
+import { PictureAsPdf, Description, InsertPhoto, MoreVert, Download } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -63,6 +66,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
     const [files, setFiles] = useState([]);
+    const [images, setImages] = useState([]);
+    const [attachments, setAttachments] = useState([]);
+
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -183,7 +189,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementFiles = () => {
         axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setFiles(response.data.files);
+                setImages(response.data.images);
+                setAttachments(response.data.attachments);
             })
             .catch((error) => {
                 console.error('Error fetching files:', error);
@@ -229,7 +236,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             });
     }
 
-    // ----------- Dynamic File Icon
+    // ---------------- Dynamic File Icon
     const getFileIcon = (filename) => {
         const fileType = filename
             .split(".")
@@ -262,6 +269,25 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }
 
         return src;
+    };
+
+    // ---------------- File Download
+    const handleFileDownload = (filename, id) => {
+        axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+            .then((response) => {
+                const blob = new Blob([response.data], {
+                    type: response.headers["content-type"],
+                });
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+
+                window.URL.revokeObjectURL(link.href);
+            })
+            .catch((error) => {
+                console.error("Error downloading file:", error);
+            });
     };
 
     return (
@@ -489,74 +515,105 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     dangerouslySetInnerHTML={{ __html: announceInfo.description }}
                                 />
                             </Grid>
-                            <Grid item xs={12} sx={{ my: 0 }} >
-                                <Divider />
-                            </Grid>
-                            {/* Attachments */}
-                            <Grid item xs={2}>
-                                Attachments
-                            </Grid>
-                            <Grid container item xs={10} spacing={2}>
-                                {files.length > 0 && (files.map((file, index) => {
-                                    const fileIcon = getFileIcon(file.filename);
-                                    return (
-                                        <Grid key={index} item xs={3}>
-                                            <Box sx={{
-                                                p: 1,
-                                                borderRadius: "4px",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                alignItems: "center",
-                                                '&:hover': {
-                                                    backgroundColor: '#e0e0e0',
-                                                },
-                                                position: "relative"
-                                            }}>
-                                                {file.type == "Thumbnail" && (
-                                                    <Box sx={{
-                                                        borderRadius: "20%",
-                                                        backgroundColor: 'white',
-                                                        position: "absolute",
-                                                        top: 4,
-                                                        left: 4,
-                                                        zIndex: 1
+                            {/* Images */}
+                            {images.length > 0 ? (
+                                <>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    <Grid item xs={2} align="left">
+                                        Images
+                                    </Grid>
+                                    <Grid item md={10} align="left">
+                                        <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                            {images.map((image) => (
+                                                <ImageListItem
+                                                    key={image.id}
+                                                    sx={{
+                                                        aspectRatio: "1/1",
+                                                        width: "100%"
                                                     }}>
-                                                        <Tooltip title="Thumbnail">
-                                                            <InsertPhoto size="small" sx={{ color: "#42a5f5" }} />
-                                                        </Tooltip>
-                                                    </Box>
-                                                )}
-                                                {fileIcon && (
                                                     <img
-                                                        src={fileIcon}
-                                                        alt={`${file.filename}`}
+                                                        src={`../../../../../../storage/announcements/images/${image.filename}`}
+                                                        alt={image.filename}
                                                         loading="lazy"
                                                         style={{
-                                                            height: 64,
-                                                            marginRight: 8
+                                                            height: "100%",
+                                                            width: "100%",
+                                                            objectFit: "cover"
                                                         }}
                                                     />
-                                                )}
-                                                <Typography
-                                                    sx={{
-                                                        selfAlign: "center",
-                                                        textAlign: "center",
-                                                        maxWidth: "100%",
-                                                        wordBreak: "break-word",
-                                                        display: "-webkit-box",
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: "vertical",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis"
-                                                    }}
-                                                >
-                                                    {file.filename}
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-                                    );
-                                }))}
-                            </Grid>
+                                                    <ImageListItemBar
+                                                        subtitle={image.filename}
+                                                        actionIcon={
+                                                            <Tooltip title={'Download'}>
+                                                                <IconButton
+                                                                    sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
+                                                                    onClick={() => handleFileDownload(image.filename, image.id)}
+                                                                >
+                                                                    <Download />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        }
+                                                    />
+                                                </ImageListItem>
+                                            ))}
+                                        </ImageList>
+                                    </Grid>
+                                </>)
+                                : null
+                            }
+                            {/* Attachments */}
+                            {attachments.length > 0 ? (
+                                <>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    <Grid item xs={2} align="left">
+                                        Documents
+                                    </Grid>
+                                    <Grid item md={10} align="left">
+                                        <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                            {attachments.map((attachment) => {
+                                                const fileIcon = getFileIcon(attachment.filename);
+                                                return (
+                                                    <ImageListItem
+                                                        key={attachment.id}
+                                                        sx={{
+                                                            aspectRatio: "1/1",
+                                                            width: "100%"
+                                                        }}>
+                                                        <img
+                                                            src={fileIcon}
+                                                            alt={attachment.filename}
+                                                            loading="lazy"
+                                                            style={{
+                                                                height: "100%",
+                                                                width: "100%",
+                                                                objectFit: "cover"
+                                                            }}
+                                                        />
+                                                        <ImageListItemBar
+                                                            subtitle={attachment.filename}
+                                                            actionIcon={
+                                                                <Tooltip title={'Download'}>
+                                                                    <IconButton
+                                                                        sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
+                                                                        onClick={() => handleFileDownload(attachment.filename, attachment.id)}
+                                                                    >
+                                                                        <Download />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            }
+                                                        />
+                                                    </ImageListItem>
+                                                );
+                                            })}
+                                        </ImageList>
+                                    </Grid>
+                                </>)
+                                : null
+                            }
                         </Grid>
                     </Box>
                 </DialogContent>

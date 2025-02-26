@@ -123,27 +123,40 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         $announcement = AnnouncementsModel::where('unique_code', $code)
-            ->with(['acknowledgements', 'branches', 'departments'])
+            ->with(['acknowledgements', 'branches', 'departments', 'user'])
             ->firstOrFail();
 
         $acknowledgement = $announcement->acknowledgements()
             ->where('user_id', $user->id)
             ->first();
 
+        // Acknowledgement Status
         $acknowledged = $acknowledgement !== null;
         $acknowledgementTimestamp = $acknowledged ? $acknowledgement->created_at : null;
 
         $announcement->acknowledged = $acknowledged;
         $announcement->ack_timestamp = $acknowledgementTimestamp;
 
+        // Branch, Department Matchup
         $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
         $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
 
         $announcement->branch_matched = in_array($user->branch_id, $branches);
         $announcement->department_matched = in_array($user->department_id, $departments);
 
+        // Author Information
+        $author = $announcement->user;
+        $announcement->author_name = implode(' ', array_filter([
+            $author->first_name ?? null,
+            $author->middle_name ?? null,
+            $author->last_name ?? null,
+            $author->suffix ?? null,
+        ]));
+        $announcement->author_title = $author->jobTitle->name;
+
+        // Final Data Prep
         $announcementData = $announcement->toArray();
-        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments']);
+        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments'], $announcementData['user']);
 
         return response()->json(['status' => 200, 'announcement' => $announcementData]);
     }
@@ -443,28 +456,44 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::getAnnouncementFiles");
         $user = Auth::user();
 
-
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
                 ->select('id')
-                ->first();
+                ->firstOrFail();
 
             $files = AnnouncementFilesModel::where('announcement_id', $announcement->id)
                 ->select('id', 'path', 'type')
                 ->get();
 
-            $fileData = [];
-            foreach ($files as $file) {
-                $fileData[] = [
-                    'id' => $file->id,
-                    'filename' => basename($file->path),
-                    'type' => $file->type
-                ];
-            }
+            $imageData = $files->whereIn('type', ['Image', 'Thumbnail'])
+                ->map(function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'filename' => basename($file->path),
+                        'type' => $file->type
+                    ];
+                })
+                ->values()
+                ->all();
 
-            return response()->json(['status' => 200, 'files' => $fileData ? $fileData : null]);
+            $attachmentData = $files->where('type', 'Document')
+                ->map(function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'filename' => basename($file->path),
+                        'type' => $file->type
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'status' => 200,
+                'images' => $imageData,
+                'attachments' => $attachmentData
+            ]);
         } else {
-            return response()->json(['status' => 200, 'files' => null]);
+            return response()->json(['status' => 200, 'images' => null, 'attachments' => null]);
         }
     }
 

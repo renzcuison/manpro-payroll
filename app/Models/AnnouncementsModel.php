@@ -22,6 +22,11 @@ class AnnouncementsModel extends Model
         'description',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
     public function files()
     {
         return $this->hasMany(AnnouncementFilesModel::class, 'announcement_id');

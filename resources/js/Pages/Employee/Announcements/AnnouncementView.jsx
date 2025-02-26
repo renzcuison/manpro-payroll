@@ -302,6 +302,20 @@ const AnnouncementView = () => {
                                                     {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
                                                 </Typography>
                                             </Grid>
+                                            {/* Author Information */}
+                                            <Grid item xs={5} align="left">
+                                                Posted by
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Stack>
+                                                    <Typography sx={{ fontWeight: "bold", }}>
+                                                        {announcement.author_name}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                        {announcement.author_title}
+                                                    </Typography>
+                                                </Stack>
+                                            </Grid>
                                             {/* Acknowledgement Status */}
                                             {announcement.acknowledged ? (
                                                 <>
@@ -365,17 +379,20 @@ const AnnouncementView = () => {
                                             dangerouslySetInnerHTML={{ __html: announcement.description }}
                                         />
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
-                                        <Divider />
-                                    </Grid>
+                                    {/* Divider for Media if Present */}
+                                    {(images.length > 0 || attachments.length > 0) &&
+                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                            <Divider />
+                                        </Grid>
+                                    }
                                     {/* Images */}
                                     {images.length > 0 ? (
-                                        <Grid item container xs={12} md={attachments.length > 0 ? 6 : 12} spacing={2}>
+                                        <Grid item container xs={12} md={12} spacing={2}>
                                             <Grid item xs={12} align="left">
                                                 Images
                                             </Grid>
                                             <Grid item md={12} align="left">
-                                                <ImageList cols={attachments.length > 0 ? 4 : 7} gap={4} sx={{ width: '100%' }}>
+                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
                                                     {images.map((image) => (
                                                         <ImageListItem
                                                             key={image.id}
@@ -415,12 +432,12 @@ const AnnouncementView = () => {
                                     }
                                     {/* Documents */}
                                     {attachments.length > 0 ? (
-                                        <Grid item container xs={12} md={images.length > 0 ? 6 : 12} spacing={2}>
+                                        <Grid item container xs={12} md={12} spacing={2}>
                                             <Grid item xs={12} align="left">
                                                 Documents
                                             </Grid>
                                             <Grid item md={12} align="left">
-                                                <ImageList cols={images.length > 0 ? 4 : 7} gap={4} sx={{ width: '100%' }}>
+                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
                                                     {attachments.map((attachment) => {
                                                         const fileIcon = getFileIcon(attachment.filename);
                                                         return (

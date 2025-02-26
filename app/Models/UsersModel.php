@@ -57,6 +57,11 @@ class UsersModel extends Authenticatable
         return $this->belongsTo(EmployeeRolesModel::class, 'role_id');
     }
 
+    public function jobTitle()
+    {
+        return $this->belongsTo(JobTitlesModel::class, 'job_title_id');
+    }
+
     public function branch()
     {
         return $this->belongsTo(BranchesModel::class, 'branch_id');
@@ -66,7 +71,7 @@ class UsersModel extends Authenticatable
     {
         return $this->belongsTo(DepartmentsModel::class, 'department_id');
     }
-    
+
     public function workGroup()
     {
         return $this->belongsTo(WorkGroupsModel::class, 'work_group_id');
@@ -76,7 +81,7 @@ class UsersModel extends Authenticatable
     {
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
-    
+
     public function workShift()
     {
         return $this->hasOneThrough(
@@ -88,7 +93,7 @@ class UsersModel extends Authenticatable
             'work_shift_id'  // Local key on work_groups table
         );
     }
-    
+
     public function workHours()
     {
         return $this->hasOneThrough(
@@ -100,5 +105,4 @@ class UsersModel extends Authenticatable
             'work_hour_id'   // Local key on work_shifts table
         );
     }
-    
 }
