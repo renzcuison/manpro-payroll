@@ -96,7 +96,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
     const handleFileDownload = async (filename, id) => {
         try {
             const response = await axiosInstance.get(
-                `/applications/downloadAttachment/${id}`,
+                `/applications/downloadFile/${id}`,
                 {
                     responseType: "blob",
                     headers,

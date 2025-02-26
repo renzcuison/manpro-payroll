@@ -349,13 +349,13 @@ class ApplicationsController extends Controller
         return response()->json(['status' => 200, 'filenames' => $filenames ? $filenames : null]);
     }
 
-    public function downloadAttachment($id)
+    public function downloadFile($id)
     {
-        //Log::info("ApplicationsController::downloadAttachment");
+        //Log::info("ApplicationsController::downloadFile");
         $file = ApplicationFilesModel::find($id);
 
         if (!$file) {
-            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
         $filePath = storage_path('app/public/' . $file->path);

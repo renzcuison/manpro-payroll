@@ -188,7 +188,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
         Route::get('/getDashboardApplications', [ApplicationsController::class, 'getDashboardApplications']);
 
-        Route::get('/downloadAttachment/{id}', [ApplicationsController::class, 'downloadAttachment']);
+        Route::get('/downloadFile/{id}', [ApplicationsController::class, 'downloadFile']);
         Route::get('/getApplicationFiles/{id}', [ApplicationsController::class, 'getApplicationFiles']);
 
         Route::post('/saveApplication', [ApplicationsController::class, 'saveApplication']);
@@ -213,6 +213,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeAnnouncementDetails/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementDetails']);
         Route::get('/getAnnouncementBranchDepts/{code}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
 
+        Route::get('/downloadFile/{id}', [AnnouncementsController::class, 'downloadFile']);
         Route::get('/getThumbnail/{code}', [AnnouncementsController::class, 'getThumbnail']);
         Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
         Route::get('/getAnnouncementFiles/{code}', [AnnouncementsController::class, 'getAnnouncementFiles']);

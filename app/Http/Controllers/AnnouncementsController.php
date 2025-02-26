@@ -510,13 +510,13 @@ class AnnouncementsController extends Controller
         ]);
     }
 
-    public function downloadAttachment($id)
+    public function downloadFile($id)
     {
-        //Log::info("AnnouncementsController::downloadAttachment");
+        Log::info("AnnouncementsController::downloadFile");
         $file = AnnouncementFilesModel::find($id);
 
         if (!$file) {
-            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
         $filePath = storage_path('app/public/' . $file->path);

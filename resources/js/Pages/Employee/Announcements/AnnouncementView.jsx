@@ -160,6 +160,25 @@ const AnnouncementView = () => {
         return src;
     };
 
+    // Download Attachment
+    const handleFileDownload = (filename, id) => {
+        axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+            .then((response) => {
+                const blob = new Blob([response.data], {
+                    type: response.headers["content-type"],
+                });
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+
+                window.URL.revokeObjectURL(link.href);
+            })
+            .catch((error) => {
+                console.error("Error downloading file:", error);
+            });
+    };
+
     // Announcement Menu
     const [anchorEl, setAnchorEl] = React.useState(null);
     const menuOpen = Boolean(anchorEl);
@@ -380,7 +399,7 @@ const AnnouncementView = () => {
                                                                     <Tooltip title={'Download'}>
                                                                         <IconButton
                                                                             sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                            aria-label={`Download ${image.filename}`}
+                                                                            onClick={() => handleFileDownload(image.filename, image.id)}
                                                                         >
                                                                             <Download />
                                                                         </IconButton>
@@ -427,7 +446,7 @@ const AnnouncementView = () => {
                                                                         <Tooltip title={'Download'}>
                                                                             <IconButton
                                                                                 sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                                aria-label={`Download ${attachment.filename}`}
+                                                                                onClick={() => handleFileDownload(attachment.filename, attachment.id)}
                                                                             >
                                                                                 <Download />
                                                                             </IconButton>
