@@ -183,7 +183,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementFiles = () => {
         axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setFiles(response.data.filenames);
+                setFiles(response.data.files);
             })
             .catch((error) => {
                 console.error('Error fetching files:', error);

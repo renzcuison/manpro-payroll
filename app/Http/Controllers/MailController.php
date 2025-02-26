@@ -301,9 +301,9 @@ class MailController extends Controller
     {
 
         log::info("MailController::verifyCode " . $id);
-        
+
         try {
-            $code = $this->generateRandomCode(8);
+            $code = $this->generateRandomCode(6);
 
             log::info("Code: " . $code);
 
@@ -335,15 +335,13 @@ class MailController extends Controller
                 // Log successful email sending
                 Log::info("Login Verification Email sent successfully to $email");
 
-                if ( $email == 'redenlamosa@gmail.com' || $email == 'kuyared1018@gmail.com' ) {
-                    return response()->json([ 'status' => 200, 'userData' => 'Success', 'code' => $code ]);
+                if ($email == 'redenlamosa@gmail.com' || $email == 'kuyared1018@gmail.com') {
+                    return response()->json(['status' => 200, 'userData' => 'Success', 'code' => $code]);
                 } else {
-                    return response()->json([ 'status' => 200, 'userData' => 'Success', 'code' => "Email"]);
+                    return response()->json(['status' => 200, 'userData' => 'Success', 'code' => "Email"]);
                 }
-
-                
             } else {
-                return response()->json([ 'status' => 404, 'userData' => 'User not found', ]);
+                return response()->json(['status' => 404, 'userData' => 'User not found',]);
             }
         } catch (\Exception $e) {
             // Log the exception for debugging

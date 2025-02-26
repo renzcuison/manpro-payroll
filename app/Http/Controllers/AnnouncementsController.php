@@ -80,7 +80,7 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getMyAnnouncements(Request $request)
+    public function getMyAnnouncements()
     {
         //Log::info("AnnouncementsController::getMyAnnouncements");
         $user = Auth::user();
@@ -218,6 +218,80 @@ class AnnouncementsController extends Controller
         }
     }
 
+    public function editAnnouncement(Request $request)
+    {
+        //Log::info("AnnouncementsController::editAnnouncement");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                //Announcement Update
+                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+
+                $announcement->title = $request->input('title');
+                $announcement->description = $request->input('description');
+                $announcement->save();
+
+                $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
+
+                // Remove Files
+                AnnouncementFilesModel::whereIn('id', $deleteFiles)->delete();
+
+                $dateTime = now()->format('YmdHis');
+
+                // Adding Files - Documents
+                if ($request->hasFile('attachment')) {
+                    foreach ($request->file('attachment') as $file) {
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => "Document",
+                            'path' => $filePath,
+                            'thumbnail' => false,
+                        ]);
+                    }
+                }
+
+                // Adding Files - Images
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $index => $file) {
+                        // Replace Thumbnail if Applicable
+                        if ($index == $request->input('thumbnail')) {
+                            $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
+                                ->where('type', "Thumbnail")
+                                ->first();
+                            if ($oldThumbnail) {
+                                $oldThumbnail->type = "Image";
+                                $oldThumbnail->save();
+                            }
+                        }
+                        $newThumbnail = $index == $request->input('thumbnail');
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('announcements/images', $fileName, 'public');
+                        AnnouncementFilesModel::create([
+                            'announcement_id' => $announcement->id,
+                            'type' => $newThumbnail ? "Thumbnail" : "Image",
+                            'path' => $filePath,
+                        ]);
+                    }
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
     public function publishAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::publishAnnouncement");
@@ -260,6 +334,28 @@ class AnnouncementsController extends Controller
 
                 throw $e;
             }
+        } else {
+            return response()->json(['status' => 200]);
+        }
+    }
+
+    public function toggleHide($code)
+    {
+        //Log::info("AnnouncementsController::toggleHide");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
+
+            if (!$announcement) {
+                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
+            }
+
+            $announcement->status = $announcement->status === 'Published' ? 'Hidden' : 'Published';
+            $announcement->save();
+
+            return response()->json(['status' => 200]);
         } else {
             return response()->json(['status' => 200]);
         }
@@ -342,80 +438,6 @@ class AnnouncementsController extends Controller
         return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
     }
 
-    public function editAnnouncement(Request $request)
-    {
-        //Log::info("AnnouncementsController::editAnnouncement");
-        //Log::info($request);
-
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            try {
-                DB::beginTransaction();
-
-                //Announcement Update
-                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
-
-                $announcement->title = $request->input('title');
-                $announcement->description = $request->input('description');
-                $announcement->save();
-
-                $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
-
-                // Remove Files
-                AnnouncementFilesModel::whereIn('id', $deleteFiles)->delete();
-
-                $dateTime = now()->format('YmdHis');
-
-                // Adding Files - Documents
-                if ($request->hasFile('attachment')) {
-                    foreach ($request->file('attachment') as $file) {
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                        $filePath = $file->storeAs('announcements/attachments', $fileName, 'public');
-                        AnnouncementFilesModel::create([
-                            'announcement_id' => $announcement->id,
-                            'type' => "Document",
-                            'path' => $filePath,
-                            'thumbnail' => false,
-                        ]);
-                    }
-                }
-
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        // Replace Thumbnail if Applicable
-                        if ($index == $request->input('thumbnail')) {
-                            $oldThumbnail = AnnouncementFilesModel::where('announcement_id', $request->input('id'))
-                                ->where('type', "Thumbnail")
-                                ->first();
-                            if ($oldThumbnail) {
-                                $oldThumbnail->type = "Image";
-                                $oldThumbnail->save();
-                            }
-                        }
-                        $newThumbnail = $index == $request->input('thumbnail');
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                        $filePath = $file->storeAs('announcements/images', $fileName, 'public');
-                        AnnouncementFilesModel::create([
-                            'announcement_id' => $announcement->id,
-                            'type' => $newThumbnail ? "Thumbnail" : "Image",
-                            'path' => $filePath,
-                        ]);
-                    }
-                }
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-
-                throw $e;
-            }
-        }
-    }
-
     public function getAnnouncementFiles($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementFiles");
@@ -431,41 +453,81 @@ class AnnouncementsController extends Controller
                 ->select('id', 'path', 'type')
                 ->get();
 
-            $filenames = [];
+            $fileData = [];
             foreach ($files as $file) {
-                $filenames[] = [
+                $fileData[] = [
                     'id' => $file->id,
                     'filename' => basename($file->path),
                     'type' => $file->type
                 ];
             }
 
-            return response()->json(['status' => 200, 'filenames' => $filenames ? $filenames : null]);
+            return response()->json(['status' => 200, 'files' => $fileData ? $fileData : null]);
         } else {
-            return response()->json(['status' => 200, 'filenames' => null]);
+            return response()->json(['status' => 200, 'files' => null]);
         }
     }
 
-    public function toggleHide($code)
+    public function getEmployeeAnnouncementFiles($code)
     {
-        //Log::info("AnnouncementsController::toggleHide");
+        // Log::info("AnnouncementsController::getEmployeeAnnouncementFiles");
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        $announcement = AnnouncementsModel::where('unique_code', $code)
+            ->select('id')
+            ->firstOrFail();
 
-            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
+        $files = AnnouncementFilesModel::where('announcement_id', $announcement->id)
+            ->select('id', 'path', 'type')
+            ->get();
 
-            if (!$announcement) {
-                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
-            }
+        $imageData = $files->whereIn('type', ['Image', 'Thumbnail'])
+            ->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'filename' => basename($file->path),
+                    'type' => $file->type
+                ];
+            })
+            ->values()
+            ->all();
 
-            $announcement->status = $announcement->status === 'Published' ? 'Hidden' : 'Published';
-            $announcement->save();
+        $attachmentData = $files->where('type', 'Document')
+            ->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'filename' => basename($file->path),
+                    'type' => $file->type
+                ];
+            })
+            ->values()
+            ->all();
 
-            return response()->json(['status' => 200]);
-        } else {
-            return response()->json(['status' => 200]);
+        return response()->json([
+            'status' => 200,
+            'images' => $imageData,
+            'attachments' => $attachmentData
+        ]);
+    }
+
+    public function downloadAttachment($id)
+    {
+        //Log::info("AnnouncementsController::downloadAttachment");
+        $file = AnnouncementFilesModel::find($id);
+
+        if (!$file) {
+            return response()->json(['status' => 404, 'message' => 'Attachment not found'], 404);
         }
+
+        $filePath = storage_path('app/public/' . $file->path);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        $fileName = basename($file->path);
+
+        return response()->download($filePath, $fileName);
     }
 
     public function acknowledgeAnnouncement(Request $request)

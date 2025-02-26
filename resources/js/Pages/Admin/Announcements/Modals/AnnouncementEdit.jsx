@@ -63,7 +63,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     useEffect(() => {
         axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setFileNames(response.data.filenames);
+                setFileNames(response.data.files);
             })
             .catch((error) => {
                 console.error('Error fetching files:', error);

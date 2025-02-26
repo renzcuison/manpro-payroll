@@ -26,8 +26,12 @@ import {
     Pagination,
     IconButton,
     Divider,
+    ImageList,
+    ImageListItem,
+    ImageListItemBar,
+    Tooltip
 } from "@mui/material";
-import { TaskAlt, MoreVert } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -67,12 +71,15 @@ const AnnouncementView = () => {
 
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
-    const [files, setFiles] = useState([]);
+
+    const [images, setImages] = useState([]);
+    const [attachments, setAttachments] = useState([]);
 
     // ---------------- Announcement List API
     useEffect(() => {
         getAnnouncementDetails();
         getAnnouncementThumbnail();
+        getAnnouncementFiles();
     }, []);
 
     // Announcement Details
@@ -112,6 +119,46 @@ const AnnouncementView = () => {
                 setImageLoading(false);
             });
     }
+
+    // Announcement Files
+    const getAnnouncementFiles = () => {
+        axiosInstance.get(`/announcements/getEmployeeAnnouncementFiles/${code}`, { headers })
+            .then((response) => {
+                setImages(response.data.images);
+                setAttachments(response.data.attachments);
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
+    }
+
+    // Document Icon
+    const getFileIcon = (filename) => {
+        const fileType = filename
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+        let src = null;
+
+        switch (fileType) {
+            case "doc":
+            case "docx":
+                src = DocImage;
+                break;
+            case "pdf":
+                src = PdfImage;
+                break;
+            case "xls":
+            case "xlsx":
+                src = XlsImage;
+                break;
+            default:
+                src = null;
+        }
+
+        return src;
+    };
 
     // Announcement Menu
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -166,7 +213,7 @@ const AnnouncementView = () => {
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Announcement
@@ -303,17 +350,98 @@ const AnnouncementView = () => {
                                         <Divider />
                                     </Grid>
                                     {/* Images */}
-                                    <Grid item container xs={6} spacing={2}>
-                                        <Grid item xs={12} align="left">
-                                            Images
-                                        </Grid>
-                                    </Grid>
+                                    {images.length > 0 ? (
+                                        <Grid item container xs={12} md={attachments.length > 0 ? 6 : 12} spacing={2}>
+                                            <Grid item xs={12} align="left">
+                                                Images
+                                            </Grid>
+                                            <Grid item md={12} align="left">
+                                                <ImageList cols={attachments.length > 0 ? 4 : 7} gap={4} sx={{ width: '100%' }}>
+                                                    {images.map((image) => (
+                                                        <ImageListItem
+                                                            key={image.id}
+                                                            sx={{
+                                                                aspectRatio: "1/1",
+                                                                width: "100%"
+                                                            }}>
+                                                            <img
+                                                                src={`../../../../../storage/announcements/images/${image.filename}`}
+                                                                alt={image.filename}
+                                                                loading="lazy"
+                                                                style={{
+                                                                    height: "100%",
+                                                                    width: "100%",
+                                                                    objectFit: "cover"
+                                                                }}
+                                                            />
+                                                            <ImageListItemBar
+                                                                subtitle={image.filename}
+                                                                actionIcon={
+                                                                    <Tooltip title={'Download'}>
+                                                                        <IconButton
+                                                                            sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
+                                                                            aria-label={`Download ${image.filename}`}
+                                                                        >
+                                                                            <Download />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                }
+                                                            />
+                                                        </ImageListItem>
+                                                    ))}
+                                                </ImageList>
+                                            </Grid>
+                                        </Grid>)
+                                        : null
+                                    }
                                     {/* Documents */}
-                                    <Grid item container xs={6} spacing={2}>
-                                        <Grid item xs={12} align="left">
-                                            Documents
-                                        </Grid>
-                                    </Grid>
+                                    {attachments.length > 0 ? (
+                                        <Grid item container xs={12} md={images.length > 0 ? 6 : 12} spacing={2}>
+                                            <Grid item xs={12} align="left">
+                                                Documents
+                                            </Grid>
+                                            <Grid item md={12} align="left">
+                                                <ImageList cols={images.length > 0 ? 4 : 7} gap={4} sx={{ width: '100%' }}>
+                                                    {attachments.map((attachment) => {
+                                                        const fileIcon = getFileIcon(attachment.filename);
+                                                        return (
+                                                            <ImageListItem
+                                                                key={attachment.id}
+                                                                sx={{
+                                                                    aspectRatio: "1/1",
+                                                                    width: "100%"
+                                                                }}>
+                                                                <img
+                                                                    src={fileIcon}
+                                                                    alt={attachment.filename}
+                                                                    loading="lazy"
+                                                                    style={{
+                                                                        height: "100%",
+                                                                        width: "100%",
+                                                                        objectFit: "cover"
+                                                                    }}
+                                                                />
+                                                                <ImageListItemBar
+                                                                    subtitle={attachment.filename}
+                                                                    actionIcon={
+                                                                        <Tooltip title={'Download'}>
+                                                                            <IconButton
+                                                                                sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
+                                                                                aria-label={`Download ${attachment.filename}`}
+                                                                            >
+                                                                                <Download />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    }
+                                                                />
+                                                            </ImageListItem>
+                                                        );
+                                                    })}
+                                                </ImageList>
+                                            </Grid>
+                                        </Grid>)
+                                        : null
+                                    }
                                 </Grid>
                             </>
                         )}
