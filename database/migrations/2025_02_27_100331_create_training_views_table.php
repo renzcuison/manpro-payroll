@@ -19,6 +19,7 @@ class CreateTrainingViewsTable extends Migration
             $table->unsignedBigInteger('training_id');
             $table->unsignedBigInteger('training_media_id');
             $table->enum('status', ['Viewed', 'Finished'])->default('Viewed');
+            $table->dateTime('completed_at');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

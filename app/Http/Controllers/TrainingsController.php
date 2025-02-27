@@ -95,24 +95,14 @@ class TrainingsController extends Controller
                     'created_by' => $user->id,
                 ]);
 
-                // foreach ($request->input('link') as $link) {
-                //     TrainingVideoModel::create([
-                //         'training_id' => $training->id,
-                //         'url' => $link
-                //     ]);
-                // }
-
-                // if ($request->hasFile('image')) {
-                //     foreach ($request->file('image') as $index => $file) {
-                //         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                //         $filePath = $file->storeAs('trainings/images', $fileName, 'public');
-                //         TrainingImagesModel::create([
-                //             'training_id' => $training->id,
-                //             'order' => $index + 1,
-                //             'path' => $filePath,
-                //         ]);
-                //     }
-                // }
+                foreach ($request->input('media') as $index => $media) {
+                    TrainingMediaModel::create([
+                        'training_id' => $training->id,
+                        'url' => $media->link,
+                        'type' => "Form",
+                        'order' => $index + 1
+                    ]);
+                }
                 DB::commit();
 
                 return response()->json(['status' => 200]);

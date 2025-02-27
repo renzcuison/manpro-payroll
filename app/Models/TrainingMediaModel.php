@@ -19,7 +19,7 @@ class TrainingMediaModel extends Model
         'training_id',
         'url',
         'type',
-
+        'order',
     ];
 
     public function training()

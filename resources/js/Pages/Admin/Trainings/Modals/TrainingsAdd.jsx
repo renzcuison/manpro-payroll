@@ -187,35 +187,11 @@ const TrainingsAdd = ({ open, close }) => {
             setLinkInput('');
             event.target.value = '';
         } else if (links.includes(newLink)) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Duplicate Link!",
-                text: "This URL is already added.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            handleMediaError("Duplicate Link!", "This URL is already added.");
         } else if (links.length >= 10) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Link Limit Reached!",
-                text: "You can only have up to 10 links at a time.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            handleMediaError("Link Limit Reached!", "You can only have up to 10 links at a time.");
         } else {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid URL!",
-                text: "Please enter a valid URL starting with http:// or https://",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            handleMediaError("Invalid URL!", "Please enter a valid URL starting with http:// or https://");
         }
     };
     const handleDeleteLink = (index) => {
@@ -233,6 +209,18 @@ const TrainingsAdd = ({ open, close }) => {
             return false;
         }
     };
+
+    const handleMediaError = (title, error) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: title,
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    }
 
     const checkInput = (event) => {
         event.preventDefault();
