@@ -11,6 +11,8 @@ class TrainingsModel extends Model
 
     protected $table = 'trainings';
 
+    protected $primaryKey = 'id';
+
     protected $fillable = [
         'training_course_id',
         'title',
@@ -30,15 +32,15 @@ class TrainingsModel extends Model
         return $this->belongsTo(ClientsModel::class, 'client_id');
     }
 
-    public function createdBy()
+    public function user()
     {
         return $this->belongsTo(UsersModel::class, 'created_by');
     }
 
-    public function videos()
-    {
-        return $this->hasMany(TrainingVideoModel::class, 'training_id');
-    }
+    // public function media()
+    // {
+    //     return $this->hasMany(TrainingMediaModel::class, 'training_id');
+    // }
 
     public function views()
     {

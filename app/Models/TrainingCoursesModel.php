@@ -30,4 +30,9 @@ class TrainingCoursesModel extends Model
     {
         return $this->belongsTo(ClientsModel::class, 'client_id');
     }
+
+    public function trainings()
+    {
+        return $this->hasMany(TrainingsModel::class, 'training_course_id');
+    }
 }

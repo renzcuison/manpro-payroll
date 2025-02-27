@@ -12,13 +12,20 @@ class TrainingViewsModel extends Model
     protected $table = 'training_views';
 
     protected $fillable = [
-        'training_id',
         'user_id',
+        'training_id',
+        'training_media_id',
+        'status'
     ];
 
     public function training()
     {
         return $this->belongsTo(TrainingsModel::class, 'training_id');
+    }
+
+    public function media()
+    {
+        return $this->belongsTo(TrainingMediaModel::class, 'training_media_id');
     }
 
     public function user()

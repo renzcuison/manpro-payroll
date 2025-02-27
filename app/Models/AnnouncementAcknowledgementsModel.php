@@ -11,6 +11,8 @@ class AnnouncementAcknowledgementsModel extends Model
 
     protected $table = 'announcement_acknowledgements';
 
+    protected $primaryKey = 'id';
+
     protected $fillable = [
         'announcement_id',
         'user_id',
