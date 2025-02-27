@@ -1,3 +1,5 @@
+
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -18,8 +20,8 @@ class CreateLeaveCreditsTable extends Migration
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('application_type_id');
-            $table->integer('number');
-            $table->integer('used');
+            $table->decimal('number', 8, 2);
+            $table->decimal('used', 8, 2);
             $table->timestamps();
             $table->softDeletes();
 
