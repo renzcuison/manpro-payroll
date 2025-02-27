@@ -215,7 +215,7 @@ const AnnouncementList = () => {
                         </Button>
                     </Box>
 
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+                    <Box sx={{ p: 3, justifyContent: 'center', alignItems: 'center' }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />

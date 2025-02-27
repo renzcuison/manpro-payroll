@@ -16,7 +16,7 @@ class CreateClientsTable extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('unique_code', 16);
+            $table->string('unique_code', 16)->unique();
             $table->enum('package', ['Enterprise', 'Professional', 'Standard', 'Basic'])->default('Basic');
             $table->string('status', 16);
             $table->timestamps();
