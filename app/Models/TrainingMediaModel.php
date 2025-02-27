@@ -18,6 +18,7 @@ class TrainingMediaModel extends Model
     protected $fillable = [
         'training_id',
         'url',
+        'path',
         'type',
         'order',
     ];

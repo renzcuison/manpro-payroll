@@ -66,7 +66,6 @@ const TrainingsAdd = ({ open, close }) => {
     const [linkInput, setLinkInput] = useState('');
     const [links, setLinks] = useState([]);
 
-
     // Form Errors
     const [courseError, setCourseError] = useState(false);
     const [titleError, setTitleError] = useState(false);
@@ -77,19 +76,6 @@ const TrainingsAdd = ({ open, close }) => {
     const [descriptionError, setDescriptionError] = useState(false);
     const [imageError, setImageError] = useState(false);
     const [coverImageError, setCoverImageError] = useState(false);
-
-    // Training Courses
-    useEffect(() => {
-        axiosInstance
-            .get(`trainings/getTrainingCourses`, { headers })
-            .then((response) => {
-                setTrainingCourses(response.data.courses);
-            })
-            .catch((error) => {
-                console.error("Error fetching application types:", error);
-            });
-
-    }, []);
 
     // Training Duration
     useEffect(() => {
@@ -224,11 +210,6 @@ const TrainingsAdd = ({ open, close }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-        if (!course) {
-            setCourseError(true);
-        } else {
-            setCourseError(false);
-        }
         if (!title) {
             setTitleError(true);
         } else {
@@ -250,7 +231,7 @@ const TrainingsAdd = ({ open, close }) => {
             setToDateError(false);
         }
 
-        if (!course || !title || !description || !startDate || !endDate) {
+        if (!title || !description || !startDate || !endDate) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -284,7 +265,6 @@ const TrainingsAdd = ({ open, close }) => {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("course", course);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("start_date", startDate.format("YYYY-MM-DD HH:mm:ss"));
@@ -342,41 +322,6 @@ const TrainingsAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
-                            {/* Training Course Selector */}
-                            <Grid item xs={12} sx={{ mt: 1 }}>
-                                <FormControl
-                                    fullWidth
-                                    sx={{
-                                        "& label.Mui-focused": {
-                                            color: "#97a5ba",
-                                        },
-                                        "& .MuiOutlinedInput-root": {
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#97a5ba",
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <TextField
-                                        required
-                                        select
-                                        id="training-course"
-                                        label="Training Course"
-                                        value={course}
-                                        error={courseError}
-                                        onChange={(event) =>
-                                            setCourse(event.target.value)
-                                        }
-                                    >
-                                        {trainingCourses
-                                            .map((tcourse, index) => (
-                                                <MenuItem key={index} value={tcourse.id}>
-                                                    {tcourse.name}
-                                                </MenuItem>
-                                            ))}
-                                    </TextField>
-                                </FormControl>
-                            </Grid>
                             {/* Title Field */}
                             <Grid item xs={6}>
                                 <FormControl fullWidth>

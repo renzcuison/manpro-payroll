@@ -16,9 +16,10 @@ class CreateTrainingMediaTable extends Migration
         Schema::create('training_media', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('training_id');
-            $table->string('url', 256);
-            $table->enum('type', ['Form', 'Video']);
-            $table->integer('order')->default(1);
+            $table->string('url', 256)->nullable();
+            $table->string('path', 256)->nullable();
+            $table->enum('type', ['Video', 'Image', 'Document']);
+            $table->integer('order');
             $table->softDeletes();
             $table->timestamps();
 

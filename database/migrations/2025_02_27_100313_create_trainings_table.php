@@ -16,7 +16,6 @@ class CreateTrainingsTable extends Migration
         Schema::create('trainings', function (Blueprint $table) {
             $table->id();
             $table->string('unique_code', 16)->unique();
-            $table->unsignedBigInteger('training_course_id');
             $table->string('title', 128);
             $table->string('description', 512);
             $table->string('cover_photo', 256)->nullable();
@@ -28,7 +27,6 @@ class CreateTrainingsTable extends Migration
             $table->integer('duration')->default(0);
             $table->timestamps();
 
-            $table->foreign('training_course_id')->references('id')->on('training_courses');
             $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('created_by')->references('id')->on('users');
         });

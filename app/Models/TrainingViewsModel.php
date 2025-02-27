@@ -15,7 +15,8 @@ class TrainingViewsModel extends Model
         'user_id',
         'training_id',
         'training_media_id',
-        'status'
+        'status',
+        'completed_at'
     ];
 
     public function training()

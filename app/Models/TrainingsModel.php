@@ -14,7 +14,7 @@ class TrainingsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'training_course_id',
+        'unique_code',
         'title',
         'description',
         'cover_photo',
@@ -25,11 +25,6 @@ class TrainingsModel extends Model
         'end_date',
         'duration',
     ];
-
-    public function course()
-    {
-        return $this->belongsTo(TrainingCoursesModel::class, 'training_course_id');
-    }
 
     public function client()
     {

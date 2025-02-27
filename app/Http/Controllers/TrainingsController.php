@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrainingsModel;
-use App\Models\TrainingCoursesModel;
 use App\Models\TrainingMediaModel;
 use App\Models\TrainingViewsModel;
 
@@ -50,20 +49,6 @@ class TrainingsController extends Controller
         }
     }
 
-    public function getTrainingCourses()
-    {
-        //Log::info("TrainingsController::getTrainingCourses");
-        $user = Auth::user();
-        if ($this->checkUser()) {
-            $courses = TrainingCoursesModel::where('client_id', $user->client_id)
-                ->select('id', 'name')
-                ->get();
-            return response()->json(['status' => 200, 'courses' => $courses]);
-        } else {
-            return response()->json(['status' => 200, 'courses' => null]);
-        }
-    }
-
     public function saveTraining(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");
@@ -84,7 +69,6 @@ class TrainingsController extends Controller
                 }
 
                 $training = TrainingsModel::create([
-                    'training_course_id' => $request->input('course'),
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
                     'cover_photo' => $coverPath,
