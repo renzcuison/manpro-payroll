@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTrainingCoursesTable extends Migration
+class CreateTrainingMediaTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,15 @@ class CreateTrainingCoursesTable extends Migration
      */
     public function up()
     {
-        Schema::create('training_courses', function (Blueprint $table) {
+        Schema::create('training_media', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->unsignedBigInteger('client_id');
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('training_id');
+            $table->string('url', 256);
+            $table->enum('type', ['Form', 'Video']);
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('client_id')->references('id')->on('clients');
-            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('training_id')->references('id')->on('trainings');
         });
     }
 
@@ -33,6 +32,6 @@ class CreateTrainingCoursesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('training_courses');
+        Schema::dropIfExists('training_media');
     }
 }

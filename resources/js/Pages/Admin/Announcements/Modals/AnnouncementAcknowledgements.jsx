@@ -143,11 +143,11 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                             ))
                                         )
                                             :
-                                            <Box fullWidth sx={{ justifyContent: "center", alignItems: "center" }}>
+                                            <ListItem sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
                                                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                     -- No Acknowledgements --
                                                 </Typography>
-                                            </Box>}
+                                            </ListItem>}
 
                                     </List>
                                 </TabPanel>
@@ -168,11 +168,11 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                             ))
                                         )
                                             :
-                                            <Box fullWidth sx={{ justifyContent: "center", alignItems: "center" }}>
+                                            <ListItem sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
                                                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                     -- Announcement acknowledged by all recipients --
                                                 </Typography>
-                                            </Box>}
+                                            </ListItem>}
 
                                     </List>
                                 </TabPanel>

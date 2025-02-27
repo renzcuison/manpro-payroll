@@ -15,13 +15,15 @@ class CreateTrainingViewsTable extends Migration
     {
         Schema::create('training_views', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('training_id');
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('training_id');
+            $table->unsignedBigInteger('training_media_id');
+            $table->enum('status', ['Viewed', 'Finished'])->default('Viewed');
             $table->timestamps();
 
-            $table->foreign('training_id')->references('id')->on('trainings');
             $table->foreign('user_id')->references('id')->on('users');
-
+            $table->foreign('training_id')->references('id')->on('trainings');
+            $table->foreign('training_media_id')->references('id')->on('training_media');
         });
     }
 
