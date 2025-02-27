@@ -103,14 +103,27 @@ class AnnouncementsController extends Controller
     public function getAnnouncementDetails($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementDetails");
-
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->with('user')
                 ->firstOrFail();
 
-            return response()->json(['status' => 200, 'announcement' => $announcement]);
+            // Author Information
+            $author = $announcement->user;
+            $announcement->author_name = implode(' ', array_filter([
+                $author->first_name ?? null,
+                $author->middle_name ?? null,
+                $author->last_name ?? null,
+                $author->suffix ?? null,
+            ]));
+            $announcement->author_title = $author->jobTitle->name;
+
+            $announcementData = $announcement->toArray();
+            unset($announcementData['user']);
+
+            return response()->json(['status' => 200, 'announcement' => $announcementData]);
         } else {
             return response()->json(['status' => 200, 'announcement' => null]);
         }

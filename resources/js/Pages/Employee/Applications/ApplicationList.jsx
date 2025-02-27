@@ -394,13 +394,6 @@ const ApplicationList = () => {
                                                                                     }}>
                                                                                     Cancel
                                                                                 </MenuItem>
-                                                                                <MenuItem
-                                                                                    onClick={(event) => {
-                                                                                        event.stopPropagation();
-                                                                                        handleMenuClose(application.id);
-                                                                                    }}>
-                                                                                    Close Menu
-                                                                                </MenuItem>
                                                                             </Menu>
                                                                         </>
                                                                     ) : null}

@@ -256,38 +256,42 @@ const AnnouncementView = () => {
                                                     <Typography variant="h5">
                                                         {announcement.title}
                                                     </Typography>
-                                                    <IconButton
-                                                        id="basic-button"
-                                                        size="small"
-                                                        aria-controls={open ? 'basic-menu' : undefined}
-                                                        aria-haspopup="true"
-                                                        aria-expanded={open ? 'true' : undefined}
-                                                        onClick={handleMenuClick}
-                                                    >
-                                                        <MoreVert />
-                                                    </IconButton>
-                                                    <Menu
-                                                        id="basic-menu"
-                                                        anchorEl={anchorEl}
-                                                        open={menuOpen}
-                                                        onClose={handleMenuClose}
-                                                        MenuListProps={{
-                                                            'aria-labelledby': 'basic-button',
-                                                        }}
-                                                    >
-                                                        {/* Acknowledgement */}
-                                                        {!announcement.acknowledged && (
-                                                            <MenuItem
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    handleAcknowledgeAnnouncement();
-                                                                    handleMenuClose();
-                                                                }}>
-                                                                Acknowledge Announcement
-                                                            </MenuItem>
-                                                        )}
-                                                        <MenuItem onClick={handleMenuClose}>Close Menu</MenuItem>
-                                                    </Menu>
+                                                    {/* Acknowledgement */}
+                                                    {!announcement.acknowledged && (
+                                                        <>
+                                                            <IconButton
+                                                                id="basic-button"
+                                                                size="small"
+                                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                                aria-haspopup="true"
+                                                                aria-expanded={open ? 'true' : undefined}
+                                                                onClick={handleMenuClick}
+                                                            >
+                                                                <MoreVert />
+                                                            </IconButton>
+                                                            <Menu
+                                                                id="basic-menu"
+                                                                anchorEl={anchorEl}
+                                                                open={menuOpen}
+                                                                onClose={handleMenuClose}
+                                                                MenuListProps={{
+                                                                    'aria-labelledby': 'basic-button',
+                                                                }}
+                                                            >
+                                                                {/* Acknowledgement */}
+                                                                {!announcement.acknowledged && (
+                                                                    <MenuItem
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleAcknowledgeAnnouncement();
+                                                                            handleMenuClose();
+                                                                        }}>
+                                                                        Acknowledge Announcement
+                                                                    </MenuItem>
+                                                                )}
+                                                            </Menu>
+                                                        </>
+                                                    )}
                                                 </Stack>
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }} >

@@ -33,12 +33,13 @@ import {
 import { PictureAsPdf, Description, InsertPhoto, MoreVert, Download } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
+
 
 import PdfImage from '../../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../../images/FileTypeIcons/Docx_file_icon.png';
@@ -391,14 +392,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Publish
                                                     </MenuItem>
                                                 )}
-                                                {announcement.status != "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            handleMenuClose();
-                                                        }}>
-                                                        Open in New Page
-                                                    </MenuItem>
-                                                )}
+                                                {/* Acknowledgements */}
                                                 {announcement.status != "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
@@ -416,10 +410,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                             handleMenuClose();
                                                         }}
                                                     >
-                                                        {announcement.status == "Hidden" ? 'Show' : 'Hide'}
+                                                        {announcement.status == "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
                                                     </MenuItem>
                                                 )}
-                                                <MenuItem onClick={handleMenuClose}>Close Menu</MenuItem>
                                             </Menu>
                                         </Stack>
                                     </Grid>
@@ -437,14 +430,33 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 color:
                                                     announcement.status == "Pending"
                                                         ? "#e9ae20"
-                                                        : announcement.status == "Published"
-                                                            ? "#177604"
-                                                            : "#f57c00"
+                                                        : "#177604"
                                             }}
                                         >
-                                            {announcement.status.toUpperCase()}
+                                            {announcement.status == "Pending" ? "PENDING" : "PUBLISHED"}
                                         </Typography>
                                     </Grid>
+                                    {/* Visibility */}
+                                    {announcement.status != "Pending" && (
+                                        <>
+                                            <Grid item xs={5} align="left">
+                                                Visibility
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography
+                                                    sx={{
+                                                        fontWeight: "bold",
+                                                        color:
+                                                            announcement.status == "Published"
+                                                                ? "#177604"
+                                                                : "#f57c00"
+                                                    }}
+                                                >
+                                                    {announcement.status == "Published" ? "VISIBLE" : "HIDDEN"}
+                                                </Typography>
+                                            </Grid>
+                                        </>
+                                    )}
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
