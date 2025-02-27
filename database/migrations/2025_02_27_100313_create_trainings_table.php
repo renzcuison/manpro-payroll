@@ -15,6 +15,7 @@ class CreateTrainingsTable extends Migration
     {
         Schema::create('trainings', function (Blueprint $table) {
             $table->id();
+            $table->string('unique_code', 16)->unique();
             $table->unsignedBigInteger('training_course_id');
             $table->string('title', 128);
             $table->string('description', 512);

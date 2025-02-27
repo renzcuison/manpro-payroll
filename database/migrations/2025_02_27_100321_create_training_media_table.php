@@ -18,6 +18,7 @@ class CreateTrainingMediaTable extends Migration
             $table->unsignedBigInteger('training_id');
             $table->string('url', 256);
             $table->enum('type', ['Form', 'Video']);
+            $table->integer('order')->default(1);
             $table->softDeletes();
             $table->timestamps();
 

@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\TrainingsModel;
 use App\Models\TrainingCoursesModel;
-
-use App\Models\TrainingsVideoModel;
-use App\Models\TrainingCViewsModel;
-use App\Models\TrainingImagesModel;
-use App\Models\TrainingVideoModel;
+use App\Models\TrainingMediaModel;
 use App\Models\TrainingViewsModel;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -58,7 +55,9 @@ class TrainingsController extends Controller
         //Log::info("TrainingsController::getTrainingCourses");
         $user = Auth::user();
         if ($this->checkUser()) {
-            $courses = TrainingCoursesModel::where('client_id', $user->client_id)->get();
+            $courses = TrainingCoursesModel::where('client_id', $user->client_id)
+                ->select('id', 'name')
+                ->get();
             return response()->json(['status' => 200, 'courses' => $courses]);
         } else {
             return response()->json(['status' => 200, 'courses' => null]);
@@ -96,24 +95,24 @@ class TrainingsController extends Controller
                     'created_by' => $user->id,
                 ]);
 
-                foreach ($request->input('link') as $link) {
-                    TrainingVideoModel::create([
-                        'training_id' => $training->id,
-                        'url' => $link
-                    ]);
-                }
+                // foreach ($request->input('link') as $link) {
+                //     TrainingVideoModel::create([
+                //         'training_id' => $training->id,
+                //         'url' => $link
+                //     ]);
+                // }
 
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                        $filePath = $file->storeAs('trainings/images', $fileName, 'public');
-                        TrainingImagesModel::create([
-                            'training_id' => $training->id,
-                            'order' => $index + 1,
-                            'path' => $filePath,
-                        ]);
-                    }
-                }
+                // if ($request->hasFile('image')) {
+                //     foreach ($request->file('image') as $index => $file) {
+                //         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                //         $filePath = $file->storeAs('trainings/images', $fileName, 'public');
+                //         TrainingImagesModel::create([
+                //             'training_id' => $training->id,
+                //             'order' => $index + 1,
+                //             'path' => $filePath,
+                //         ]);
+                //     }
+                // }
                 DB::commit();
 
                 return response()->json(['status' => 200]);
@@ -136,54 +135,11 @@ class TrainingsController extends Controller
         //Log::info("TrainingsController::getTrainingMedia");
         $user = Auth::user();
 
-        $links = TrainingVideoModel::where('training_id', $id)
-            ->select('id', 'url')
-            ->get();
-
-        $files = TrainingImagesModel::where('training_id', $id)
-            ->select('id', 'order', 'path')
+        $media = TrainingMediaModel::where('training_id', $id)
+            ->select('id', 'order', 'url')
             ->orderBy('order', 'asc')
             ->get();
 
-        $images = [];
-        foreach ($files as $file) {
-            $images[] = [
-                'id' => $file->id,
-                'order' => $file->order,
-                'filename' => basename($file->path),
-            ];
-        }
-
-        return response()->json(['status' => 200, 'links' => $links, 'images' => $images ? $images : null]);
+        return response()->json(['status' => 200, 'media' => $media]);
     }
-
-    /*
-    getTrainingMedia
-
-    Request $request - only input is id
-    get All Training Videos and Training Images by id
-
-    $trainingvideo->training_id  and $trainingvideo->training_id must match with id (query)
-    
-    Training Videos must be Str Array, Training Images must be Base 64 Array
-
-    return 'status', 'training_videos', 'training_images'
-    */
-
-    /*
-    getMyTrainings
-
-    - getTrainings by client_id and status "Published"
-    
-    return status, trainings
-    */
-
-    /*
-    getTrainingCovers
-
-    - get Cover Images based on the list of visible trainings in Employee Page
-    - Return Base 64 Array
-    - use getThumbnails in AnnouncementController as Reference
-
-    */
 }

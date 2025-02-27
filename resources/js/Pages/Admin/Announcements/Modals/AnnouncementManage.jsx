@@ -304,6 +304,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         borderRadius: '20px',
                         minWidth: { xs: "100%", sm: "850px" },
                         maxWidth: '900px',
+                        maxHeight: '750px',
                         marginBottom: '5%'
                     }
                 }}>

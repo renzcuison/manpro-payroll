@@ -80,8 +80,8 @@ const ApplicationsList = () => {
 
     return (
         <Layout title={"ApplicationsList"}>
-            <Box sx={{ overflowX: "scroll", width: "100%", whiteSpace: "nowrap", }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap", }} >
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box
                         sx={{
                             mt: 5,

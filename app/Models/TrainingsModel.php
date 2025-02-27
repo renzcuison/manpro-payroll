@@ -26,6 +26,10 @@ class TrainingsModel extends Model
         'duration',
     ];
 
+    public function course()
+    {
+        return $this->belongsTo(TrainingCoursesModel::class, 'training_course_id');
+    }
 
     public function client()
     {
@@ -37,10 +41,10 @@ class TrainingsModel extends Model
         return $this->belongsTo(UsersModel::class, 'created_by');
     }
 
-    // public function media()
-    // {
-    //     return $this->hasMany(TrainingMediaModel::class, 'training_id');
-    // }
+    public function media()
+    {
+        return $this->hasMany(TrainingMediaModel::class, 'training_id');
+    }
 
     public function views()
     {

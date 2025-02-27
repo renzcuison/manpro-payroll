@@ -26,4 +26,9 @@ class TrainingMediaModel extends Model
     {
         return $this->belongsTo(TrainingsModel::class, 'training_id');
     }
+
+    public function views()
+    {
+        return $this->hasMany(TrainingViewsModel::class, 'training_media_id');
+    }
 }

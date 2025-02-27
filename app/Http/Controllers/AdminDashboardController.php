@@ -51,10 +51,9 @@ class AdminDashboardController extends Controller
             $counter['head_count'] = count($employees);
 
             // Get Applications
-            $applications = ApplicationsModel::where('client_id', $clientId)
+            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)
                 ->where('status', 'Pending')
-                ->get();
-            $counter['application_count'] = count($applications);
+                ->count();
 
             // Get Announcements
             $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)
@@ -66,7 +65,7 @@ class AdminDashboardController extends Controller
                 ->where('status', 'Active')
                 ->count();
 
-            // Get Average Age with Decimal Precision
+            // Average Age
             if ($employees->count() > 0) {
                 $totalAge = 0;
                 foreach ($employees as $employee) {
@@ -78,8 +77,7 @@ class AdminDashboardController extends Controller
                 }
                 $average['age'] = round($totalAge / $employees->count(), 1);
             }
-
-            // Get Average Tenureship with Decimal Precision
+            // Average Tenureship
             if ($employees->count() > 0) {
                 $totalTenure = 0;
                 foreach ($employees as $employee) {
