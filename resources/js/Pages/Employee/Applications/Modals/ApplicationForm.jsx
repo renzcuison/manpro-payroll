@@ -54,7 +54,10 @@ const ApplicationForm = ({ open, close }) => {
 
     const [fromDate, setFromDate] = useState(dayjs());
     const [toDate, setToDate] = useState(dayjs());
+
     const [applicationDuration, setApplicationDuration] = useState("");
+    const [workHours, setWorkHours] = useState(0);
+    const [leaveUsed, setLeaveUsed] = useState(0);
     const [fullDates, setFullDates] = useState([]);
 
     const [description, setDescription] = useState("");
@@ -84,6 +87,15 @@ const ApplicationForm = ({ open, close }) => {
             })
             .catch((error) => {
                 console.error("Error fetching application types:", error);
+            });
+
+        axiosInstance
+            .get(`workshedule/getWorkHours`, { headers })
+            .then((response) => {
+                setWorkHours(response.data.workHours);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
             });
 
         axiosInstance
@@ -195,28 +207,30 @@ const ApplicationForm = ({ open, close }) => {
     // Validate Date Range
     const validateDates = (dateTime, type) => {
         const dates = [];
-        let currentDate = new Date(fromDate);
-        let endDate = new Date(toDate);
+        let currentDate = dayjs(fromDate).startOf('hour')
+        let endDate = dayjs(toDate).startOf('hour')
+
+        let adjustedDateTime = dayjs(dateTime).startOf('hour');
 
         // Set Date States
         if (type === "From") {
-            setFromDate(dateTime);
-            currentDate = new Date(dateTime)
+            setFromDate(adjustedDateTime);
+            currentDate = adjustedDateTime
 
-            if (dateTime.isAfter(toDate)) {
-                setToDate(dateTime);
-                endDate = new Date(dateTime);
+            if (adjustedDateTime.isAfter(toDate)) {
+                setToDate(adjustedDateTime);
+                endDate = adjustedDateTime
             }
 
         } else if (type === "To") {
-            setToDate(dateTime);
-            endDate = new Date(dateTime);
+            setToDate(adjustedDateTime);
+            endDate = adjustedDateTime
         }
 
         // Date-Full Date Comparison
         while (currentDate <= endDate) {
-            dates.push(new Date(currentDate).toISOString().split('T')[0]);
-            currentDate.setDate(currentDate.getDate() + 1);
+            dates.push(currentDate.format('YYYY-MM-DD'));
+            currentDate = currentDate.add(1, 'day')
         }
 
         if (dates.some(date => fullDates.includes(date))) {
@@ -227,8 +241,12 @@ const ApplicationForm = ({ open, close }) => {
     }
 
     // Input Verification
-    const handleApplicationSubmit = (event) => {
+    const checkInput = (event) => {
         event.preventDefault();
+
+        console.log(`From:  ${fromDate}`);
+        console.log(`To:    ${toDate}`);
+        console.log(`Leave: ${leaveUsed}`)
 
         if (!appType) {
             setAppTypeError(true);
@@ -289,14 +307,14 @@ const ApplicationForm = ({ open, close }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveApplication(event);
+                    saveInput(event);
                 }
             });
         }
     };
 
     // Final Submission
-    const saveApplication = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
         const formData = new FormData();
@@ -345,8 +363,8 @@ const ApplicationForm = ({ open, close }) => {
             });
     };
 
-    // Duration Calculation
     useEffect(() => {
+        // Application Duration
         const duration = dayjs.duration(toDate.diff(fromDate));
 
         const days = duration.days();
@@ -359,9 +377,19 @@ const ApplicationForm = ({ open, close }) => {
         if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
 
         const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
         setApplicationDuration(durationInfo);
+
     }, [fromDate, toDate]);
+
+    useEffect(() => {
+        //calculations here
+
+        if (toDate.isBefore(fromDate)) {
+            setLeaveUsed(0);
+            return;
+        }
+        //setLeaveUsed(whatever_the_final_result_is);
+    }, [fromDate, toDate])
 
     return (
         <>
@@ -380,7 +408,7 @@ const ApplicationForm = ({ open, close }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
-                    <Box component="form" onSubmit={handleApplicationSubmit} noValidate autoComplete="off" >
+                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12} sx={{ mt: 1 }}>
@@ -393,7 +421,7 @@ const ApplicationForm = ({ open, close }) => {
                                         },
                                     }}
                                 >
-                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value) } >
+                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value)} >
                                         {applicationTypes.filter(type => tenureship >= type.tenureship_required)
                                             .map((type, index) => (
                                                 <MenuItem key={index} value={type.id}> {type.name} </MenuItem>
@@ -410,7 +438,7 @@ const ApplicationForm = ({ open, close }) => {
                                         label="From"
                                         value={fromDate}
                                         minDate={dayjs()}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "From")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -435,7 +463,7 @@ const ApplicationForm = ({ open, close }) => {
                                         label="To"
                                         value={toDate}
                                         minDateTime={fromDate}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "To")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -455,8 +483,8 @@ const ApplicationForm = ({ open, close }) => {
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        label="Duration"
-                                        value={applicationDuration}
+                                        label="Leave Used"
+                                        value={leaveUsed}
                                         InputProps={{ readOnly: true }}
                                     ></TextField>
                                 </FormControl>
