@@ -54,8 +54,8 @@ const ApplicationForm = ({ open, close }) => {
     const [appType, setAppType] = useState("");
     const [tenureship, setTenureship] = useState(0);
 
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
+    const [fromDate, setFromDate] = useState(dayjs().startOf('hour'));
+    const [toDate, setToDate] = useState(dayjs().startOf('hour'));
 
     const [applicationDuration, setApplicationDuration] = useState("");
     const [workHours, setWorkHours] = useState(0);
