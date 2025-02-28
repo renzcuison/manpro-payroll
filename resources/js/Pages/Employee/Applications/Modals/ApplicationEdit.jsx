@@ -53,6 +53,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
     const [applicationDuration, setApplicationDuration] = useState("");
+
+    const [workHours, setWorkHours] = useState(0);
+    const [leaveUsed, setLeaveUsed] = useState(appDetails.leave_used);
     const [fullDates, setFullDates] = useState([]);
 
     const [description, setDescription] = useState(appDetails.description);
@@ -88,6 +91,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             .get(`applications/getTenureship`, { headers })
             .then((response) => {
                 setTenureship(response.data.tenureship);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
+            });
+
+        axiosInstance
+            .get(`workshedule/getWorkHours`, { headers })
+            .then((response) => {
+                setWorkHours(response.data.workHours);
             })
             .catch((error) => {
                 console.error("Error fetching tenureship duration:", error);
@@ -249,8 +261,149 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         }
     }
 
+    // Duration Calculation
+    useEffect(() => {
+        const duration = dayjs.duration(toDate.diff(fromDate));
+
+        const days = duration.days();
+        const hours = duration.hours();
+        const minutes = duration.minutes();
+
+        let parts = [];
+        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+        if (minutes > 0)
+            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+
+        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
+
+        setApplicationDuration(durationInfo);
+    }, [fromDate, toDate]);
+
+    // Leave Credit Calculation
+    useEffect(() => {
+        if (toDate.isBefore(fromDate)) {
+            setLeaveUsed(0);
+            return;
+        }
+        let creditsUsed = 0;
+
+        if (workHours) {
+            let currentDate = fromDate.startOf('day');
+            let lastDate = toDate.startOf('day');
+
+            const firstIn = parseTime(workHours.first_time_in);
+            const firstOut = parseTime(workHours.first_time_out);
+            const dayStart = currentDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+            const lastStart = lastDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+
+            let dayEnd, dayGapStart, dayGapEnd;
+            let lastEnd, lastGapStart, lastGapEnd;
+            let affectedStart, affectedEnd, affectedTime;
+
+            // Regular Shift Data Prep
+            if (workHours.shift_type == "Regular") {
+                const breakStart = parseTime(workHours.break_start);
+                const breakEnd = parseTime(workHours.break_end);
+
+                dayEnd = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapStart = currentDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                dayGapEnd = currentDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+                lastEnd = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapStart = lastDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                lastGapEnd = lastDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+                // Split Shift Data Prep
+            } else if (workHours.shift_type == "Split") {
+                const secondIn = parseTime(workHours.second_time_in);
+                const secondOut = parseTime(workHours.second_time_out);
+
+                dayEnd = currentDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                dayGapStart = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapEnd = currentDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+
+                lastEnd = lastDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                lastGapStart = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapEnd = lastDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+            }
+
+            // From and To are within the same day
+            if (fromDate.isSame(toDate, 'day')) {
+                if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
+                    creditsUsed = 0;
+                    //Error Logic Here
+                } else {
+                    affectedStart = dayjs.max(fromDate, dayStart);
+                    affectedEnd = dayjs.min(toDate, dayEnd);
+
+                    affectedTime = affectedEnd.diff(affectedStart, 'hour', true);
+
+                    if (affectedStart.isBefore(dayGapStart) || affectedStart.isSame(dayGapStart)) {
+                        if (affectedEnd.isAfter(dayGapEnd) || affectedEnd.isSame(dayGapEnd)) {
+                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                        } else if (affectedEnd.isAfter(dayGapStart)) {
+                            affectedTime -= affectedEnd.diff(dayGapStart, 'hour', true);
+                        }
+                    } else if (affectedStart.isBetween(dayGapStart, dayGapEnd)) {
+                        if (affectedEnd.isAfter(dayGapEnd)) {
+                            affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
+                        } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
+                            affectedTime = 0
+                        }
+                    }
+                    creditsUsed = affectedTime / workHours.total_hours;
+                }
+            } else {
+                // From and To are in different days
+                while (currentDate.isBefore(toDate) || currentDate.isSame(toDate, 'day')) {
+                    affectedTime = 0;
+                    if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
+                        affectedTime = workHours.total_hours;
+                        //console.log(`Full Day   ${affectedTime}`);
+                    } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
+                        affectedStart = dayjs.max(fromDate, dayStart);
+                        affectedTime = dayEnd.diff(affectedStart, 'hour', true);
+
+                        if (affectedStart.isBefore(dayGapStart)) {
+                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                        } else if (affectedStart.isBefore(dayGapEnd)) {
+                            affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
+                        }
+                        //console.log(`First Day  ${affectedTime}`);
+                    } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
+                        affectedEnd = dayjs.min(toDate, lastEnd);
+                        affectedTime = affectedEnd.diff(lastStart, 'hour', true);
+
+                        if (affectedEnd.isAfter(lastGapEnd)) {
+                            affectedTime -= lastGapEnd.diff(lastGapStart, 'hour', true);
+                        } else if (affectedEnd.isAfter(lastGapStart)) {
+                            affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
+                        }
+                        //console.log(`Last Day   ${affectedTime}`)
+                    }
+
+                    creditsUsed += affectedTime / workHours.total_hours
+                    currentDate = currentDate.add(1, 'day');
+                }
+            }
+        } else {
+            creditsUsed = parseFloat(appDetails.leave_used);
+        }
+        setLeaveUsed(Number(creditsUsed.toFixed(2)));
+        //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+    }, [fromDate, toDate]);
+
+    // Time Parser
+    const parseTime = (timeString) => {
+        if (!timeString) return { hr: 0, min: 0, sec: 0 };
+        const [hr, min, sec] = timeString.split(':').map(Number);
+        return { hr, min, sec };
+    };
+
+
     // Input Verification
-    const handleApplicationSubmit = (event) => {
+    const checkInput = (event) => {
         event.preventDefault();
 
         if (!appType) {
@@ -324,14 +477,14 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    editApplication(event);
+                    saveInput(event);
                 }
             });
         }
     };
 
     // Final Submission
-    const editApplication = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
         const formData = new FormData();
@@ -340,6 +493,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("description", description);
+        formData.append("leave_used", leaveUsed);
         if (attachment.length > 0) {
             attachment.forEach(file => {
                 formData.append('attachment[]', file);
@@ -395,25 +549,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             });
     };
 
-    // Duration Calculation
-    useEffect(() => {
-        const duration = dayjs.duration(toDate.diff(fromDate));
-
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0)
-            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
-        setApplicationDuration(durationInfo);
-    }, [fromDate, toDate]);
-
     return (
         <>
             <Dialog
@@ -444,7 +579,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box
                         component="form"
-                        onSubmit={handleApplicationSubmit}
+                        onSubmit={checkInput}
                         noValidate
                         autoComplete="off"
                     >
@@ -494,7 +629,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         label="From"
                                         value={fromDate}
                                         minDate={dayjs()}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "From")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -519,7 +654,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         label="To"
                                         value={toDate}
                                         minDateTime={fromDate}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "To")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -535,12 +670,12 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     />
                                 </LocalizationProvider>
                             </Grid>
-                            {/* Duration */}
+                            {/* Leave Credits */}
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        label="Duration"
-                                        value={applicationDuration}
+                                        label="Leave Used"
+                                        value={leaveUsed}
                                         InputProps={{ readOnly: true }}
                                     ></TextField>
                                 </FormControl>

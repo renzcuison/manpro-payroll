@@ -62,6 +62,7 @@ class ApplicationsController extends Controller
                     'app_date_requested' => $app->created_at,
                     'app_description' => $app->description,
                     'app_status' => $app->status,
+                    'app_leave_used' => $app->leave_used,
                     'emp_id' => $app->user_id,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
@@ -165,6 +166,7 @@ class ApplicationsController extends Controller
                 "duration_end" => $request->input('to_date'),
                 "description" => $request->input('description') ?? "",
                 "status" => "Pending",
+                "leave_used" => $request->input('leave_used'),
                 "user_id" => $user->id,
                 "client_id" => $user->client_id,
             ]);
@@ -224,6 +226,7 @@ class ApplicationsController extends Controller
             $application->duration_start = $request->input('from_date');
             $application->duration_end = $request->input('to_date');
             $application->description = $request->input('description');
+            $application->leave_used = $request->input('leave_used');
             $application->save();
 
             // Remove Files
@@ -294,9 +297,9 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::manageApplication");
         $user = Auth::user();
+        Log::info($request);
 
         if ($this->checkUser()) {
-            //Application Acceptance
             $application = ApplicationsModel::find($request->input('app_id'));
 
             if (!$application) {
@@ -304,14 +307,11 @@ class ApplicationsController extends Controller
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 
-            $startDate = Carbon::parse($request->input('app_start_date'));
-            $endDate = Carbon::parse($request->input('app_end_date'));
-            $empId = $request->input('app_emp_id');
-            $appTypeId = $request->input('app_type_id');
-
             switch ($request->input('app_response')) {
                 case 'Approve':
-                    $this->deductLeaveCredits($startDate, $endDate, $empId, $appTypeId);
+                    $leave = LeaveCreditsModel::where('user_id', $request->input('app_emp_id'))->where('application_type_id', $request->input('app_type_id'))->first();
+                    $leave->used = $leave->used + $request->input('app_leave_used');
+                    $leave->save();
                     $application->status = "Approved";
                     $message = "Application Approved";
                     break;

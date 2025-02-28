@@ -131,17 +131,9 @@ const ApplicationManage = ({ open, close, appDetails }) => {
         }
     };
 
-    // ----------- Application Response
-    const handleApplicationResponse = () => {
-
-        const data = {
-            app_id: appDetails.app_id,
-            app_type_id: appDetails.app_type_id,
-            app_emp_id: appDetails.emp_id,
-            app_response: appResponse,
-            app_start_date: dayjs(appDetails.app_duration_start).format("YYYY-MM-DD"),
-            app_end_date: dayjs(appDetails.app_duration_end).format("YYYY-MM-DD"),
-        }
+    // Response Verification
+    const checkInput = (event) => {
+        event.preventDefault();
 
         if (!appResponse) {
             setAppResponseError(true);
@@ -171,29 +163,46 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    axiosInstance.post(`applications/manageApplication`, data, { headers })
-                        .then((response) => {
-                            Swal.fire({
-                                customClass: { container: "my-swal" },
-                                title: "Success!",
-                                text: `The application has been ${appResponse == "Approve" ? "Approved" : "Declined" }.`,
-                                icon: "success",
-                                showConfirmButton: true,
-                                confirmButtonText: "Okay",
-                                confirmButtonColor: "#177604",
-                            }).then((res) => {
-                                if (res.isConfirmed) {
-                                    close();
-                                }
-                            });
-                        })
-                        .catch((error) => {
-                            console.error("Error managing application:", error);
-                        });
+                    saveInput(event);
                 }
             });
         }
-    };
+    }
+
+    // Save Response
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const data = {
+            app_id: appDetails.app_id,
+            app_type_id: appDetails.app_type_id,
+            app_emp_id: appDetails.emp_id,
+            app_response: appResponse,
+            app_leave_used: appDetails.app_leave_used,
+            app_start_date: dayjs(appDetails.app_duration_start).format("YYYY-MM-DD"),
+            app_end_date: dayjs(appDetails.app_duration_end).format("YYYY-MM-DD"),
+        }
+
+        axiosInstance.post(`applications/manageApplication`, data, { headers })
+            .then((response) => {
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `The application has been ${appResponse == "Approve" ? "Approved" : "Declined"}.`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        close();
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Error managing application:", error);
+            });
+    }
 
     return (
         <>
@@ -271,6 +280,13 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                         <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_duration_end).format("h:mm A")} </Typography>
                                     </Stack>
                                 </Grid>
+                                {/* Credits Used */}
+                                <Grid item xs={5} align="left">
+                                    Credits Required
+                                </Grid>
+                                <Grid item xs={7} align="left">
+                                    <Typography sx={{ fontWeight: "bold", width: "50%" }}> {appDetails.app_leave_used} </Typography>
+                                </Grid>
                                 <Grid item xs={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
@@ -334,7 +350,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                             <InputLabel id="app-response-label">
                                                 Select Action
                                             </InputLabel>
-                                            <Select labelId="app-response-label" id="app-response" value={appResponse} error={appResponseError} label="Select Action" onChange={(event) => setAppResponse(event.target.value) } >
+                                            <Select labelId="app-response-label" id="app-response" value={appResponse} error={appResponseError} label="Select Action" onChange={(event) => setAppResponse(event.target.value)} >
                                                 <MenuItem value="Approve"> Approve </MenuItem>
                                                 <MenuItem value="Decline"> Decline </MenuItem>
                                             </Select>
@@ -344,7 +360,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
                                 {/* Submit Action */}
                                 <Grid item xs={12} align="center">
-                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={handleApplicationResponse} >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={checkInput} >
                                         <p className="m-0">
                                             <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}Confirm Response{" "}
                                         </p>

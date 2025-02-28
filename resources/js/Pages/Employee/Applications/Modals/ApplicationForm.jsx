@@ -242,129 +242,6 @@ const ApplicationForm = ({ open, close }) => {
         }
     }
 
-    // Input Verification
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        console.log(`From:  ${fromDate}`);
-        console.log(`To:    ${toDate}`);
-        console.log(`Leave: ${leaveUsed}`)
-
-        if (!appType) {
-            setAppTypeError(true);
-        } else {
-            setAppTypeError(false);
-        }
-        if (!fromDate) {
-            setFromDateError(true);
-        } else {
-            setFromDateError(false);
-        }
-        if (!toDate) {
-            setToDateError(true);
-        } else {
-            setToDateError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
-        if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
-            setFileError(true);
-        } else {
-            setFileError(false);
-        }
-
-        if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else if (dateRangeError) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid Date!",
-                text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "Do you want to submit this application?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Save",
-                confirmButtonColor: "#177604",
-                showCancelButton: true,
-                cancelButtonText: "Cancel",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    };
-
-    // Final Submission
-    const saveInput = (event) => {
-        event.preventDefault();
-
-        const formData = new FormData();
-        formData.append("type_id", appType);
-        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append("description", description);
-        if (attachment.length > 0) {
-            attachment.forEach(file => {
-                formData.append('attachment[]', file);
-            });
-        }
-        if (image.length > 0) {
-            image.forEach(file => {
-                formData.append('image[]', file);
-            });
-        }
-
-        axiosInstance
-            .post("/applications/saveApplication", formData, {
-                headers,
-            })
-            .then((response) => {
-                document.activeElement.blur();
-                document.body.removeAttribute("aria-hidden");
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Your application has been submitted!`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close();
-                        document.body.setAttribute("aria-hidden", "true");
-                    } else {
-                        document.body.setAttribute("aria-hidden", "true");
-                    }
-                });
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                document.body.setAttribute("aria-hidden", "true");
-            });
-    };
-
     // Application Duration
     useEffect(() => {
         const duration = dayjs.duration(toDate.diff(fromDate));
@@ -383,7 +260,7 @@ const ApplicationForm = ({ open, close }) => {
 
     }, [fromDate, toDate]);
 
-    // Leave Credit Live Calculation
+    // Leave Credit Calculation
     useEffect(() => {
         if (toDate.isBefore(fromDate)) {
             setLeaveUsed(0);
@@ -502,6 +379,126 @@ const ApplicationForm = ({ open, close }) => {
         return { hr, min, sec };
     };
 
+    // Input Verification
+    const checkInput = (event) => {
+        event.preventDefault();
+
+        if (!appType) {
+            setAppTypeError(true);
+        } else {
+            setAppTypeError(false);
+        }
+        if (!fromDate) {
+            setFromDateError(true);
+        } else {
+            setFromDateError(false);
+        }
+        if (!toDate) {
+            setToDateError(true);
+        } else {
+            setToDateError(false);
+        }
+        if (!description) {
+            setDescriptionError(true);
+        } else {
+            setDescriptionError(false);
+        }
+        if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
+            setFileError(true);
+        } else {
+            setFileError(false);
+        }
+
+        if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All Required Fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (dateRangeError) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Invalid Date!",
+                text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "Do you want to submit this application?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInput(event);
+                }
+            });
+        }
+    };
+
+    // Final Submission
+    const saveInput = (event) => {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append("type_id", appType);
+        formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append("description", description);
+        formData.append("leave_used", leaveUsed);
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
+            });
+        }
+        if (image.length > 0) {
+            image.forEach(file => {
+                formData.append('image[]', file);
+            });
+        }
+
+        axiosInstance
+            .post("/applications/saveApplication", formData, {
+                headers,
+            })
+            .then((response) => {
+                document.activeElement.blur();
+                document.body.removeAttribute("aria-hidden");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `Your application has been submitted!`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        close();
+                        document.body.setAttribute("aria-hidden", "true");
+                    } else {
+                        document.body.setAttribute("aria-hidden", "true");
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    };
+
     return (
         <>
             <Dialog
@@ -590,7 +587,7 @@ const ApplicationForm = ({ open, close }) => {
                                     />
                                 </LocalizationProvider>
                             </Grid>
-                            {/* Duration */}
+                            {/* Leave Credits */}
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
