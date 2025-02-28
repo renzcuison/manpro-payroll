@@ -463,7 +463,7 @@ const ApplicationForm = ({ open, close }) => {
                     affectedTime = 0;
                     if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
                         affectedTime = workHours.total_hours;
-                        console.log(`Full Day   ${affectedTime}`);
+                        //console.log(`Full Day   ${affectedTime}`);
                     } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
                         affectedStart = dayjs.max(fromDate, dayStart);
                         affectedTime = dayEnd.diff(affectedStart, 'hour', true);
@@ -473,7 +473,7 @@ const ApplicationForm = ({ open, close }) => {
                         } else if (affectedStart.isBefore(dayGapEnd)) {
                             affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
                         }
-                        console.log(`First Day  ${affectedTime}`);
+                        //console.log(`First Day  ${affectedTime}`);
                     } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
                         affectedEnd = dayjs.min(toDate, lastEnd);
                         affectedTime = affectedEnd.diff(lastStart, 'hour', true);
@@ -483,7 +483,7 @@ const ApplicationForm = ({ open, close }) => {
                         } else if (affectedEnd.isAfter(lastGapStart)) {
                             affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
                         }
-                        console.log(`Last Day   ${affectedTime}`)
+                        //console.log(`Last Day   ${affectedTime}`)
                     }
 
                     creditsUsed += affectedTime / workHours.total_hours
@@ -492,7 +492,7 @@ const ApplicationForm = ({ open, close }) => {
             }
         }
         setLeaveUsed(Number(creditsUsed.toFixed(2)));
-        console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+        //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
     }, [fromDate, toDate]);
 
     // Time Parser
