@@ -61,6 +61,7 @@ const ApplicationForm = ({ open, close }) => {
     const [workHours, setWorkHours] = useState(0);
     const [leaveUsed, setLeaveUsed] = useState(0);
     const [fullDates, setFullDates] = useState([]);
+    const [holidays, setHolidays] = useState([]);
 
     const [description, setDescription] = useState("");
 
@@ -92,15 +93,6 @@ const ApplicationForm = ({ open, close }) => {
             });
 
         axiosInstance
-            .get(`workshedule/getWorkHours`, { headers })
-            .then((response) => {
-                setWorkHours(response.data.workHours);
-            })
-            .catch((error) => {
-                console.error("Error fetching tenureship duration:", error);
-            });
-
-        axiosInstance
             .get(`applications/getTenureship`, { headers })
             .then((response) => {
                 setTenureship(response.data.tenureship);
@@ -110,9 +102,34 @@ const ApplicationForm = ({ open, close }) => {
             });
 
         axiosInstance
+            .get(`workshedule/getWorkHours`, { headers })
+            .then((response) => {
+                setWorkHours(response.data.workHours);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
+            });
+
+        axiosInstance
             .get(`applications/getFullLeaveDays`, { headers })
             .then((response) => {
                 setFullDates(response.data.fullDates);
+            })
+            .catch((error) => {
+                console.error("Error fetching Full Days:", error);
+            });
+
+        axiosInstance
+            .get(`applications/getNagerHolidays`, {
+                headers,
+                params: {
+                    start_date: fromDate,
+                    to_date: toDate
+                }
+            })
+            .then((response) => {
+                console.log(response.data.holidays);
+                setHolidays(response.data.holidays);
             })
             .catch((error) => {
                 console.error("Error fetching Full Days:", error);
@@ -260,6 +277,15 @@ const ApplicationForm = ({ open, close }) => {
 
     }, [fromDate, toDate]);
 
+    const isExcludedDate = (date) => {
+        if (holidays.includes(date.format('YYYY-MM-DD'))) {
+            return true;
+        } else {
+            const day = date.day();
+            return day === 0 || day === 6;
+        }
+    };
+
     // Leave Credit Calculation
     useEffect(() => {
         if (toDate.isBefore(fromDate)) {
@@ -267,6 +293,7 @@ const ApplicationForm = ({ open, close }) => {
             return;
         }
         let creditsUsed = 0;
+        let daySkip;
 
         if (workHours) {
             let currentDate = fromDate.startOf('day');
@@ -281,7 +308,7 @@ const ApplicationForm = ({ open, close }) => {
             let lastEnd, lastGapStart, lastGapEnd;
             let affectedStart, affectedEnd, affectedTime;
 
-            // Regular Shift Data Prep
+            // Data Preps
             if (workHours.shift_type == "Regular") {
                 const breakStart = parseTime(workHours.break_start);
                 const breakEnd = parseTime(workHours.break_end);
@@ -294,7 +321,7 @@ const ApplicationForm = ({ open, close }) => {
                 lastGapStart = lastDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
                 lastGapEnd = lastDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
 
-                // Split Shift Data Prep
+
             } else if (workHours.shift_type == "Split") {
                 const secondIn = parseTime(workHours.second_time_in);
                 const secondOut = parseTime(workHours.second_time_out);
@@ -308,59 +335,63 @@ const ApplicationForm = ({ open, close }) => {
                 lastGapEnd = lastDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
             }
 
-            // From and To are within the same day
+            // Same Day Calculations
             if (fromDate.isSame(toDate, 'day')) {
-                if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
-                    creditsUsed = 0;
-                    //Error Logic Here
-                } else {
-                    affectedStart = dayjs.max(fromDate, dayStart);
-                    affectedEnd = dayjs.min(toDate, dayEnd);
+                if (!isExcludedDate(currentDate)) {
+                    if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
+                        creditsUsed = 0;
+                    } else {
+                        affectedStart = dayjs.max(fromDate, dayStart);
+                        affectedEnd = dayjs.min(toDate, dayEnd);
 
-                    affectedTime = affectedEnd.diff(affectedStart, 'hour', true);
+                        affectedTime = affectedEnd.diff(affectedStart, 'hour', true);
 
-                    if (affectedStart.isBefore(dayGapStart) || affectedStart.isSame(dayGapStart)) {
-                        if (affectedEnd.isAfter(dayGapEnd) || affectedEnd.isSame(dayGapEnd)) {
-                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
-                        } else if (affectedEnd.isAfter(dayGapStart)) {
-                            affectedTime -= affectedEnd.diff(dayGapStart, 'hour', true);
+                        if (affectedStart.isBefore(dayGapStart) || affectedStart.isSame(dayGapStart)) {
+                            if (affectedEnd.isAfter(dayGapEnd) || affectedEnd.isSame(dayGapEnd)) {
+                                affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                            } else if (affectedEnd.isAfter(dayGapStart)) {
+                                affectedTime -= affectedEnd.diff(dayGapStart, 'hour', true);
+                            }
+                        } else if (affectedStart.isBetween(dayGapStart, dayGapEnd)) {
+                            if (affectedEnd.isAfter(dayGapEnd)) {
+                                affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
+                            } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
+                                affectedTime = 0
+                            }
                         }
-                    } else if (affectedStart.isBetween(dayGapStart, dayGapEnd)) {
-                        if (affectedEnd.isAfter(dayGapEnd)) {
-                            affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
-                        } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
-                            affectedTime = 0
-                        }
+                        creditsUsed = affectedTime / workHours.total_hours;
                     }
-                    creditsUsed = affectedTime / workHours.total_hours;
                 }
             } else {
-                // From and To are in different days
+                // Multiple Day Calculations
                 while (currentDate.isBefore(toDate) || currentDate.isSame(toDate, 'day')) {
                     affectedTime = 0;
-                    if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
-                        affectedTime = workHours.total_hours;
-                        //console.log(`Full Day   ${affectedTime}`);
-                    } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
-                        affectedStart = dayjs.max(fromDate, dayStart);
-                        affectedTime = dayEnd.diff(affectedStart, 'hour', true);
+                    // Weekend, Holiday Check
+                    if (!isExcludedDate(currentDate)) {
+                        if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
+                            affectedTime = workHours.total_hours;
+                            //console.log(`Full Day   ${affectedTime}`);
+                        } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
+                            affectedStart = dayjs.max(fromDate, dayStart);
+                            affectedTime = dayEnd.diff(affectedStart, 'hour', true);
 
-                        if (affectedStart.isBefore(dayGapStart)) {
-                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
-                        } else if (affectedStart.isBefore(dayGapEnd)) {
-                            affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
-                        }
-                        //console.log(`First Day  ${affectedTime}`);
-                    } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
-                        affectedEnd = dayjs.min(toDate, lastEnd);
-                        affectedTime = affectedEnd.diff(lastStart, 'hour', true);
+                            if (affectedStart.isBefore(dayGapStart)) {
+                                affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                            } else if (affectedStart.isBefore(dayGapEnd)) {
+                                affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
+                            }
+                            //console.log(`First Day  ${affectedTime}`);
+                        } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
+                            affectedEnd = dayjs.min(toDate, lastEnd);
+                            affectedTime = affectedEnd.diff(lastStart, 'hour', true);
 
-                        if (affectedEnd.isAfter(lastGapEnd)) {
-                            affectedTime -= lastGapEnd.diff(lastGapStart, 'hour', true);
-                        } else if (affectedEnd.isAfter(lastGapStart)) {
-                            affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
+                            if (affectedEnd.isAfter(lastGapEnd)) {
+                                affectedTime -= lastGapEnd.diff(lastGapStart, 'hour', true);
+                            } else if (affectedEnd.isAfter(lastGapStart)) {
+                                affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
+                            }
+                            //console.log(`Last Day   ${affectedTime}`)
                         }
-                        //console.log(`Last Day   ${affectedTime}`)
                     }
 
                     creditsUsed += affectedTime / workHours.total_hours

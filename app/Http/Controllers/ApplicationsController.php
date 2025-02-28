@@ -449,75 +449,18 @@ class ApplicationsController extends Controller
         }
     }
 
-    public function deductLeaveCredits(Carbon $startDate, Carbon $endDate, $empId, $appTypeId)
-    {
-        if ($this->checkUser()) {
-            $dayCount = $this->getNumberOfDays($startDate, $endDate);
-
-            $numberOfDays = $dayCount['numberOfDays'];
-            $numberOfSaturday = $dayCount['numberOfSaturday'];
-            $numberOfSunday = $dayCount['numberOfSunday'];
-            $numberOfHoliday = $dayCount['numberOfHoliday'];
-
-            $creditCount = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
-
-            $leaveInfo = LeaveCreditsModel::where('user_id', $empId)->where('application_type_id', $appTypeId)->first();
-            $leaveInfo->used = $leaveInfo->used + $creditCount;
-            $leaveInfo->save();
-        }
-    }
-
-    public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
-    {
-        //Log::info("ApplicationsController::getNumberOfDays");
-
-        // Initialize counters
-        $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
-        $numberOfSaturday = 0;
-        $numberOfSunday = 0;
-        $numberOfHoliday = 0;
-
-        // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-
-        $currentDate = $startDate->copy();
-
-        while ($currentDate <= $endDate) {
-            // Check for Saturday or Sunday
-            if ($currentDate->isSaturday()) {
-                $numberOfSaturday++;
-            } elseif ($currentDate->isSunday()) {
-                $numberOfSunday++;
-            }
-
-            // Check if it's a holiday
-            $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
-            if (in_array($holidayDate, $holidays)) {
-                $numberOfHoliday++;
-            }
-
-            // Move to the next day
-            $currentDate->addDay();
-        }
-
-        // Return the results
-        return [
-            'numberOfDays' => $numberOfDays,
-            'numberOfSaturday' => $numberOfSaturday,
-            'numberOfSunday' => $numberOfSunday,
-            'numberOfHoliday' => $numberOfHoliday,
-        ];
-    }
-
-    public function getNagerHolidays($startYear, $endYear)
+    public function getNagerHolidays(Request $request)
     {
         //Log::info("ApplicationsController::getNagerHolidays");
+        //Log::info($request);
+        $startDate = Carbon::parse($request->input('start_date'));
+        $endDate = Carbon::parse($request->input('end_date'));
 
         $holidays = [];
         $countryCode = 'PH';
 
         // Fetch holidays for each year in the range
-        for ($year = $startYear; $year <= $endYear; $year++) {
+        for ($year = $startDate->year; $year <= $endDate->year; $year++) {
             $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
 
             $response = Http::get($url);
@@ -542,7 +485,8 @@ class ApplicationsController extends Controller
             }
         }
 
-        return $holidays;
+        Log::info($holidays);
+        return response()->json(['status' => 200, 'holidays' => $holidays]);
     }
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)

@@ -182,6 +182,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
+        Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
 
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
