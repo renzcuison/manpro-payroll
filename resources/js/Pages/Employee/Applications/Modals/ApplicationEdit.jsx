@@ -76,6 +76,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
     const [dateRangeError, setDateRangeError] = useState(false);
+    const [leaveUsedError, setLeaveUsedError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
     const [fileError, setFileError] = useState(false);
@@ -497,6 +498,11 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             setFileError(false);
         }
+        if (leaveUsed == 0) {
+            setLeaveUsedError(true);
+        } else {
+            setLeaveUsedError(false);
+        }
 
 
         if (!appType || !fromDate || !toDate || !description || !fileRequirementsMet) {
@@ -514,6 +520,16 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 customClass: { container: "my-swal" },
                 title: "Invalid Date!",
                 text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (leaveUsed == 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "No Leave Credits Applied!",
+                text: `The selected range does not use any leave credits.`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -692,9 +708,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError,
+                                                error: fromDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
@@ -717,9 +733,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError,
+                                                error: toDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
@@ -731,10 +747,11 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                     <TextField
                                         label="Leave Used"
                                         value={leaveUsed}
+                                        error={leaveUsedError}
                                         InputProps={{ readOnly: true }}
                                         sx={{
                                             '& .MuiFormHelperText-root': {
-                                                color: '#42a5f5',
+                                                color: leaveUsedError ? "#f44336" : '#42a5f5',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '4px',

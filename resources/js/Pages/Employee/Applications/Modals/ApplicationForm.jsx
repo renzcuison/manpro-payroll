@@ -57,7 +57,6 @@ const ApplicationForm = ({ open, close }) => {
     const [fromDate, setFromDate] = useState(dayjs().startOf('hour'));
     const [toDate, setToDate] = useState(dayjs().startOf('hour'));
 
-    const [applicationDuration, setApplicationDuration] = useState("");
     const [workHours, setWorkHours] = useState(0);
     const [leaveUsed, setLeaveUsed] = useState(0);
     const [fullDates, setFullDates] = useState([]);
@@ -78,9 +77,9 @@ const ApplicationForm = ({ open, close }) => {
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
     const [dateRangeError, setDateRangeError] = useState(false);
+    const [leaveUsedError, setLeaveUsedError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
-
     const [fileError, setFileError] = useState(false);
 
 
@@ -262,24 +261,6 @@ const ApplicationForm = ({ open, close }) => {
             setDateRangeError(false);
         }
     }
-
-    // Application Duration
-    useEffect(() => {
-        const duration = dayjs.duration(toDate.diff(fromDate));
-
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-        setApplicationDuration(durationInfo);
-
-    }, [fromDate, toDate]);
 
     // Leave Credit Calculation
     useEffect(() => {
@@ -465,6 +446,11 @@ const ApplicationForm = ({ open, close }) => {
         } else {
             setFileError(false);
         }
+        if (leaveUsed == 0) {
+            setLeaveUsedError(true);
+        } else {
+            setLeaveUsedError(false);
+        }
 
         if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
             document.activeElement.blur();
@@ -481,6 +467,16 @@ const ApplicationForm = ({ open, close }) => {
                 customClass: { container: "my-swal" },
                 title: "Invalid Date!",
                 text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (leaveUsed == 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "No Leave Credits Applied!",
+                text: `The selected range does not use any leave credits.`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -611,9 +607,9 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: fromDateError || dateRangeError,
+                                                error: fromDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
@@ -636,9 +632,9 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError,
+                                                error: toDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
@@ -650,10 +646,11 @@ const ApplicationForm = ({ open, close }) => {
                                     <TextField
                                         label="Leave Used"
                                         value={leaveUsed}
+                                        error={leaveUsedError}
                                         InputProps={{ readOnly: true }}
                                         sx={{
                                             '& .MuiFormHelperText-root': {
-                                                color: '#42a5f5',
+                                                color: leaveUsedError ? "#f44336" : '#42a5f5',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '4px',
