@@ -136,7 +136,6 @@ class WorkScheduleController extends Controller
             'over_time_out',
         )->find($workShift->work_hour_id);
 
-        $totalWorkHours = 0;
         $firstIn = Carbon::parse($workHours->first_time_in);
         $firstOut = Carbon::parse($workHours->first_time_out);
 
@@ -157,7 +156,6 @@ class WorkScheduleController extends Controller
 
         $workHourData = $workHours->toArray();
 
-        Log::info($totalWorkHours);
 
         return response()->json(['status' => 200, 'workHours' => $workHourData]);
     }

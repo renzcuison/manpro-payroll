@@ -35,9 +35,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
+import minMax from "dayjs/plugin/minMax";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
+dayjs.extend(minMax);
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import { validateDate } from "@mui/x-date-pickers";
@@ -363,8 +365,8 @@ const ApplicationForm = ({ open, close }) => {
             });
     };
 
+    // Application Duration
     useEffect(() => {
-        // Application Duration
         const duration = dayjs.duration(toDate.diff(fromDate));
 
         const days = duration.days();
@@ -381,15 +383,124 @@ const ApplicationForm = ({ open, close }) => {
 
     }, [fromDate, toDate]);
 
+    // Leave Credit Live Calculation
     useEffect(() => {
-        //calculations here
-
         if (toDate.isBefore(fromDate)) {
             setLeaveUsed(0);
             return;
         }
-        //setLeaveUsed(whatever_the_final_result_is);
-    }, [fromDate, toDate])
+        let creditsUsed = 0;
+
+        if (workHours) {
+            let currentDate = fromDate.startOf('day');
+            let lastDate = toDate.startOf('day');
+
+            const firstIn = parseTime(workHours.first_time_in);
+            const firstOut = parseTime(workHours.first_time_out);
+            const dayStart = currentDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+            const lastStart = lastDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+
+            let dayEnd, dayGapStart, dayGapEnd;
+            let lastEnd, lastGapStart, lastGapEnd;
+            let affectedStart, affectedEnd, affectedTime;
+
+            // Regular Shift Data Prep
+            if (workHours.shift_type == "Regular") {
+                const breakStart = parseTime(workHours.break_start);
+                const breakEnd = parseTime(workHours.break_end);
+
+                dayEnd = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapStart = currentDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                dayGapEnd = currentDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+                lastEnd = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapStart = lastDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                lastGapEnd = lastDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+                // Split Shift Data Prep
+            } else if (workHours.shift_type == "Split") {
+                const secondIn = parseTime(workHours.second_time_in);
+                const secondOut = parseTime(workHours.second_time_out);
+
+                dayEnd = currentDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                dayGapStart = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapEnd = currentDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+
+                lastEnd = lastDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                lastGapStart = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapEnd = lastDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+            }
+
+            // From and To are within the same day
+            if (fromDate.isSame(toDate, 'day')) {
+                if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
+                    creditsUsed = 0;
+                    //Error Logic Here
+                } else {
+                    affectedStart = dayjs.max(fromDate, dayStart);
+                    affectedEnd = dayjs.min(toDate, dayEnd);
+
+                    affectedTime = affectedEnd.diff(affectedStart, 'hour', true);
+
+                    if (affectedStart.isBefore(dayGapStart) || affectedStart.isSame(dayGapStart)) {
+                        if (affectedEnd.isAfter(dayGapEnd) || affectedEnd.isSame(dayGapEnd)) {
+                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                        } else if (affectedEnd.isAfter(dayGapStart)) {
+                            affectedTime -= affectedEnd.diff(dayGapStart, 'hour', true);
+                        }
+                    } else if (affectedStart.isBetween(dayGapStart, dayGapEnd)) {
+                        if (affectedEnd.isAfter(dayGapEnd)) {
+                            affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
+                        } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
+                            affectedTime = 0
+                        }
+                    }
+                    creditsUsed = affectedTime / workHours.total_hours;
+                }
+            } else {
+                // From and To are in different days
+                while (currentDate.isBefore(toDate) || currentDate.isSame(toDate, 'day')) {
+                    affectedTime = 0;
+                    if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
+                        affectedTime = workHours.total_hours;
+                        console.log(`Full Day   ${affectedTime}`);
+                    } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
+                        affectedStart = dayjs.max(fromDate, dayStart);
+                        affectedTime = dayEnd.diff(affectedStart, 'hour', true);
+
+                        if (affectedStart.isBefore(dayGapStart)) {
+                            affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                        } else if (affectedStart.isBefore(dayGapEnd)) {
+                            affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
+                        }
+                        console.log(`First Day  ${affectedTime}`);
+                    } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
+                        affectedEnd = dayjs.min(toDate, lastEnd);
+                        affectedTime = affectedEnd.diff(lastStart, 'hour', true);
+
+                        if (affectedEnd.isAfter(lastGapEnd)) {
+                            affectedTime -= lastGapEnd.diff(lastGapStart, 'hour', true);
+                        } else if (affectedEnd.isAfter(lastGapStart)) {
+                            affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
+                        }
+                        console.log(`Last Day   ${affectedTime}`)
+                    }
+
+                    creditsUsed += affectedTime / workHours.total_hours
+                    currentDate = currentDate.add(1, 'day');
+                }
+            }
+        }
+        setLeaveUsed(Number(creditsUsed.toFixed(2)));
+        console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+    }, [fromDate, toDate]);
+
+    // Time Parser
+    const parseTime = (timeString) => {
+        if (!timeString) return { hr: 0, min: 0, sec: 0 };
+        const [hr, min, sec] = timeString.split(':').map(Number);
+        return { hr, min, sec };
+    };
 
     return (
         <>

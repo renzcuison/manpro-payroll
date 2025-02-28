@@ -217,7 +217,6 @@ class AttendanceController extends Controller
                 $totalTime = 0;
                 $totalOT = 0;
                 $totalLate = 0;
-                $count = $logs->count();
                 $dutyInFound = false;
                 $overtimeInFound = false;
                 $workStart = Carbon::now();
