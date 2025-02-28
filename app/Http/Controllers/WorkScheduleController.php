@@ -292,7 +292,7 @@ class WorkScheduleController extends Controller
 
         $workHour  = $this->checkWorkHour($request);
 
-        if ($this->checkUser() && !$validated && $workHour) {
+        if ($this->checkUser() && $validated && $workHour) {
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
@@ -308,9 +308,9 @@ class WorkScheduleController extends Controller
                     "client_id" => $client->id,
                 ]);
 
-                DB::commit();
-
                 $link = str_replace(' ', '_', $shift->name);
+
+                DB::commit();
 
                 return response()->json(['status' => 200, 'shift' => $shift, 'link' => $link]);
             } catch (\Exception $e) {

@@ -307,14 +307,14 @@ const WorkshiftAdd = () => {
             shiftName: shiftName,
             shiftType: shiftType,
 
+            firstLabel: "Attendance",
             firstTimeIn: regularTimeIn.format('HH:mm:ss'),
             firstTimeOut: regularTimeOut.format('HH:mm:ss'),
 
             breakStart: breakStart.format('HH:mm:ss'),
             breakEnd: breakEnd.format('HH:mm:ss'),
-
             overTimeIn: overTimeIn.format('HH:mm:ss'),
-            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
         axiosInstance.post('/workshedule/saveRegularWorkShift', data, { headers })
