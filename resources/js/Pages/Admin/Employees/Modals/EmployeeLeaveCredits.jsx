@@ -186,7 +186,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                         })) :
                                         <TableRow>
                                             <TableCell
-                                                colSpan={4}
+                                                colSpan={5}
                                                 align="center"
                                                 sx={{
                                                     color: "text.secondary",
