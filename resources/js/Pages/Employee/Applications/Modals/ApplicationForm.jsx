@@ -20,7 +20,7 @@ import {
     MenuItem,
     Stack
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
+import { Cancel, InfoOutlined } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -654,12 +654,20 @@ const ApplicationForm = ({ open, close }) => {
                                         sx={{
                                             '& .MuiFormHelperText-root': {
                                                 color: '#42a5f5',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
                                             },
                                         }}
                                         helperText={
-                                            (holidayCount > 0 || weekendCount > 0)
-                                                ? `${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`
-                                                : ''
+                                            (holidayCount > 0 || weekendCount > 0) ? (
+                                                <>
+                                                    <InfoOutlined fontSize="small" />
+                                                    <span>
+                                                        {`${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`}
+                                                    </span>
+                                                </>
+                                            ) : ''
                                         }
                                     />
                                 </FormControl>
