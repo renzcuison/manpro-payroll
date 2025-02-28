@@ -468,13 +468,10 @@ class ApplicationsController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
 
-                // Log the API response for debugging
-                //Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
-
-                // Ensure $data is an array before iterating
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
-                        $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                        $holidayDates[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                        $holidayNames[] = $holiday['name'];
                     }
                 } else {
                     Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
@@ -484,9 +481,7 @@ class ApplicationsController extends Controller
                 Log::error($response->body());
             }
         }
-
-        Log::info($holidays);
-        return response()->json(['status' => 200, 'holidays' => $holidays]);
+        return response()->json(['status' => 200, 'holiday_dates' => $holidayDates, 'holiday_names' => $holidayNames]);
     }
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)

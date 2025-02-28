@@ -61,10 +61,13 @@ const ApplicationForm = ({ open, close }) => {
     const [workHours, setWorkHours] = useState(0);
     const [leaveUsed, setLeaveUsed] = useState(0);
     const [fullDates, setFullDates] = useState([]);
-    const [holidays, setHolidays] = useState([]);
+
+    const [holidayDates, setHolidayDates] = useState([]);
+    const [holidayNames, setHolidayNames] = useState([]);
+    const [weekendCount, setWeekendCount] = useState(0);
+    const [holidayCount, setHolidayCount] = useState(0);
 
     const [description, setDescription] = useState("");
-
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [fileRequired, setFileRequired] = useState(false);
@@ -128,8 +131,9 @@ const ApplicationForm = ({ open, close }) => {
                 }
             })
             .then((response) => {
-                console.log(response.data.holidays);
-                setHolidays(response.data.holidays);
+                ;
+                setHolidayDates(response.data.holiday_dates);
+                setHolidayNames(response.data.holiday_names);
             })
             .catch((error) => {
                 console.error("Error fetching Full Days:", error);
@@ -277,15 +281,6 @@ const ApplicationForm = ({ open, close }) => {
 
     }, [fromDate, toDate]);
 
-    const isExcludedDate = (date) => {
-        if (holidays.includes(date.format('YYYY-MM-DD'))) {
-            return true;
-        } else {
-            const day = date.day();
-            return day === 0 || day === 6;
-        }
-    };
-
     // Leave Credit Calculation
     useEffect(() => {
         if (toDate.isBefore(fromDate)) {
@@ -293,7 +288,9 @@ const ApplicationForm = ({ open, close }) => {
             return;
         }
         let creditsUsed = 0;
-        let daySkip;
+        let weekends = 0;
+        let holidays = 0;
+        let skipDay;
 
         if (workHours) {
             let currentDate = fromDate.startOf('day');
@@ -337,7 +334,15 @@ const ApplicationForm = ({ open, close }) => {
 
             // Same Day Calculations
             if (fromDate.isSame(toDate, 'day')) {
-                if (!isExcludedDate(currentDate)) {
+                skipDay = excludeDate(currentDate);
+
+                if (skipDay.excluded) {
+                    if (skipDay.type == "Holiday") {
+                        holidays++;
+                    } else if (skipDay.type == "Weekend") {
+                        weekends++;
+                    }
+                } else {
                     if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
                         creditsUsed = 0;
                     } else {
@@ -366,8 +371,17 @@ const ApplicationForm = ({ open, close }) => {
                 // Multiple Day Calculations
                 while (currentDate.isBefore(toDate) || currentDate.isSame(toDate, 'day')) {
                     affectedTime = 0;
+
+                    skipDay = excludeDate(currentDate);
+
                     // Weekend, Holiday Check
-                    if (!isExcludedDate(currentDate)) {
+                    if (skipDay.excluded) {
+                        if (skipDay.type == "Holiday") {
+                            holidays++;
+                        } else if (skipDay.type == "Weekend") {
+                            weekends++;
+                        }
+                    } else {
                         if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
                             affectedTime = workHours.total_hours;
                             //console.log(`Full Day   ${affectedTime}`);
@@ -399,6 +413,8 @@ const ApplicationForm = ({ open, close }) => {
                 }
             }
         }
+        setWeekendCount(weekends);
+        setHolidayCount(holidays);
         setLeaveUsed(Number(creditsUsed.toFixed(2)));
         //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
     }, [fromDate, toDate]);
@@ -408,6 +424,16 @@ const ApplicationForm = ({ open, close }) => {
         if (!timeString) return { hr: 0, min: 0, sec: 0 };
         const [hr, min, sec] = timeString.split(':').map(Number);
         return { hr, min, sec };
+    };
+
+    // Weekend, Holiday Exclusion
+    const excludeDate = (date) => {
+        if (holidayDates.includes(date.format('YYYY-MM-DD'))) {
+            return { excluded: true, type: "Holiday" };
+        } else {
+            const day = date.day();
+            return { excluded: day === 0 || day === 6, type: "Weekend" };
+        }
     };
 
     // Input Verification
@@ -625,7 +651,17 @@ const ApplicationForm = ({ open, close }) => {
                                         label="Leave Used"
                                         value={leaveUsed}
                                         InputProps={{ readOnly: true }}
-                                    ></TextField>
+                                        sx={{
+                                            '& .MuiFormHelperText-root': {
+                                                color: '#42a5f5',
+                                            },
+                                        }}
+                                        helperText={
+                                            (holidayCount > 0 || weekendCount > 0)
+                                                ? `${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`
+                                                : ''
+                                        }
+                                    />
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
