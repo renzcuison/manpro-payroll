@@ -8,6 +8,7 @@ use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
+use App\Models\ApplicationTypesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -69,11 +70,10 @@ class SettingsController extends Controller
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'branch' => $branch ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'branch' => $branch]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -81,7 +81,7 @@ class SettingsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function editBranch(Request $request)
@@ -98,7 +98,7 @@ class SettingsController extends Controller
 
             $user = Auth::user();
             $branch = BranchesModel::find($request->input('id'));
-            
+
             $branch->name = $request->input('name');
             $branch->acronym = $request->input('acronym');
             $branch->address = $request->input('address');
@@ -107,8 +107,8 @@ class SettingsController extends Controller
 
             $branch->save();
 
-            return response()->json([ 'status' => 200 ]);
-        }    
+            return response()->json(['status' => 200]);
+        }
     }
 
     public function getDepartments(Request $request)
@@ -149,11 +149,10 @@ class SettingsController extends Controller
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'department' => $department ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'department' => $department]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -161,7 +160,7 @@ class SettingsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function editDepartment(Request $request)
@@ -178,7 +177,7 @@ class SettingsController extends Controller
 
             $user = Auth::user();
             $department = DepartmentsModel::find($request->input('id'));
-            
+
             $department->name = $request->input('name');
             $department->acronym = $request->input('acronym');
             $department->description = $request->input('description');
@@ -187,8 +186,8 @@ class SettingsController extends Controller
 
             $department->save();
 
-            return response()->json([ 'status' => 200 ]);
-        }  
+            return response()->json(['status' => 200]);
+        }
     }
 
     public function getJobTitles(Request $request)
@@ -228,11 +227,10 @@ class SettingsController extends Controller
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'jobTitle' => $jobTitle ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'jobTitle' => $jobTitle]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -240,7 +238,7 @@ class SettingsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function editJobTitle(Request $request)
@@ -257,15 +255,15 @@ class SettingsController extends Controller
 
             $user = Auth::user();
             $jobTitle = JobTitlesModel::find($request->input('id'));
-            
+
             $jobTitle->name = $request->input('name');
             $jobTitle->acronym = $request->input('acronym');
             $jobTitle->status = $request->input('status');
 
             $jobTitle->save();
 
-            return response()->json([ 'status' => 200 ]);
-        }   
+            return response()->json(['status' => 200]);
+        }
     }
 
     public function getRoles(Request $request)
@@ -305,11 +303,10 @@ class SettingsController extends Controller
                     "status" => "Active",
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'role' => $role ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'role' => $role]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -317,32 +314,96 @@ class SettingsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function editRole(Request $request)
     {
-        log::info("SettingsController::editRole");
+        //log::info("SettingsController::editRole");
 
         $validated = $request->validate([
             'name' => 'required',
             'acronym' => 'required',
             'status' => 'required',
         ]);
-        
+
         if ($this->checkUser() && $validated) {
 
             $user = Auth::user();
             $role = EmployeeRolesModel::find($request->input('id'));
-            
+
             $role->name = $request->input('name');
             $role->acronym = $request->input('acronym');
             $role->status = $request->input('status');
 
             $role->save();
 
-            return response()->json([ 'status' => 200 ]);
-        }     
-        
+            return response()->json(['status' => 200]);
+        }
+    }
+
+    public function saveApplicationType(Request $request)
+    {
+        // log::info("SettingsController::saveApplicationType");
+        Log::info($request);
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'tenureship_required' => 'required',
+            'require_files' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $role = ApplicationTypesModel::create([
+                    "name" => $request->name,
+                    "percentage" => 0.00,
+                    "require_files" => $request->require_files,
+                    "tenureship_required" => $request->tenureship_required,
+                    "client_id" => $client->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'role' => $role]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
+    public function editApplicationType(Request $request)
+    {
+        //log::info("SettingsController::editApplicationType");
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'tenureship_required' => 'required',
+            'require_files' => 'required',
+        ]);
+
+        if ($this->checkUser() && $validated) {
+
+            $user = Auth::user();
+            $appType = ApplicationTypesModel::find($request->input('id'));
+
+            $appType->name = $request->input('name');
+            $appType->tenureship_required = $request->input('tenureship_required');
+            $appType->require_files = $request->input('require_files');
+
+            $appType->save();
+
+            return response()->json(['status' => 200]);
+        }
     }
 }

@@ -15,6 +15,9 @@ class ApplicationTypesModel extends Model
 
     protected $fillable = [
         'name',
+        'percentage',
+        'require_files',
+        'tenureship_required',
         'client_id',
         'deleted_at',
     ];

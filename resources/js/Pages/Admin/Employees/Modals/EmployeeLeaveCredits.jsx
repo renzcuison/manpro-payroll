@@ -32,8 +32,8 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import EditLeaveCredit from "./EditLeaveCredit";
-import AddLeaveCredit from "./AddLeaveCredit";
+import LeaveCreditAdd from "./LeaveCreditAdd";
+import LeaveCreditEdit from "./LeaveCreditEdit";
 
 const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
@@ -214,14 +214,14 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                     </Box>
                 </DialogContent>
                 {openEditLeaveCredit &&
-                    <EditLeaveCredit
+                    <LeaveCreditEdit
                         open={openEditLeaveCredit}
                         close={handleCloseEditLeaveCredit}
                         leaveData={leaveData}
                     />
                 }
                 {openAddLeaveCredit &&
-                    <AddLeaveCredit
+                    <LeaveCreditAdd
                         open={openAddLeaveCredit}
                         close={handleCloseAddLeaveCredit}
                         empId={employee.id}

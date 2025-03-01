@@ -14,7 +14,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const AddLeaveCredit = ({ open, close, empId }) => {
+const LeaveCreditAdd = ({ open, close, empId }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -198,4 +198,4 @@ const AddLeaveCredit = ({ open, close, empId }) => {
     )
 }
 
-export default AddLeaveCredit;
+export default LeaveCreditAdd;

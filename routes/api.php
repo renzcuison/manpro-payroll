@@ -111,6 +111,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
         Route::post('/saveRole', [SettingsController::class, 'saveRole']);
         Route::post('/editRole', [SettingsController::class, 'editRole']);
+
+        Route::post('/saveApplicationType', [SettingsController::class, 'saveApplicationType']);
+        Route::post('/editApplicationType', [SettingsController::class, 'editApplicationType']);
     });
 
     Route::prefix('employee')->group(function () {
