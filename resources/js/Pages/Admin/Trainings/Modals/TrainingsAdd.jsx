@@ -63,6 +63,7 @@ const TrainingsAdd = ({ open, close }) => {
     const [description, setDescription] = useState("");
     const [image, setImage] = useState([]);
     const [coverImage, setCoverImage] = useState(null);
+    const [attachment, setAttachment] = useState([]);
     const [linkInput, setLinkInput] = useState('');
     const [links, setLinks] = useState([]);
 
@@ -76,6 +77,7 @@ const TrainingsAdd = ({ open, close }) => {
     const [descriptionError, setDescriptionError] = useState(false);
     const [imageError, setImageError] = useState(false);
     const [coverImageError, setCoverImageError] = useState(false);
+    const [attachmentError, setAttachmentError] = useState(false);
 
     // Training Duration
     useEffect(() => {
@@ -85,6 +87,22 @@ const TrainingsAdd = ({ open, close }) => {
         const duration = (trainingHoursNumber * 60) + trainingMinutesNumber;
         setTrainingDuration(duration);
     }, [trainingHours, trainingMinutes]);
+
+    // Attachment Handlers
+    const handleAttachmentUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, attachment.length, 10, 10485760, "document");
+        if (validFiles) {
+            setAttachment(prev => [...prev, ...files]);
+        }
+    };
+
+    const handleDeleteAttachment = (index) => {
+        setAttachment(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+
+    };
 
     // Image Handlers
     const handleImageUpload = (input) => {
@@ -271,14 +289,19 @@ const TrainingsAdd = ({ open, close }) => {
         formData.append("end_date", endDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("duration", trainingDuration);
         formData.append("cover_image", coverImage);
-        if (links.length > 0) {
-            links.forEach(link => {
-                formData.append('link[]', link);
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
             });
         }
         if (image.length > 0) {
             image.forEach(file => {
                 formData.append('image[]', file);
+            });
+        }
+        if (links.length > 0) {
+            links.forEach(link => {
+                formData.append('link[]', link);
             });
         }
 
@@ -546,7 +569,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </FormControl>
 
                             </Grid>
-                            {/* Link Upload */}
+                            {/* Document Upload */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
@@ -557,32 +580,29 @@ const TrainingsAdd = ({ open, close }) => {
                                                 width: "100%",
                                             }}
                                         >
-                                            <Box sx={{ display: 'flex', justifyContent: "space-between", alignItems: 'center', flexGrow: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
                                                 <Typography noWrap>
-                                                    Links
+                                                    Documents
                                                 </Typography>
-                                                <TextField
-                                                    variant="outlined"
-                                                    placeholder="Enter URL (e.g., https://example.com)"
-                                                    size="small"
-                                                    value={linkInput}
-                                                    onChange={(event) => setLinkInput(event.target.value)}
-                                                    sx={{ width: "80%" }}
-                                                    InputProps={{
-                                                        endAdornment: (
-                                                            <Button
-                                                                variant="contained"
-                                                                size="small"
-                                                                sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: '8px' }}
-                                                                onClick={handleLinkAdd}
-                                                            >
-                                                                <p className="m-0">
-                                                                    <i className="fa fa-plus"></i> Add
-                                                                </p>
-                                                            </Button>
-                                                        ),
-                                                    }}
+                                                <input
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
+                                                    id="attachment-upload"
+                                                    type="file"
+                                                    name="attachment"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleAttachmentUpload}
                                                 />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('attachment-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
                                             </Box>
                                         </Stack>
                                         <Stack direction="row" spacing={1}
@@ -594,18 +614,18 @@ const TrainingsAdd = ({ open, close }) => {
                                             }}
                                         >
                                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 10 Links
+                                                Max Limit: 10 Files, 10 MB Each
                                             </Typography>
-                                            {links.length > 0 && (
+                                            {attachment.length > 0 && (
                                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                     Remove
                                                 </Typography>
                                             )}
                                         </Stack>
-                                        {/* Added Links */}
-                                        {links.length > 0 && (
+                                        {/* Added Documents */}
+                                        {attachment.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {links.map((link, index) => (
+                                                {attachment.map((file, index) => (
                                                     <Box
                                                         key={index}
                                                         sx={{
@@ -617,8 +637,8 @@ const TrainingsAdd = ({ open, close }) => {
                                                             padding: '4px 8px'
                                                         }}
                                                     >
-                                                        <Typography noWrap>{link}</Typography>
-                                                        <IconButton onClick={() => handleDeleteLink(index)} size="small">
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
                                                             <Cancel />
                                                         </IconButton>
                                                     </Box>
@@ -698,6 +718,88 @@ const TrainingsAdd = ({ open, close }) => {
                                                     >
                                                         <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
                                                         <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Video Link Upload */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: "space-between", alignItems: 'center', flexGrow: 1 }}>
+                                                <Typography noWrap>
+                                                    Links
+                                                </Typography>
+                                                <TextField
+                                                    variant="outlined"
+                                                    placeholder="Enter URL (e.g., https://example.com)"
+                                                    size="small"
+                                                    value={linkInput}
+                                                    onChange={(event) => setLinkInput(event.target.value)}
+                                                    sx={{ width: "80%" }}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <Button
+                                                                variant="contained"
+                                                                size="small"
+                                                                sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: '8px' }}
+                                                                onClick={handleLinkAdd}
+                                                            >
+                                                                <p className="m-0">
+                                                                    <i className="fa fa-plus"></i> Add
+                                                                </p>
+                                                            </Button>
+                                                        ),
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Links
+                                            </Typography>
+                                            {links.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {/* Added Links */}
+                                        {links.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {links.map((link, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{link}</Typography>
+                                                        <IconButton onClick={() => handleDeleteLink(index)} size="small">
                                                             <Cancel />
                                                         </IconButton>
                                                     </Box>

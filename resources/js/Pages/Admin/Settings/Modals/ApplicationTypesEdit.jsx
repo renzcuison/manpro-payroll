@@ -75,8 +75,6 @@ const ApplicationTypesEdit = ({ open, close, appTypeInfo }) => {
             require_files: requireFiles
         };
 
-        console.log(data);
-
         axiosInstance.post('/settings/editApplicationType', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
