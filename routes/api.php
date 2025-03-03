@@ -232,7 +232,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('adminDashboard')->group(function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
-        Route::get('/getAttendance', [AdminDashboardController::class, 'getTodaysAttendance']);
+        Route::get('/getAttendance', [AdminDashboardController::class, 'getAttendance']);
     });
 
     Route::prefix('trainings')->group(function () {

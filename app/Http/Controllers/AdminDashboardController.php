@@ -3,13 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
-use App\Models\BranchesModel;
-use App\Models\TrainingsModel;
 use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
-
-
+use App\Models\TrainingsModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -50,17 +47,23 @@ class AdminDashboardController extends Controller
 
             // ---- Counter Rows ---- //
             // Get Employees
-            $employees = UsersModel::where('user_type', "Employee")->where('employment_status', "Active")->get();
+            $employees = UsersModel::where('client_id', $clientId)->get();
             $counter['head_count'] = count($employees);
 
             // Get Applications
-            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->count();
+            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)
+                ->where('status', 'Pending')
+                ->count();
 
             // Get Announcements
-            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)->where('status', "Published")->count();
+            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)
+                ->where('status', "Published")
+                ->count();
 
             // Get Trainings 
-            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)->where('status', 'Active')->count();
+            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)
+                ->where('status', 'Active')
+                ->count();
 
             // Average Age
             if ($employees->count() > 0) {
@@ -74,7 +77,6 @@ class AdminDashboardController extends Controller
                 }
                 $average['age'] = round($totalAge / $employees->count(), 1);
             }
-
             // Average Tenureship
             if ($employees->count() > 0) {
                 $totalTenure = 0;
@@ -92,24 +94,34 @@ class AdminDashboardController extends Controller
             // Present Counter
             $attendance['present_count'] = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })->whereDate('timestamp', $today)->distinct('user_id')->count('user_id');
+            })
+                ->whereDate('timestamp', $today)
+                ->distinct('user_id')
+                ->count('user_id');
 
             // On Leave Counter
             $attendance['onleave_count'] = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })->where('status', 'Approved')->whereDate('duration_start', '<=', $today)->whereDate('duration_end', '>=', $today)->distinct('user_id')->count('user_id');
+            })
+                ->where('status', 'Approved')
+                ->whereDate('duration_start', '<=', $today)
+                ->whereDate('duration_end', '>=', $today)
+                ->distinct('user_id')
+                ->count('user_id');
 
             // ---- Chart Row ---- //
             // Branch Employees
-            $branches = [];
-            $rawBranches = BranchesModel::select('id', 'name', 'acronym', 'client_id')->where('client_id', $clientId)->get();
-
-            foreach ($rawBranches as $branch) {
-                $employees = UsersModel::select('name')->where('user_type', "Employee")->where('employment_status', "Active")->where('branch_id', $branch->id)->count();
-                
-                $branches[] = ['name' => $branch->name,'acronym' => $branch->acronym,'employees' => $employees];
-            }
-
+            $branchData = $employees->groupBy('branch_id')
+                ->mapWithKeys(function ($employeesInBranch, $branchId) {
+                    $branchName = $employeesInBranch->first()->branch->name;
+                    return [
+                        $branchId => [
+                            'name' => $branchName,
+                            'count' => $employeesInBranch->count(),
+                        ]
+                    ];
+                })
+                ->all();
 
             // Salary Range
             $salaryRange = [];
@@ -172,9 +184,63 @@ class AdminDashboardController extends Controller
                 'counter' => $counter,
                 'average' => $average,
                 'attendance' => $attendance,
-                'branches' => $branches,
-                'salaryRange' => $salaryRange
+                'branches' => $branchData,
+                'salary_range' => $salaryRange
             ]);
+        }
+    }
+
+    public function getAttendance()
+    {
+        // Log::info("AdminDashboardController::getAttendance");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+
+            $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+                $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
+            })
+                ->whereDate('timestamp', Carbon::now()->toDateString())
+                ->with('user') // Eager load user data
+                ->get()
+                ->groupBy('user_id')
+                ->sortKeysDesc()
+                ->map(function ($logs,) {
+
+                    // First Time In
+                    $timeIn = $logs->firstWhere('action', 'Duty In');
+                    // Last Time Out
+                    $timeOut = $logs->last(function ($log) {
+                        return $log->action === 'Duty Out';
+                    });
+
+                    // First Overtime In
+                    $overtimeIn = $logs->firstWhere('action', 'Overtime In');
+                    // Last Overtime Out
+                    $overtimeOut = $logs->last(function ($log) {
+                        return $log->action === 'Overtime Out';
+                    });
+
+                    $user = $logs->first()->user;
+
+                    return [
+                        'first_name' => $user->first_name ?? null,
+                        'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
+                        'suffix' => $user->suffix ?? null,
+                        'time_in' => $timeIn ? $timeIn->timestamp : null,
+                        'time_out' => $timeOut ? $timeOut->timestamp : null,
+                        'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
+                        'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json(['status' => 200, 'attendance' => $attendances]);
+        } else {
+            return response()->json(['status' => 200, 'attendance' => null]);
         }
     }
 }
