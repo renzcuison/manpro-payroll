@@ -145,11 +145,7 @@ const Attendance = ({ open, close }) => {
     // ---------------------- Time In/Out
     const handleTimeInOut = (shift, timeIn) => {
         // The employee attempts to 'Time In' for the second shift when the first shift is still available --
-        if (
-            shift == "Second" &&
-            (!firstShiftExpired ||
-                (onDuty && latestTime < workHour.first_time_out))
-        ) {
+        if (shift == "Second" && (!firstShiftExpired || (onDuty && latestTime < workHour.first_time_out))) {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Invalid Action",

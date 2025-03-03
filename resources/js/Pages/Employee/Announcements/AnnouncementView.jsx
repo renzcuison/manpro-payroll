@@ -220,6 +220,8 @@ const AnnouncementView = () => {
                             showConfirmButton: true,
                             confirmButtonText: "Okay",
                             confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            getAnnouncementDetails();
                         });
                     })
                     .catch((error) => {

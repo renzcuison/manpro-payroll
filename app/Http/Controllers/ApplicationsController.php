@@ -311,14 +311,18 @@ class ApplicationsController extends Controller
             switch ($request->input('app_response')) {
                 case 'Approve':
                     $leave = LeaveCreditsModel::where('user_id', $request->input('app_emp_id'))->where('application_type_id', $request->input('app_type_id'))->first();
+
                     $oldLeaveUsed = $leave->used;
-                    $leave->used = $leave->used + $request->input('app_leave_used');
+                    $usedCredits = number_format($request->input('app_leave_used'), 2, '.', '');
+                    $leave->used = $leave->used + $usedCredits;
                     $leave->save();
+
+                    $newLeaveUsed = number_format($oldLeaveUsed + $usedCredits, 2, '.', '');
 
                     LogsLeaveCreditsModel::create([
                         'user_id' => $user->id,
                         'leave_credit_id' => $leave->id,
-                        'action' => 'Approved Application with ' . $request->input('app_leave_used') . ' Used Credits. Previous: ' . $oldLeaveUsed . ', New: ' . $oldLeaveUsed + $request->input('app_leave_used') . '.',
+                        'action' => 'Approved Application with ' . $usedCredits . ' Used Credits. Previous: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
                     ]);
 
                     $application->status = "Approved";
@@ -428,7 +432,7 @@ class ApplicationsController extends Controller
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leave->id,
-                    'action' => 'Added Leave Credits for Employee ' . $request->input('emp_id') . ' with ' . $request->input('credit_count') . ' credits.',
+                    'action' => 'Added Leave Credits for Employee ' . $request->input('emp_id') . ' with ' . number_format($request->input('credit_count'), 2, '.', '') . ' credits.',
                 ]);
 
                 DB::commit();
@@ -455,13 +459,13 @@ class ApplicationsController extends Controller
                 $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
                 $oldLeaveNumber = $leaveCredit->number;
 
-                $leaveCredit->number  = $request->input('credit_count');
+                $leaveCredit->number  = number_format($request->input('credit_count'), 2, '.', '');
                 $leaveCredit->save();
 
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leaveCredit->id,
-                    'action' => 'Updated Credit Count from ' . $oldLeaveNumber . ' to ' . $request->input('credit_count') . '.',
+                    'action' => 'Updated Credit Count from ' . $oldLeaveNumber . ' to ' . $leaveCredit->number . '.',
                 ]);
 
                 return response()->json(['status' => 200]);
@@ -469,6 +473,28 @@ class ApplicationsController extends Controller
                 //Log::error("Error saving: " . $e->getMessage());
                 throw $e;
             }
+        }
+    }
+
+    public function getLeaveCreditLogs($id)
+    {
+        //Log::info("ApplicationsController::getLeaveCreditLogs");
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($id) {
+                    $query->where('user_id', $id);
+                })->get();
+
+                return response()->json(['status' => 200, "logs" => $logs]);
+            } catch (\Exception $e) {
+                //Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 200, "logs" => null]);
         }
     }
 
