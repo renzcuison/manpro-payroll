@@ -199,7 +199,7 @@ class AdminDashboardController extends Controller
             $clientId = $user->client_id;
 
             $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
-                $query->where('client_id', $clientId);
+                $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
             })
                 ->whereDate('timestamp', Carbon::now()->toDateString())
                 ->with('user') // Eager load user data
