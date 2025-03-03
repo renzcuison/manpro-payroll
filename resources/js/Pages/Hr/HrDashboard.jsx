@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import "../../../../resources/css/calendar.css";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar } from "@mui/material";
 import PageHead from "../../components/Table/PageHead";
 import PageToolbar from "../../components/Table/PageToolbar";
 import { getComparator, stableSort } from "../../components/utils/tableUtils";
@@ -50,6 +50,8 @@ const HrDashboard = () => {
     const [salaryRange, setSalaryRange] = useState([]);
 
     const [attendance, setAttendance] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
         axiosInstance
@@ -159,6 +161,16 @@ const HrDashboard = () => {
             },
         },
     };
+
+    // Attendance Pagination Controls
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+    const paginatedAttendance = attendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <Layout>
@@ -307,8 +319,8 @@ const HrDashboard = () => {
                 </div>
                 {/* Attendance */}
                 <div className="row">
-                    <div className="col-lg-12 col-sm-12" style={{ marginBottom: 30 }}>
-                        <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
+                    <div className="col-lg-12 col-sm-12" style={{ marginBottom: 10 }}>
+                        <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "10px" }}>
                             <div className="block-content block-content-full">
                                 <div style={{ marginLeft: 10 }}>
                                     <Box component={"div"} className="d-flex justify-content-between" >
@@ -316,71 +328,66 @@ const HrDashboard = () => {
                                             Attendance Today
                                         </div>
                                     </Box>
-                                    <div style={{ height: "560px", overflow: "auto", }} >
+                                    <div style={{ height: "450px", overflow: "auto", }} >
                                         <TableContainer>
                                             <Table className="table table-md table-striped table-vcenter">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell align="left">
-                                                            Employee
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            Time In
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            Time Out
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            Overtime In
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            Overtime Out
-                                                        </TableCell>
+                                                        <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
+                                                        <TableCell align="center" sx={{ width: "15%" }}>Time In</TableCell>
+                                                        <TableCell align="center" sx={{ width: "15%" }}>Time Out</TableCell>
+                                                        <TableCell align="center" sx={{ width: "15%" }}>Overtime In</TableCell>
+                                                        <TableCell align="center" sx={{ width: "15%" }}>Overtime Out</TableCell>
                                                     </TableRow>
                                                 </TableHead>
-                                                <TableBody sx={{ cursor: "pointer" }} >
-                                                    {attendance.length > 0 ? (
-                                                        attendance.map((atd, index) => (
+                                                <TableBody sx={{ cursor: "pointer" }}>
+                                                    {paginatedAttendance.length > 0 ? (
+                                                        paginatedAttendance.map((attend, index) => (
                                                             <TableRow key={index}>
                                                                 <TableCell align="left">
-                                                                    {atd.first_name} {atd.last_name} {atd.suffix || ''}
+                                                                    <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                        <Avatar alt={`${attend.first_name}_Avatar`} src={"../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                        {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                    </Box>
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {atd.time_in ? dayjs(atd.time_in).format("hh:mm:ss A") : "-"}
+                                                                    {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {atd.time_out ? dayjs(atd.time_out).format("hh:mm:ss A") : "-"}
+                                                                    {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {atd.overtime_in ? dayjs(atd.overtime_in).format("hh:mm:ss A") : "-"}
+                                                                    {attend.overtime_in ? dayjs(attend.overtime_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {atd.overtime_out ? dayjs(atd.overtime_out).format("hh:mm:ss A") : "-"}
+                                                                    {attend.overtime_out ? dayjs(attend.overtime_out).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
                                                     ) : (
                                                         <TableRow>
-                                                            <TableCell
-                                                                colSpan={5}
-                                                                align="center"
-                                                                sx={{
-                                                                    color: "text.secondary",
-                                                                    p: 1,
-                                                                }}
-                                                            >
+                                                            <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                                                 No Attendance Found
                                                             </TableCell>
                                                         </TableRow>
-                                                    )
-                                                    }
+                                                    )}
                                                 </TableBody>
                                             </Table>
+                                            <TablePagination
+                                                rowsPerPageOptions={[5, 10, 20]}
+                                                component="div"
+                                                count={attendance.length}
+                                                rowsPerPage={rowsPerPage}
+                                                page={page}
+                                                onPageChange={handleChangePage}
+                                                onRowsPerPageChange={handleChangeRowsPerPage}
+                                                sx={{ alignItems: "center" }}
+                                            />
                                         </TableContainer>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Box>
                     </div>
                 </div>
             </Box >

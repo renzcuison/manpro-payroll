@@ -227,6 +227,7 @@ class AdminDashboardController extends Controller
                     return [
                         'first_name' => $user->first_name ?? null,
                         'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
                         'suffix' => $user->suffix ?? null,
                         'time_in' => $timeIn ? $timeIn->timestamp : null,
                         'time_out' => $timeOut ? $timeOut->timestamp : null,
