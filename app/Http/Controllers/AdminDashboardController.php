@@ -202,7 +202,7 @@ class AdminDashboardController extends Controller
                 $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
             })
                 ->whereDate('timestamp', Carbon::now()->toDateString())
-                ->with('user') // Eager load user data
+                ->with('user')
                 ->get()
                 ->groupBy('user_id')
                 ->sortKeysDesc()
