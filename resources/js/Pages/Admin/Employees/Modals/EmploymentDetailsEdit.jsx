@@ -252,7 +252,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                                     value={selectedType}
                                     onChange={(event) => setSelectedType(event.target.value)}
                                 >
-                                    <MenuItem key="Probation" value="Probation"> Probation </MenuItem>
+                                    <MenuItem key="Probationary" value="Probationary"> Probationary </MenuItem>
                                     <MenuItem key="Regular" value="Regular"> Regular </MenuItem>
                                     <MenuItem key="Part-Time" value="Part-Time"> Part-Time </MenuItem>
                                     <MenuItem key="Full-Time" value="Full-Time"> Full-Time </MenuItem>

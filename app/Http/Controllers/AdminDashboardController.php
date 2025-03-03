@@ -50,7 +50,7 @@ class AdminDashboardController extends Controller
 
             // ---- Counter Rows ---- //
             // Get Employees
-            $employees = UsersModel::where('client_id', $clientId)->get();
+            $employees = UsersModel::where('user_type', "Employee")->where('employment_status', "Active")->get();
             $counter['head_count'] = count($employees);
 
             // Get Applications
@@ -107,11 +107,7 @@ class AdminDashboardController extends Controller
             foreach ($rawBranches as $branch) {
                 $employees = UsersModel::select('name')->where('user_type', "Employee")->where('employment_status', "Active")->where('branch_id', $branch->id)->count();
                 
-                $branches[] = [
-                    'name' => $branch->name,
-                    'acronym' => $branch->acronym,
-                    'employees' => $employees,
-                ];
+                $branches[] = ['name' => $branch->name,'acronym' => $branch->acronym,'employees' => $employees];
             }
 
 
