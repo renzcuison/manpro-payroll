@@ -177,7 +177,7 @@ const ApplicationsList = () => {
                                                                 {application.emp_suffix || ""}{" "}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {application.app_type || "-"}
+                                                                {application.app_type_name || "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {startDate || "-"}

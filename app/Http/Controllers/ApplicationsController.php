@@ -6,6 +6,7 @@ use App\Models\ApplicationsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationFilesModel;
 use App\Models\LeaveCreditsModel;
+use App\Models\LogsLeaveCreditsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,7 @@ class ApplicationsController extends Controller
                     'app_date_requested' => $app->created_at,
                     'app_description' => $app->description,
                     'app_status' => $app->status,
+                    'app_leave_used' => $app->leave_used,
                     'emp_id' => $app->user_id,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
@@ -165,6 +167,7 @@ class ApplicationsController extends Controller
                 "duration_end" => $request->input('to_date'),
                 "description" => $request->input('description') ?? "",
                 "status" => "Pending",
+                "leave_used" => $request->input('leave_used'),
                 "user_id" => $user->id,
                 "client_id" => $user->client_id,
             ]);
@@ -224,6 +227,7 @@ class ApplicationsController extends Controller
             $application->duration_start = $request->input('from_date');
             $application->duration_end = $request->input('to_date');
             $application->description = $request->input('description');
+            $application->leave_used = $request->input('leave_used');
             $application->save();
 
             // Remove Files
@@ -294,9 +298,9 @@ class ApplicationsController extends Controller
     {
         //Log::info("ApplicationsController::manageApplication");
         $user = Auth::user();
+        Log::info($request);
 
         if ($this->checkUser()) {
-            //Application Acceptance
             $application = ApplicationsModel::find($request->input('app_id'));
 
             if (!$application) {
@@ -304,14 +308,23 @@ class ApplicationsController extends Controller
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 
-            $startDate = Carbon::parse($request->input('app_start_date'));
-            $endDate = Carbon::parse($request->input('app_end_date'));
-            $empId = $request->input('app_emp_id');
-            $appTypeId = $request->input('app_type_id');
-
             switch ($request->input('app_response')) {
                 case 'Approve':
-                    $this->deductLeaveCredits($startDate, $endDate, $empId, $appTypeId);
+                    $leave = LeaveCreditsModel::where('user_id', $request->input('app_emp_id'))->where('application_type_id', $request->input('app_type_id'))->first();
+
+                    $oldLeaveUsed = $leave->used;
+                    $usedCredits = number_format($request->input('app_leave_used'), 2, '.', '');
+                    $leave->used = $leave->used + $usedCredits;
+                    $leave->save();
+
+                    $newLeaveUsed = number_format($oldLeaveUsed + $usedCredits, 2, '.', '');
+
+                    LogsLeaveCreditsModel::create([
+                        'user_id' => $user->id,
+                        'leave_credit_id' => $leave->id,
+                        'action' => 'Approved ' . $usedCredits . ' Credits. ID: ' . $leave->id . ', Prev: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
+                    ]);
+
                     $application->status = "Approved";
                     $message = "Application Approved";
                     break;
@@ -408,12 +421,20 @@ class ApplicationsController extends Controller
             try {
                 DB::beginTransaction();
 
-                LeaveCreditsModel::create([
+                $leave = LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
                     'user_id' => $request->input('emp_id'),
                     'application_type_id' => $request->input('app_type_id'),
                     'number' => $request->input('credit_count'),
                     'used' => 0
+                ]);
+
+                $leaveName = $leave->type->name;
+
+                LogsLeaveCreditsModel::create([
+                    'user_id' => $user->id,
+                    'leave_credit_id' => $leave->id,
+                    'action' => 'Added ' . number_format($request->input('credit_count'), 2) . ' ' . $leaveName . ' credits.',
                 ]);
 
                 DB::commit();
@@ -438,8 +459,16 @@ class ApplicationsController extends Controller
             try {
 
                 $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
-                $leaveCredit->number  = $request->input('credit_count');
+                $oldLeaveNumber = $leaveCredit->number;
+
+                $leaveCredit->number  = number_format($request->input('credit_count'), 2, '.', '');
                 $leaveCredit->save();
+
+                LogsLeaveCreditsModel::create([
+                    'user_id' => $user->id,
+                    'leave_credit_id' => $leaveCredit->id,
+                    'action' => 'Updated Credit ' . $leaveCredit->id . ' from ' . $oldLeaveNumber . ' to ' . $leaveCredit->number . '.',
+                ]);
 
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
@@ -449,75 +478,47 @@ class ApplicationsController extends Controller
         }
     }
 
-    public function deductLeaveCredits(Carbon $startDate, Carbon $endDate, $empId, $appTypeId)
+    public function getLeaveCreditLogs($id)
     {
+        //Log::info("ApplicationsController::getLeaveCreditLogs");
+
+        $user = Auth::user();
+
         if ($this->checkUser()) {
-            $dayCount = $this->getNumberOfDays($startDate, $endDate);
+            try {
+                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($id) {
+                    $query->where('user_id', $id);
+                })->get();
 
-            $numberOfDays = $dayCount['numberOfDays'];
-            $numberOfSaturday = $dayCount['numberOfSaturday'];
-            $numberOfSunday = $dayCount['numberOfSunday'];
-            $numberOfHoliday = $dayCount['numberOfHoliday'];
+                $logData = [];
 
-            $creditCount = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
+                foreach ($logs as $log) {
+                    $log['username'] = $log->user->user_name;
+                    $logData[] = $log->toArray();
+                }
 
-            $leaveInfo = LeaveCreditsModel::where('user_id', $empId)->where('application_type_id', $appTypeId)->first();
-            $leaveInfo->used = $leaveInfo->used + $creditCount;
-            $leaveInfo->save();
+                return response()->json(['status' => 200, "logs" => $logData]);
+            } catch (\Exception $e) {
+                //Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 200, "logs" => null]);
         }
     }
 
-    public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
-    {
-        //Log::info("ApplicationsController::getNumberOfDays");
-
-        // Initialize counters
-        $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
-        $numberOfSaturday = 0;
-        $numberOfSunday = 0;
-        $numberOfHoliday = 0;
-
-        // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-
-        $currentDate = $startDate->copy();
-
-        while ($currentDate <= $endDate) {
-            // Check for Saturday or Sunday
-            if ($currentDate->isSaturday()) {
-                $numberOfSaturday++;
-            } elseif ($currentDate->isSunday()) {
-                $numberOfSunday++;
-            }
-
-            // Check if it's a holiday
-            $holidayDate = $currentDate->format('Y-m-d'); // Format date as YYYY-MM-DD
-            if (in_array($holidayDate, $holidays)) {
-                $numberOfHoliday++;
-            }
-
-            // Move to the next day
-            $currentDate->addDay();
-        }
-
-        // Return the results
-        return [
-            'numberOfDays' => $numberOfDays,
-            'numberOfSaturday' => $numberOfSaturday,
-            'numberOfSunday' => $numberOfSunday,
-            'numberOfHoliday' => $numberOfHoliday,
-        ];
-    }
-
-    public function getNagerHolidays($startYear, $endYear)
+    public function getNagerHolidays(Request $request)
     {
         //Log::info("ApplicationsController::getNagerHolidays");
+        //Log::info($request);
+        $startDate = Carbon::parse($request->input('start_date'));
+        $endDate = Carbon::parse($request->input('end_date'));
 
         $holidays = [];
         $countryCode = 'PH';
 
         // Fetch holidays for each year in the range
-        for ($year = $startYear; $year <= $endYear; $year++) {
+        for ($year = $startDate->year; $year <= $endDate->year; $year++) {
             $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
 
             $response = Http::get($url);
@@ -525,13 +526,10 @@ class ApplicationsController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
 
-                // Log the API response for debugging
-                //Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
-
-                // Ensure $data is an array before iterating
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
-                        $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                        $holidayDates[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                        $holidayNames[] = $holiday['name'];
                     }
                 } else {
                     Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
@@ -541,8 +539,7 @@ class ApplicationsController extends Controller
                 Log::error($response->body());
             }
         }
-
-        return $holidays;
+        return response()->json(['status' => 200, 'holiday_dates' => $holidayDates, 'holiday_names' => $holidayNames]);
     }
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)

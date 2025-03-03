@@ -151,7 +151,8 @@ class EmployeesController extends Controller
 
     public function saveRegistration(Request $request)
     {
-        // log::info("EmployeesController::saveRegistration");
+        //log::info("EmployeesController::saveRegistration");
+        //log::info($request);
 
         $validated = $request->validate([
             'firstName' => 'required',
@@ -194,6 +195,9 @@ class EmployeesController extends Controller
                 ]);
 
                 DB::commit();
+
+                $formLink->used = $formLink->used + 1;
+                $formLink->save();
 
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {

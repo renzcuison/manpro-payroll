@@ -32,8 +32,14 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import EditLeaveCredit from "./EditLeaveCredit";
-import AddLeaveCredit from "./AddLeaveCredit";
+import LeaveCreditAdd from "./LeaveCreditAdd";
+import LeaveCreditEdit from "./LeaveCreditEdit";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
 
 const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
@@ -42,10 +48,13 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [leaveCredits, setLeaveCredits] = useState([]);
+    const [leaveCreditLogs, setLeaveCreditLogs] = useState([]);
+    const [logsView, setLogsView] = useState(false);
 
     // ----------- Request Leave Credits
     useEffect(() => {
         getLeaveCredits();
+        getLeaveCreditLogs();
     }, []);
 
     const getLeaveCredits = () => {
@@ -54,7 +63,17 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                 setLeaveCredits(response.data.leave_credits);
             })
             .catch((error) => {
-                console.error('Error fetching files:', error);
+                console.error('Error fetching credits:', error);
+            });
+    }
+
+    const getLeaveCreditLogs = () => {
+        axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.id}`, { headers })
+            .then((response) => {
+                setLeaveCreditLogs(response.data.logs);
+            })
+            .catch((error) => {
+                console.error('Error fetching logs:', error);
             });
     }
 
@@ -70,6 +89,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const handleCloseEditLeaveCredit = () => {
         setOpenEditLeaveCredit(false);
         getLeaveCredits();
+        getLeaveCreditLogs();
     }
 
     // ----------- Edit Leave Credits Modal
@@ -82,6 +102,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const handleCloseAddLeaveCredit = () => {
         setOpenAddLeaveCredit(false);
         getLeaveCredits();
+        getLeaveCreditLogs();
     }
 
     return (
@@ -112,7 +133,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
-                            {" "}Leave Credit Information{" "}
+                            {`Leave Credit ${logsView ? "Logs" : "Details"}`}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -122,106 +143,180 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
                 <DialogContent sx={{ py: 4, mb: 2 }}>
                     <Box>
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left" sx={{ width: "40%" }}>
-                                            Type
-                                        </TableCell>
-                                        <TableCell align="center" sx={{ width: "15%" }}>
-                                            Credits
-                                        </TableCell>
-                                        <TableCell align="center" sx={{ width: "15%" }}>
-                                            Used
-                                        </TableCell>
-                                        <TableCell align="center" sx={{ width: "15%" }}>
-                                            Remaining
-                                        </TableCell>
-                                        <TableCell align="center" sx={{ width: "15%" }}>
-                                            Edit
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {leaveCredits.length > 0 ? (
-                                        leaveCredits.map((leave, index) => {
+                        {logsView ? (
+                            <>
+                                <TableContainer>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="left" sx={{ width: "25%" }}>
+                                                    Timestamp
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "75%" }}>
+                                                    Action
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {leaveCreditLogs.length > 0 ? (
+                                                leaveCreditLogs.map((log, index) => {
+                                                    return (
+                                                        <TableRow key={index}>
+                                                            <TableCell align="left">
+                                                                <Typography>
+                                                                    {dayjs(log.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="left">
+                                                                <Typography>
+                                                                    {`${log.username} ${log.action}`}
+                                                                </Typography>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
 
-                                            const remainingCredits = leave.credit_number - leave.credit_used;
-                                            const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
-                                            const remainingEmpty = remainingCredits < (leave.credit_number / 3);
-
-                                            return (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        <Typography>
-                                                            {leave.app_type_name}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Typography>
-                                                            {leave.credit_number}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Typography>
-                                                            {leave.credit_used}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center" sx={{
-                                                        color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null
-                                                    }}>
-                                                        <Typography>
-                                                            {remainingCredits}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}>
-                                                            <Edit size="small" />
-                                                        </IconButton>
+                                                })) :
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={5}
+                                                        align="center"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            p: 1,
+                                                        }}
+                                                    >
+                                                        No Leave Credits Found
                                                     </TableCell>
                                                 </TableRow>
-                                            );
+                                            }
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                                <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => setLogsView(false)}
+                                    >
+                                        <p className="m-0">
+                                            <i className="fa fa-list"></i>{" "}View Credits
+                                        </p>
+                                    </Button>
+                                </Box>
+                            </>
+                        ) : (
+                            <>
+                                <TableContainer>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="left" sx={{ width: "40%" }}>
+                                                    Type
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Credits
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Used
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Remaining
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>
+                                                    Edit
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {leaveCredits.length > 0 ? (
+                                                leaveCredits.map((leave, index) => {
 
-                                        })) :
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={5}
-                                                align="center"
-                                                sx={{
-                                                    color: "text.secondary",
-                                                    p: 1,
-                                                }}
-                                            >
-                                                No Leave Credits Found
-                                            </TableCell>
-                                        </TableRow>
-                                    }
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                        <Box display="flex" justifyContent="center" sx={{ mt: '20px' }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() => handleOpenAddLeaveCredit()}
-                            >
-                                <p className="m-0">
-                                    <i className="fa fa-plus"></i>{" "}Add Leave Credit
-                                </p>
-                            </Button>
-                        </Box>
+                                                    const remainingCredits = leave.credit_number - leave.credit_used;
+                                                    const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
+                                                    const remainingEmpty = remainingCredits < (leave.credit_number / 3);
+
+                                                    return (
+                                                        <TableRow key={index}>
+                                                            <TableCell>
+                                                                <Typography>
+                                                                    {leave.app_type_name}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                <Typography>
+                                                                    {leave.credit_number}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                <Typography>
+                                                                    {leave.credit_used}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center" sx={{
+                                                                color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null
+                                                            }}>
+                                                                <Typography>
+                                                                    {remainingCredits}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}>
+                                                                    <Edit size="small" />
+                                                                </IconButton>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+
+                                                })) :
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={5}
+                                                        align="center"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            p: 1,
+                                                        }}
+                                                    >
+                                                        No Leave Credits Found
+                                                    </TableCell>
+                                                </TableRow>
+                                            }
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                                <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => handleOpenAddLeaveCredit()}
+                                    >
+                                        <p className="m-0">
+                                            <i className="fa fa-plus"></i>{" "}Add Leave Credit
+                                        </p>
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => setLogsView(true)}
+                                    >
+                                        <p className="m-0">
+                                            <i className="fa fa-list"></i>{" "}View Logs
+                                        </p>
+                                    </Button>
+                                </Box>
+                            </>
+                        )}
                     </Box>
                 </DialogContent>
                 {openEditLeaveCredit &&
-                    <EditLeaveCredit
+                    <LeaveCreditEdit
                         open={openEditLeaveCredit}
                         close={handleCloseEditLeaveCredit}
                         leaveData={leaveData}
                     />
                 }
                 {openAddLeaveCredit &&
-                    <AddLeaveCredit
+                    <LeaveCreditAdd
                         open={openAddLeaveCredit}
                         close={handleCloseAddLeaveCredit}
                         empId={employee.id}

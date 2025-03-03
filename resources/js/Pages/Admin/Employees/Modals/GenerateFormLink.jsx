@@ -29,7 +29,7 @@ const GenerateFormLink = ({ open, close }) => {
     const [departments, setDepartments] = useState([]);
 
     const [useLimit, setUseLimit] = useState(1);
-    const [expirationDate, setExpirationDate] = useState(dayjs());
+    const [expirationDate, setExpirationDate] = useState(dayjs().startOf('hour'));
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('');
 
@@ -193,8 +193,12 @@ const GenerateFormLink = ({ open, close }) => {
                                         label="Expiration Date"
                                         value={expirationDate}
                                         minDate={dayjs()}
-                                        timeSteps={{ minutes: 1 }}
-                                        onChange={(newValue) => setExpirationDate(newValue)}
+                                        views={['year', 'month', 'day', 'hours']}
+                                        onChange={(newValue) => {
+                                            expDate = dayjs(newValue).startOf('hour');
+                                            console.log(`New Expiry Date: ${expDate}`);
+                                            setExpirationDate(expDate);
+                                        }}
                                         slotProps={{
                                             textField: {
                                                 error: expirationDateError,
