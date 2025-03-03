@@ -151,8 +151,7 @@ class EmployeesController extends Controller
 
     public function saveRegistration(Request $request)
     {
-        log::info("EmployeesController::saveRegistration");
-        log::info($request);
+        // log::info("EmployeesController::saveRegistration");
 
         $validated = $request->validate([
             'firstName' => 'required',
@@ -268,8 +267,7 @@ class EmployeesController extends Controller
 
         if ($this->checkUser()) {
 
-            $formLinks = UserFormsModel::where('client_id', $user->client_id)
-                ->get();
+            $formLinks = UserFormsModel::where('client_id', $user->client_id)->get();
 
             return response()->json(['status' => 200, 'form_links' => $formLinks]);
         }

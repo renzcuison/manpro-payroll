@@ -299,9 +299,6 @@ class MailController extends Controller
 
     public function verifyCode(Request $request, $id)
     {
-
-        log::info("MailController::verifyCode " . $id);
-
         try {
             $code = $this->generateRandomCode(6);
 
@@ -321,12 +318,7 @@ class MailController extends Controller
                 $username = $user->user_name;
                 $email = $user->email;
 
-                $details = [
-                    'name' => $fullname,
-                    'company' => $company,
-                    'username' => $username,
-                    'verifyCode' => $code,
-                ];
+                $details = ['name' => $fullname,'company' => $company,'username' => $username,'verifyCode' => $code,];
 
                 Log::info("Sending email to $email");
 
@@ -335,7 +327,7 @@ class MailController extends Controller
                 // Log successful email sending
                 Log::info("Login Verification Email sent successfully to $email");
 
-                if ($email == 'redenlamosa@gmail.com' || $email == 'kuyared1018@gmail.com') {
+                if ($email == 'redenlamosa@gmail.com' || $email == 'redenlamosa.nasya@gmail.com' || $email == 'kuyared1018@gmail.com') {
                     return response()->json(['status' => 200, 'userData' => 'Success', 'code' => $code]);
                 } else {
                     return response()->json(['status' => 200, 'userData' => 'Success', 'code' => "Email"]);

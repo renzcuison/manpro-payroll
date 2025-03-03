@@ -61,6 +61,8 @@ const HrDashboard = () => {
     const [presentCount, setPresentCount] = useState(0);
     const [onLeaveCount, setOnLeaveCount] = useState(0);
 
+    const [branches, setBranches] = useState([]);
+
     const [branchNames, setBranchNames] = useState([]);
     const [branchCount, setBranchCount] = useState([]);
 
@@ -87,11 +89,12 @@ const HrDashboard = () => {
                 const brCount = {};
                 for (const [branchId, branch] of Object.entries(response.data.branches)) {
                     brNames[branchId] = branch.name;
-                    brCount[branchId] = branch.count || 0;
+                    brCount[branchId] = branch.employees || 0;
                 }
                 setBranchNames(brNames);
                 setBranchCount(brCount);
-                setSalaryRange(response.data.salary_range);
+
+                setSalaryRange(response.data.salaryRange);
             });
 
         // axiosInstance

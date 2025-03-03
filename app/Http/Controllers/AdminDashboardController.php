@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
+use App\Models\BranchesModel;
+use App\Models\TrainingsModel;
 use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\TrainingsModel;
+
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -51,19 +54,13 @@ class AdminDashboardController extends Controller
             $counter['head_count'] = count($employees);
 
             // Get Applications
-            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)
-                ->where('status', 'Pending')
-                ->count();
+            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->count();
 
             // Get Announcements
-            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)
-                ->where('status', "Published")
-                ->count();
+            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)->where('status', "Published")->count();
 
             // Get Trainings 
-            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)
-                ->where('status', 'Active')
-                ->count();
+            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)->where('status', 'Active')->count();
 
             // Average Age
             if ($employees->count() > 0) {
@@ -77,6 +74,7 @@ class AdminDashboardController extends Controller
                 }
                 $average['age'] = round($totalAge / $employees->count(), 1);
             }
+
             // Average Tenureship
             if ($employees->count() > 0) {
                 $totalTenure = 0;
@@ -94,34 +92,28 @@ class AdminDashboardController extends Controller
             // Present Counter
             $attendance['present_count'] = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })
-                ->whereDate('timestamp', $today)
-                ->distinct('user_id')
-                ->count('user_id');
+            })->whereDate('timestamp', $today)->distinct('user_id')->count('user_id');
 
             // On Leave Counter
             $attendance['onleave_count'] = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })
-                ->where('status', 'Approved')
-                ->whereDate('duration_start', '<=', $today)
-                ->whereDate('duration_end', '>=', $today)
-                ->distinct('user_id')
-                ->count('user_id');
+            })->where('status', 'Approved')->whereDate('duration_start', '<=', $today)->whereDate('duration_end', '>=', $today)->distinct('user_id')->count('user_id');
 
             // ---- Chart Row ---- //
             // Branch Employees
-            $branchData = $employees->groupBy('branch_id')
-                ->mapWithKeys(function ($employeesInBranch, $branchId) {
-                    $branchName = $employeesInBranch->first()->branch->name;
-                    return [
-                        $branchId => [
-                            'name' => $branchName,
-                            'count' => $employeesInBranch->count(),
-                        ]
-                    ];
-                })
-                ->all();
+            $branches = [];
+            $rawBranches = BranchesModel::select('id', 'name', 'acronym', 'client_id')->where('client_id', $clientId)->get();
+
+            foreach ($rawBranches as $branch) {
+                $employees = UsersModel::select('name')->where('user_type', "Employee")->where('employment_status', "Active")->where('branch_id', $branch->id)->count();
+                
+                $branches[] = [
+                    'name' => $branch->name,
+                    'acronym' => $branch->acronym,
+                    'employees' => $employees,
+                ];
+            }
+
 
             // Salary Range
             $salaryRange = [];
@@ -184,8 +176,8 @@ class AdminDashboardController extends Controller
                 'counter' => $counter,
                 'average' => $average,
                 'attendance' => $attendance,
-                'branches' => $branchData,
-                'salary_range' => $salaryRange
+                'branches' => $branches,
+                'salaryRange' => $salaryRange
             ]);
         }
     }
