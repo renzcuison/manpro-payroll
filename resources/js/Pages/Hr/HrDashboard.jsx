@@ -66,7 +66,7 @@ const HrDashboard = () => {
 
     const [salaryRange, setSalaryRange] = useState([]);
 
-    const [todaysAttendance, setTodaysAttendance] = useState([]);
+    const [attendance, setAttendance] = useState([]);
 
     useEffect(() => {
         axiosInstance
@@ -94,12 +94,12 @@ const HrDashboard = () => {
                 setSalaryRange(response.data.salary_range);
             });
 
-        // axiosInstance
-        //     .get(`adminDashboard/getTodaysAttendance`, { headers })
-        //     .then((response) => {
-        //         console.log(response.data.attendances);
-        //         setTodaysAttendance(response.data.attendances);
-        //     });
+        axiosInstance
+            .get(`adminDashboard/getAttendance`, { headers })
+            .then((response) => {
+                console.log(response.data.attendance);
+                setAttendance(response.data.attendance);
+            });
     }, []);
 
     // Attendance Pie Chart
