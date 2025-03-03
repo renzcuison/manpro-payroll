@@ -70,7 +70,6 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const getLeaveCreditLogs = () => {
         axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.id}`, { headers })
             .then((response) => {
-                console.log(response.data.logs);
                 setLeaveCreditLogs(response.data.logs);
             })
             .catch((error) => {
@@ -153,13 +152,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                 <TableCell align="left" sx={{ width: "25%" }}>
                                                     Timestamp
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>
-                                                    User
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>
-                                                    Leave Credit
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "55%" }}>
+                                                <TableCell align="center" sx={{ width: "75%" }}>
                                                     Action
                                                 </TableCell>
                                             </TableRow>
@@ -174,19 +167,9 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                                     {dayjs(log.created_at).format('YYYY-MM-DD HH:mm:ss')}
                                                                 </Typography>
                                                             </TableCell>
-                                                            <TableCell align="center">
-                                                                <Typography>
-                                                                    {log.user_id}
-                                                                </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                <Typography>
-                                                                    {log.leave_credit_id}
-                                                                </Typography>
-                                                            </TableCell>
                                                             <TableCell align="left">
                                                                 <Typography>
-                                                                    {log.action}
+                                                                    {`${log.username} ${log.action}`}
                                                                 </Typography>
                                                             </TableCell>
                                                         </TableRow>

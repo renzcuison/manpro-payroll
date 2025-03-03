@@ -322,7 +322,7 @@ class ApplicationsController extends Controller
                     LogsLeaveCreditsModel::create([
                         'user_id' => $user->id,
                         'leave_credit_id' => $leave->id,
-                        'action' => 'Approved Application with ' . $usedCredits . ' Used Credits. Previous: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
+                        'action' => 'Approved ' . $usedCredits . ' Credits. ID: ' . $leave->id . ', Prev: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
                     ]);
 
                     $application->status = "Approved";
@@ -429,10 +429,12 @@ class ApplicationsController extends Controller
                     'used' => 0
                 ]);
 
+                $leaveName = $leave->type->name;
+
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leave->id,
-                    'action' => 'Added Leave Credits for Employee ' . $request->input('emp_id') . ' with ' . number_format($request->input('credit_count'), 2, '.', '') . ' credits.',
+                    'action' => 'Added ' . number_format($request->input('credit_count'), 2) . ' ' . $leaveName . ' credits.',
                 ]);
 
                 DB::commit();
@@ -465,7 +467,7 @@ class ApplicationsController extends Controller
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leaveCredit->id,
-                    'action' => 'Updated Credit Count from ' . $oldLeaveNumber . ' to ' . $leaveCredit->number . '.',
+                    'action' => 'Updated Credit ' . $leaveCredit->id . ' from ' . $oldLeaveNumber . ' to ' . $leaveCredit->number . '.',
                 ]);
 
                 return response()->json(['status' => 200]);
@@ -488,7 +490,14 @@ class ApplicationsController extends Controller
                     $query->where('user_id', $id);
                 })->get();
 
-                return response()->json(['status' => 200, "logs" => $logs]);
+                $logData = [];
+
+                foreach ($logs as $log) {
+                    $log['username'] = $log->user->user_name;
+                    $logData[] = $log->toArray();
+                }
+
+                return response()->json(['status' => 200, "logs" => $logData]);
             } catch (\Exception $e) {
                 //Log::error("Error saving: " . $e->getMessage());
                 throw $e;
