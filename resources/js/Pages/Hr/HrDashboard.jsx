@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import "../../../../resources/css/calendar.css";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, } from "@mui/material";
 import PageHead from "../../components/Table/PageHead";
 import PageToolbar from "../../components/Table/PageToolbar";
 import { getComparator, stableSort } from "../../components/utils/tableUtils";
@@ -18,30 +18,11 @@ import { Bar } from 'react-chartjs-2';
 import { Pie } from 'react-chartjs-2';
 import { forEach } from "lodash";
 
-const headCells = [
-    {
-        id: "firstname",
-        label: "Name",
-        sorable: true,
-    },
-    {
-        id: " ",
-        label: "Time Arrived",
-        sortable: false,
-    },
-    {
-        id: " ",
-        label: "Time Out",
-        sortable: false,
-    },
-];
-
-const years = () => {
-    const now = new Date().getUTCFullYear();
-    return Array(now - (now - 20))
-        .fill("")
-        .map((v, idx) => now - idx);
-};
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
 
 const HrDashboard = () => {
 
@@ -89,12 +70,12 @@ const HrDashboard = () => {
                 const brCount = {};
                 for (const [branchId, branch] of Object.entries(response.data.branches)) {
                     brNames[branchId] = branch.name;
-                    brCount[branchId] = branch.employees || 0;
+                    brCount[branchId] = branch.count || 0;
                 }
                 setBranchNames(brNames);
                 setBranchCount(brCount);
 
-                setSalaryRange(response.data.salaryRange);
+                setSalaryRange(response.data.salary_range);
             });
 
         axiosInstance
@@ -312,7 +293,6 @@ const HrDashboard = () => {
                         </div>
                     </div>
 
-
                     {/* Salary Chart */}
                     <div className="col-lg-5 col-sm-12" style={{ marginBottom: 30 }} >
                         <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
@@ -325,94 +305,86 @@ const HrDashboard = () => {
                         </div>
                     </div>
                 </div>
-                {/* Temporary Div Wrap for Attendance*/}
-                <div>
-                    {/* Attendance */}
-                    {/* 
-                    <div className="row">
-                    <div className="col-lg-12 col-sm-12" style={{ marginBottom: 30 }} >
-                        <div className="block" style={{ backgroundColor: "white" }}>
+                {/* Attendance */}
+                <div className="row">
+                    <div className="col-lg-12 col-sm-12" style={{ marginBottom: 30 }}>
+                        <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px" }}>
                             <div className="block-content block-content-full">
                                 <div style={{ marginLeft: 10 }}>
                                     <Box component={"div"} className="d-flex justify-content-between" >
                                         <div className="font-size-h5 font-w600" style={{ marginTop: 12, marginBottom: 10 }} >
                                             Attendance Today
                                         </div>
-                                        <PageToolbar handleSearch={handleFilter} />
                                     </Box>
                                     <div style={{ height: "560px", overflow: "auto", }} >
                                         <TableContainer>
                                             <Table className="table table-md table-striped table-vcenter">
-                                                <PageHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} headCells={headCells} />
-
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell align="left">
+                                                            Employee
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            Time In
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            Time Out
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            Overtime In
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            Overtime Out
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
                                                 <TableBody sx={{ cursor: "pointer" }} >
-                                                    {recentAttendances.length !=
-                                                        0 ? (
-                                                        stableSort(
-                                                            recentAttendances, getComparator(order, orderBy)
-                                                        )
-                                                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                                            .map(
-                                                                (attendance, index) => {
-                                                                    return (
-                                                                        <TableRow key={index} hover role="checkbox" tabIndex={-1} onClick={() => handleNavigateAttendance(attendance.user_id)} >
-                                                                            <TableCell className="text-left">
-                                                                                {attendance.profile_pic ? (
-                                                                                    <img src={location.origin + "/storage/" + attendance.profile_pic} style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />) : (
-                                                                                    <img src={HomeLogo} style={{ height: 35, width: 35, borderRadius: 50, objectFit: "cover", marginRight: 30, }} />
-                                                                                )}
-
-                                                                                {" "}
-                                                                                {attendance.lname + ", " + attendance.fname + " " + (attendance.mname ? (attendance.mname[0] + ".") : "")}
-                                                                            </TableCell>
-                                                                            <TableCell>
-                                                                                <div className="d-flex justify-content-end">
-                                                                                    <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: "#2a800f", }} >
-                                                                                        {moment(attendance.morning_in).format("hh:mm a")}
-                                                                                    </Typography>
-                                                                                </div>
-                                                                            </TableCell>
-                                                                            <TableCell>
-                                                                                <div className="d-flex justify-content-start">
-                                                                                    <Typography variant="subtitle2" className="p-1 ml-2 text-center text-white rounded-lg" style={{ backgroundColor: attendance.afternoon_out ? "#e24e45" : "#e9ab13", }} >
-                                                                                        {" "}
-                                                                                        {attendance.afternoon_out ? moment(attendance.afternoon_out).format("hh:mm a") : "Ongoing.."}
-                                                                                    </Typography>
-                                                                                </div>
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    );
-                                                                }
-                                                            )
+                                                    {attendance.length > 0 ? (
+                                                        attendance.map((atd, index) => (
+                                                            <TableRow key={index}>
+                                                                <TableCell align="left">
+                                                                    {atd.first_name} {atd.last_name} {atd.suffix || ''}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {atd.time_in ? dayjs(atd.time_in).format("hh:mm:ss A") : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {atd.time_out ? dayjs(atd.time_out).format("hh:mm:ss A") : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {atd.overtime_in ? dayjs(atd.overtime_in).format("hh:mm:ss A") : "-"}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    {atd.overtime_out ? dayjs(atd.overtime_out).format("hh:mm:ss A") : "-"}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
                                                     ) : (
-                                                        <TableRow hover role="checkbox" tabIndex={-1} onClick={() => handleNavigateAttendance(attendance.user_id)} >
-                                                            <TableCell colSpan={4}>
-                                                                {" "}
-                                                                {"No Data Found"}
+                                                        <TableRow>
+                                                            <TableCell
+                                                                colSpan={5}
+                                                                align="center"
+                                                                sx={{
+                                                                    color: "text.secondary",
+                                                                    p: 1,
+                                                                }}
+                                                            >
+                                                                No Attendance Found
                                                             </TableCell>
                                                         </TableRow>
-                                                    )}
-                                                    {emptyRows > 0 && (
-                                                        <TableRow style={{ height: 53 * emptyRows, }} >
-                                                            <TableCell colSpan={6} />
-                                                        </TableRow>
-                                                    )}
+                                                    )
+                                                    }
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
-
-                                        <TablePagination rowsPerPageOptions={[5, 10, 25]} component="div" count={recentAttendances.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ ".MuiTablePagination-actions": { marginBottom: "20px", }, ".MuiInputBase-root": { marginBottom: "20px", }, }} />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
-                */}
-                </div>
-            </Box>
-        </Layout>
+            </Box >
+        </Layout >
     );
 };
 
