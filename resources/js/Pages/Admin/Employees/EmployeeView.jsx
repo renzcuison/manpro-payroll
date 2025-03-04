@@ -8,7 +8,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-import EmployeeAddBenefit from '../Employees/Modals/EmployeeAddBenefit';
+import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
 import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
 import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
 import EmployeeProfileEdit from './Modals/EmployeeProfileEdit';
@@ -25,7 +25,7 @@ const EmployeeView = () => {
     const [employee, setEmployee] = useState('');
     const [benefits, setBenefits] = useState([]);
 
-    const [openEmployeeAddBenefitModal, setOpenEmployeeAddBenefitModal] = useState(false);
+    const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
     const [openEmployeeProfileEditModal, setOpenEmployeeProfileEditModal] = useState(false);
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
     const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
@@ -46,7 +46,6 @@ const EmployeeView = () => {
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {
-                    console.log(response.data.employee);
                     setEmployee(response.data.employee);
                 }
             }).catch((error) => {
@@ -110,11 +109,11 @@ const EmployeeView = () => {
     }
 
     // Benefits
-    const handleOpenEmployeeAddBenefitModal = () => {
-        setOpenEmployeeAddBenefitModal(true);
+    const handleOpenEmployeeBenefitsModal = () => {
+        setOpenEmployeeBenefitsModal(true);
     }
-    const handleCloseEmployeeAddBenefitModal = () => {
-        setOpenEmployeeAddBenefitModal(false);
+    const handleCloseEmployeeBenefitsModal = () => {
+        setOpenEmployeeBenefitsModal(false);
     }
 
     // Leave Credits
@@ -171,7 +170,7 @@ const EmployeeView = () => {
                             {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
                             <MenuItem onClick={handleOpenEmployeeProfileEditModal}> Edit Employee Profile </MenuItem>
                             <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
-                            <MenuItem onClick={handleOpenEmployeeAddBenefitModal}> Add Benefit </MenuItem>
+                            <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
                         </Menu>
 
@@ -249,7 +248,6 @@ const EmployeeView = () => {
                                         <Typography> {employee.gender || 'Not Indicated'} </Typography>
                                     </Grid>
                                 </Grid>
-
                             </Box>
                         </Grid>
 
@@ -383,14 +381,6 @@ const EmployeeView = () => {
                     </Grid>
                 </Box>
 
-                {openEmployeeAddBenefitModal &&
-                    <EmployeeAddBenefit
-                        open={openEmployeeAddBenefitModal}
-                        close={handleCloseEmployeeAddBenefitModal}
-                        employee={employee}
-                    />
-                }
-
                 {openEmploymentDetailsEditModal &&
                     <EmploymentDetailsEdit
                         open={openEmploymentDetailsEditModal}
@@ -398,6 +388,13 @@ const EmployeeView = () => {
                         employee={employee}
                     />
                 }
+
+                {openEmployeeBenefitsModal &&
+                    <EmployeeBenefits
+                        open={openEmployeeBenefitsModal}
+                        close={handleCloseEmployeeBenefitsModal}
+                        employee={employee}
+                    />}
 
                 {openEmployeeLeaveCreditsModal &&
                     <EmployeeLeaveCredits

@@ -43,10 +43,10 @@ class BenefitsController extends Controller
         if ($this->checkUser()) {
             $user = Auth::user();
             $benefit = BenefitsModel::where('client_id', $user->client_id)->where('name', $request->name)->first();
-    
+
             return response()->json(['status' => 200, 'benefit' => $benefit]);
-        }    
-    
+        }
+
         return response()->json(['status' => 200, 'benefit' => null]);
     }
 
@@ -57,10 +57,10 @@ class BenefitsController extends Controller
         if ($this->checkUser()) {
             $user = Auth::user();
             $benefits = BenefitsModel::where('client_id', $user->client_id)->get();
-    
+
             return response()->json(['status' => 200, 'benefits' => $benefits]);
-        }    
-    
+        }
+
         return response()->json(['status' => 200, 'benefits' => null]);
     }
 
@@ -86,7 +86,7 @@ class BenefitsController extends Controller
                 DB::beginTransaction();
 
                 $password = Hash::make($request->password);
-        
+
                 $benefit = BenefitsModel::create([
                     "name" => $request->benefitName,
                     "type" => $request->benefitType,
@@ -96,11 +96,10 @@ class BenefitsController extends Controller
                     "employer_amount" => $request->employerAmount,
                     "client_id" => $client->id,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'benefit' => $benefit ]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'benefit' => $benefit]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -108,7 +107,7 @@ class BenefitsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function addEmployeeBenefit(Request $request)
@@ -128,17 +127,16 @@ class BenefitsController extends Controller
 
             try {
                 DB::beginTransaction();
-        
+
                 $employeeBenefit = EmployeeBenefitsModel::create([
                     "user_id" => $request->employee,
                     "benefit_id" => $request->benefit,
                     "number" => $request->number,
                 ]);
-                
-                DB::commit();
-            
-                return response()->json([ 'status' => 200, 'employee_benefit' => $employeeBenefit]);
 
+                DB::commit();
+
+                return response()->json(['status' => 200, 'employee_benefit' => $employeeBenefit]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -146,28 +144,33 @@ class BenefitsController extends Controller
 
                 throw $e;
             }
-        }    
+        }
     }
 
     public function getEmployeeBenefits(Request $request)
     {
         // log::info("BenefitsController::getEmployeeBenefits");
 
-        $user = Auth::user();       
+        $user = Auth::user();
         $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
-    
+
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
 
             $benefits = [];
             $rawBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->where('deleted_at', null)->get();
 
             foreach ($rawBenefits as $rawBenefit) {
-                $benefits[] = [ 'id' => $rawBenefit->id, 'benefit' => $rawBenefit->benefit->name ];
+                $benefits[] = [
+                    'id' => $rawBenefit->id,
+                    'benefit' => $rawBenefit->benefit->name,
+                    'number' => $rawBenefit->number,
+                    'created_at' => $rawBenefit->created_at
+                ];
             }
 
             return response()->json(['status' => 200, 'benefits' => $benefits]);
-        }    
-    
+        }
+
         return response()->json(['status' => 200, 'benefits' => null]);
     }
 }
