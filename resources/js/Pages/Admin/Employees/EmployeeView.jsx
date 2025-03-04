@@ -102,8 +102,11 @@ const EmployeeView = () => {
     const handleOpenEmploymentDetailsEditModal = () => {
         setOpenEmploymentDetailsEditModal(true);
     }
-    const handleCloseEmploymentDetailsEditModal = () => {
+    const handleCloseEmploymentDetailsEditModal = (reload) => {
         setOpenEmploymentDetailsEditModal(false);
+        if (reload) {
+            getEmployeeDetails();
+        }
     }
 
     // Benefits
@@ -126,8 +129,11 @@ const EmployeeView = () => {
     const handleOpenEmployeeProfileEditModal = () => {
         setOpenEmployeeProfileEditModal(true);
     }
-    const handleCloseEmployeeProfileEditModal = () => {
+    const handleCloseEmployeeProfileEditModal = (reload) => {
         setOpenEmployeeProfileEditModal(false);
+        if (reload) {
+            getEmployeeDetails();
+        }
     }
 
 
@@ -178,9 +184,15 @@ const EmployeeView = () => {
 
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                     <Avatar
-                                        alt="Remy Sharp"
-                                        src="../../../../../images/admin.png"
-                                        sx={{ width: '50%', height: 'auto' }}
+                                        alt={`${employee.user_name} Profile Pic`}
+                                        src={employee.profile_pic ? `../../../../../../storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
+                                        sx={{
+                                            width: '50%',
+                                            height: 'auto',
+                                            aspectRatio: '1 / 1',
+                                            objectFit: 'cover',
+                                            boxShadow: 3,
+                                        }}
                                     />
                                 </Grid>
 
@@ -383,7 +395,7 @@ const EmployeeView = () => {
                     <EmploymentDetailsEdit
                         open={openEmploymentDetailsEditModal}
                         close={handleCloseEmploymentDetailsEditModal}
-                        employee={employee} onUpdateEmployee={getEmployeeDetails}
+                        employee={employee}
                     />
                 }
 
