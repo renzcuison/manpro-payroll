@@ -13,6 +13,7 @@ use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
+use App\Models\LeaveCreditsModel;
 use App\Models\ApplicationsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
@@ -280,45 +281,6 @@ class PayrollController extends Controller
         // log::info("================================");
         // log::info("Total Employee Share     :" . $employeeShare);
         // log::info("Total Employer Share     :" . $employerShare);
-
-        $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id')->where('client_id', $employee->client_id)->get();
-
-        log::info($startDate);
-        log::info($endDate);
-
-        foreach ($applicationTypes as $applicationType) {
-            $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
-                ->where('type_id', $applicationType->id)->where('status', "Approved")
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->where(function ($q) use ($startDate, $endDate) {
-                        $q->where('duration_start', '<=', $endDate) // Starts before or within the range
-                        ->where('duration_end', '>=', $startDate); // Ends after or within the range
-                    });
-                })->get();
-
-            log::info($applications);
-        
-            foreach ($applications as $app) {
-                $appStart = \Carbon\Carbon::parse($app->duration_start)->startOfDay(); // Ensure day start
-                $appEnd = \Carbon\Carbon::parse($app->duration_end)->endOfDay(); // Ensure day end
-                $start = \Carbon\Carbon::parse($startDate);
-                $end = \Carbon\Carbon::parse($endDate);
-        
-                // Calculate the actual overlapping period
-                $overlapStart = max($appStart, $start);
-                $overlapEnd = min($appEnd, $end);
-        
-                // Get the number of days
-                $days = $overlapStart->diffInDays($overlapEnd) + 1;
-        
-                log::info("Application ID: {$app->id}, Overlapping Days: {$days}");
-            }
-        }
-        
-
-
-
-
         
         $distinctDays = $logs->groupBy(function ($log) {
             return \Carbon\Carbon::parse($log->timestamp)->toDateString();
@@ -342,6 +304,60 @@ class PayrollController extends Controller
         $perMin = $perHour / 60;
 
         $absents = $perDay * $numberOfAbsentDays;
+
+        $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage')->where('client_id', $employee->client_id)->get();
+
+        // log::info($startDate);
+        // log::info($endDate);
+
+        $leaves = [];
+        $leaveEarnings = 0;
+
+        foreach ($applicationTypes as $applicationType) {
+            $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
+                ->where('type_id', $applicationType->id)->where('status', "Approved")
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->where(function ($q) use ($startDate, $endDate) {
+                        $q->where('duration_start', '<=', $endDate) // Starts before or within the range
+                        ->where('duration_end', '>=', $startDate); // Ends after or within the range
+                    });
+                })->get();
+
+            log::info($applicationType);
+
+            $days = 0;
+        
+            foreach ($applications as $app) {
+                $appStart = \Carbon\Carbon::parse($app->duration_start)->startOfDay(); // Ensure day start
+                $appEnd = \Carbon\Carbon::parse($app->duration_end)->endOfDay(); // Ensure day end
+                $start = \Carbon\Carbon::parse($startDate);
+                $end = \Carbon\Carbon::parse($endDate);
+        
+                // Calculate the actual overlapping period
+                $overlapStart = max($appStart, $start);
+                $overlapEnd = min($appEnd, $end);
+        
+                // Get the number of days
+                $days = $days + $overlapStart->diffInDays($overlapEnd) + 1;
+        
+                log::info("Application ID: {$app->id}, Overlapping Days: {$days}");
+            }
+
+            $earningPerDay = $perDay * ($applicationType->percentage / 100 );
+            log::info($earningPerDay);
+            $totalEarning = $days * $earningPerDay;
+            log::info($totalEarning);
+            $leaveEarnings = $leaveEarnings + $totalEarning;
+            log::info($leaveEarnings);
+
+            $leaves = [
+                [
+                    'name' => $applicationType->name,
+                    'days' => $days,
+                    'amount' => $totalEarning,
+                ],
+            ];
+        }
 
         $payroll = [
             'employeeId' => $employee->user_name,
@@ -380,10 +396,10 @@ class PayrollController extends Controller
         $loans = 0;
         $tax = 0;
 
-        $totalDeductions =  $employeeShare + $absents + $tardiness + $cashAdvance + $loans + $tax;
+        $totalDeductions =  $employeeShare + $absents + $tardiness + $cashAdvance + $loans + $tax - $leaveEarnings;
 
         $deductions = [
-            ['name' => 'Benefits', 'amount' => $employeeShare],
+            // ['name' => 'Benefits', 'amount' => $employeeShare],
             ['name' => 'Absents', 'amount' => $absents],
             ['name' => 'Tardiness', 'amount' => $tardiness],
             ['name' => 'Cash Advance', 'amount' => $cashAdvance],
@@ -400,6 +416,6 @@ class PayrollController extends Controller
             ['name' => 'Net Pay', 'amount' =>  $takeHomePay],
         ];
 
-        return response()->json(['status' => 200, 'takeHomePay' => $takeHomePay , 'payroll' => $payroll, 'benefits' => $benefits, 'earnings' => $earnings, 'deductions' => $deductions, 'summaries' => $summaries]);
+        return response()->json(['status' => 200, 'takeHomePay' => $takeHomePay , 'payroll' => $payroll, 'benefits' => $benefits, 'earnings' => $earnings, 'deductions' => $deductions, 'summaries' => $summaries, 'leaves' => $leaves]);
     }
 }

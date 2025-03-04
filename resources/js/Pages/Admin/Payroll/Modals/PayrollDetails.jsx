@@ -51,9 +51,9 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
     const [benefits, setBenefits] = useState([]);
     const [summaries, setSummaries] = useState([]);
 
+    const [leaves, setLeaves] = useState([]);
     const [earnings, setEarnings] = useState([]);
     const [deductions, setDeductions] = useState([]);
-    const [takeHomePay, setTakeHomePay] = useState(0);
 
     useEffect(() => {
 
@@ -74,10 +74,9 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                 setBenefits(response.data.benefits);
                 setSummaries(response.data.summaries);
 
+                setLeaves(response.data.leaves);
                 setEarnings(response.data.earnings);
                 setDeductions(response.data.deductions);
-
-                setTakeHomePay(response.data.takeHomePay);
                 
                 getEmployeeData(response.data.payroll.employeeId);
             })
@@ -129,130 +128,6 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                         </Box>
 
                         <Grid container spacing={4} sx={{ px: 8 }}>
-                            <Grid item xs={8}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Earnings</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Deductions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {earnings.filter((earning) => earning.name !== "Total Earnings").map((earning) => (
-                                                            <ListItem key={earning.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2">{earning.name}</Typography>
-                                                                    <Typography variant="body2" align="right">{earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
-                                                            <ListItem key={deduction.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2">{deduction.name}</Typography>
-                                                                    <Typography variant="body2" align="right">{deduction ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {earnings.filter((earning) => earning.name === "Total Earnings").map((earning) => (
-                                                            <ListItem key={earning.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2" fontWeight="bold">{earning.name}</Typography>
-                                                                    <Typography variant="body2" fontWeight="bold" align="right">{earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {deductions.filter((deduction) => deduction.name === "Total Deductions").map((deduction) => (
-                                                            <ListItem key={deduction.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2" fontWeight="bold">{deduction.name}</Typography>
-                                                                    <Typography variant="body2" fontWeight="bold" align="right">{deduction ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }} colSpan={2}>
-                                                    <List dense>
-                                                        <ListItem>
-                                                            <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                <Typography variant="body2" fontWeight="bold">Take Home Pay</Typography>
-                                                                <Typography variant="body2" fontWeight="bold" align="right">{takeHomePay ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(takeHomePay) : "Loading..."}</Typography>
-                                                            </Box>
-                                                        </ListItem>
-                                                    </List>
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Benefits</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {benefits.filter((benefit) => benefit.name !== "Total Benefits").map((benefit) => (
-                                                            <ListItem key={benefit.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2">{benefit.name}</Typography>
-                                                                    <Typography variant="body2" align="right">{benefit ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{ border: "1px solid #ccc", verticalAlign: "top", textAlign: "left" }}>
-                                                    <List dense>
-                                                        {benefits.filter((benefit) => benefit.name === "Total Benefits").map((benefit) => (
-                                                            <ListItem key={benefit.name}>
-                                                                <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                                                                    <Typography variant="body2" fontWeight="bold">{benefit.name}</Typography>
-                                                                    <Typography variant="body2" fontWeight="bold" align="right">{benefit ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</Typography>
-                                                                </Box>
-                                                            </ListItem>
-                                                        ))}
-                                                    </List>
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
-
-
-                        <Grid container spacing={4} sx={{ px: 8 }}>
                             <Grid item xs={4}>
                                 <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
                                     <Table size="small">
@@ -262,12 +137,35 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {earnings.map((earning) => (
+                                            {earnings.filter((earning) => earning.name !== "Total Earnings").map((earning) => (
                                                 <TableRow key={earning.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{earning.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
                                                 </TableRow>
                                             ))}
+                                            {leaves.map((leave) => (
+                                                <TableRow key={leave.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{leave.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {leaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(leave.amount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
+                                                <TableRow key={deduction.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right">
+                                                        {deductions
+                                                            ? deduction.amount === 0
+                                                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount)
+                                                            : `-${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(Math.abs(deduction.amount))}`
+                                                            : "Loading..."
+                                                        }
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            <TableRow>
+                                                <TableCell sx={{ border: '1px solid #ccc' }}>Dispute</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {leaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) : "Loading..."}</TableCell>
+                                            </TableRow>
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -291,51 +189,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                            </Grid>
 
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employee Share</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {benefits.map((benefit) => (
-                                                <TableRow key={benefit.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{benefit.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
-
-                        <Grid container spacing={4} sx={{ px: 8 }}>
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Deductions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {deductions.map((deduction) => (
-                                                <TableRow key={deduction.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {deductions ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
                                 <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
                                     <Table size="small">
                                         <TableHead>
@@ -362,6 +216,24 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                             </Grid>
 
                             <Grid item xs={4}>
+                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employee Share</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {benefits.map((benefit) => (
+                                                <TableRow key={benefit.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{benefit.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+
                                 <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
                                     <Table size="small">
                                         <TableHead>
