@@ -373,14 +373,18 @@ class PayrollController extends Controller
 
         $tardiness = 0;
         $cashAdvance = 0;
+        $loans = 0;
+        $tax = 0;
 
-        $totalDeductions =  $employeeShare + $absents + $tardiness + $cashAdvance;
+        $totalDeductions =  $employeeShare + $absents + $tardiness + $cashAdvance + $loans + $tax;
 
         $deductions = [
             ['name' => 'Benefits', 'amount' => $employeeShare],
             ['name' => 'Absents', 'amount' => $absents],
             ['name' => 'Tardiness', 'amount' => $tardiness],
             ['name' => 'Cash Advance', 'amount' => $cashAdvance],
+            ['name' => 'Loans', 'amount' => $loans],
+            ['name' => 'Tax', 'amount' => $tax],
             ['name' => 'Total', 'amount' => $totalDeductions],
         ];
 
