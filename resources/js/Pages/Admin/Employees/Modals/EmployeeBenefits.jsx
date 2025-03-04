@@ -34,6 +34,7 @@ import Swal from "sweetalert2";
 
 import LeaveCreditAdd from "./LeaveCreditAdd";
 import LeaveCreditEdit from "./LeaveCreditEdit";
+import EmployeeAddBenefit from "./EmployeeAddBenefit";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -47,27 +48,13 @@ const EmployeeBenefits = ({ open, close, employee }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [leaveCredits, setLeaveCredits] = useState([]);
-    const [leaveCreditLogs, setLeaveCreditLogs] = useState([]);
-
-    const [benefits, setBenefits] = useState(false);
+    const [benefits, setBenefits] = useState([]);
 
     // ----------- Request Leave Credits
     useEffect(() => {
         getBenefits();
-        getLeaveCredits();
-        getLeaveCreditLogs();
     }, []);
 
-    const getLeaveCredits = () => {
-        axiosInstance.get(`/applications/getLeaveCredits/${employee.id}`, { headers })
-            .then((response) => {
-                setLeaveCredits(response.data.leave_credits);
-            })
-            .catch((error) => {
-                console.error('Error fetching credits:', error);
-            });
-    }
 
     const getBenefits = () => {
         axiosInstance.get(`/benefits/getEmployeeBenefits`, {
@@ -76,7 +63,6 @@ const EmployeeBenefits = ({ open, close, employee }) => {
             }
         })
             .then((response) => {
-                console.log(response.data.benefits);
                 setBenefits(response.data.benefits);
             })
             .catch((error) => {
@@ -84,42 +70,16 @@ const EmployeeBenefits = ({ open, close, employee }) => {
             });
     }
 
-    const getLeaveCreditLogs = () => {
-        axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.id}`, { headers })
-            .then((response) => {
-                setLeaveCreditLogs(response.data.logs);
-            })
-            .catch((error) => {
-                console.error('Error fetching logs:', error);
-            });
+    // ----------- Add Benefits Modal
+    const [openAddEmployeeBenefit, setOpenEmployeeBenefit] = useState(false);
+    const handleOpenAddEmployeeBenefit = () => {
+        setOpenEmployeeBenefit(true);
     }
-
-    // ----------- Edit Leave Credits Modal
-    const [openEditLeaveCredit, setOpenEditLeaveCredit] = useState(false);
-    const [leaveData, setLeaveData] = useState(null);
-
-    const handleOpenEditLeaveCredit = (leaveInfo) => {
-        setLeaveData(leaveInfo);
-        setOpenEditLeaveCredit(true);
-    }
-
-    const handleCloseEditLeaveCredit = () => {
-        setOpenEditLeaveCredit(false);
-        getLeaveCredits();
-        getLeaveCreditLogs();
-    }
-
-    // ----------- Edit Leave Credits Modal
-    const [openAddLeaveCredit, setOpenAddLeaveCredit] = useState(false);
-
-    const handleOpenAddLeaveCredit = () => {
-        setOpenAddLeaveCredit(true);
-    }
-
-    const handleCloseAddLeaveCredit = () => {
-        setOpenAddLeaveCredit(false);
-        getLeaveCredits();
-        getLeaveCreditLogs();
+    const handleCloseAddEmployeeBenefit = (reload) => {
+        setOpenEmployeeBenefit(false);
+        if (reload) {
+            getBenefits();
+        }
     }
 
     return (
@@ -164,13 +124,13 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left" sx={{ width: "40%" }}>
+                                        <TableCell align="left" sx={{ width: "20%" }}>
                                             Benefit
                                         </TableCell>
-                                        <TableCell align="center" sx={{ width: "30%" }}>
+                                        <TableCell align="center" sx={{ width: "40%" }}>
                                             Number
                                         </TableCell>
-                                        <TableCell align="center" sx={{ width: "30%" }}>
+                                        <TableCell align="center" sx={{ width: "40%" }}>
                                             Date Added
                                         </TableCell>
                                     </TableRow>
@@ -178,25 +138,25 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                                 <TableBody>
                                     {
                                         benefits.length > 0 ? (
-                                            benefits.map((benefit, index) => {
+                                            benefits.map((benefit, index) => (
                                                 <TableRow key={index}>
                                                     <TableCell>
                                                         <Typography>
                                                             {benefit.benefit}
                                                         </Typography>
-                                                        <TableCell align="center">
-                                                            <Typography>
-                                                                {benefit.number}
-                                                            </Typography>
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography>
-                                                                {benefit.created_at}
-                                                            </Typography>
-                                                        </TableCell>
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        <Typography>
+                                                            {benefit.number}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        <Typography>
+                                                            {dayjs(benefit.created_at).format('MMM DD YYYY, HH:mm:ss A')}
+                                                        </Typography>
                                                     </TableCell>
                                                 </TableRow>
-                                            })) :
+                                            ))) :
                                             <TableRow>
                                                 <TableCell
                                                     colSpan={3}
@@ -214,7 +174,7 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                             </Table>
                         </TableContainer>
                         <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                            <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddLeaveCredit()} >
+                            <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddEmployeeBenefit()} >
                                 <p className="m-0">
                                     <i className="fa fa-plus"></i>{" "}Add Benefit
                                 </p>
@@ -222,17 +182,10 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                         </Box>
                     </Box>
                 </DialogContent>
-                {openEditLeaveCredit &&
-                    <LeaveCreditEdit
-                        open={openEditLeaveCredit}
-                        close={handleCloseEditLeaveCredit}
-                        leaveData={leaveData}
-                    />
-                }
-                {openAddLeaveCredit &&
-                    <LeaveCreditAdd
-                        open={openAddLeaveCredit}
-                        close={handleCloseAddLeaveCredit}
+                {openAddEmployeeBenefit &&
+                    <EmployeeAddBenefit
+                        open={openAddEmployeeBenefit}
+                        close={handleCloseAddEmployeeBenefit}
                         empId={employee.id}
                     />
                 }

@@ -14,7 +14,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const EmployeeAddBenefit = ({ open, close, employee }) => {
+const EmployeeAddBenefit = ({ open, close, empId }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -84,7 +84,7 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
         event.preventDefault();
 
         const data = {
-            employee: employee.id,
+            employee: empId,
             benefit: benefit,
             number: number
         };
@@ -104,7 +104,7 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        close();
+                        close(true);
                     });
 
                 }
@@ -114,15 +114,13 @@ const EmployeeAddBenefit = ({ open, close, employee }) => {
             });
     };
 
-
-
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Benefit </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
