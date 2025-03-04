@@ -34,7 +34,7 @@ const EmployeeView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
-        //getEmployeeBenefits();
+        getEmployeeBenefits();
     }, []);
 
     const getEmployeeDetails = () => {
@@ -53,18 +53,18 @@ const EmployeeView = () => {
             });
     };
 
-    // const getEmployeeBenefits = () => {
-    //     const data = { username: user };
+    const getEmployeeBenefits = () => {
+        const data = { username: user };
 
-    //     axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
-    //         .then((response) => {
-    //             if (response.data.status === 200) {
-    //                 setBenefits(response.data.benefits);
-    //             }
-    //         }).catch((error) => {
-    //             console.error('Error fetching benefits:', error);
-    //         });
-    // };
+        axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    setBenefits(response.data.benefits);
+                }
+            }).catch((error) => {
+                console.error('Error fetching benefits:', error);
+            });
+    };
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
