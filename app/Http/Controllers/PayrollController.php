@@ -271,7 +271,11 @@ class PayrollController extends Controller
             $benefits[] = [ 'name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount ];
         }
 
-        $benefits[] = [ 'name' => "Total", 'employeeAmount' => $employeeShare, 'employerAmount' => $employerShare ];
+        $benefits[] = [
+            'name' => "Total Benefits",
+            'employeeAmount' => $employeeShare,
+            'employerAmount' => $employerShare
+        ];
 
         // log::info("================================");
         // log::info("Total Employee Share     :" . $employeeShare);
@@ -368,7 +372,7 @@ class PayrollController extends Controller
             ['name' => 'Basic Pay', 'amount' => $basicPay],
             ['name' => 'Over Time Pay', 'amount' => $overTimePay],
             ['name' => 'Holiday Pay', 'amount' => $holidayPay],
-            ['name' => 'Total', 'amount' => $totalEarnings],
+            ['name' => 'Total Earnings', 'amount' => $totalEarnings],
         ];
 
         $tardiness = 0;
@@ -385,15 +389,17 @@ class PayrollController extends Controller
             ['name' => 'Cash Advance', 'amount' => $cashAdvance],
             ['name' => 'Loans', 'amount' => $loans],
             ['name' => 'Tax', 'amount' => $tax],
-            ['name' => 'Total', 'amount' => $totalDeductions],
+            ['name' => 'Total Deductions', 'amount' => $totalDeductions],
         ];
+
+        $takeHomePay = $totalEarnings - $totalDeductions;
 
         $summaries = [
             ['name' => 'Total Earnings', 'amount' => $totalEarnings],
             ['name' => 'Total Deductions', 'amount' => $totalDeductions],
-            ['name' => 'Net Pay', 'amount' => $totalEarnings - $totalDeductions],
+            ['name' => 'Net Pay', 'amount' =>  $takeHomePay],
         ];
 
-        return response()->json(['status' => 200, 'payroll' => $payroll, 'benefits' => $benefits, 'earnings' => $earnings, 'deductions' => $deductions, 'summaries' => $summaries]);
+        return response()->json(['status' => 200, 'takeHomePay' => $takeHomePay , 'payroll' => $payroll, 'benefits' => $benefits, 'earnings' => $earnings, 'deductions' => $deductions, 'summaries' => $summaries]);
     }
 }
