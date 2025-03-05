@@ -73,14 +73,36 @@ const ProfileEdit = ({ open, close, employee }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        const validateContact = employee.contact_number ? employee.contact_number : '';
-        const validateAddress = employee.address ? employee.address : '';
+        // Required Field Check
+        setFirstNameError(!firstName);
+        setLastNameError(!lastName);
+        setBirthDateError(!birthDate);
+        setGenderError(!gender);
 
-        if (validateContact == contact && validateAddress == address && !newProfilePic) {
+        // Editory Checks
+        const baseFirstName = (employee.first_name || '') == firstName;
+        const baseMiddleName = (employee.middle_name || '') == middleName;
+        const baseLastName = (employee.last_name || '') == lastName;
+        const baseSuffix = (employee.suffix || '') == suffix;
+        const baseGender = (employee.gender || '') == gender;
+        const baseBirthDate = dayjs(employee.birth_date).isSame(dayjs(birthDate));
+        const baseContact = (employee.contact_number || '') == contact;
+        const baseAddress = (employee.address || '') == address;
+
+
+        if (!firstName || !lastName || !birthDate || !gender) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                title: "Invalid Action!",
+                text: `All Required Fields must be filled!`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
                 text: `There is nothing to update.`,
                 icon: "error",
                 showConfirmButton: true,
@@ -111,6 +133,12 @@ const ProfileEdit = ({ open, close, employee }) => {
 
         const formData = new FormData();
         formData.append('id', employee.id);
+        formData.append('first_name', firstName);
+        formData.append('middle_name', middleName ?? '');
+        formData.append('last_name', lastName);
+        formData.append('suffix', suffix ?? '')
+        formData.append("birth_date", birthDate.format("YYYY-MM-DD HH:mm:ss"));
+        formData.append('gender', gender);
         formData.append('contact_number', contact);
         formData.append('address', address);
         formData.append('profile_pic', newProfilePic ?? null);
@@ -266,7 +294,7 @@ const ProfileEdit = ({ open, close, employee }) => {
                                         <DatePicker
                                             label="Birth Date"
                                             value={birthDate}
-                                            onChange={(e) => setBirthDate(e.target.value)}
+                                            onChange={(newDate) => setBirthDate(newDate)}
                                             slotProps={{
                                                 textField: {
                                                     error: birthDateError,

@@ -421,26 +421,12 @@ const ApplicationForm = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!appType) {
-            setAppTypeError(true);
-        } else {
-            setAppTypeError(false);
-        }
-        if (!fromDate) {
-            setFromDateError(true);
-        } else {
-            setFromDateError(false);
-        }
-        if (!toDate) {
-            setToDateError(true);
-        } else {
-            setToDateError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
+        // Requirement Checks
+        setAppTypeError(!appType);
+        setFromDateError(!fromDate);
+        setToDateError(!fromDate);
+        setDescriptionError(!description);
+
         if (fileRequired && (!attachment.length > 0) && (!image.length > 0)) {
             setFileError(true);
         } else {
