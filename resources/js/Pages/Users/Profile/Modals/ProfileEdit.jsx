@@ -134,9 +134,9 @@ const ProfileEdit = ({ open, close, employee }) => {
         const formData = new FormData();
         formData.append('id', employee.id);
         formData.append('first_name', firstName);
-        formData.append('middle_name', middleName ?? '');
+        formData.append('middle_name', middleName);
         formData.append('last_name', lastName);
-        formData.append('suffix', suffix ?? '')
+        formData.append('suffix', suffix)
         formData.append("birth_date", birthDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append('gender', gender);
         formData.append('contact_number', contact);

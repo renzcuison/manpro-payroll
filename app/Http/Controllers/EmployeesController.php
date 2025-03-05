@@ -249,47 +249,55 @@ class EmployeesController extends Controller
 
         $employee = UsersModel::find($request->id);
 
-        // try {
-        //     DB::beginTransaction();
+        try {
+            DB::beginTransaction();
 
-        //     $dateTime = now()->format('YmdHis');
+            $employee->first_name = $request->input('first_name');
+            $employee->middle_name = $request->input('middle_name');
+            $employee->last_name = $request->input('last_name');
+            $employee->suffix = $request->input('suffix');
 
-        //     $employee->contact_number = $request->input('contact_number');
-        //     $employee->address = $request->input('address');
+            $employee->birth_date = $request->input('birth_date');
+            $employee->gender = $request->input('gender');
 
-        //     if ($request->hasFile('profile_pic')) {
+            $employee->contact_number = $request->input('contact_number');
+            $employee->address = $request->input('address');
 
-        //         $oldPicPath = $employee->profile_pic;
+            $dateTime = now()->format('YmdHis');
 
-        //         $profilePic = $request->file('profile_pic');
-        //         $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
-        //         $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
-        //         $employee->profile_pic = $profilePicPath;
+            if ($request->hasFile('profile_pic')) {
 
-        //         if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
-        //             //Log::info("Attempting to delete: public/" . $oldPicPath);
-        //             if (Storage::disk('public')->delete($oldPicPath)) {
-        //                 //Log::info("Old picture deleted successfully.");
-        //             } else {
-        //                 //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
-        //             }
-        //         } else {
-        //             //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
-        //         }
-        //     }
+                $oldPicPath = $employee->profile_pic;
 
-        //     $employee->save();
+                $profilePic = $request->file('profile_pic');
+                $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
+                $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
+                $employee->profile_pic = $profilePicPath;
 
-        //     DB::commit();
+                if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
+                    //Log::info("Attempting to delete: public/" . $oldPicPath);
+                    if (Storage::disk('public')->delete($oldPicPath)) {
+                        //Log::info("Old picture deleted successfully.");
+                    } else {
+                        //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
+                    }
+                } else {
+                    //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
+                }
+            }
 
-        //     return response()->json(['status' => 200]);
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
+            $employee->save();
 
-        //     Log::error("Error saving: " . $e->getMessage());
+            DB::commit();
 
-        //     throw $e;
-        // }
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
     }
 
     public function editEmployeeDetails(Request $request)
