@@ -180,8 +180,8 @@ class AdminDashboardController extends Controller
     public function getAttendance(Request $request)
     {
         //Log::info("AdminDashboardController::getAttendance");
-        //Log::info($request);
-        //Log::info($request->type);
+        Log::info($request);
+        Log::info($request->type);
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -204,14 +204,18 @@ class AdminDashboardController extends Controller
                         return $log->action === 'Duty Out';
                     });
 
+                    /*
                     // First Overtime In
                     $overtimeIn = $logs->firstWhere('action', 'Overtime In');
                     // Last Overtime Out
                     $overtimeOut = $logs->last(function ($log) {
                         return $log->action === 'Overtime Out';
                     });
+                    */
 
                     $user = $logs->first()->user;
+
+                    $workStart = $logs->first()->workHour->first_time_in;
 
                     return [
                         'profile_pic' => $user->profile_pic ?? null,
@@ -221,8 +225,7 @@ class AdminDashboardController extends Controller
                         'suffix' => $user->suffix ?? null,
                         'time_in' => $timeIn ? $timeIn->timestamp : null,
                         'time_out' => $timeOut ? $timeOut->timestamp : null,
-                        'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
-                        'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
+                        'start_time' => $workStart ?? null,
                     ];
                 })
                 ->values()

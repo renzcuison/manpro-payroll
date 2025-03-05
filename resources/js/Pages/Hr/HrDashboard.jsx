@@ -191,7 +191,7 @@ const HrDashboard = () => {
     const handleAttendanceTabChange = (event, newValue) => {
         event.preventDefault();
         setAttendanceTab(newValue);
-        getAttendance(newValue);
+
     }
     return (
         <Layout>
