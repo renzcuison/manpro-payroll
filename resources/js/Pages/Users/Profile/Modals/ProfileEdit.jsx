@@ -16,12 +16,30 @@ const ProfileEdit = ({ open, close, employee }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
+    const [firstName, setFirstName] = useState(employee.first_name || '');
+    const [middleName, setMiddleName] = useState(employee.middle_name || '');
+    const [lastName, setLastName] = useState(employee.last_name || '');
+    const [suffix, setSuffix] = useState(employee.suffix || '');
+
+    const [username, setUsername] = useState(employee.user_name || '');
+    const [birthDate, setBirthDate] = useState(dayjs(employee.birth_date) || '');
+    const [gender, setGender] = useState(employee.gender || '');
+
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
     const [profilePic, setProfilePic] = useState(`../../../../../../../storage/${employee.profile_pic}` || "../../../../../images/avatarpic.jpg");
     const [newProfilePic, setNewProfilePic] = useState('');
 
     // Form Errors
+    const [firstNameError, setFirstNameError] = useState(false);
+    const [middleNameError, setMiddleNameError] = useState(false);
+    const [lastNameError, setLastNameError] = useState(false);
+    const [suffixError, setSuffixError] = useState(false);
+
+    const [usernameError, setUsernameError] = useState(false);
+    const [birthDateError, setBirthDateError] = useState(false);
+    const [genderError, setGenderError] = useState(false);
+
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
     const [profilePicError, setProfilePicError] = useState(false);
@@ -122,7 +140,7 @@ const ProfileEdit = ({ open, close, employee }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Edit Employee </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Edit Profile </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -130,65 +148,153 @@ const ProfileEdit = ({ open, close, employee }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         {/* Profile Picture */}
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
+                        <Box display="flex" sx={{ justifyContent: "space-between" }}>
+                            <FormGroup className="d-flex justify-content-between" sx={{
+                                width: "24%",
+                                '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
-                                <Box display="flex" sx={{ width: "100%", justifyContent: "center" }}>
-                                    <Box sx={{ position: "relative", mr: "10%" }}>
-                                        <Avatar src={profilePic} sx={{ height: "160px", width: "160px", boxShadow: 3 }} />
-                                        <Box sx={{ backgroundColor: "#ffffff", border: "2px solid #e0e0e0", borderRadius: "50%", position: "absolute", right: "0px", bottom: "0px" }}>
-                                            <Tooltip title="Upload Profile Picture (5 MB Limit)">
-                                                <IconButton size="small" component="label">
-                                                    <Edit />
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <Box display="flex" sx={{ justifyContent: "center" }}>
+                                        <Box sx={{ position: "relative" }}>
+                                            <Avatar src={profilePic} sx={{ height: "160px", width: "160px", boxShadow: 3 }} />
+                                            <Tooltip title="Upload Image, 5 MB Limit">
+                                                <Button variant="outlined" startIcon={<Edit />}
+                                                    component="label"
+                                                    sx={{
+                                                        border: "2px solid #e0e0e0", borderRadius: "10px",
+                                                        backgroundColor: "#ffffff", color: "text.secondary",
+                                                        position: "absolute", right: "0px", bottom: "0px",
+                                                        '&:hover': {
+                                                            border: "2px solid #e0e0e0",
+                                                            borderRadius: "10px",
+                                                            backgroundColor: "#ffffff",
+                                                            color: "text.secondary",
+                                                        },
+                                                    }}>
+                                                    Edit
                                                     <input type="file" hidden onChange={handleUpload} accept=".png, .jpg, .jpeg"></input>
-                                                </IconButton>
+                                                </Button>
                                             </Tooltip>
                                         </Box>
                                     </Box>
-                                </Box>
-                            </FormControl>
-                            <Box sx={{ width: "59%" }}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        Name
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography sx={{ fontWeight: "bold" }}>
-                                            {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
-                                        </Typography>
-                                    </Grid>
-                                    <Grid item xs={3}>
-                                        Birth Date
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography sx={{ fontWeight: "bold" }}>
-                                            {employee.birth_date ? dayjs(employee.birth_date).format('MMM DD YYYY') : 'Not Indicated'}
-                                        </Typography>
-                                    </Grid>
-                                    <Grid item xs={3}>
-                                        Gender
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography sx={{ fontWeight: "bold" }}>
-                                            {employee.gender || 'Not Indicated'}
-                                        </Typography>
-                                    </Grid>
-                                    <Grid item xs={3}>
-                                        Email
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography sx={{ fontWeight: "bold" }}>
-                                            {employee.email}
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        </FormGroup>
+                                </FormControl>
+                            </FormGroup>
+                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                width: "74%",
+                                '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <FormControl sx={{
+                                    marginBottom: 2, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        id="first_name"
+                                        label="First Name"
+                                        variant="outlined"
+                                        value={firstName}
+                                        error={firstNameError}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 2, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        id="middle_name"
+                                        label="Middle Name"
+                                        variant="outlined"
+                                        value={middleName}
+                                        error={middleNameError}
+                                        onChange={(e) => setMiddleName(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        id="last_name"
+                                        label="Last Name"
+                                        variant="outlined"
+                                        value={lastName}
+                                        error={lastNameError}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '9%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        id="suffix"
+                                        label="Suffix"
+                                        variant="outlined"
+                                        value={suffix}
+                                        error={suffixError}
+                                        onChange={(e) => setSuffix(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        id="username"
+                                        label="Username"
+                                        variant="outlined"
+                                        value={username}
+                                        error={usernameError}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        inputProps={{
+                                            readOnly: true
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <LocalizationProvider
+                                        dateAdapter={AdapterDayjs}
+                                    >
+                                        <DatePicker
+                                            label="Birth Date"
+                                            value={birthDate}
+                                            onChange={(e) => setBirthDate(e.target.value)}
+                                            slotProps={{
+                                                textField: {
+                                                    error: birthDateError,
+                                                    readOnly: true,
+                                                }
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                </FormControl>
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '19%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                }}>
+                                    <TextField
+                                        select
+                                        id="gender"
+                                        label="Gender"
+                                        variant="outlined"
+                                        value={gender}
+                                        error={genderError}
+                                        onChange={(e) => setGender(e.target.value)}
+                                    >
+                                        <MenuItem value="Male"> Male </MenuItem>
+                                        <MenuItem value="Female"> Female </MenuItem>
+                                    </TextField>
+                                </FormControl>
+                            </FormGroup>
+                        </Box>
                         <Divider sx={{ mb: 3 }} />
                         {/* Editable Fields */}
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
@@ -196,7 +302,7 @@ const ProfileEdit = ({ open, close, employee }) => {
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
                             <FormControl sx={{
-                                marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -210,7 +316,7 @@ const ProfileEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
                             <FormControl sx={{
-                                marginBottom: 3, width: '59%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '74%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
