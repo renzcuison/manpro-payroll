@@ -343,7 +343,7 @@ const Attendance = ({ open, close }) => {
                                     label={workShift.second_label}
                                     onTimeIn={handleTimeInOut}
                                     onTimeOut={handleTimeInOut}
-                                    disableTimeIn={(firstShiftExpired && onDuty) || secondShiftExpired}
+                                    disableTimeIn={onDuty || (firstShiftExpired && onDuty) || secondShiftExpired}
                                     disableTimeOut={(!onDuty && secondShiftExpired) || latestTime > workHour.second_time_out}
                                     shiftType="Second"
                                 />
