@@ -229,58 +229,66 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employee' => null]);
     }
 
-    public function editEmployeeProfile(Request $request)
+    public function getMyDetails(Request $request)
     {
-        //log::info("EmployeesController::editEmployeeProfile");
+        // log::info("EmployeesController::getMyDetails");
+
+        $user = Auth::user();
+        $employee = UsersModel::find($user->id);
+
+        $employee = $this->enrichEmployeeDetails($employee);
+        return response()->json(['status' => 200, 'employee' => $employee]);
+    }
+
+    public function editMyProfile(Request $request)
+    {
+        //log::info("EmployeesController::editMyProfile");
         //log::info($request);
 
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        $employee = UsersModel::find($request->id);
 
-            $employee = UsersModel::find($request->id);
+        try {
+            DB::beginTransaction();
 
-            try {
-                DB::beginTransaction();
+            $dateTime = now()->format('YmdHis');
 
-                $dateTime = now()->format('YmdHis');
+            $employee->contact_number = $request->input('contact_number');
+            $employee->address = $request->input('address');
 
-                $employee->contact_number = $request->input('contact_number');
-                $employee->address = $request->input('address');
+            if ($request->hasFile('profile_pic')) {
 
-                if ($request->hasFile('profile_pic')) {
+                $oldPicPath = $employee->profile_pic;
 
-                    $oldPicPath = $employee->profile_pic;
+                $profilePic = $request->file('profile_pic');
+                $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
+                $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
+                $employee->profile_pic = $profilePicPath;
 
-                    $profilePic = $request->file('profile_pic');
-                    $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
-                    $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
-                    $employee->profile_pic = $profilePicPath;
-
-                    if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
-                        //Log::info("Attempting to delete: public/" . $oldPicPath);
-                        if (Storage::disk('public')->delete($oldPicPath)) {
-                            //Log::info("Old picture deleted successfully.");
-                        } else {
-                            //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
-                        }
+                if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
+                    //Log::info("Attempting to delete: public/" . $oldPicPath);
+                    if (Storage::disk('public')->delete($oldPicPath)) {
+                        //Log::info("Old picture deleted successfully.");
                     } else {
-                        //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
+                        //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
                     }
+                } else {
+                    //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
                 }
-
-                $employee->save();
-
-                DB::commit();
-
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-
-                throw $e;
             }
+
+            $employee->save();
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
         }
     }
 

@@ -33,6 +33,8 @@ import VerifyLogin from "./Pages/VerifyLogin";
 import MemberPersonalDetails from "./Pages/Member/MemberPersonalDetails";
 import MemberChangePassword from "./Pages/Member/MemberChangePassword";
 
+import Profile from "./Pages/Users/Profile/Profile.jsx";
+
 import Reports from "./Pages/Reports/Reports.jsx";
 import ReportCreate from "./Pages/Reports/ReportCreate.jsx";
 import ReportView from "./Pages/Reports/ReportView.jsx";
@@ -82,7 +84,8 @@ function App() {
         <Route path="/register/:code" element={<Register />} />
 
 
-
+       {/* User Profile Routes */}
+       <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
 
 
 

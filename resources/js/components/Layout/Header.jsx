@@ -9,22 +9,22 @@ const Header = ({ toogleSidebar }) => {
 	const { user } = useUser();
 	const { logout } = useAuth();
 	const [isDisabled, setIsDisabled] = useState(false);
-	
+
 	const handlePersonalDetails = async () => {
-		navigate(`/personal-details`);
-    };
+		navigate(`/profile`);
+	};
 
 	const handleChangePassword = async () => {
 		navigate(`/change-password`);
-    };
+	};
 
 	const handleLogout = async () => {
-        if (!isDisabled) {
-            setIsDisabled(true);
-            await logout();
-            setIsDisabled(false);
-        }
-    };
+		if (!isDisabled) {
+			setIsDisabled(true);
+			await logout();
+			setIsDisabled(false);
+		}
+	};
 
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
@@ -32,11 +32,11 @@ const Header = ({ toogleSidebar }) => {
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
-	
+
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
-	
+
 	return (
 		<header id="page-header">
 			<div className="content-header" style={{ backgroundColor: '#f8f9fa' }}>
@@ -64,7 +64,7 @@ const Header = ({ toogleSidebar }) => {
 							sx={{ fontSize: '15px' }}
 						>
 							<i className="fa fa-user text-dark mr-3"></i>
-							<span className="d-none d-sm-inline-block text-dark" style={{ textTransform: 'none' }}>{user.first_name} {user.middle_name ? '' : user.middle_name } {user.last_name} {user.suffix ? '' : user.suffix } </span>
+							<span className="d-none d-sm-inline-block text-dark" style={{ textTransform: 'none' }}>{user.first_name} {user.middle_name ? '' : user.middle_name} {user.last_name} {user.suffix ? '' : user.suffix} </span>
 							<i className="fa fa-angle-down ml-5 text-dark"></i>
 						</Button>
 						<Menu
