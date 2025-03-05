@@ -192,7 +192,7 @@ class AdminDashboardController extends Controller
 
     public function getAttendance()
     {
-        // Log::info("AdminDashboardController::getAttendance");
+        Log::info("AdminDashboardController::getAttendance");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -202,7 +202,7 @@ class AdminDashboardController extends Controller
                 $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
             })
                 ->whereDate('timestamp', Carbon::now()->toDateString())
-                ->with('user') // Eager load user data
+                ->with('user')
                 ->get()
                 ->groupBy('user_id')
                 ->sortKeysDesc()
@@ -225,6 +225,7 @@ class AdminDashboardController extends Controller
                     $user = $logs->first()->user;
 
                     return [
+                        'profile_pic' => $user->profile_pic ?? null,
                         'first_name' => $user->first_name ?? null,
                         'last_name' => $user->last_name ?? null,
                         'middle_name' => $user->middle_name ?? null,
@@ -237,6 +238,9 @@ class AdminDashboardController extends Controller
                 })
                 ->values()
                 ->all();
+
+
+            Log::info($attendances);
 
             return response()->json(['status' => 200, 'attendance' => $attendances]);
         } else {

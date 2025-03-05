@@ -120,8 +120,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
+
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
-        Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);
+        Route::post('/editEmployeeProfile', [EmployeesController::class, 'editEmployeeProfile']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);

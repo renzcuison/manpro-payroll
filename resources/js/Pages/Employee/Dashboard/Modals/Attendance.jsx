@@ -63,6 +63,7 @@ const Attendance = ({ open, close }) => {
     const [onDuty, setOnDuty] = useState(false);
     const [firstDutyFinished, setFirstDutyFinished] = useState(false);
     const [latestAttendanceTime, setlatestAttendanceTime] = useState();
+    const [latestAction, setLatestAction] = useState('');
 
     useEffect(() => {
         axiosInstance
@@ -95,7 +96,7 @@ const Attendance = ({ open, close }) => {
                     } else {
                         setOnDuty(false);
                     }
-
+                    setLatestAction(latestAttendance.action);
                     setlatestAttendanceTime(latestAttendance.timestamp);
                 } else {
                     console.error("No attendance records found.");
@@ -367,7 +368,7 @@ const Attendance = ({ open, close }) => {
                                                 onTimeIn={handleTimeInOut}
                                                 onTimeOut={handleTimeInOut}
                                                 disableTimeIn={onDuty}
-                                                disableTimeOut={false}
+                                                disableTimeOut={!latestAction == "Overtime In"}
                                                 shiftType="Overtime"
                                             />
                                         );
