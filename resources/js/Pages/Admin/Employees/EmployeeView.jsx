@@ -11,7 +11,6 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
 import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
 import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
-import EmployeeProfileEdit from './Modals/EmployeeProfileEdit';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -26,7 +25,6 @@ const EmployeeView = () => {
     const [benefits, setBenefits] = useState([]);
 
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
-    const [openEmployeeProfileEditModal, setOpenEmployeeProfileEditModal] = useState(false);
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
     const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
 
@@ -124,17 +122,6 @@ const EmployeeView = () => {
         setOpenEmployeeLeaveCreditsModal(false);
     }
 
-    // Employee Profile
-    const handleOpenEmployeeProfileEditModal = () => {
-        setOpenEmployeeProfileEditModal(true);
-    }
-    const handleCloseEmployeeProfileEditModal = (reload) => {
-        setOpenEmployeeProfileEditModal(false);
-        if (reload) {
-            getEmployeeDetails();
-        }
-    }
-
 
     const renderAttendanceContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -168,7 +155,6 @@ const EmployeeView = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
-                            <MenuItem onClick={handleOpenEmployeeProfileEditModal}> Edit Employee Profile </MenuItem>
                             <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
                             <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
@@ -400,13 +386,6 @@ const EmployeeView = () => {
                     <EmployeeLeaveCredits
                         open={openEmployeeLeaveCreditsModal}
                         close={handleCloseEmployeeLeaveCreditsModal}
-                        employee={employee}
-                    />}
-
-                {openEmployeeProfileEditModal &&
-                    <EmployeeProfileEdit
-                        open={openEmployeeProfileEditModal}
-                        close={handleCloseEmployeeProfileEditModal}
                         employee={employee}
                     />}
 
