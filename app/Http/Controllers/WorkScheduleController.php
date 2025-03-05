@@ -374,26 +374,6 @@ class WorkScheduleController extends Controller
 
             $workGroup = WorkGroupsModel::where('id', $request->group)->where('client_id', $client->id)->where('deleted_at', null)->first();
 
-            $workShift = WorkShiftsModel::select(
-                'id',
-                'name',
-                'shift_type',
-                'first_label',
-                'second_label',
-                'work_hour_id',
-            )->find($workGroup->work_shift_id);
-
-            $workHours = WorkHoursModel::select(
-                'first_time_in',
-                'first_time_out',
-                'second_time_in',
-                'second_time_out',
-                'break_start',
-                'break_end',
-                'over_time_in',
-                'over_time_out',
-            )->find($workShift->work_hour_id);
-
             $employees = UsersModel::where('work_group_id', $workGroup->id)
                 ->select('user_name', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id', 'job_title_id')
                 ->get()
@@ -419,7 +399,7 @@ class WorkScheduleController extends Controller
                     ];
                 });
 
-            return response()->json(['status' => 200, 'workGroup' => $workGroup, 'workShift' => $workShift, 'workHours' => $workHours, 'employees' => $employees]);
+            return response()->json(['status' => 200, 'workGroup' => $workGroup, 'employees' => $employees]);
         }
 
         return response()->json(['status' => 200, 'workGroup' => null, 'workShift' => null, 'workHours' => null, 'employees' => null]);
