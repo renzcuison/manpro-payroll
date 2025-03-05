@@ -9,7 +9,6 @@ use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
 
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -106,8 +105,8 @@ class AdminDashboardController extends Controller
 
             foreach ($rawBranches as $branch) {
                 $employees = UsersModel::select('name')->where('user_type', "Employee")->where('employment_status', "Active")->where('branch_id', $branch->id)->count();
-                
-                $branches[] = ['name' => $branch->name,'acronym' => $branch->acronym,'employees' => $employees];
+
+                $branches[] = ['name' => $branch->name, 'acronym' => $branch->acronym, 'employees' => $employees];
             }
 
 
@@ -227,8 +226,7 @@ class AdminDashboardController extends Controller
                 ->values()
                 ->all();
 
-
-            Log::info($attendances);
+            //Log::info($attendances);
 
             return response()->json(['status' => 200, 'attendance' => $attendances]);
         } else {

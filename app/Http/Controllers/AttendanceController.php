@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceLogsModel;
+use App\Models\AttendanceLogsMobileModel;
 use App\Models\ClientsModel;
 use App\Models\UsersModel;
 use App\Models\WorkDaysModel;
@@ -117,6 +118,18 @@ class AttendanceController extends Controller
                     "action" => $request->action,
                     "method" => 1,
                 ]);
+
+                $dateTime = now()->format('YmdHis');
+
+                if ($request->hasFile('image')) {
+                    $image = $request->file('image');
+                    $imageName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $image->getClientOriginalExtension();
+                    $imagePath = $image->storeAs('attendance/mobile', $imageName, 'public');
+                    AttendanceLogsMobileModel::create([
+                        "attendance_id" => $attendance->id,
+                        "path" => $imagePath
+                    ]);
+                }
 
                 DB::commit();
 
