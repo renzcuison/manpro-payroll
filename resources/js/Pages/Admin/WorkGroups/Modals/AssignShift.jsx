@@ -68,8 +68,6 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
 
     const getWorkShift = (shift) => {
 
-        console.log(shift.name);
-
         const data = { shift, shift };
 
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
@@ -149,9 +147,13 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
     };
 
     const saveInput = (event) => {
+
+        console.log(workShift);
+
+
         event.preventDefault();
 
-        const data = { workGroup: workGroup, workShift: selectedShift };
+        const data = { workGroup: workGroup.id, workShift: selectedShift };
 
         axiosInstance.post('/workshedule/saveWorkGroupShift', data, { headers })
             .then(response => {

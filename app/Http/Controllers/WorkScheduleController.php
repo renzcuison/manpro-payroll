@@ -460,19 +460,18 @@ class WorkScheduleController extends Controller
 
     public function saveWorkGroupShift(Request $request)
     {
-        // log::info("WorkScheduleController::saveWorkGroupShift");
+        log::info("WorkScheduleController::saveWorkGroupShift");
+        log::info($request);
 
         $validated = $request->validate(['workGroup' => 'required', 'workShift' => 'required']);
 
         if ($this->checkUser() && $validated) {
 
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $workGroup = WorkGroupsModel::where('client_id', $client->id)->where('name', $request->workGroup)->first();
+            $workGroup = WorkGroupsModel::find($request->workGroup);
 
             try {
                 DB::beginTransaction();
-
+ 
                 $workGroup->work_shift_id = $request->workShift;
                 $workGroup->save();
 
