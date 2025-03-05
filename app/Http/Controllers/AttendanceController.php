@@ -99,6 +99,38 @@ class AttendanceController extends Controller
         }
     }
 
+    public function saveMobileEmployeeAttendance(Request $request)
+    {
+        // log::info("AttendanceController::saveMobileEmployeeAttendance");
+
+        $validated = $request->validate(['action' => 'required']);
+
+        $user = Auth::user();
+
+        if ($validated) {
+            try {
+                DB::beginTransaction();
+
+                $attendance = AttendanceLogsModel::create([
+                    "user_id" => $user->id,
+                    "work_hour_id" => $user->workShift->work_hour_id,
+                    "action" => $request->action,
+                    "method" => 1,
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                //Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
     public function recordEmployeeAttendance(Request $request)
     {
         //log::info("AttendanceController::recordEmployeeAttendance");

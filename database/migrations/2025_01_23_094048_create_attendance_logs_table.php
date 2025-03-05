@@ -25,11 +25,11 @@ class CreateAttendanceLogsTable extends Migration
             $table->timestamp('timestamp');
 
             // For Biometric Device
-            $table->integer('machine_number')->nullable();
-            $table->integer('enroll_number')->nullable();
-            $table->integer('enrolled_machine_number')->nullable();
-            $table->integer('verify_mode')->nullable();
-            
+            // $table->integer('machine_number')->nullable();
+            // $table->integer('enroll_number')->nullable();
+            // $table->integer('enrolled_machine_number')->nullable();
+            // $table->integer('verify_mode')->nullable();
+
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
