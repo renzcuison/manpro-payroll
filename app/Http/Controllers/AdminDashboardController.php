@@ -49,7 +49,7 @@ class AdminDashboardController extends Controller
 
             // ---- Counter Rows ---- //
             // Get Employees
-            $employees = UsersModel::where('user_type', "Employee")->where('employment_status', "Active")->get();
+            $employees = UsersModel::where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active")->get();
             $counter['head_count'] = count($employees);
 
             // Get Applications
@@ -177,9 +177,11 @@ class AdminDashboardController extends Controller
         }
     }
 
-    public function getAttendance()
+    public function getAttendance(Request $request)
     {
-        Log::info("AdminDashboardController::getAttendance");
+        //Log::info("AdminDashboardController::getAttendance");
+        //Log::info($request);
+        //Log::info($request->type);
         $user = Auth::user();
 
         if ($this->checkUser()) {

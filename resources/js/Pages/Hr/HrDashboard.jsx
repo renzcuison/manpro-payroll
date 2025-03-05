@@ -55,12 +55,13 @@ const HrDashboard = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [attendanceTab, setAttendanceTab] = useState('1');
-    const handleAttendanceTabChange = (event, newValue) => {
-        event.preventDefault();
-        setAttendanceTab(newValue);
-    }
 
     useEffect(() => {
+        getDashboardData();
+        getAttendance(1);
+    }, []);
+
+    const getDashboardData = () => {
         axiosInstance
             .get(`adminDashboard/getDashboardData`, { headers })
             .then((response) => {
@@ -86,13 +87,21 @@ const HrDashboard = () => {
 
                 setSalaryRange(response.data.salary_range);
             });
+    }
 
+    const getAttendance = (type) => {
+        /*
+        types:
+        1 - Present
+        2 - Late
+        3 - Absent
+        */
         axiosInstance
-            .get(`adminDashboard/getAttendance`, { headers })
+            .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
             .then((response) => {
                 setAttendance(response.data.attendance);
             });
-    }, []);
+    }
 
     // Attendance Pie Chart
     const attendancePieChart = {
@@ -178,6 +187,12 @@ const HrDashboard = () => {
     };
     const paginatedAttendance = attendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    // Tab Controls
+    const handleAttendanceTabChange = (event, newValue) => {
+        event.preventDefault();
+        setAttendanceTab(newValue);
+        getAttendance(newValue);
+    }
     return (
         <Layout>
             <Box sx={{ mx: 12 }}>
