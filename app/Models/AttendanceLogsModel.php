@@ -20,10 +20,10 @@ class AttendanceLogsModel extends Model
         'method',
         'timestamp',
 
-        'machine_number',
-        'enroll_number',
-        'enrolled_machine_number',
-        'verify_mode',
+        // 'machine_number',
+        // 'enroll_number',
+        // 'enrolled_machine_number',
+        // 'verify_mode',
 
         'deleted_at',
     ];
@@ -37,5 +37,4 @@ class AttendanceLogsModel extends Model
     {
         return $this->belongsTo(WorkHoursModel::class, 'work_hour_id');
     }
-
 }
