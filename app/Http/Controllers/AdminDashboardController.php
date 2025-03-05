@@ -180,63 +180,105 @@ class AdminDashboardController extends Controller
     public function getAttendance(Request $request)
     {
         //Log::info("AdminDashboardController::getAttendance");
-        Log::info($request);
-        Log::info($request->type);
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
+            $type = $request->input('type', 1);
 
             $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
             })
                 ->whereDate('timestamp', Carbon::now()->toDateString())
-                ->with('user')
-                ->get()
-                ->groupBy('user_id')
-                ->sortKeysDesc()
-                ->map(function ($logs,) {
+                ->with('user', 'workHour')
+                ->get();
 
-                    // First Time In
-                    $timeIn = $logs->firstWhere('action', 'Duty In');
-                    // Last Time Out
-                    $timeOut = $logs->last(function ($log) {
-                        return $log->action === 'Duty Out';
-                    });
+            $result = [];
 
-                    /*
-                    // First Overtime In
-                    $overtimeIn = $logs->firstWhere('action', 'Overtime In');
-                    // Last Overtime Out
-                    $overtimeOut = $logs->last(function ($log) {
-                        return $log->action === 'Overtime Out';
-                    });
-                    */
+            if ($type == 1) { // PRESENT 
+                $result = $attendances->groupBy('user_id')
+                    ->sortKeysDesc()
+                    ->map(function ($logs) {
+                        $timeIn = $logs->firstWhere('action', 'Duty In');
+                        $timeOut = $logs->last(function ($log) {
+                            return $log->action === 'Duty Out';
+                        });
+                        $user = $logs->first()->user;
 
-                    $user = $logs->first()->user;
+                        return [
+                            'profile_pic' => $user->profile_pic ?? null,
+                            'first_name' => $user->first_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'middle_name' => $user->middle_name ?? null,
+                            'suffix' => $user->suffix ?? null,
+                            'time_in' => $timeIn ? $timeIn->timestamp : null,
+                            'time_out' => $timeOut ? $timeOut->timestamp : null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
 
-                    $workStart = $logs->first()->workHour->first_time_in;
+                usort($result, function ($a, $b) {
+                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                });
+            } elseif ($type == 2) { // LATE 
+                $result = $attendances->groupBy('user_id')
+                    ->map(function ($logs) {
+                        $timeIn = $logs->firstWhere('action', 'Duty In');
+                        $user = $logs->first()->user;
 
-                    return [
-                        'profile_pic' => $user->profile_pic ?? null,
-                        'first_name' => $user->first_name ?? null,
-                        'last_name' => $user->last_name ?? null,
-                        'middle_name' => $user->middle_name ?? null,
-                        'suffix' => $user->suffix ?? null,
-                        'time_in' => $timeIn ? $timeIn->timestamp : null,
-                        'time_out' => $timeOut ? $timeOut->timestamp : null,
-                        'start_time' => $workStart ?? null,
-                    ];
-                })
-                ->values()
-                ->all();
+                        $workStart = $logs->first()->workHour->first_time_in;
+                        $expectedStart = Carbon::parse($workStart);
 
-            usort($attendances, function ($a, $b) {
-                return $b['time_in'] <=> $a['time_in'] ?: 0;
-            });
-            //Log::info($attendances);
+                        if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt(Carbon::parse($workStart))) {
+                            $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                            return [
+                                'profile_pic' => $user->profile_pic ?? null,
+                                'first_name' => $user->first_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'middle_name' => $user->middle_name ?? null,
+                                'suffix' => $user->suffix ?? null,
+                                'time_in' => $timeIn->timestamp,
+                                'start_time' => $expectedStart,
+                                'late_by' => $lateBy,
+                            ];
+                        }
+                        return null;
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
 
-            return response()->json(['status' => 200, 'attendance' => $attendances]);
+                usort($result, function ($a, $b) {
+                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                });
+            } elseif ($type == 3) { // ABSENT 
+                $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
+                $allEmployees = UsersModel::where('client_id', $clientId)
+                    ->where('user_type', 'Employee')
+                    ->where('employment_status', 'Active')
+                    ->pluck('id')
+                    ->diff($attendedUserIds)
+                    ->toArray();
+
+                $result = UsersModel::whereIn('id', $allEmployees)
+                    ->get()
+                    ->map(function ($user) {
+                        return [
+                            'profile_pic' => $user->profile_pic ?? null,
+                            'first_name' => $user->first_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'middle_name' => $user->middle_name ?? null,
+                            'suffix' => $user->suffix ?? null,
+                            'time_in' => null,
+                            'time_out' => null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            }
+
+            return response()->json(['status' => 200, 'attendance' => $result]);
         } else {
             return response()->json(['status' => 200, 'attendance' => null]);
         }

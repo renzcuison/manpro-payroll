@@ -242,8 +242,8 @@ class EmployeesController extends Controller
 
     public function editMyProfile(Request $request)
     {
-        log::info("EmployeesController::editMyProfile");
-        log::info($request);
+        //log::info("EmployeesController::editMyProfile");
+        //log::info($request);
 
         $user = Auth::user();
 
