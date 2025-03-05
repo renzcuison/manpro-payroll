@@ -25,17 +25,8 @@ const ApplicationTypesEdit = ({ open, close, appTypeInfo }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!tenureship) {
-            setTenureshipError(true);
-        } else {
-            setTenureshipError(false);
-        }
+        setNameError(!name);
+        setTenureshipError(!tenureship);
 
         if (!name || !tenureship) {
             Swal.fire({

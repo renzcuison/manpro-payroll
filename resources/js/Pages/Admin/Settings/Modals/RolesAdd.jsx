@@ -24,17 +24,8 @@ const RolesAdd = ({ open, close, onUpdateRoles }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
+        setNameError(!name);
+        setAcronymError(!acronym);
 
         if (!name || !acronym) {
             Swal.fire({

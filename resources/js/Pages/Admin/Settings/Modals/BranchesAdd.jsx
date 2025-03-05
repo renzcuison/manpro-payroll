@@ -26,23 +26,9 @@ const BranchesAdd = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
-
-        if (!address) {
-            setAddressError(true);
-        } else {
-            setAddressError(false);
-        }
+        setNameError(!name);
+        setAcronymError(!acronym);
+        setAddressError(!address);
 
         if (!name || !acronym || !address) {
             Swal.fire({

@@ -142,16 +142,8 @@ const AnnouncementAdd = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!title) {
-            setTitleError(true);
-        } else {
-            setTitleError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
+        setTitleError(!title);
+        setDescriptionError(!description);
 
         if (!title || !description) {
             document.activeElement.blur();

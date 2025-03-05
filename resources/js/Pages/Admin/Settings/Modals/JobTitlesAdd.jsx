@@ -24,17 +24,8 @@ const JobTitlesAdd = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
+        setNameError(!name);
+        setAcronymError(!acronym);
 
         if (!name || !acronym) {
             Swal.fire({
