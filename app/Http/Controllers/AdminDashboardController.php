@@ -172,7 +172,7 @@ class AdminDashboardController extends Controller
                 'average' => $average,
                 'attendance' => $attendance,
                 'branches' => $branches,
-                'salaryRange' => $salaryRange
+                'salary_range' => $salaryRange
             ]);
         }
     }
@@ -226,6 +226,9 @@ class AdminDashboardController extends Controller
                 ->values()
                 ->all();
 
+            usort($attendances, function ($a, $b) {
+                return $b['time_in'] <=> $a['time_in'] ?: 0;
+            });
             //Log::info($attendances);
 
             return response()->json(['status' => 200, 'attendance' => $attendances]);
