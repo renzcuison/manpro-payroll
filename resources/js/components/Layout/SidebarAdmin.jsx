@@ -169,7 +169,7 @@ const Sidebar = ({ children, closeMini }) => {
             text: shift.name,
         })).concat({
             id: 'add-shift',
-            href: '/admin/workshifts-add',
+            href: '/admin/workshifts/add',
             text: '+ Add Shift',
         }),
     }];
@@ -184,7 +184,7 @@ const Sidebar = ({ children, closeMini }) => {
             text: group.name,
         })).concat({
             id: 'add-group',
-            href: '/admin/workgroups-add',
+            href: '/admin/workgroups/add',
             text: '+ Add Group',
         }),
     }];
@@ -232,7 +232,7 @@ const Sidebar = ({ children, closeMini }) => {
                     text: shift.name,
                 })).concat({
                     // id: 'add-shift',
-                    href: '/admin/workshifts-add',
+                    href: '/admin/workshifts/add',
                     text: '+ Add Shift',
                 }),
             },
@@ -244,7 +244,7 @@ const Sidebar = ({ children, closeMini }) => {
                     text: group.name,
                 })).concat({
                     // id: 'add-group',
-                    href: '/admin/workgroups-add',
+                    href: '/admin/workgroups/add',
                     text: '+ Add Group',
                 }),
             },

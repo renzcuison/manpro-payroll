@@ -27,8 +27,8 @@ import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
-import WorkshiftsAdd from "../Pages/Admin/Workshifts/WorkshiftsAdd";
-import WorkshiftView from "../Pages/Admin/Workshifts/WorkshiftView";
+import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
+import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
 import WorkGroupsAdd from "../Pages/Admin/WorkGroups/WorkGroupsAdd";
 import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
@@ -74,10 +74,10 @@ const AdminRoutes = ({ user }) => {
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
             <Route path="workshift/:shift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
-            <Route path="workshifts-add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
+            <Route path="workshifts/add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
             <Route path="workgroup/:client/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
-            <Route path="workgroups-add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
+            <Route path="workgroups/add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
             <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
 

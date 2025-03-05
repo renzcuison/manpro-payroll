@@ -200,7 +200,7 @@ class WorkScheduleController extends Controller
 
     public function getWorkShiftDetails(Request $request)
     {
-        // log::info("WorkScheduleController::getEmployeeDetails");
+        // log::info("WorkScheduleController::getWorkShiftDetails");
 
         if ($this->checkUser()) {
 
@@ -210,10 +210,12 @@ class WorkScheduleController extends Controller
 
             $workShift = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $shift)->first();
 
-            return response()->json(['status' => 200, 'workShift' => $workShift]);
+            $workHours = WorkHoursModel::find($workShift->work_hour_id);
+
+            return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
         }
 
-        return response()->json(['status' => 200, 'workShifts' => null]);
+        return response()->json(['status' => 200, 'workShifts' => null, 'workHours' => null]);
     }
 
     public function saveSplitWorkShift(Request $request)
