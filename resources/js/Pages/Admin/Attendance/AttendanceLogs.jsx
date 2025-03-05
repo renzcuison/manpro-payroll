@@ -52,7 +52,7 @@ const AttendanceLogs = () => {
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
                                                 <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Time Stamp</TableCell>
+                                                <TableCell align="center">Timestamp</TableCell>
                                                 <TableCell align="center">Action</TableCell>
                                             </TableRow>
                                         </TableHead>
