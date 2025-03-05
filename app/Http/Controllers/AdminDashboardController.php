@@ -47,6 +47,8 @@ class AdminDashboardController extends Controller
             $average = [];
             $attendance = [];
 
+            $today = Carbon::now();
+
             // ---- Counter Rows ---- //
             // Get Employees
             $employees = UsersModel::where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active")->get();
@@ -66,7 +68,6 @@ class AdminDashboardController extends Controller
                 $totalAge = 0;
                 foreach ($employees as $employee) {
                     $birthDate = Carbon::parse($employee->birth_date);
-                    $today = Carbon::now();
                     $age = $today->diffInYears($birthDate) + ($today->diffInMonths($birthDate) % 12 / 12) + ($today->diffInDays($birthDate) % 30.42 / 365.25); // This gives the age with decimal precision
 
                     $totalAge += $age;
@@ -79,7 +80,6 @@ class AdminDashboardController extends Controller
                 $totalTenure = 0;
                 foreach ($employees as $employee) {
                     $hireDate = Carbon::parse($employee->date_start);
-                    $today = Carbon::now();
                     $tenureInYears = $today->diffInYears($hireDate) + ($today->diffInMonths($hireDate) % 12 / 12) + ($today->diffInDays($hireDate) % 30.42 / 365.25);
 
                     $totalTenure += $tenureInYears;
