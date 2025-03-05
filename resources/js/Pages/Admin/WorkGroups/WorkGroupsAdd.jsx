@@ -80,7 +80,7 @@ const WorkGroupsAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/workgroup/${response.data.id}`);
+                        navigate(`/admin/workgroup/${response.data.link}`);
                     });
                 }
             })
@@ -108,7 +108,7 @@ const WorkGroupsAdd = () => {
                                 <TextField
                                     required
                                     id="groupName"
-                                    label="Shift Name"
+                                    label="Group Name"
                                     variant="outlined"
                                     value={groupName}
                                     error={groupNameError}

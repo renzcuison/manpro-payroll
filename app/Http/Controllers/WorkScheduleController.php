@@ -472,11 +472,9 @@ class WorkScheduleController extends Controller
                     "client_id" => $client->id,
                 ]);
 
-                $link = str_replace(' ', '_', $group->name);
-
                 DB::commit();
 
-                return response()->json(['status' => 200, 'group' => $group, 'id' => $group->id, 'link' => $link]);
+                return response()->json(['status' => 200, 'link' => $client->id . '/' . $group->id]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
