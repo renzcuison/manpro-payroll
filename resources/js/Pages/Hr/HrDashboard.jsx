@@ -376,7 +376,7 @@ const HrDashboard = () => {
                                             </Box>
                                         </Box>
                                         {/* Present Employees */}
-                                        <TabPanel value="1">
+                                        <TabPanel value="1" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
                                                 <TableContainer>
                                                     <Table className="table table-md table-striped table-vcenter">
@@ -417,7 +417,7 @@ const HrDashboard = () => {
                                                                                 {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
                                                                             </TableCell>
                                                                             <TableCell align="center">
-                                                                                {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "-"}
+                                                                                {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "Ongoing"}
                                                                             </TableCell>
                                                                         </TableRow>
                                                                     ))
@@ -445,7 +445,7 @@ const HrDashboard = () => {
                                             </div>
                                         </TabPanel>
                                         {/* Late Employees */}
-                                        <TabPanel value="2">
+                                        <TabPanel value="2" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
                                                 <TableContainer>
                                                     <Table className="table table-md table-striped table-vcenter">
@@ -518,7 +518,7 @@ const HrDashboard = () => {
                                             </div>
                                         </TabPanel>
                                         {/* Absent */}
-                                        <TabPanel value="3">
+                                        <TabPanel value="3" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
                                                 <TableContainer>
                                                     <Table className="table table-md table-striped table-vcenter">
@@ -579,7 +579,7 @@ const HrDashboard = () => {
                                             </div>
                                         </TabPanel>
                                         {/* On Leave */}
-                                        <TabPanel value="4">
+                                        <TabPanel value="4" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
                                                 <TableContainer>
                                                     <Table className="table table-md table-striped table-vcenter">
