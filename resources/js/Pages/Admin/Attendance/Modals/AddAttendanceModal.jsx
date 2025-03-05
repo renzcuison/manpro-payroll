@@ -176,7 +176,6 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                         label="Time"
                                         value={timestamp}
                                         error={timestampError}
-                                        minDate={dayjs()}
                                         timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setTimestamp(newValue);

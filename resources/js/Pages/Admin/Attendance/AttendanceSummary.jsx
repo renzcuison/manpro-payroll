@@ -68,6 +68,8 @@ const AttendanceSummary = () => {
                                             {attendanceSummary.map((attendance) => (
                                                 <TableRow
                                                     key={attendance.emp_id}
+                                                    component={Link}
+                                                    to={`/admin/attendance/${attendance.emp_user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
                                                     <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>

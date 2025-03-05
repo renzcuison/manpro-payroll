@@ -149,7 +149,6 @@ class AttendanceController extends Controller
         //log::info("AttendanceController::recordEmployeeAttendance");
         $validated = $request->validate(['action' => 'required']);
 
-
         $user = Auth::user();
 
         if ($this->checkUser() && $validated) {
@@ -235,8 +234,8 @@ class AttendanceController extends Controller
 
     public function getAttendanceSummary(Request $request)
     {
-        Log::info("AttendanceController::getAttendanceSummary");
-        Log::info($request);
+        //Log::info("AttendanceController::getAttendanceSummary");
+        //Log::info($request);
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -247,8 +246,8 @@ class AttendanceController extends Controller
             // Get the month's name from Carbon
             $monthName = Carbon::createFromFormat('m', $month)->monthName;
 
-            Log::info($monthName);
-            Log::info($year);
+            //Log::info($monthName);
+            //Log::info($year);
 
             try {
                 $employees = UsersModel::where('client_id', $clientId)
@@ -272,7 +271,9 @@ class AttendanceController extends Controller
                     $totalAbsences = 0;
                     $totalShiftMinutes = 0;
                     $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
-                    $endDay = ($year === Carbon::now()->year && $month === Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+                    $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+
+                    //Log::info($endDay);
 
                     foreach (range(1, $endDay) as $day) {
                         $currentDate = Carbon::create($year, $month, $day)->startOfDay();
@@ -378,6 +379,7 @@ class AttendanceController extends Controller
 
                     return [
                         'emp_id' => $employee->id,
+                        'emp_user_name' => $employee->user_name,
                         'emp_first_name' => $employee->first_name,
                         'emp_middle_name' => $employee->middle_name,
                         'emp_last_name' => $employee->last_name,
@@ -391,7 +393,7 @@ class AttendanceController extends Controller
                     ];
                 })->all();
 
-                Log::info($attendanceSummary);
+                // /Log::info($attendanceSummary);
 
                 return response()->json(['status' => 200, 'attendance_summary' => $attendanceSummary]);
             } catch (\Exception $e) {
