@@ -84,7 +84,7 @@ class WorkScheduleController extends Controller
         return false;
     }
 
-    public function getWorkShift(Request $request)
+    public function getWorkShift()
     {
         // log::info("WorkScheduleController::getWorkShift");
 
@@ -160,7 +160,7 @@ class WorkScheduleController extends Controller
         return response()->json(['status' => 200, 'workHours' => $workHourData]);
     }
 
-    public function getWorkShifts(Request $request)
+    public function getWorkShifts()
     {
         // log::info("WorkScheduleController::getWorkShifts");
 
@@ -176,7 +176,7 @@ class WorkScheduleController extends Controller
         return response()->json(['status' => 200, 'workShifts' => null]);
     }
 
-    public function getWorkShiftLinks(Request $request)
+    public function getWorkShiftLinks()
     {
         // log::info("WorkScheduleController::getWorkShiftLinks");
 
@@ -184,10 +184,10 @@ class WorkScheduleController extends Controller
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
-            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->select('name')->get();
+            $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->select('id', 'name', 'client_id')->get();
 
             $workShifts = $workShifts->map(function ($workShift) {
-                $workShift->link = str_replace(' ', '_', $workShift->name);
+                $workShift->link = $workShift->client_id . "/" . $workShift->id;
 
                 return $workShift;
             });
@@ -203,15 +203,8 @@ class WorkScheduleController extends Controller
         // log::info("WorkScheduleController::getWorkShiftDetails");
 
         if ($this->checkUser()) {
-
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $shift = str_replace('_', ' ', $request->shift);
-
-            $workShift = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->where('name', $shift)->first();
-
+            $workShift = WorkShiftsModel::where('id', $request->shift)->first();
             $workHours = WorkHoursModel::find($workShift->work_hour_id);
-
             return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
         }
 

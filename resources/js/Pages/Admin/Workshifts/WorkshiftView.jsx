@@ -385,19 +385,13 @@ const WorkshiftView = () => {
             });
     };
 
-
-    
-    const [workShift, setWorkShift] = useState(''); 
-
     useEffect(() => {
         const data = { shift, shift };
 
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
-                setWorkShift(response.data.workShift);
 
                 setShiftName(response.data.workShift.name);
-
 
                 if ( response.data.workShift.shift_type == 'Regular') {
                     setShiftType("regular");

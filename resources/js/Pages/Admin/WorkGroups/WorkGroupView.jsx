@@ -27,6 +27,8 @@ const WorkGroupView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [showError404, setShowError404] = useState(false);
 
+    const [shiftId, setShiftId] = useState("");
+
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
     const [workHours, setWorkHours] = useState([]);
@@ -50,6 +52,10 @@ const WorkGroupView = () => {
                 if ( !workGroup ) {
                     setShowError404(true);
                     return;
+                }
+
+                if ( workShift ) {
+                    setShiftId(workShift.id);
                 }
 
                 setWorkGroup(workGroup);
@@ -271,7 +277,7 @@ const WorkGroupView = () => {
                 </Box>
 
                 {openAssignShiftModal &&
-                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={workShift.id} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={shiftId} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
                 }
 
                 {openEditWorkGroupModal &&
