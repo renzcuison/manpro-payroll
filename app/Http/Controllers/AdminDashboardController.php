@@ -181,6 +181,7 @@ class AdminDashboardController extends Controller
     {
         //Log::info("AdminDashboardController::getAttendance");
         $user = Auth::user();
+        $today = Carbon::now()->toDateString();
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
@@ -195,7 +196,7 @@ class AdminDashboardController extends Controller
 
             $result = [];
 
-            if ($type == 1) { // PRESENT 
+            if ($type == 1) { // PRESENT
                 $result = $attendances->groupBy('user_id')
                     ->sortKeysDesc()
                     ->map(function ($logs) {
@@ -221,12 +222,11 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['time_in'] <=> $a['time_in'] ?: 0;
                 });
-            } elseif ($type == 2) { // LATE 
+            } elseif ($type == 2) { // LATE
                 $result = $attendances->groupBy('user_id')
                     ->map(function ($logs) {
                         $timeIn = $logs->firstWhere('action', 'Duty In');
                         $user = $logs->first()->user;
-
                         $workStart = $logs->first()->workHour->first_time_in;
                         $expectedStart = Carbon::parse($workStart);
 
@@ -252,13 +252,24 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['time_in'] <=> $a['time_in'] ?: 0;
                 });
-            } elseif ($type == 3) { // ABSENT 
+            } elseif ($type == 3) { // ABSENT
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
+                $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
+                    $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
+                })
+                    ->where('status', 'Approved')
+                    ->whereDate('duration_start', '<=', $today)
+                    ->whereDate('duration_end', '>=', $today)
+                    ->distinct('user_id')
+                    ->pluck('user_id')
+                    ->toArray();
+
                 $allEmployees = UsersModel::where('client_id', $clientId)
                     ->where('user_type', 'Employee')
                     ->where('employment_status', 'Active')
                     ->pluck('id')
                     ->diff($attendedUserIds)
+                    ->diff($onLeaveUserIds)
                     ->toArray();
 
                 $result = UsersModel::whereIn('id', $allEmployees)
@@ -270,10 +281,37 @@ class AdminDashboardController extends Controller
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
                             'suffix' => $user->suffix ?? null,
-                            'time_in' => null,
-                            'time_out' => null,
                         ];
                     })
+                    ->values()
+                    ->all();
+            } elseif ($type == 4) { // ON LEAVE
+                $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
+                    $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
+                })
+                    ->where('status', 'Approved')
+                    ->whereDate('duration_start', '<=', $today)
+                    ->whereDate('duration_end', '>=', $today)
+                    ->with('user', 'type')
+                    ->get();
+
+                $result = $onLeaveApplications->map(function ($application) {
+                    $user = $application->user;
+                    $typeName = $application->type ? $application->type->name : 'Unknown';
+                    $startDate = Carbon::parse($application->duration_start);
+                    $endDate = Carbon::parse($application->duration_end);
+
+                    return [
+                        'profile_pic' => $user->profile_pic ?? null,
+                        'first_name' => $user->first_name ?? null,
+                        'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
+                        'suffix' => $user->suffix ?? null,
+                        'type_name' => $typeName,
+                        'leave_start' => $startDate,
+                        'leave_end' => $endDate,
+                    ];
+                })
                     ->values()
                     ->all();
             }

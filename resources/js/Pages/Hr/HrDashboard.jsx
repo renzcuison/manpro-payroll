@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import "../../../../resources/css/calendar.css";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import PageHead from "../../components/Table/PageHead";
 import PageToolbar from "../../components/Table/PageToolbar";
@@ -43,8 +43,6 @@ const HrDashboard = () => {
     const [presentCount, setPresentCount] = useState(0);
     const [onLeaveCount, setOnLeaveCount] = useState(0);
 
-    const [branches, setBranches] = useState([]);
-
     const [branchNames, setBranchNames] = useState([]);
     const [branchCount, setBranchCount] = useState([]);
 
@@ -55,6 +53,7 @@ const HrDashboard = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [attendanceTab, setAttendanceTab] = useState('1');
+    const [attendanceLoading, setAttendanceLoading] = useState(true);
 
     useEffect(() => {
         getDashboardData();
@@ -100,6 +99,7 @@ const HrDashboard = () => {
             .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
             .then((response) => {
                 setAttendance(response.data.attendance);
+                setAttendanceLoading(false);
             });
     }
 
@@ -191,6 +191,7 @@ const HrDashboard = () => {
     const handleAttendanceTabChange = (event, newValue) => {
         event.preventDefault();
         setAttendanceTab(newValue);
+        setAttendanceLoading(true);
         getAttendance(newValue);
     }
 
@@ -370,6 +371,7 @@ const HrDashboard = () => {
                                                     <Tab label="Present" value="1" />
                                                     <Tab label="Late" value="2" />
                                                     <Tab label="Absent" value="3" />
+                                                    <Tab label="On Leave" value="4" />
                                                 </TabList>
                                             </Box>
                                         </Box>
@@ -385,32 +387,49 @@ const HrDashboard = () => {
                                                                 <TableCell align="center" sx={{ width: "30%" }}>Time Out</TableCell>
                                                             </TableRow>
                                                         </TableHead>
-                                                        <TableBody sx={{ cursor: "pointer" }}>
-                                                            {paginatedAttendance.length > 0 ? (
-                                                                paginatedAttendance.map((attend, index) => (
-                                                                    <TableRow key={index}>
-                                                                        <TableCell align="left">
-                                                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                            </Box>
-                                                                        </TableCell>
-                                                                        <TableCell align="center">
-                                                                            {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
-                                                                        </TableCell>
-                                                                        <TableCell align="center">
-                                                                            {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "-"}
+                                                        {attendanceLoading ? (
+                                                            <TableRow>
+                                                                <TableCell colSpan={3}>
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                            minHeight: 200,
+                                                                        }}
+                                                                    >
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ) : (
+                                                            <TableBody>
+                                                                {paginatedAttendance.length > 0 ? (
+                                                                    paginatedAttendance.map((attend, index) => (
+                                                                        <TableRow key={index}>
+                                                                            <TableCell align="left">
+                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                                </Box>
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                                            No Attendance Found
                                                                         </TableCell>
                                                                     </TableRow>
-                                                                ))
-                                                            ) : (
-                                                                <TableRow>
-                                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                        No Attendance Found
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
+                                                                )}
+                                                            </TableBody>
+                                                        )}
                                                     </Table>
                                                     <TablePagination
                                                         rowsPerPageOptions={[5, 10, 20]}
@@ -438,35 +457,52 @@ const HrDashboard = () => {
                                                                 <TableCell align="center" sx={{ width: "20%" }}>Late By</TableCell>
                                                             </TableRow>
                                                         </TableHead>
-                                                        <TableBody sx={{ cursor: "pointer" }}>
-                                                            {paginatedAttendance.length > 0 ? (
-                                                                paginatedAttendance.map((attend, index) => (
-                                                                    <TableRow key={index}>
-                                                                        <TableCell align="left">
-                                                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                            </Box>
-                                                                        </TableCell>
-                                                                        <TableCell align="center">
-                                                                            {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"}
-                                                                        </TableCell>
-                                                                        <TableCell align="center">
-                                                                            {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
-                                                                        </TableCell>
-                                                                        <TableCell align="center">
-                                                                            {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
+                                                        {attendanceLoading ? (
+                                                            <TableRow>
+                                                                <TableCell colSpan={4}>
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                            minHeight: 200,
+                                                                        }}
+                                                                    >
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ) : (
+                                                            <TableBody>
+                                                                {paginatedAttendance.length > 0 ? (
+                                                                    paginatedAttendance.map((attend, index) => (
+                                                                        <TableRow key={index}>
+                                                                            <TableCell align="left">
+                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                                </Box>
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                                            No Late Employees Found
                                                                         </TableCell>
                                                                     </TableRow>
-                                                                ))
-                                                            ) : (
-                                                                <TableRow>
-                                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                        No Attendance Found
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
+                                                                )}
+                                                            </TableBody>
+                                                        )}
                                                     </Table>
                                                     <TablePagination
                                                         rowsPerPageOptions={[5, 10, 20]}
@@ -491,26 +527,116 @@ const HrDashboard = () => {
                                                                 <TableCell align="left" sx={{ width: "100%" }}>Employee</TableCell>
                                                             </TableRow>
                                                         </TableHead>
-                                                        <TableBody sx={{ cursor: "pointer" }}>
-                                                            {paginatedAttendance.length > 0 ? (
-                                                                paginatedAttendance.map((attend, index) => (
-                                                                    <TableRow key={index}>
-                                                                        <TableCell align="left">
-                                                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                            </Box>
+                                                        {attendanceLoading ? (
+                                                            <TableRow>
+                                                                <TableCell colSpan={1}>
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                            minHeight: 200,
+                                                                        }}
+                                                                    >
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ) : (
+                                                            <TableBody>
+                                                                {paginatedAttendance.length > 0 ? (
+                                                                    paginatedAttendance.map((attend, index) => (
+                                                                        <TableRow key={index}>
+                                                                            <TableCell align="left">
+                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                                </Box>
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                                            No Absent Employees Found
                                                                         </TableCell>
                                                                     </TableRow>
-                                                                ))
-                                                            ) : (
-                                                                <TableRow>
-                                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                        No Attendance Found
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </TableBody>
+                                                                )}
+                                                            </TableBody>
+                                                        )}
+                                                    </Table>
+                                                    <TablePagination
+                                                        rowsPerPageOptions={[5, 10, 20]}
+                                                        component="div"
+                                                        count={attendance.length}
+                                                        rowsPerPage={rowsPerPage}
+                                                        page={page}
+                                                        onPageChange={handleChangePage}
+                                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                                        sx={{ alignItems: "center" }}
+                                                    />
+                                                </TableContainer>
+                                            </div>
+                                        </TabPanel>
+                                        {/* On Leave */}
+                                        <TabPanel value="4">
+                                            <div style={{ height: "450px", overflow: "auto", }} >
+                                                <TableContainer>
+                                                    <Table className="table table-md table-striped table-vcenter">
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
+                                                                <TableCell align="center" sx={{ width: "20%" }}>Leave Type</TableCell>
+                                                                <TableCell align="center" sx={{ width: "20%" }}>Start Date</TableCell>
+                                                                <TableCell align="center" sx={{ width: "20%" }}>End Date</TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        {attendanceLoading ? (
+                                                            <TableRow>
+                                                                <TableCell colSpan={4}>
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                            minHeight: 200,
+                                                                        }}
+                                                                    >
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ) : (
+                                                            <TableBody>
+                                                                {paginatedAttendance.length > 0 ? (
+                                                                    paginatedAttendance.map((attend, index) => (
+                                                                        <TableRow key={index}>
+                                                                            <TableCell align="left">
+                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                                </Box>
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.type_name}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {dayjs(attend.leave_start).format('MMM DD YYYY')}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {dayjs(attend.leave_end).format('MMM DD YYYY')}
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                                            No Employees on Leave Found
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                )}
+                                                            </TableBody>
+                                                        )}
                                                     </Table>
                                                     <TablePagination
                                                         rowsPerPageOptions={[5, 10, 20]}
