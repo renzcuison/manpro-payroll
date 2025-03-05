@@ -130,6 +130,7 @@ export default function SignInCard() {
                             
                             if ( response.data.code != "Email" ) {
                                 console.log( "Code: " + response.data.code );
+                                setEmail(response.data.code);
                             }
 
                             Swal.fire({
