@@ -99,7 +99,7 @@ const ProfileEdit = ({ open, close, employee }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress) {
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress && !newProfilePic) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
