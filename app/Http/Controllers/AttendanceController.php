@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 use Carbon\Carbon;
 
@@ -251,8 +252,11 @@ class AttendanceController extends Controller
                     ->with(['branch', 'department', 'role'])
                     ->get();
 
+                // Retrieve Holidays
+                $holidays = $this->getNagerHolidays($year);
+
                 // Attendance Compiler
-                $attendanceSummary  = $employees->map(function ($employee) use ($month, $year) {
+                $attendanceSummary  = $employees->map(function ($employee) use ($month, $year, $holidays) {
                     // Retrieve Daily Logs per Employee
                     $attendanceLogs = AttendanceLogsModel::with('workHour')
                         ->where('user_id', $employee->id)
@@ -284,149 +288,154 @@ class AttendanceController extends Controller
                     foreach (range(1, $endDay) as $day) {
                         // Data Prep
                         $currentDate = Carbon::create($year, $month, $day)->startOfDay();
-                        $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
 
-                        // Attendance Found for the Day'
-                        if ($logs) {
-                            // Shift Type
-                            $shiftType = $logs->first()->workHour->shift_type ?? 'Regular';
-                            // Day Marker
-                            $today = Carbon::today();
+                        if (!$currentDate->isWeekend() && !in_array($currentDate->format('Y-m-d'), $holidays)) {
+                            $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
 
-                            // Start-End Times
-                            $workStartTimes = [
-                                Carbon::parse($logs->first()->workHour->first_time_in ?? '00:00:00')
+                            // Attendance Found for the Day'
+                            if ($logs) {
+                                // Shift Type
+                                $shiftType = $logs->first()->workHour->shift_type ?? 'Regular';
+                                // Day Marker
+                                $today = Carbon::today();
+
+                                // Start-End Times
+                                $workStartTimes = [
+                                    Carbon::parse($logs->first()->workHour->first_time_in ?? '00:00:00')
+                                        ->setYear($currentDate->year)
+                                        ->setMonth($currentDate->month)
+                                        ->setDay($currentDate->day),
+
+                                    Carbon::parse($logs->first()->workHour->second_time_in ?? '00:00:00')
+                                        ->setYear($currentDate->year)
+                                        ->setMonth($currentDate->month)
+                                        ->setDay($currentDate->day),
+                                ];
+
+                                $workEndTimes = [
+                                    // Regular
+                                    Carbon::parse($logs->first()->workHour->first_time_out ?? '00:00:00')
+                                        ->setYear($currentDate->year)
+                                        ->setMonth($currentDate->month)
+                                        ->setDay($currentDate->day),
+                                    //Split
+                                    Carbon::parse($logs->first()->workHour->second_time_out ?? '00:00:00')
+                                        ->setYear($currentDate->year)
+                                        ->setMonth($currentDate->month)
+                                        ->setDay($currentDate->day),
+                                ];
+
+                                // Breaks
+                                $breakStart = Carbon::parse($logs->first()->workHour->break_start ?? '00:00:00')
                                     ->setYear($currentDate->year)
                                     ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day),
-
-                                Carbon::parse($logs->first()->workHour->second_time_in ?? '00:00:00')
+                                    ->setDay($currentDate->day);
+                                $breakEnd = Carbon::parse($logs->first()->workHour->break_end ?? '00:00:00')
                                     ->setYear($currentDate->year)
                                     ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day),
-                            ];
+                                    ->setDay($currentDate->day);
 
-                            $workEndTimes = [
-                                // Regular
-                                Carbon::parse($logs->first()->workHour->first_time_out ?? '00:00:00')
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day),
-                                //Split
-                                Carbon::parse($logs->first()->workHour->second_time_out ?? '00:00:00')
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day),
-                            ];
+                                // Shift Duration
+                                $totalShiftDuration = null;
 
-                            // Breaks
-                            $breakStart = Carbon::parse($logs->first()->workHour->break_start ?? '00:00:00')
-                                ->setYear($currentDate->year)
-                                ->setMonth($currentDate->month)
-                                ->setDay($currentDate->day);
-                            $breakEnd = Carbon::parse($logs->first()->workHour->break_end ?? '00:00:00')
-                                ->setYear($currentDate->year)
-                                ->setMonth($currentDate->month)
-                                ->setDay($currentDate->day);
+                                // Work Hour Preparations
+                                $actualStart = null;
+                                $actualEnd = null;
+                                $gapStart = null;
+                                $gapEnd = null;
 
-                            // Shift Duration
-                            $totalShiftDuration = null;
+                                // Daily Attendance Recorder
+                                foreach ($logs as $log) {
 
-                            // Work Hour Preparations
-                            $actualStart = null;
-                            $actualEnd = null;
-                            $gapStart = null;
-                            $gapEnd = null;
-
-                            // Daily Attendance Recorder
-                            foreach ($logs as $log) {
-
-                                if ($log->action == "Duty In" || $log->action == "Overtime In") {
-                                    if ($log->action == "Duty In") {
-                                        $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
-                                        $dutyInFound = true;
-                                        $overtimeInFound = false;
-                                    } else {
-                                        $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
-                                        $overtimeInFound = true;
-                                        $dutyInFound = false;
-                                    }
-                                } else if (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) {
-                                    $dutyEnd = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
-                                    $dutyInFound = false;
-                                    $overtimeInFound = false;
-
-                                    switch ($shiftType) {
-                                        case "Regular":
-                                            //Log::info("Regular");
-                                            $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
-                                            $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
-                                            $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
-                                            $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
-                                            $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
-                                            //Log::info('Actual Start:    ' . $actualStart);
-                                            //Log::info('Actual End:      ' . $actualEnd);
-                                            //Log::info('Duration         ' . $totalShiftDuration);
-                                            break;
-                                        case "Split":
-                                            //Log::info("Split");
-                                            $gapStart = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
-                                            $gapEnd = $workStartTimes[1]->setDate($today->year, $today->month, $today->day);
-                                            if ($dutyStart->format('H:i:s') < $gapStart->format('H:i:s')) {
-                                                $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
-                                                $actualEnd = $gapStart;
-                                            } else {
-                                                $actualStart = $gapEnd;
-                                                $actualEnd = $workEndTimes[1]->setDate($today->year, $today->month, $today->day);
-                                            }
-                                            $totalShiftDuration = $actualEnd->diffInMinutes($actualStart);
-                                            //Log::info('Actual Start:    ' . $actualStart);
-                                            //Log::info('Actual End:      ' . $actualEnd);
-                                            //Log::info('Duration         ' . $totalShiftDuration);
-                                            break;
-                                        default: // Use "Regular" by default
-                                            //Log::info("Default");
-                                            $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
-                                            $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
-                                            $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
-                                            $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
-                                            $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
-                                            //Log::info($totalShiftDuration);
-                                            break;
-                                    }
-
-                                    //Calculations
-                                    $renderedStart = max($dutyStart, $actualStart);
-                                    $renderedEnd = min($dutyEnd, $actualEnd);
-                                    $minutesRendered = $renderedEnd->diffInMinutes($renderedStart);
-
-                                    // Remove Break Time 
-                                    if ($log->shift_type == "Regular" && $gapStart && $gapEnd) {
-                                        $overlapStart = max($renderedStart, $gapStart);
-                                        $overlapEnd = min($renderedEnd, $gapEnd);
-
-                                        if ($overlapStart->format('H:i:s') < $overlapEnd->format('H:i:s')) {
-                                            $totalOverlap = $overlapEnd->diffInMinutes($overlapStart);
-                                            $minutesRendered -= $totalOverlap;
+                                    if ($log->action == "Duty In" || $log->action == "Overtime In") {
+                                        if ($log->action == "Duty In") {
+                                            $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                            $dutyInFound = true;
+                                            $overtimeInFound = false;
+                                        } else {
+                                            $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                            $overtimeInFound = true;
+                                            $dutyInFound = false;
                                         }
-                                        $minutesRendered = max($minutesRendered, 0);
-                                    }
+                                    } else if (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) {
+                                        $dutyEnd = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                        $dutyInFound = false;
+                                        $overtimeInFound = false;
 
-                                    if ($log->action == "Duty Out") {
-                                        $totalRendered += $minutesRendered;
-                                        $totalLate += max(0, $totalShiftDuration - $minutesRendered);
-                                    } else { // "Overtime Out"
-                                        $totalOvertime += $minutesRendered;
-                                    }
+                                        switch ($shiftType) {
+                                            case "Regular":
+                                                //Log::info("Regular");
+                                                $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
+                                                $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
+                                                $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
+                                                //Log::info('Actual Start:    ' . $actualStart);
+                                                //Log::info('Actual End:      ' . $actualEnd);
+                                                //Log::info('Duration         ' . $totalShiftDuration);
+                                                break;
+                                            case "Split":
+                                                //Log::info("Split");
+                                                $gapStart = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $gapEnd = $workStartTimes[1]->setDate($today->year, $today->month, $today->day);
+                                                if ($dutyStart->format('H:i:s') < $gapStart->format('H:i:s')) {
+                                                    $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                    $actualEnd = $gapStart;
+                                                } else {
+                                                    $actualStart = $gapEnd;
+                                                    $actualEnd = $workEndTimes[1]->setDate($today->year, $today->month, $today->day);
+                                                }
+                                                $totalShiftDuration = $actualEnd->diffInMinutes($actualStart);
+                                                //Log::info('Actual Start:    ' . $actualStart);
+                                                //Log::info('Actual End:      ' . $actualEnd);
+                                                //Log::info('Duration         ' . $totalShiftDuration);
+                                                break;
+                                            default: // Use "Regular" by default
+                                                //Log::info("Default");
+                                                $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
+                                                $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
+                                                $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
+                                                //Log::info($totalShiftDuration);
+                                                break;
+                                        }
 
-                                    // Log::info('Render           ' . $minutesRendered);
-                                    // Log::info('Total:           ' . $totalRendered);
-                                    // Log::info('Late             ' . $totalLate);
+                                        //Calculations
+                                        $renderedStart = max($dutyStart, $actualStart);
+                                        $renderedEnd = min($dutyEnd, $actualEnd);
+                                        $minutesRendered = $renderedEnd->diffInMinutes($renderedStart);
+
+                                        // Remove Break Time 
+                                        if ($log->shift_type == "Regular" && $gapStart && $gapEnd) {
+                                            $overlapStart = max($renderedStart, $gapStart);
+                                            $overlapEnd = min($renderedEnd, $gapEnd);
+
+                                            if ($overlapStart->format('H:i:s') < $overlapEnd->format('H:i:s')) {
+                                                $totalOverlap = $overlapEnd->diffInMinutes($overlapStart);
+                                                $minutesRendered -= $totalOverlap;
+                                            }
+                                            $minutesRendered = max($minutesRendered, 0);
+                                        }
+
+                                        if ($log->action == "Duty Out") {
+                                            $totalRendered += $minutesRendered;
+                                            $totalLate += max(0, $totalShiftDuration - $minutesRendered);
+                                        } else { // "Overtime Out"
+                                            $totalOvertime += $minutesRendered;
+                                        }
+
+                                        // Log::info('Render           ' . $minutesRendered);
+                                        // Log::info('Total:           ' . $totalRendered);
+                                        // Log::info('Late             ' . $totalLate);
+                                    }
                                 }
+                            } else { // No Attendance Found, Employee is Absent
+                                //Log::Info('Absent For The Day');
+                                $totalAbsences++;
                             }
-                        } else { // No Attendance Found, Employee is Absent
-                            //Log::Info('Absent For The Day');
-                            $totalAbsences++;
+                        } else {
+                            // do nothing, skip day
                         }
                     }
 
@@ -689,5 +698,36 @@ class AttendanceController extends Controller
             ->all();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    public function getNagerHolidays($year)
+    {
+        $holidays = [];
+        $countryCode = 'PH';
+
+        $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
+
+        $response = Http::get($url);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            // Log the API response for debugging
+            // Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
+
+            // Ensure $data is an array before iterating
+            if (is_array($data)) {
+                foreach ($data as $holiday) {
+                    $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                }
+            } else {
+                Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
+            }
+        } else {
+            Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+            Log::error($response->body());
+        }
+
+        return $holidays;
     }
 }

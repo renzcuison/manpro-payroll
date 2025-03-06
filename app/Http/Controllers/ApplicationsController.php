@@ -507,6 +507,66 @@ class ApplicationsController extends Controller
         }
     }
 
+    public function getFullLeaveDays()
+    {
+        // Log::info("ApplicationsController::getFullLeaveDays");
+        $user = Auth::user();
+
+        $department = $user->department;
+        $deptId = $department->id;
+        $deptLimit = $department->leave_limit;
+
+        $branch = $user->branch;
+        $branchId = $branch->id;
+        $branchLimit = $branch->leave_limit;
+
+        $deptFullDates = $this->getFullDayCount("department_id", $deptId, $deptLimit); // Gets Department Capped Dates
+        $branchFullDates = $this->getFullDayCount("branch_id", $branchId, $branchLimit); // Gets Branch Capped Dates
+
+        $fullDates = array_values(array_unique(array_merge($deptFullDates, $branchFullDates)));
+
+        return response()->json(['status' => 200, 'fullDates' => $fullDates]);
+    }
+
+    public function getFullDayCount(String $column, $id, $limit)
+    {
+        // Log::info("ApplicationsController::getFullDayCount");
+
+        $date = Carbon::now();
+        $applications = ApplicationsModel::whereHas('user', function ($query) use ($column, $id) {
+            $query->where($column, $id);
+        })
+            ->whereNotIn('status', ['Cancelled', 'Declined'])
+            ->where('duration_start', '>=', $date)
+            ->get();
+
+        $dateCounts = [];
+        foreach ($applications as $application) {
+            $startDate = Carbon::parse($application->duration_start);
+            $endDate = Carbon::parse($application->duration_end);
+
+            $currentDate = $startDate;
+
+            while ($currentDate->lte($endDate)) {
+                $dateKey = $currentDate->toDateString();
+                if (!isset($dateCounts[$dateKey])) {
+                    $dateCounts[$dateKey] = 0;
+                }
+                $dateCounts[$dateKey]++;
+                $currentDate->addDay();
+            }
+        }
+
+        $fullDates = [];
+        foreach ($dateCounts as $date => $count) {
+            if ($count >= $limit) {
+                $fullDates[] = $date;
+            }
+        }
+
+        return $fullDates;
+    }
+
     public function getNagerHolidays(Request $request)
     {
         //Log::info("ApplicationsController::getNagerHolidays");
@@ -575,65 +635,5 @@ class ApplicationsController extends Controller
             log::error($response);
             return [];
         }
-    }
-
-    public function getFullLeaveDays()
-    {
-        // Log::info("ApplicationsController::getFullLeaveDays");
-        $user = Auth::user();
-
-        $department = $user->department;
-        $deptId = $department->id;
-        $deptLimit = $department->leave_limit;
-
-        $branch = $user->branch;
-        $branchId = $branch->id;
-        $branchLimit = $branch->leave_limit;
-
-        $deptFullDates = $this->getFullDayCount("department_id", $deptId, $deptLimit); // Gets Department Capped Dates
-        $branchFullDates = $this->getFullDayCount("branch_id", $branchId, $branchLimit); // Gets Branch Capped Dates
-
-        $fullDates = array_values(array_unique(array_merge($deptFullDates, $branchFullDates)));
-
-        return response()->json(['status' => 200, 'fullDates' => $fullDates]);
-    }
-
-    public function getFullDayCount(String $column, $id, $limit)
-    {
-        // Log::info("ApplicationsController::getFullDayCount");
-
-        $date = Carbon::now();
-        $applications = ApplicationsModel::whereHas('user', function ($query) use ($column, $id) {
-            $query->where($column, $id);
-        })
-            ->whereNotIn('status', ['Cancelled', 'Declined'])
-            ->where('duration_start', '>=', $date)
-            ->get();
-
-        $dateCounts = [];
-        foreach ($applications as $application) {
-            $startDate = Carbon::parse($application->duration_start);
-            $endDate = Carbon::parse($application->duration_end);
-
-            $currentDate = $startDate;
-
-            while ($currentDate->lte($endDate)) {
-                $dateKey = $currentDate->toDateString();
-                if (!isset($dateCounts[$dateKey])) {
-                    $dateCounts[$dateKey] = 0;
-                }
-                $dateCounts[$dateKey]++;
-                $currentDate->addDay();
-            }
-        }
-
-        $fullDates = [];
-        foreach ($dateCounts as $date => $count) {
-            if ($count >= $limit) {
-                $fullDates[] = $date;
-            }
-        }
-
-        return $fullDates;
     }
 }
