@@ -115,19 +115,20 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/payroll/process?`,
                 text: 'Process',
                 icon: 'fa fa-cogs',
-            }, {
-                href: `/hr/payroll-process?`,
-                text: 'Process Old',
-                icon: 'fa fa-cogs',
-            }, {
-                href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                text: 'Records',
-                icon: 'fa fa-cogs',
-            }, {
-                href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                text: 'Summary',
-                icon: 'fa fa-cogs',
-            }
+            }, 
+            // {
+            //     href: `/hr/payroll-process?`,
+            //     text: 'Process Old',
+            //     icon: 'fa fa-cogs',
+            // }, {
+            //     href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+            //     text: 'Records',
+            //     icon: 'fa fa-cogs',
+            // }, {
+            //     href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
+            //     text: 'Summary',
+            //     icon: 'fa fa-cogs',
+            // }
         ]
     }]
 
@@ -217,39 +218,6 @@ const Sidebar = ({ children, closeMini }) => {
         ]
     }]
 
-    const workDays = [{
-        id: 4,
-        text: 'Work Schedule',
-        icon: 'fa fa-calendar',
-        children: [
-            // { href: `/admin/workdays`, text: 'Workdays' },
-            // { href: `/admin/workhours`, text: 'Work Hours' },
-            {
-                text: 'Work Shifts',
-                children: workshifts.map(shift => ({
-                    // id: shift.id,
-                    href: `/admin/workshift/${shift.link}`,
-                    text: shift.name,
-                })).concat({
-                    // id: 'add-shift',
-                    href: '/admin/workshifts/add',
-                    text: '+ Add Shift',
-                }),
-            },
-            {
-                text: 'Work Groups',
-                children: workgroups.map(group => ({
-                    // id: group.id,
-                    href: `/admin/workgroup/${group.client_id}/${group.id}`,
-                    text: group.name,
-                })).concat({
-                    // id: 'add-group',
-                    href: '/admin/workgroups/add',
-                    text: '+ Add Group',
-                }),
-            },
-        ]
-    }];
 
     return (
         <nav id="sidebar" style={{ zIndex: 1, height: '100vh', overflow: 'hidden' }}>
