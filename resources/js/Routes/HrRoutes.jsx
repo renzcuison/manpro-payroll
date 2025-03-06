@@ -13,7 +13,7 @@ import HrEmployeesBenefits from "../Pages/Hr/HrEmployeesBenefits";
 import HrEmployeesDeductions from "../Pages/Hr/HrEmployeesDeductions";
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 // import Workshifts from "../Pages/Admin/Workshifts/Workshifts";
-import Workshift from "../Pages/Admin/Workshifts/Workshift";
+// import Workshift from "../Pages/Admin/Workshifts/Workshift";
 import HrApplications from "../Pages/Hr/HrApplications";
 import HrApplicationList from "../Pages/Hr/HrApplicationList";
 import HrApplicationLeave from "../Pages/Hr/HrApplicationLeave";
@@ -56,7 +56,7 @@ const HrRoutes = ({ user }) => {
       <Route path="employees-deductions" element={<ProtectedRoute element={<HrEmployeesDeductions />} user={user} />} />
       <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
-      <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} />
+      {/* <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} /> */}
       {/* <Route path="workshifts" element={<ProtectedRoute element={<Workshifts />} user={user} />} /> */}
 
       <Route path="applications" element={<ProtectedRoute element={<HrApplications />} user={user} />} />
