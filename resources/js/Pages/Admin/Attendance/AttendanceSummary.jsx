@@ -28,7 +28,7 @@ const AttendanceSummary = () => {
                 year: dayjs(month).year(),
             }
         }).then((response) => {
-            setAttendanceSummary(response.data.attendance_summary || []);
+            setAttendanceSummary(response.data.summary || []);
             setIsLoading(false);
         }).catch((error) => {
             console.error('Error fetching summary:', error);
