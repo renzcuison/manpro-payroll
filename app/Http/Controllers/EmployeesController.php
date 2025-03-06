@@ -151,8 +151,8 @@ class EmployeesController extends Controller
 
     public function saveRegistration(Request $request)
     {
-        log::info("EmployeesController::saveRegistration");
-        log::info($request);
+        //log::info("EmployeesController::saveRegistration");
+        //log::info($request);
 
         $validated = $request->validate([
             'firstName' => 'required',
@@ -196,6 +196,9 @@ class EmployeesController extends Controller
 
                 DB::commit();
 
+                $formLink->used = $formLink->used + 1;
+                $formLink->save();
+
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -226,7 +229,8 @@ class EmployeesController extends Controller
 
     public function editEmmployeeDetails(Request $request)
     {
-        // log::info("EmployeesController::editEmmployeeDetails");
+        log::info("EmployeesController::editEmmployeeDetails");
+        log::info($request);
 
         $user = Auth::user();
         $employee = UsersModel::find($request->id);
@@ -268,8 +272,7 @@ class EmployeesController extends Controller
 
         if ($this->checkUser()) {
 
-            $formLinks = UserFormsModel::where('client_id', $user->client_id)
-                ->get();
+            $formLinks = UserFormsModel::where('client_id', $user->client_id)->get();
 
             return response()->json(['status' => 200, 'form_links' => $formLinks]);
         }

@@ -111,6 +111,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
         Route::post('/saveRole', [SettingsController::class, 'saveRole']);
         Route::post('/editRole', [SettingsController::class, 'editRole']);
+
+        Route::post('/saveApplicationType', [SettingsController::class, 'saveApplicationType']);
+        Route::post('/editApplicationType', [SettingsController::class, 'editApplicationType']);
     });
 
     Route::prefix('employee')->group(function () {
@@ -140,10 +143,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getWorkShiftLinks', [WorkScheduleController::class, 'getWorkShiftLinks']);
         Route::get('/getWorkShiftDetails', [WorkScheduleController::class, 'getWorkShiftDetails']);
 
-
         Route::post('/saveSplitWorkShift', [WorkScheduleController::class, 'saveSplitWorkShift']);
         Route::post('/saveRegularWorkShift', [WorkScheduleController::class, 'saveRegularWorkShift']);
-
 
         Route::get('/getWorkGroups', [WorkScheduleController::class, 'getWorkGroups']);
         Route::get('/getWorkGroupLinks', [WorkScheduleController::class, 'getWorkGroupLinks']);
@@ -153,6 +154,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveWorkGroup', [WorkScheduleController::class, 'saveWorkGroup']);
         Route::post('/saveWorkGroupShift', [WorkScheduleController::class, 'saveWorkGroupShift']);
 
+        Route::get('/getWorkHours', [WorkScheduleController::class, 'getWorkHours']);
 
         Route::get('/getWorkDays', [WorkScheduleController::class, 'getWorkDays']);
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
@@ -183,6 +185,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
+        Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
 
         Route::get('/getMyApplications', [ApplicationsController::class, 'getMyApplications']);
@@ -199,6 +202,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
+
+        Route::get('/getLeaveCreditLogs/{id}', [ApplicationsController::class, 'getLeaveCreditLogs']);
     });
 
     Route::prefix('announcements')->group(function () {
@@ -227,7 +232,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('adminDashboard')->group(function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
-        Route::get('/getTodaysAttendance', [AdminDashboardController::class, 'getTodaysAttendance']);
+        Route::get('/getAttendance', [AdminDashboardController::class, 'getAttendance']);
     });
 
     Route::prefix('trainings')->group(function () {

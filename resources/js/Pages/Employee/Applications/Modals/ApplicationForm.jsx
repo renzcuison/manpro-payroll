@@ -20,7 +20,7 @@ import {
     MenuItem,
     Stack
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
+import { Cancel, InfoOutlined } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -35,9 +35,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
+import minMax from "dayjs/plugin/minMax";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
+dayjs.extend(minMax);
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import { validateDate } from "@mui/x-date-pickers";
@@ -52,13 +54,19 @@ const ApplicationForm = ({ open, close }) => {
     const [appType, setAppType] = useState("");
     const [tenureship, setTenureship] = useState(0);
 
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
-    const [applicationDuration, setApplicationDuration] = useState("");
+    const [fromDate, setFromDate] = useState(dayjs().startOf('hour'));
+    const [toDate, setToDate] = useState(dayjs().startOf('hour'));
+
+    const [workHours, setWorkHours] = useState(0);
+    const [leaveUsed, setLeaveUsed] = useState(0);
     const [fullDates, setFullDates] = useState([]);
 
-    const [description, setDescription] = useState("");
+    const [holidayDates, setHolidayDates] = useState([]);
+    const [holidayNames, setHolidayNames] = useState([]);
+    const [weekendCount, setWeekendCount] = useState(0);
+    const [holidayCount, setHolidayCount] = useState(0);
 
+    const [description, setDescription] = useState("");
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [fileRequired, setFileRequired] = useState(false);
@@ -69,9 +77,9 @@ const ApplicationForm = ({ open, close }) => {
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
     const [dateRangeError, setDateRangeError] = useState(false);
+    const [leaveUsedError, setLeaveUsedError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
-
     const [fileError, setFileError] = useState(false);
 
 
@@ -96,9 +104,35 @@ const ApplicationForm = ({ open, close }) => {
             });
 
         axiosInstance
+            .get(`workshedule/getWorkHours`, { headers })
+            .then((response) => {
+                setWorkHours(response.data.workHours);
+            })
+            .catch((error) => {
+                console.error("Error fetching tenureship duration:", error);
+            });
+
+        axiosInstance
             .get(`applications/getFullLeaveDays`, { headers })
             .then((response) => {
                 setFullDates(response.data.fullDates);
+            })
+            .catch((error) => {
+                console.error("Error fetching Full Days:", error);
+            });
+
+        axiosInstance
+            .get(`applications/getNagerHolidays`, {
+                headers,
+                params: {
+                    start_date: fromDate,
+                    to_date: toDate
+                }
+            })
+            .then((response) => {
+                ;
+                setHolidayDates(response.data.holiday_dates);
+                setHolidayNames(response.data.holiday_names);
             })
             .catch((error) => {
                 console.error("Error fetching Full Days:", error);
@@ -195,28 +229,30 @@ const ApplicationForm = ({ open, close }) => {
     // Validate Date Range
     const validateDates = (dateTime, type) => {
         const dates = [];
-        let currentDate = new Date(fromDate);
-        let endDate = new Date(toDate);
+        let currentDate = dayjs(fromDate).startOf('hour')
+        let endDate = dayjs(toDate).startOf('hour')
+
+        let adjustedDateTime = dayjs(dateTime).startOf('hour');
 
         // Set Date States
         if (type === "From") {
-            setFromDate(dateTime);
-            currentDate = new Date(dateTime)
+            setFromDate(adjustedDateTime);
+            currentDate = adjustedDateTime
 
-            if (dateTime.isAfter(toDate)) {
-                setToDate(dateTime);
-                endDate = new Date(dateTime);
+            if (adjustedDateTime.isAfter(toDate)) {
+                setToDate(adjustedDateTime);
+                endDate = adjustedDateTime
             }
 
         } else if (type === "To") {
-            setToDate(dateTime);
-            endDate = new Date(dateTime);
+            setToDate(adjustedDateTime);
+            endDate = adjustedDateTime
         }
 
         // Date-Full Date Comparison
         while (currentDate <= endDate) {
-            dates.push(new Date(currentDate).toISOString().split('T')[0]);
-            currentDate.setDate(currentDate.getDate() + 1);
+            dates.push(currentDate.format('YYYY-MM-DD'));
+            currentDate = currentDate.add(1, 'day')
         }
 
         if (dates.some(date => fullDates.includes(date))) {
@@ -226,8 +262,163 @@ const ApplicationForm = ({ open, close }) => {
         }
     }
 
+    // Leave Credit Calculation
+    useEffect(() => {
+        if (toDate.isBefore(fromDate)) {
+            setLeaveUsed(0);
+            return;
+        }
+        let creditsUsed = 0;
+        let weekends = 0;
+        let holidays = 0;
+        let skipDay;
+
+        if (workHours) {
+            let currentDate = fromDate.startOf('day');
+            let lastDate = toDate.startOf('day');
+
+            const firstIn = parseTime(workHours.first_time_in);
+            const firstOut = parseTime(workHours.first_time_out);
+            const dayStart = currentDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+            const lastStart = lastDate.set('hour', firstIn.hr).set('minute', firstIn.min).set('second', firstIn.sec);
+
+            let dayEnd, dayGapStart, dayGapEnd;
+            let lastEnd, lastGapStart, lastGapEnd;
+            let affectedStart, affectedEnd, affectedTime;
+
+            // Data Preps
+            if (workHours.shift_type == "Regular") {
+                const breakStart = parseTime(workHours.break_start);
+                const breakEnd = parseTime(workHours.break_end);
+
+                dayEnd = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapStart = currentDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                dayGapEnd = currentDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+                lastEnd = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapStart = lastDate.set('hour', breakStart.hr).set('minute', breakStart.min).set('second', breakStart.sec);
+                lastGapEnd = lastDate.set('hour', breakEnd.hr).set('minute', breakEnd.min).set('second', breakEnd.sec);
+
+
+            } else if (workHours.shift_type == "Split") {
+                const secondIn = parseTime(workHours.second_time_in);
+                const secondOut = parseTime(workHours.second_time_out);
+
+                dayEnd = currentDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                dayGapStart = currentDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                dayGapEnd = currentDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+
+                lastEnd = lastDate.set('hour', secondOut.hr).set('minute', secondOut.min).set('second', secondOut.sec);
+                lastGapStart = lastDate.set('hour', firstOut.hr).set('minute', firstOut.min).set('second', firstOut.sec);
+                lastGapEnd = lastDate.set('hour', secondIn.hr).set('minute', secondIn.min).set('second', secondIn.sec);
+            }
+
+            // Same Day Calculations
+            if (fromDate.isSame(toDate, 'day')) {
+                skipDay = excludeDate(currentDate);
+
+                if (skipDay.excluded) {
+                    if (skipDay.type == "Holiday") {
+                        holidays++;
+                    } else if (skipDay.type == "Weekend") {
+                        weekends++;
+                    }
+                } else {
+                    if (fromDate.isAfter(dayEnd) || toDate.isBefore(dayStart)) {
+                        creditsUsed = 0;
+                    } else {
+                        affectedStart = dayjs.max(fromDate, dayStart);
+                        affectedEnd = dayjs.min(toDate, dayEnd);
+
+                        affectedTime = affectedEnd.diff(affectedStart, 'hour', true);
+
+                        if (affectedStart.isBefore(dayGapStart) || affectedStart.isSame(dayGapStart)) {
+                            if (affectedEnd.isAfter(dayGapEnd) || affectedEnd.isSame(dayGapEnd)) {
+                                affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                            } else if (affectedEnd.isAfter(dayGapStart)) {
+                                affectedTime -= affectedEnd.diff(dayGapStart, 'hour', true);
+                            }
+                        } else if (affectedStart.isBetween(dayGapStart, dayGapEnd)) {
+                            if (affectedEnd.isAfter(dayGapEnd)) {
+                                affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
+                            } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
+                                affectedTime = 0
+                            }
+                        }
+                        creditsUsed = affectedTime / workHours.total_hours;
+                    }
+                }
+            } else {
+                // Multiple Day Calculations
+                while (currentDate.isBefore(toDate) || currentDate.isSame(toDate, 'day')) {
+                    affectedTime = 0;
+
+                    skipDay = excludeDate(currentDate);
+
+                    // Weekend, Holiday Check
+                    if (skipDay.excluded) {
+                        if (skipDay.type == "Holiday") {
+                            holidays++;
+                        } else if (skipDay.type == "Weekend") {
+                            weekends++;
+                        }
+                    } else {
+                        if (currentDate.isAfter(fromDate, 'day') && currentDate.isBefore(toDate, 'day')) {
+                            affectedTime = workHours.total_hours;
+                            //console.log(`Full Day   ${affectedTime}`);
+                        } else if (currentDate.isSame(fromDate, 'day') && !fromDate.isAfter(dayEnd)) {
+                            affectedStart = dayjs.max(fromDate, dayStart);
+                            affectedTime = dayEnd.diff(affectedStart, 'hour', true);
+
+                            if (affectedStart.isBefore(dayGapStart)) {
+                                affectedTime -= dayGapEnd.diff(dayGapStart, 'hour', true);
+                            } else if (affectedStart.isBefore(dayGapEnd)) {
+                                affectedTime -= dayGapEnd.diff(affectedStart, 'hour', true);
+                            }
+                            //console.log(`First Day  ${affectedTime}`);
+                        } else if (currentDate.isSame(toDate, 'day') && !toDate.isBefore(lastStart)) {
+                            affectedEnd = dayjs.min(toDate, lastEnd);
+                            affectedTime = affectedEnd.diff(lastStart, 'hour', true);
+
+                            if (affectedEnd.isAfter(lastGapEnd)) {
+                                affectedTime -= lastGapEnd.diff(lastGapStart, 'hour', true);
+                            } else if (affectedEnd.isAfter(lastGapStart)) {
+                                affectedTime -= affectedEnd.diff(lastGapStart, 'hour', true);
+                            }
+                            //console.log(`Last Day   ${affectedTime}`)
+                        }
+                    }
+
+                    creditsUsed += affectedTime / workHours.total_hours
+                    currentDate = currentDate.add(1, 'day');
+                }
+            }
+        }
+        setWeekendCount(weekends);
+        setHolidayCount(holidays);
+        setLeaveUsed(Number(creditsUsed.toFixed(2)));
+        //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+    }, [fromDate, toDate]);
+
+    // Time Parser
+    const parseTime = (timeString) => {
+        if (!timeString) return { hr: 0, min: 0, sec: 0 };
+        const [hr, min, sec] = timeString.split(':').map(Number);
+        return { hr, min, sec };
+    };
+
+    // Weekend, Holiday Exclusion
+    const excludeDate = (date) => {
+        if (holidayDates.includes(date.format('YYYY-MM-DD'))) {
+            return { excluded: true, type: "Holiday" };
+        } else {
+            const day = date.day();
+            return { excluded: day === 0 || day === 6, type: "Weekend" };
+        }
+    };
+
     // Input Verification
-    const handleApplicationSubmit = (event) => {
+    const checkInput = (event) => {
         event.preventDefault();
 
         if (!appType) {
@@ -255,6 +446,11 @@ const ApplicationForm = ({ open, close }) => {
         } else {
             setFileError(false);
         }
+        if (leaveUsed == 0) {
+            setLeaveUsedError(true);
+        } else {
+            setLeaveUsedError(false);
+        }
 
         if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
             document.activeElement.blur();
@@ -275,6 +471,16 @@ const ApplicationForm = ({ open, close }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
+        } else if (leaveUsed == 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "No Leave Credits Applied!",
+                text: `The selected range does not use any leave credits.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
         } else {
             document.activeElement.blur();
             Swal.fire({
@@ -289,14 +495,14 @@ const ApplicationForm = ({ open, close }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveApplication(event);
+                    saveInput(event);
                 }
             });
         }
     };
 
     // Final Submission
-    const saveApplication = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
         const formData = new FormData();
@@ -304,6 +510,7 @@ const ApplicationForm = ({ open, close }) => {
         formData.append("from_date", fromDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("to_date", toDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("description", description);
+        formData.append("leave_used", leaveUsed);
         if (attachment.length > 0) {
             attachment.forEach(file => {
                 formData.append('attachment[]', file);
@@ -345,24 +552,6 @@ const ApplicationForm = ({ open, close }) => {
             });
     };
 
-    // Duration Calculation
-    useEffect(() => {
-        const duration = dayjs.duration(toDate.diff(fromDate));
-
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
-        setApplicationDuration(durationInfo);
-    }, [fromDate, toDate]);
-
     return (
         <>
             <Dialog
@@ -380,7 +569,7 @@ const ApplicationForm = ({ open, close }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
-                    <Box component="form" onSubmit={handleApplicationSubmit} noValidate autoComplete="off" >
+                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12} sx={{ mt: 1 }}>
@@ -393,7 +582,7 @@ const ApplicationForm = ({ open, close }) => {
                                         },
                                     }}
                                 >
-                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value) } >
+                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value)} >
                                         {applicationTypes.filter(type => tenureship >= type.tenureship_required)
                                             .map((type, index) => (
                                                 <MenuItem key={index} value={type.id}> {type.name} </MenuItem>
@@ -410,7 +599,7 @@ const ApplicationForm = ({ open, close }) => {
                                         label="From"
                                         value={fromDate}
                                         minDate={dayjs()}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "From")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -418,9 +607,9 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: fromDateError || dateRangeError,
+                                                error: fromDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
@@ -435,7 +624,7 @@ const ApplicationForm = ({ open, close }) => {
                                         label="To"
                                         value={toDate}
                                         minDateTime={fromDate}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "To")}
                                         shouldDisableDate={(day) => {
                                             const dateString = day.format('YYYY-MM-DD');
@@ -443,22 +632,41 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError,
+                                                error: toDateError || dateRangeError || leaveUsedError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
                                             }
                                         }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
-                            {/* Duration */}
+                            {/* Leave Credits */}
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        label="Duration"
-                                        value={applicationDuration}
+                                        label="Leave Used"
+                                        value={leaveUsed}
+                                        error={leaveUsedError}
                                         InputProps={{ readOnly: true }}
-                                    ></TextField>
+                                        sx={{
+                                            '& .MuiFormHelperText-root': {
+                                                color: leaveUsedError ? "#f44336" : '#42a5f5',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                            },
+                                        }}
+                                        helperText={
+                                            (holidayCount > 0 || weekendCount > 0) ? (
+                                                <>
+                                                    <InfoOutlined fontSize="small" />
+                                                    <span>
+                                                        {`${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`}
+                                                    </span>
+                                                </>
+                                            ) : ''
+                                        }
+                                    />
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}

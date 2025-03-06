@@ -19,6 +19,7 @@ class ApplicationsModel extends Model
         'duration_end',
         'description',
         'status',
+        'leave_used',
         'user_id',
         'client_id',
     ];
@@ -41,36 +42,36 @@ class ApplicationsModel extends Model
     public function department()
     {
         return $this->hasOneThrough(
-            DepartmentsModel::class, 
-            UsersModel::class, 
+            DepartmentsModel::class,
+            UsersModel::class,
             'id',               // users.id
             'id',               // departmentss.id
             'user_id',          // Foreign key to users.id
             'department_id'     // Foreign key to departments.id
-        );   
+        );
     }
 
     public function branch()
     {
         return $this->hasOneThrough(
-            BranchesModel::class, 
-            UsersModel::class, 
+            BranchesModel::class,
+            UsersModel::class,
             'id',               // users.id
             'id',               // branches.id
             'user_id',          // Foreign key to users.id
             'branch_id'         // Foreign key to branches.id
-        );   
+        );
     }
 
     public function jobTitle()
     {
         return $this->hasOneThrough(
-            JobTitlesModel::class, 
-            UsersModel::class, 
+            JobTitlesModel::class,
+            UsersModel::class,
             'id',               // users.id
             'id',               // job_titles.id
             'user_id',          // Foreign key to users.id
             'job_title_id'     // Foreign key to job_titles.id
-        );   
+        );
     }
 }

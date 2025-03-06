@@ -158,14 +158,11 @@ class BenefitsController extends Controller
     
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
 
+            $benefits = [];
             $rawBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->where('deleted_at', null)->get();
 
             foreach ($rawBenefits as $rawBenefit) {
-
-                $benefits[] = [
-                    'id' => $rawBenefit->id,
-                    'benefit' => $rawBenefit->benefit->name,
-                ];
+                $benefits[] = [ 'id' => $rawBenefit->id, 'benefit' => $rawBenefit->benefit->name ];
             }
 
             return response()->json(['status' => 200, 'benefits' => $benefits]);

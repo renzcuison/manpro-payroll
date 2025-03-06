@@ -54,40 +54,12 @@ const EmployeesList = () => {
                         </Link>
                          */}
 
-                        <Button
-                            id="employee-menu"
-                            variant="contained"
-                            color="primary"
-                            aria-controls={open ? 'emp-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? 'true' : undefined}
-                            onClick={handleMenuOpen}
-                        >
+                        <Button id="employee-menu" variant="contained" color="primary" aria-controls={open ? 'emp-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleMenuOpen} >
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
-                        <Menu
-                            id="emp-menu"
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleMenuClose}
-                            MenuListProps={{
-                                'aria-labelledby': 'employee_menu',
-                            }}
-                        >
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/add"
-                                onClick={handleMenuClose}
-                            >
-                                Add Employee
-                            </MenuItem>
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/formlinks"
-                                onClick={handleMenuClose}
-                            >
-                                Employee Form Links
-                            </MenuItem>
+                        <Menu id="emp-menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'employee_menu' }} >
+                            <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose}> Add Employee </MenuItem>
+                            <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose}> Employee Form Links </MenuItem>
                         </Menu>
                     </Box>
 
@@ -123,8 +95,8 @@ const EmployeesList = () => {
                                                     <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                     <TableCell align="center">{employee.department || '-'}</TableCell>
                                                     <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
                                                     <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>

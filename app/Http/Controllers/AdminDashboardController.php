@@ -189,4 +189,58 @@ class AdminDashboardController extends Controller
             ]);
         }
     }
+
+    public function getAttendance()
+    {
+        // Log::info("AdminDashboardController::getAttendance");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+
+            $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+                $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
+            })
+                ->whereDate('timestamp', Carbon::now()->toDateString())
+                ->with('user')
+                ->get()
+                ->groupBy('user_id')
+                ->sortKeysDesc()
+                ->map(function ($logs,) {
+
+                    // First Time In
+                    $timeIn = $logs->firstWhere('action', 'Duty In');
+                    // Last Time Out
+                    $timeOut = $logs->last(function ($log) {
+                        return $log->action === 'Duty Out';
+                    });
+
+                    // First Overtime In
+                    $overtimeIn = $logs->firstWhere('action', 'Overtime In');
+                    // Last Overtime Out
+                    $overtimeOut = $logs->last(function ($log) {
+                        return $log->action === 'Overtime Out';
+                    });
+
+                    $user = $logs->first()->user;
+
+                    return [
+                        'first_name' => $user->first_name ?? null,
+                        'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
+                        'suffix' => $user->suffix ?? null,
+                        'time_in' => $timeIn ? $timeIn->timestamp : null,
+                        'time_out' => $timeOut ? $timeOut->timestamp : null,
+                        'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
+                        'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json(['status' => 200, 'attendance' => $attendances]);
+        } else {
+            return response()->json(['status' => 200, 'attendance' => null]);
+        }
+    }
 }

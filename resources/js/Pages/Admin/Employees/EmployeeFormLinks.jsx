@@ -185,11 +185,19 @@ const EmployeeFormLinks = () => {
                                                             </TableCell>
                                                         </TableRow>
                                                     ))
-                                                ) : <TableRow
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <TableCell align="left" colSpan={8}>No Form Link</TableCell>
-                                                </TableRow>
+                                                ) :
+                                                    <TableRow>
+                                                        <TableCell
+                                                            colSpan={8}
+                                                            align="center"
+                                                            sx={{
+                                                                color: "text.secondary",
+                                                                p: 1,
+                                                            }}
+                                                        >
+                                                            No Form Links Found
+                                                        </TableCell>
+                                                    </TableRow>
                                             }
                                         </TableBody>
                                     </Table>

@@ -15,9 +15,14 @@ class WorkGroupsModel extends Model
 
     protected $fillable = [
         'name',
-        
+
         'work_shift_id',
         'client_id',
         'deleted_at',
     ];
+
+    public function shift()
+    {
+        return $this->belongsTo(WorkShiftsModel::class, 'work_shift_id');
+    }
 }

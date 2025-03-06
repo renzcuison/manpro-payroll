@@ -53,8 +53,6 @@ class TrainingsController extends Controller
     {
         //Log::info("TrainingsController::saveTraining");
         $user = Auth::user();
-        Log::info($request);
-
 
         if ($this->checkUser()) {
             try {
@@ -79,14 +77,53 @@ class TrainingsController extends Controller
                     'created_by' => $user->id,
                 ]);
 
-                foreach ($request->input('media') as $index => $media) {
+                $orderCounter = 0;
+
+                // Save Links
+                foreach ($request->input('link') as $link) {
+                    $orderCounter++;
                     TrainingMediaModel::create([
                         'training_id' => $training->id,
-                        'url' => $media->link,
-                        'type' => "Form",
-                        'order' => $index + 1
+                        'path' => null,
+                        'url' => $link,
+                        'type' => "Video",
+                        'order' => $orderCounter
                     ]);
                 }
+
+                // Save Attachments
+                if ($request->hasFile('attachment')) {
+                    foreach ($request->file('attachment') as $file) {
+                        $orderCounter++;
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('trainings/attachments', $fileName, 'public');
+                        TrainingMediaModel::create([
+                            'training_id' => $training->id,
+                            'path' => $filePath,
+                            'url' => null,
+                            'type' => "Document",
+                            'order' => $orderCounter
+                        ]);
+                    }
+                }
+
+                // Save Images
+                if ($request->hasFile('image')) {
+                    foreach ($request->file('image') as $file) {
+                        $orderCounter++;
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('trainings/images', $fileName, 'public');
+                        TrainingMediaModel::create([
+                            'training_id' => $training->id,
+                            'path' => $filePath,
+                            'url' => null,
+                            'type' => "Image",
+                            'order' => $orderCounter
+                        ]);
+                    }
+                }
+
+
                 DB::commit();
 
                 return response()->json(['status' => 200]);

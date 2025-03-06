@@ -198,7 +198,16 @@ const AttendanceView = () => {
                                                         <TableRow
                                                             key={index}
                                                             onClick={() => handleOpenAttendanceDetails(summary.date)}
-                                                            sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", }}
+                                                            sx={{
+                                                                backgroundColor:
+                                                                    index % 2 === 0
+                                                                        ? "#f8f8f8"
+                                                                        : "#ffffff",
+                                                                "&:hover": {
+                                                                    backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                                    cursor: "pointer",
+                                                                },
+                                                            }}
                                                         >
                                                             <TableCell align="center">
                                                                 {dayjs(summary.date).format("MMMM D, YYYY")}
@@ -211,7 +220,7 @@ const AttendanceView = () => {
                                                             <TableCell align="center">
                                                                 {summary.time_out
                                                                     ? dayjs(summary.time_out).format("hh:mm:ss A")
-                                                                    : summary.time_in ? "Failed to Time Out"
+                                                                    : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out"
                                                                         : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">

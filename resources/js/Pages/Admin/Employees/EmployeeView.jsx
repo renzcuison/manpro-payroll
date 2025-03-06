@@ -11,6 +11,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import EmployeeAddBenefit from '../Employees/Modals/EmployeeAddBenefit';
 import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
 import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
+import EmployeeProfileEdit from './Modals/EmployeeProfileEdit';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -25,6 +26,7 @@ const EmployeeView = () => {
     const [benefits, setBenefits] = useState([]);
 
     const [openEmployeeAddBenefitModal, setOpenEmployeeAddBenefitModal] = useState(false);
+    const [openEmployeeProfileEditModal, setOpenEmployeeProfileEditModal] = useState(false);
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
     const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
 
@@ -32,7 +34,7 @@ const EmployeeView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
-        getEmployeeBenefits();
+        //getEmployeeBenefits();
     }, []);
 
     const getEmployeeDetails = () => {
@@ -44,6 +46,7 @@ const EmployeeView = () => {
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {
+                    console.log(response.data.employee);
                     setEmployee(response.data.employee);
                 }
             }).catch((error) => {
@@ -51,18 +54,18 @@ const EmployeeView = () => {
             });
     };
 
-    const getEmployeeBenefits = () => {
-        const data = { username: user };
+    // const getEmployeeBenefits = () => {
+    //     const data = { username: user };
 
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setBenefits(response.data.benefits);
-                }
-            }).catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    };
+    //     axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
+    //         .then((response) => {
+    //             if (response.data.status === 200) {
+    //                 setBenefits(response.data.benefits);
+    //             }
+    //         }).catch((error) => {
+    //             console.error('Error fetching benefits:', error);
+    //         });
+    // };
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
@@ -95,29 +98,38 @@ const EmployeeView = () => {
         setAnchorEl(null);
     };
 
+    // Employment Details
     const handleOpenEmploymentDetailsEditModal = () => {
         setOpenEmploymentDetailsEditModal(true);
     }
-
     const handleCloseEmploymentDetailsEditModal = () => {
         setOpenEmploymentDetailsEditModal(false);
     }
 
+    // Benefits
     const handleOpenEmployeeAddBenefitModal = () => {
         setOpenEmployeeAddBenefitModal(true);
     }
-
     const handleCloseEmployeeAddBenefitModal = () => {
         setOpenEmployeeAddBenefitModal(false);
     }
 
+    // Leave Credits
     const handleOpenEmployeeLeaveCreditsModal = () => {
         setOpenEmployeeLeaveCreditsModal(true);
     }
-
     const handleCloseEmployeeLeaveCreditsModal = () => {
         setOpenEmployeeLeaveCreditsModal(false);
     }
+
+    // Employee Profile
+    const handleOpenEmployeeProfileEditModal = () => {
+        setOpenEmployeeProfileEditModal(true);
+    }
+    const handleCloseEmployeeProfileEditModal = () => {
+        setOpenEmployeeProfileEditModal(false);
+    }
+
 
     const renderAttendanceContent = () => (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -151,6 +163,7 @@ const EmployeeView = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
+                            <MenuItem onClick={handleOpenEmployeeProfileEditModal}> Edit Employee Profile </MenuItem>
                             <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
                             <MenuItem onClick={handleOpenEmployeeAddBenefitModal}> Add Benefit </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
@@ -378,6 +391,13 @@ const EmployeeView = () => {
                     <EmployeeLeaveCredits
                         open={openEmployeeLeaveCreditsModal}
                         close={handleCloseEmployeeLeaveCreditsModal}
+                        employee={employee}
+                    />}
+
+                {openEmployeeProfileEditModal &&
+                    <EmployeeProfileEdit
+                        open={openEmployeeProfileEditModal}
+                        close={handleCloseEmployeeProfileEditModal}
                         employee={employee}
                     />}
 

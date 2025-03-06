@@ -17,6 +17,8 @@ import RolesEdit from './Modals/RolesEdit';
 import BranchesEdit from './Modals/BranchesEdit';
 import JobTitlesEdit from './Modals/JobTitlesEdit';
 import DepartmentsEdit from './Modals/DepartmentsEdit';
+import ApplicationTypesAdd from './Modals/ApplicationTypesAdd';
+import ApplicationTypesEdit from './Modals/ApplicationTypesEdit';
 
 const GeneralSettings = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -24,26 +26,31 @@ const GeneralSettings = () => {
 
     const [isRolesLoading, setIsRolesLoading] = useState(true);
     const [isBranchesLoading, setIsBranchesLoading] = useState(true);
+    const [isAppTypesLoading, setIsAppTypesLoading] = useState(true);
     const [isJobTitlesLoading, setIsJobTitlesLoading] = useState(true);
     const [isDepartmentLoading, setIsDepartmentsLoading] = useState(true);
 
     const [roles, setRoles] = useState([]);
     const [branches, setBranches] = useState([]);
+    const [appTypes, setAppTypes] = useState([]);
     const [jobTitles, setJobTitles] = useState([]);
     const [departments, setDepartments] = useState([]);
 
     const [openAddRolesModal, setOpenAddRolesModal] = useState(false);
     const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
+    const [openAddAppTypeModal, setOpenAddAppTypeModal] = useState(false);
     const [openAddJobTitleModal, setOpenAddJobTitleModal] = useState(false);
     const [openAddDepartmentModal, setOpenAddDepartmentModal] = useState(false);
 
     const [openEditRolesModal, setOpenEditRolesModal] = useState(false);
     const [openEditBranchModal, setOpenEditBranchModal] = useState(false);
+    const [openEditAppTypeModal, setOpenEditAppTypeModal] = useState(false);
     const [openEditJobTitleModal, setOpenEditJobTitleModal] = useState(false);
     const [openEditDepartmentModal, setOpenEditDepartmentModal] = useState(false);
 
     const [loadRole, setLoadRole] = useState([]);
     const [loadBranch, setLoadBranch] = useState([]);
+    const [loadAppType, setLoadAppType] = useState([]);
     const [loadJobTitle, setLoadJobTitle] = useState([]);
     const [loadDepartment, setLoadDepartment] = useState([]);
 
@@ -52,6 +59,7 @@ const GeneralSettings = () => {
         fetchDepartments();
         fetchJobTitles();
         fetchRoles();
+        fetchAppTypes();
     }, []);
 
     // Fetch Branches
@@ -128,7 +136,7 @@ const GeneralSettings = () => {
                 setIsJobTitlesLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching branches:', error);
+                console.error('Error fetching job titles:', error);
             });
     }
 
@@ -161,7 +169,7 @@ const GeneralSettings = () => {
                 setIsRolesLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching branches:', error);
+                console.error('Error fetching roles:', error);
             });
     }
 
@@ -175,7 +183,7 @@ const GeneralSettings = () => {
         fetchRoles();
     }
 
-    // Add Role Functions
+    // Edit Role Functions
     const handleOpenEditRoleModal = (role) => {
         setLoadRole(role);
         setOpenEditRolesModal(true);
@@ -184,6 +192,40 @@ const GeneralSettings = () => {
     const handleCloseEditRoleModal = () => {
         setOpenEditRolesModal(false);
         fetchRoles();
+    }
+
+
+    // Fetch Application Types
+    const fetchAppTypes = () => {
+        axiosInstance.get('/applications/getApplicationTypes', { headers })
+            .then((response) => {
+                setAppTypes(response.data.types);
+                setIsAppTypesLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching application types:', error);
+            });
+    }
+
+    // Add Role Functions
+    const handleOpenAddAppTypeModal = () => {
+        setOpenAddAppTypeModal(true);
+    }
+
+    const handleCloseAddAppTypeModal = () => {
+        setOpenAddAppTypeModal(false);
+        fetchAppTypes();
+    }
+
+    // Edit Role Functions
+    const handleOpenEditAppTypeModal = (appType) => {
+        setLoadAppType(appType);
+        setOpenEditAppTypeModal(true);
+    }
+
+    const handleCloseEditAppTypeModal = () => {
+        setOpenEditAppTypeModal(false);
+        fetchAppTypes();
     }
 
     return (
@@ -383,6 +425,53 @@ const GeneralSettings = () => {
                     </Grid>
                 </Grid>
 
+                {/* Application Types */}
+                <Grid container spacing={4} sx={{ mt: 1 }}>
+                    {/* Application Types */}
+                    <Grid item xs={6}>
+                        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                                <Typography variant="h5"> Application Types </Typography>
+
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={() => handleOpenAddAppTypeModal()} >
+                                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                                </Button>
+                            </Box>
+
+                            {isAppTypesLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }} >
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="center" sx={{ width: "80%" }}>Name</TableCell>
+                                                    <TableCell align="center" sx={{ width: "20%" }}>Edit</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {appTypes.map((appType) => (
+                                                    <TableRow key={appType.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                        <TableCell align="left">{appType.name}</TableCell>
+                                                        <TableCell align="center">
+                                                            <IconButton onClick={() => handleOpenEditAppTypeModal(appType)}>
+                                                                <Edit />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
+                        </Box>
+                    </Grid>
+                </Grid>
+
                 {openAddBranchModal &&
                     <BranchesAdd open={openAddBranchModal} close={handleCloseAddBranchModal} type={2} />
                 }
@@ -394,6 +483,9 @@ const GeneralSettings = () => {
                 }
                 {openAddRolesModal &&
                     <RolesAdd open={openAddRolesModal} close={handleCloseAddRoleModal} type={2} />
+                }
+                {openAddAppTypeModal &&
+                    <ApplicationTypesAdd open={openAddAppTypeModal} close={handleCloseAddAppTypeModal} type={2} />
                 }
 
                 {openEditBranchModal &&
@@ -407,6 +499,9 @@ const GeneralSettings = () => {
                 }
                 {openEditRolesModal &&
                     <RolesEdit open={openEditRolesModal} close={handleCloseEditRoleModal} roleInfo={loadRole} />
+                }
+                {openEditAppTypeModal &&
+                    <ApplicationTypesEdit open={openEditAppTypeModal} close={handleCloseEditAppTypeModal} appTypeInfo={loadAppType} />
                 }
             </Box>
         </Layout >
