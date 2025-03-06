@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
+import React, { useEffect, useState } from 'react';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress } from '@mui/material';
+import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import { Link, useNavigate } from 'react-router-dom';
 
 const AttendanceLogs = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -18,12 +15,14 @@ const AttendanceLogs = () => {
     useEffect(() => {
         axiosInstance.get('/attendance/getAttendanceLogs', { headers })
             .then((response) => {
-                setAttendances(response.data.attendances);
+                console.log('API Response:', response.data); // Debugging: Log the response
+                setAttendances(response.data.attendances || []); // Fallback to an empty array
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching attendance logs:', error);
                 setIsLoading(false);
+                setAttendances([]); // Fallback to an empty array on error
             });
     }, []);
 
@@ -34,7 +33,6 @@ const AttendanceLogs = () => {
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Attendance Logs </Typography>
-                        <></>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -43,22 +41,28 @@ const AttendanceLogs = () => {
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Timestamp</TableCell>
-                                                <TableCell align="center">Action</TableCell>
-                                            </TableRow>
-                                        </TableHead>
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <Table aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="center">Name</TableCell>
+                                            <TableCell align="center">Branch</TableCell>
+                                            <TableCell align="center">Department</TableCell>
+                                            <TableCell align="center">Role</TableCell>
+                                            <TableCell align="center">Timestamp</TableCell>
+                                            <TableCell align="center">Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
 
-                                        <TableBody>
-                                            {attendances.map((attendance) => (
+                                    <TableBody>
+                                        {!Array.isArray(attendances) || attendances.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} align="center">
+                                                    No attendance records found.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            attendances.map((attendance) => (
                                                 <TableRow key={attendance.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
                                                     <TableCell align="left">{attendance.name || '-'}</TableCell>
                                                     <TableCell align="center">{attendance.branch || '-'}</TableCell>
@@ -67,18 +71,18 @@ const AttendanceLogs = () => {
                                                     <TableCell align="center">{attendance.timeStamp || '-'}</TableCell>
                                                     <TableCell align="center">{attendance.action || '-'}</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         )}
                     </Box>
 
                 </Box>
             </Box>
-        </Layout >
-    )
-}
+        </Layout>
+    );
+};
 
-export default AttendanceLogs
+export default AttendanceLogs;

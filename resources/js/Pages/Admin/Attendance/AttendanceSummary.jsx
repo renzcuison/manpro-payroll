@@ -28,7 +28,7 @@ const AttendanceSummary = () => {
                 year: dayjs(month).year(),
             }
         }).then((response) => {
-            setAttendanceSummary(response.data.summary);
+            setAttendanceSummary(response.data.attendance_summary || []);
             setIsLoading(false);
         }).catch((error) => {
             console.error('Error fetching summary:', error);
@@ -101,45 +101,31 @@ const AttendanceSummary = () => {
                                                 <TableCell align="center">Absences</TableCell>
                                             </TableRow>
                                         </TableHead>
-
                                         <TableBody>
-                                            {attendanceSummary.map((attendance) => (
-                                                <TableRow
-                                                    key={attendance.emp_id}
-                                                    onClick={() => window.location.href = `/admin/attendance/${attendance.emp_user_name}`}
-                                                    sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 },
-                                                        textDecoration: 'none',
-                                                        color: 'inherit',
-                                                        "&:hover": {
-                                                            backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                            cursor: "pointer",
-                                                        },
-                                                    }}
-                                                >
-                                                    <TableCell align="left">
-                                                        {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.emp_branch || '-'}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.emp_department || '-'}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.emp_role || '-'}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.total_rendered !== undefined ? formatTime(attendance.total_rendered) : "-"}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.total_late !== undefined ? formatTime(attendance.total_late) : "-"}
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {attendance.total_absences ? `${attendance.total_absences} days` : "None"}
+                                            {!Array.isArray(attendanceSummary) || attendanceSummary.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={7} align="center">
+                                                        No attendance records found.
                                                     </TableCell>
                                                 </TableRow>
-                                            ))}
+                                            ) : (
+                                                attendanceSummary.map((attendance) => (
+                                                    <TableRow
+                                                        key={attendance.emp_id}
+                                                        component={Link}
+                                                        to={`/admin/attendance/${attendance.emp_user_name}`}
+                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
+                                                    >
+                                                        <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>
+                                                        <TableCell align="center">{attendance.emp_branch || '-'}</TableCell>
+                                                        <TableCell align="center">{attendance.emp_department || '-'}</TableCell>
+                                                        <TableCell align="center">{attendance.emp_role || '-'}</TableCell>
+                                                        <TableCell align="center">{attendance.total_minutes || '-'}</TableCell>
+                                                        <TableCell align="center">{attendance.total_late || '-'}</TableCell>
+                                                        <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

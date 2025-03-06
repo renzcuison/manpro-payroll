@@ -8,8 +8,8 @@ import axios from "axios";
 // const baseURL = "https://phplaravel-719501-3975047.cloudwaysapps.com/api";
 
 // LOCAL MANPRO
-const baseURL = "http://localhost:8000/api";
-// const baseURL = "http://localhost:8080/api";
+// const baseURL = "http://localhost:8000/api";
+const baseURL = "http://localhost:8080/api";
     
 console.log("Base URL: " + baseURL);
 
