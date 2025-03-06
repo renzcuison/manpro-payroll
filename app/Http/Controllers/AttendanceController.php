@@ -243,6 +243,63 @@ class AttendanceController extends Controller
             $month = $request->input('month', Carbon::now()->month);
             $year = $request->input('year', Carbon::now()->year);
 
+            //Log::info($month);
+            //Log::info($year);
+
+            try {
+                // Retrieve Employees
+                $employees = UsersModel::where('client_id', $clientId)
+                    ->where('user_type', 'Employee')
+                    ->where('employment_status', 'Active')
+                    ->get();
+
+                // Attendance Compiler
+                $attendanceSummary  = $employees->map(function ($employee) use ($month, $year) {
+                    // Retrieve Daily Logs per Employee
+                    $attendanceLogs = AttendanceLogsModel::with('workHour')
+                        ->where('user_id', $employee->id)
+                        ->whereYear('timestamp', $year)
+                        ->whereMonth('timestamp', $month)
+                        ->orderBy('timestamp', 'asc')
+                        ->get()
+                        ->groupBy(function ($log) {
+                            return Carbon::parse($log->timestamp)->format('Y-m-d');
+                        });
+
+                    // Data Prep
+                    $totalRendered = 0;         // minutes
+                    $totalLate = 0;             // seconds
+                    $totalAbsences = 0;         // days
+                    $totalShiftDuration = 0;    // minutes
+
+                    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+                    $endDay = ($year == Carbon::now()->year &&  $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+                    // $totalRenderedMinutes = 0;
+                    // $totalLateSeconds = 0;
+                    // $totalAbsences = 0;
+                    // $totalShiftMinutes = 0;
+                    // $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+                    // $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+                })->all();
+            } catch (\Exception $e) {
+            }
+            return response()->json(['status' => 200, 'summary' => $attendanceSummary]);
+        } else {
+            return response()->json(['status' => 200, 'summary' => null]);
+        }
+    }
+
+    public function getAttendanceSummaryOld(Request $request)
+    {
+        //Log::info("AttendanceController::getAttendanceSummary");
+        //Log::info($request);
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+            $month = $request->input('month', Carbon::now()->month);
+            $year = $request->input('year', Carbon::now()->year);
+
             // Get the month's name from Carbon
             $monthName = Carbon::createFromFormat('m', $month)->monthName;
 
