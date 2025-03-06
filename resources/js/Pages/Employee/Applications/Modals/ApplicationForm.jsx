@@ -154,6 +154,7 @@ const ApplicationForm = ({ open, close }) => {
 
     }, []);
 
+    // Application Type Handler
     const handleTypeChange = (value) => {
         const selectedType = applicationTypes.find(type => type.id == value);
         const leaveType = leaveCredits.find(leave => leave.app_type_id == value);
@@ -203,15 +204,7 @@ const ApplicationForm = ({ open, close }) => {
     const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
         if (newFiles.length + currentFileCount > countLimit) {
             // The File Limit has been Exceeded
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Limit Reached!",
-                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("File Limit Reached!", `You can only have up to ${countLimit} ${docType}s at a time.`);
             return false;
         } else {
             let largeFiles = 0;
@@ -222,15 +215,7 @@ const ApplicationForm = ({ open, close }) => {
             });
             if (largeFiles > 0) {
                 // A File is Too Large
-                document.activeElement.blur();
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "File Too Large!",
-                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: "#177604",
-                });
+                formError("File Too Large!", `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`);
                 return false;
             } else {
                 // All File Criteria Met
@@ -439,6 +424,19 @@ const ApplicationForm = ({ open, close }) => {
         }
     };
 
+    // Form Error Notice
+    const formError = (title, message) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: title,
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    }
+
     // Input Verification
     const checkInput = (event) => {
         event.preventDefault();
@@ -461,34 +459,13 @@ const ApplicationForm = ({ open, close }) => {
         }
 
         if (!appType || !fromDate || !toDate || !description || (fileRequired && (!attachment.length > 0) && (!image.length > 0))) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else if (dateRangeError) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid Date!",
-                text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError(null, "All Required Fields must be filled!");
         } else if (leaveUsed == 0) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "No Leave Credits Applied!",
-                text: `The selected range does not use any leave credits.`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError(null, "The selected range does not use any leave credits");
+        } else if (availableLeaveError) {
+            formError(null, "You do not have enough leave credits for this application");
+        } else if (dateRangeError) {
+            formError(null, "A date within range has reached the maximum amount of leaves allowed in your Department/Branch");
         } else {
             document.activeElement.blur();
             Swal.fire({

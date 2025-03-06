@@ -35,10 +35,8 @@ import moment from "moment";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import duration from "dayjs/plugin/duration";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
-dayjs.extend(duration);
 
 const ApplicationEdit = ({ open, close, appDetails }) => {
     const navigate = useNavigate();
@@ -49,10 +47,11 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
     const [tenureship, setTenureship] = useState(0);
+    const [leaveCredits, setLeaveCredits] = useState(appDetails.leave_used);
+    const [availableLeave, setAvailableLeave] = useState(null);
 
     const [fromDate, setFromDate] = useState(dayjs(appDetails.duration_start));
     const [toDate, setToDate] = useState(dayjs(appDetails.duration_end));
-    const [applicationDuration, setApplicationDuration] = useState("");
 
     const [workHours, setWorkHours] = useState(0);
     const [leaveUsed, setLeaveUsed] = useState(appDetails.leave_used);
@@ -66,12 +65,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const [description, setDescription] = useState(appDetails.description);
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
+    const [fileRequired, setFileRequired] = useState(false);
     const [fileNames, setFileNames] = useState([]);
     const [deleteAttachments, setDeleteAttachments] = useState([]);
     const [deleteImages, setDeleteImages] = useState([]);
 
     // Form Errors
     const [appTypeError, setAppTypeError] = useState(false);
+    const [tenureshipError, setTenureshipError] = useState(false);
+    const [availableLeaveError, setAvailableLeaveError] = useState(false);
 
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
@@ -100,6 +102,26 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             .catch((error) => {
                 console.error("Error fetching tenureship duration:", error);
             });
+
+        axiosInstance
+            .get(`applications/getMyLeaveCredits`, { headers })
+            .then((response) => {
+                setLeaveCredits(response.data.leave_credits);
+
+                const matchingCredit = response.data.leave_credits.find(
+                    credit => credit.app_type_id === appDetails.type_id
+                );
+
+                const available = matchingCredit
+                    ? matchingCredit.credit_number - matchingCredit.credit_used
+                    : 0;
+                console.log(available);
+                setAvailableLeave(available);
+            })
+            .catch((error) => {
+                console.error("Error fetching leave credits:", error);
+            });
+
 
         axiosInstance
             .get(`workshedule/getWorkHours`, { headers })
@@ -136,14 +158,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 console.error("Error fetching Full Days:", error);
             });
 
-    }, []);
-
-    const handleTypeChange = (value) => {
-        setAppType(value);
-    };
-
-    // Get Existing Files
-    useEffect(() => {
         axiosInstance.get(`/applications/getApplicationFiles/${appDetails.id}`, { headers })
             .then((response) => {
                 setFileNames(response.data.filenames);
@@ -152,6 +166,20 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 console.error('Error fetching files:', error);
             });
     }, []);
+
+    // Application Type Handler
+    const handleTypeChange = (value) => {
+        const selectedType = applicationTypes.find(type => type.id == value);
+        const leaveType = leaveCredits.find(leave => leave.app_type_id == value);
+
+        const available = leaveType ? (leaveType.credit_number - leaveType.credit_used) : 0;
+        setAvailableLeave(available);
+        setAvailableLeaveError(leaveUsed > available);
+        setTenureshipError(tenureship < selectedType.tenureship_required);
+
+        setFileRequired(selectedType.require_files);
+        setAppType(value);
+    };
 
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
@@ -201,7 +229,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const validateFiles = (newFiles, currentFileCount, oldFileCount, countLimit, sizeLimit, docType) => {
         if ((newFiles.length + currentFileCount + oldFileCount) > countLimit) {
             // The File Limit has been Exceeded
-            fileCountError(`You can only have up to ${countLimit} ${docType}s at a time.`);
+            formError("File Limit Reached!", `You can only have up to ${countLimit} ${docType}s at a time.`);
             return false;
         } else {
             let largeFiles = 0;
@@ -212,33 +240,13 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             });
             if (largeFiles > 0) {
                 // A File is Too Large
-                document.activeElement.blur();
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "File Too Large!",
-                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: "#177604",
-                });
+                formError("File Too Large!", `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`);
                 return false;
             } else {
                 // All File Criteria Met
                 return true;
             }
         }
-    }
-
-    const fileCountError = (message) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: "File Limit Reached!",
-            text: message,
-            icon: "error",
-            showConfirmButton: true,
-            confirmButtonColor: "#177604",
-        });
     }
 
     const getFileSize = (size) => {
@@ -282,25 +290,6 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             setDateRangeError(false);
         }
     }
-
-    // Duration Calculation
-    useEffect(() => {
-        const duration = dayjs.duration(toDate.diff(fromDate));
-
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-
-        let parts = [];
-        if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0)
-            parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-
-        const durationInfo = parts.length > 0 ? parts.join(", ") : "None";
-
-        setApplicationDuration(durationInfo);
-    }, [fromDate, toDate]);
 
     // Leave Credit Calculation
     useEffect(() => {
@@ -435,10 +424,13 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         } else {
             creditsUsed = parseFloat(appDetails.leave_used);
         }
+        const updatedCount = Number(creditsUsed.toFixed(2));
         setWeekendCount(weekends);
         setHolidayCount(holidays);
-        setLeaveUsed(Number(creditsUsed.toFixed(2)));
-        //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+        setLeaveUsed(updatedCount);
+        if (availableLeave != null) {
+            setAvailableLeaveError(updatedCount > availableLeave);
+        }
     }, [fromDate, toDate]);
 
     // Time Parser
@@ -457,6 +449,20 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             return { excluded: day === 0 || day === 6, type: "Weekend" };
         }
     };
+
+    // Form Error Notice
+    const formError = (title, message) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: title,
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    }
+
 
     // Input Verification
     const checkInput = (event) => {
@@ -491,34 +497,13 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
 
 
         if (!appType || !fromDate || !toDate || !description || !fileRequirementsMet) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else if (dateRangeError) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid Date!",
-                text: `A date within range has reached the maximum amount of leaves allowed in your Department/Branch`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError(null, "All Required Fields must be filled!");
         } else if (leaveUsed == 0) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "No Leave Credits Applied!",
-                text: `The selected range does not use any leave credits.`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError(null, "The selected range does not use any leave credits");
+        } else if (availableLeaveError) {
+            formError(null, "You do not have enough leave credits for this application");
+        } else if (dateRangeError) {
+            formError(null, "A date within range has reached the maximum amount of leaves allowed in your Department/Branch");
         } else {
             document.activeElement.blur();
             Swal.fire({
@@ -642,35 +627,33 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12} sx={{ mt: 1 }}>
-                                <FormControl
-                                    fullWidth
-                                    sx={{
-                                        "& label.Mui-focused": {
-                                            color: "#97a5ba",
-                                        },
-                                        "& .MuiOutlinedInput-root": {
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#97a5ba",
-                                            },
-                                        },
-                                    }}
-                                >
+                                <FormControl fullWidth>
                                     <TextField
                                         required
                                         select
                                         id="application-type"
                                         label="Application Type"
                                         value={appType}
-                                        error={appTypeError}
-                                        onChange={(event) =>
-                                            handleTypeChange(event.target.value)
-                                        }
+                                        error={appTypeError || tenureshipError}
+                                        onChange={(event) => handleTypeChange(event.target.value)}
+                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? s : ""}` : ""}
                                     >
                                         {applicationTypes
-                                            .filter(type => tenureship >= type.tenureship_required)
+                                            .sort((a, b) => {
+                                                const validTypesA = tenureship >= a.tenureship_required;
+                                                const validTypesB = tenureship >= b.tenureship_required;
+                                                if (validTypesA === validTypesB) return 0;
+                                                return validTypesA ? -1 : 1;
+                                            })
                                             .map((type, index) => (
-                                                <MenuItem key={index} value={type.id}>
+                                                <MenuItem
+                                                    key={index}
+                                                    value={type.id}
+                                                    sx={{ color: tenureship < type.tenureship_required ? 'grey' : 'inherit' }}
+                                                >
                                                     {type.name}
+                                                    {tenureship < type.tenureship_required &&
+                                                        " (Requires tenureship of " + type.tenureship_required + " months)"}
                                                 </MenuItem>
                                             ))}
                                     </TextField>
@@ -693,9 +676,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: fromDateError || dateRangeError || leaveUsedError,
+                                                error: fromDateError || dateRangeError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
                                     />
@@ -718,9 +701,9 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError || leaveUsedError,
+                                                error: toDateError || dateRangeError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
                                     />
@@ -730,10 +713,15 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        label="Leave Used"
+                                        label="Credits Used/Available"
                                         value={leaveUsed}
-                                        error={leaveUsedError}
-                                        InputProps={{ readOnly: true }}
+                                        error={leaveUsedError || availableLeaveError}
+                                        InputProps={{
+                                            readOnly: true,
+                                            endAdornment: (
+                                                `/${!availableLeave ? "0" : availableLeave}`
+                                            )
+                                        }}
                                         sx={{
                                             '& .MuiFormHelperText-root': {
                                                 color: leaveUsedError ? "#f44336" : '#42a5f5',
@@ -743,14 +731,10 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                             },
                                         }}
                                         helperText={
-                                            (holidayCount > 0 || weekendCount > 0) ? (
-                                                <>
-                                                    <InfoOutlined fontSize="small" />
-                                                    <span>
-                                                        {`${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`}
-                                                    </span>
-                                                </>
-                                            ) : ''
+                                            availableLeaveError ? `Credits used exceeds available credits`
+                                                : leaveUsedError ? `No leave credits has been used`
+                                                    : (holidayCount > 0 || weekendCount > 0) ? `${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`
+                                                        : ''
                                         }
                                     />
                                 </FormControl>
@@ -909,7 +893,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                                     setDeleteAttachments(prevAttachments => {
                                                                         if (prevAttachments.includes(filename.id)) {
                                                                             if (attachment.length + oldFileCount == 5) {
-                                                                                fileCountError("You can only have up to 5 documents at a time.");
+                                                                                formError("File Limit Reached!", "You can only have up to 5 documents at a time.");
                                                                                 return prevAttachments;
                                                                             } else {
                                                                                 return prevAttachments.filter(id => id !== filename.id);
@@ -1056,7 +1040,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                                     setDeleteImages(prevImages => {
                                                                         if (prevImages.includes(filename.id)) {
                                                                             if (image.length + oldFileCount == 10) {
-                                                                                fileCountError("You can only have up to 10 images at a time.");
+                                                                                formError("File Limit Reached!", "You can only have up to 10 images at a time.");
                                                                                 return prevImages;
                                                                             } else {
                                                                                 return prevImages.filter(id => id !== filename.id);
