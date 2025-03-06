@@ -56,7 +56,7 @@ const HrRoutes = ({ user }) => {
       <Route path="employees-deductions" element={<ProtectedRoute element={<HrEmployeesDeductions />} user={user} />} />
       <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
-      <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} />
+      {/* <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} /> */}
       {/* <Route path="workshifts" element={<ProtectedRoute element={<Workshifts />} user={user} />} /> */}
 
       <Route path="applications" element={<ProtectedRoute element={<HrApplications />} user={user} />} />
