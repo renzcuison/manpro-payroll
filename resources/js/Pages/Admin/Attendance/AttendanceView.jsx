@@ -225,7 +225,7 @@ const AttendanceView = () => {
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {(() => {
-                                                                    const totalMinutes = summary.total_time;
+                                                                    const totalMinutes = summary.total_rendered;
                                                                     const hours =
                                                                         Math.floor(totalMinutes / 60);
                                                                     const minutes = totalMinutes % 60;

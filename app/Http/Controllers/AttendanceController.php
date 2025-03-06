@@ -243,14 +243,12 @@ class AttendanceController extends Controller
             $month = $request->input('month', Carbon::now()->month);
             $year = $request->input('year', Carbon::now()->year);
 
-            //Log::info($month);
-            //Log::info($year);
-
             try {
                 // Retrieve Employees
                 $employees = UsersModel::where('client_id', $clientId)
                     ->where('user_type', 'Employee')
                     ->where('employment_status', 'Active')
+                    ->with(['branch', 'department', 'role'])
                     ->get();
 
                 // Attendance Compiler
@@ -268,92 +266,60 @@ class AttendanceController extends Controller
 
                     // Data Prep
                     $totalRendered = 0;         // minutes
-                    $totalLate = 0;             // seconds
+                    $totalOvertime = 0;         // minutes
+                    $totalLate = 0;             // minutes
                     $totalAbsences = 0;         // days
                     $totalShiftDuration = 0;    // minutes
+                    $dutyInFound = false;
+                    $overtimeInFound = false;
 
+                    $dutyStart = Carbon::now();
+                    $dutyEnd = Carbon::now();
+
+                    // Loop Variables
                     $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
                     $endDay = ($year == Carbon::now()->year &&  $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
-                    // $totalRenderedMinutes = 0;
-                    // $totalLateSeconds = 0;
-                    // $totalAbsences = 0;
-                    // $totalShiftMinutes = 0;
-                    // $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
-                    // $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
-                })->all();
-            } catch (\Exception $e) {
-            }
-            return response()->json(['status' => 200, 'summary' => $attendanceSummary]);
-        } else {
-            return response()->json(['status' => 200, 'summary' => null]);
-        }
-    }
 
-    public function getAttendanceSummaryOld(Request $request)
-    {
-        //Log::info("AttendanceController::getAttendanceSummary");
-        //Log::info($request);
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            $clientId = $user->client_id;
-            $month = $request->input('month', Carbon::now()->month);
-            $year = $request->input('year', Carbon::now()->year);
-
-            // Get the month's name from Carbon
-            $monthName = Carbon::createFromFormat('m', $month)->monthName;
-
-            //Log::info($monthName);
-            //Log::info($year);
-
-            try {
-                $employees = UsersModel::where('client_id', $clientId)
-                    ->where('user_type', 'Employee')
-                    ->where('employment_status', 'Active')
-                    ->get();
-
-                $attendanceSummary = $employees->map(function ($employee) use ($month, $year) {
-                    $attendanceLogs = AttendanceLogsModel::with('workHour')
-                        ->where('user_id', $employee->id)
-                        ->whereYear('timestamp', $year)
-                        ->whereMonth('timestamp', $month)
-                        ->orderBy('timestamp', 'asc')
-                        ->get()
-                        ->groupBy(function ($log) {
-                            return Carbon::parse($log->timestamp)->format('Y-m-d');
-                        });
-
-                    $totalRenderedMinutes = 0;
-                    $totalLateSeconds = 0;
-                    $totalAbsences = 0;
-                    $totalShiftMinutes = 0;
-                    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
-                    $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
-
-                    //Log::info($endDay);
-
+                    // Compiler Loop
                     foreach (range(1, $endDay) as $day) {
-                        $currentDate = Carbon::create($year, $month, $day)->startOfDay();
-                        $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
+                        // Data Prep
                         $currentDate = Carbon::create($year, $month, $day)->startOfDay();
                         $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
 
+                        // Attendance Found for the Day'
                         if ($logs) {
+                            // Shift Type
                             $shiftType = $logs->first()->workHour->shift_type ?? 'Regular';
-                            $workStart = Carbon::parse($logs->first()->workHour->first_time_in ?? '00:00:00')
-                                ->setYear($currentDate->year)
-                                ->setMonth($currentDate->month)
-                                ->setDay($currentDate->day);
+                            // Day Marker
+                            $today = Carbon::today();
+
+                            // Start-End Times
+                            $workStartTimes = [
+                                Carbon::parse($logs->first()->workHour->first_time_in ?? '00:00:00')
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day),
+
+                                Carbon::parse($logs->first()->workHour->second_time_in ?? '00:00:00')
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day),
+                            ];
+
                             $workEndTimes = [
+                                // Regular
                                 Carbon::parse($logs->first()->workHour->first_time_out ?? '00:00:00')
                                     ->setYear($currentDate->year)
                                     ->setMonth($currentDate->month)
                                     ->setDay($currentDate->day),
+                                //Split
                                 Carbon::parse($logs->first()->workHour->second_time_out ?? '00:00:00')
                                     ->setYear($currentDate->year)
                                     ->setMonth($currentDate->month)
                                     ->setDay($currentDate->day),
                             ];
+
+                            // Breaks
                             $breakStart = Carbon::parse($logs->first()->workHour->break_start ?? '00:00:00')
                                 ->setYear($currentDate->year)
                                 ->setMonth($currentDate->month)
@@ -363,66 +329,104 @@ class AttendanceController extends Controller
                                 ->setMonth($currentDate->month)
                                 ->setDay($currentDate->day);
 
-                            $totalShiftMinutes = $shiftType === 'Split'
-                                ? $workEndTimes[0]->diffInMinutes($workEndTimes[0]) + $workEndTimes[1]->diffInMinutes($workEndTimes[1])
-                                : max(0, $workEndTimes[0]->diffInMinutes($workStart) - $breakStart->diffInMinutes($breakEnd));
+                            // Shift Duration
+                            $totalShiftDuration = null;
 
-                            $dutyIn = $logs->firstWhere('action', 'Duty In');
-                            $dutyOut = $logs->last(fn($log) => $log->action === 'Duty Out');
-                            $overtimeIn = $logs->firstWhere('action', 'Overtime In');
-                            $overtimeOut = $logs->last(fn($log) => $log->action === 'Overtime Out');
+                            // Work Hour Preparations
+                            $actualStart = null;
+                            $actualEnd = null;
+                            $gapStart = null;
+                            $gapEnd = null;
 
-                            if ($dutyIn && $dutyOut) {
-                                $workStartNormalized = Carbon::parse($dutyIn->timestamp)
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day);
-                                $workEndNormalized = Carbon::parse($dutyOut->timestamp)
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day);
-                                $workHoursStart = $workStart;
-                                $workHoursEnd = $workEndTimes[0];
+                            // Daily Attendance Recorder
+                            foreach ($logs as $log) {
 
-                                $startWithinShift = max($workStartNormalized, $workHoursStart);
-                                $endWithinShift = min($workEndNormalized, $workHoursEnd);
+                                if ($log->action == "Duty In" || $log->action == "Overtime In") {
+                                    if ($log->action == "Duty In") {
+                                        $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                        $dutyInFound = true;
+                                        $overtimeInFound = false;
+                                    } else {
+                                        $dutyStart = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                        $overtimeInFound = true;
+                                        $dutyInFound = false;
+                                    }
+                                } else if (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) {
+                                    $dutyEnd = Carbon::parse($log->timestamp)->setDate($today->year, $today->month, $today->day);
+                                    $dutyInFound = false;
+                                    $overtimeInFound = false;
 
-                                $renderedMinutes = $startWithinShift->diffInMinutes($endWithinShift);
-                                if (Carbon::parse($dutyIn->timestamp)->gt($workStart)) {
-                                    $lateStart = Carbon::parse($dutyIn->timestamp)
-                                        ->setYear($currentDate->year)
-                                        ->setMonth($currentDate->month)
-                                        ->setDay($currentDate->day);
-                                    $totalLateSeconds += max(0, $lateStart->diffInSeconds($workStart));
-                                }
-                                $totalRenderedMinutes += $renderedMinutes;
+                                    switch ($shiftType) {
+                                        case "Regular":
+                                            //Log::info("Regular");
+                                            $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                            $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                            $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
+                                            $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
+                                            $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
+                                            //Log::info('Actual Start:    ' . $actualStart);
+                                            //Log::info('Actual End:      ' . $actualEnd);
+                                            //Log::info('Duration         ' . $totalShiftDuration);
+                                            break;
+                                        case "Split":
+                                            //Log::info("Split");
+                                            $gapStart = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                            $gapEnd = $workStartTimes[1]->setDate($today->year, $today->month, $today->day);
+                                            if ($dutyStart->format('H:i:s') < $gapStart->format('H:i:s')) {
+                                                $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                                $actualEnd = $gapStart;
+                                            } else {
+                                                $actualStart = $gapEnd;
+                                                $actualEnd = $workEndTimes[1]->setDate($today->year, $today->month, $today->day);
+                                            }
+                                            $totalShiftDuration = $actualEnd->diffInMinutes($actualStart);
+                                            //Log::info('Actual Start:    ' . $actualStart);
+                                            //Log::info('Actual End:      ' . $actualEnd);
+                                            //Log::info('Duration         ' . $totalShiftDuration);
+                                            break;
+                                        default: // Use "Regular" by default
+                                            //Log::info("Default");
+                                            $actualStart = $workStartTimes[0]->setDate($today->year, $today->month, $today->day);
+                                            $actualEnd = $workEndTimes[0]->setDate($today->year, $today->month, $today->day);
+                                            $gapStart = $breakStart->setDate($today->year, $today->month, $today->day);
+                                            $gapEnd = $breakEnd->setDate($today->year, $today->month, $today->day);
+                                            $totalShiftDuration = max(0, $workEndTimes[0]->diffInMinutes($workStartTimes[0]) - $breakStart->diffInMinutes($breakEnd));
+                                            //Log::info($totalShiftDuration);
+                                            break;
+                                    }
 
-                                if ($shiftType === 'Regular' && $breakStart->lt($endWithinShift) && $breakEnd->gt($startWithinShift)) {
-                                    $breakOverlapStart = max($startWithinShift, $breakStart);
-                                    $breakOverlapEnd = min($endWithinShift, $breakEnd);
-                                    $breakMinutes = $breakOverlapStart->diffInMinutes($breakOverlapEnd);
-                                    $totalRenderedMinutes -= min($breakMinutes, $renderedMinutes);
+                                    //Calculations
+                                    $renderedStart = max($dutyStart, $actualStart);
+                                    $renderedEnd = min($dutyEnd, $actualEnd);
+                                    $minutesRendered = $renderedEnd->diffInMinutes($renderedStart);
+
+                                    // Remove Break Time 
+                                    if ($log->shift_type == "Regular" && $gapStart && $gapEnd) {
+                                        $overlapStart = max($renderedStart, $gapStart);
+                                        $overlapEnd = min($renderedEnd, $gapEnd);
+
+                                        if ($overlapStart->format('H:i:s') < $overlapEnd->format('H:i:s')) {
+                                            $totalOverlap = $overlapEnd->diffInMinutes($overlapStart);
+                                            $minutesRendered -= $totalOverlap;
+                                        }
+                                        $minutesRendered = max($minutesRendered, 0);
+                                    }
+
+                                    if ($log->action == "Duty Out") {
+                                        $totalRendered += $minutesRendered;
+                                        $totalLate += max(0, $totalShiftDuration - $minutesRendered);
+                                    } else { // "Overtime Out"
+                                        $totalOvertime += $minutesRendered;
+                                    }
+
+                                    // Log::info('Render           ' . $minutesRendered);
+                                    // Log::info('Total:           ' . $totalRendered);
+                                    // Log::info('Late             ' . $totalLate);
                                 }
                             }
-
-                            if ($overtimeIn && $overtimeOut) {
-                                $overtimeStart = Carbon::parse($overtimeIn->timestamp)
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day);
-                                $overtimeEnd = Carbon::parse($overtimeOut->timestamp)
-                                    ->setYear($currentDate->year)
-                                    ->setMonth($currentDate->month)
-                                    ->setDay($currentDate->day);
-                                $totalRenderedMinutes += $overtimeStart->diffInMinutes($overtimeEnd);
-                            }
-                        } else {
+                        } else { // No Attendance Found, Employee is Absent
+                            //Log::Info('Absent For The Day');
                             $totalAbsences++;
-                        }
-
-                        // Ensure totalShiftMinutes is used only when logs exist
-                        if ($logs) {
-                            $totalLateSeconds += max(0, $totalShiftMinutes * 60 - $totalRenderedMinutes * 60); // Convert to seconds
                         }
                     }
 
@@ -444,21 +448,19 @@ class AttendanceController extends Controller
                         'emp_branch' => $branchInfo,
                         'emp_department' => $departmentInfo,
                         'emp_role' => $employee->role->name ?? 'N/A',
-                        'total_minutes' => $totalRenderedMinutes,
-                        'total_late' => $totalLateSeconds,
+                        'total_rendered' => $totalRendered,
+                        'total_late' => $totalLate,
                         'total_absences' => $totalAbsences,
+                        'total_overtime' => $totalOvertime,
                     ];
                 })->all();
-
-                // /Log::info($attendanceSummary);
-
-                return response()->json(['status' => 200, 'attendance_summary' => $attendanceSummary]);
             } catch (\Exception $e) {
                 Log::error("Error in getAttendanceSummary: " . $e->getMessage());
-                return response()->json(['status' => 500, 'attendance_summary' => null], 500);
+                return response()->json(['status' => 500, 'summary' => null], 500);
             }
+            return response()->json(['status' => 200, 'summary' => $attendanceSummary]);
         } else {
-            return response()->json(['status' => 200, 'attendance_summary' => null]);
+            return response()->json(['status' => 200, 'summary' => null]);
         }
     }
 
@@ -504,23 +506,23 @@ class AttendanceController extends Controller
                 });
 
                 // Attendance Counters
-                $totalTime = 0;
-                $totalOT = 0;
+                $totalRendered = 0;
+                $totalOvertime = 0;
                 $totalLate = 0;
                 $dutyInFound = false;
                 $overtimeInFound = false;
-                $workStart = Carbon::now();
-                $workEnd = Carbon::now();
+                $dutyStart = Carbon::now();
+                $dutyEnd = Carbon::now();
 
-                // Total Shift Time Reader
+                // Total Shift Duration Reader
                 if ($logs->first()->shift_type == "Regular") {
                     $shiftStart = Carbon::parse($logs->first()->first_time_in);
                     $shiftEnd = Carbon::parse($logs->first()->first_time_out);
-                    $breakStart = Carbon::parse($logs->first()->break_start);
-                    $breakEnd = Carbon::parse($logs->first()->break_end);
+                    $gapStart = Carbon::parse($logs->first()->break_start);
+                    $gapEnd = Carbon::parse($logs->first()->break_end);
 
-                    $totalShiftTime = $shiftStart->diffInMinutes($shiftEnd) - $breakStart->diffInMinutes($breakEnd);
-                    $totalShiftTime = max($totalShiftTime, 0);
+                    $totalShiftDuration = $shiftStart->diffInMinutes($shiftEnd) - $gapStart->diffInMinutes($gapEnd);
+                    $totalShiftDuration = max($totalShiftDuration, 0);
                 } elseif ($logs->first()->shift_type == "Split") {
                     $shiftFirstStart = Carbon::parse($logs->first()->first_time_in);
                     $shiftFirstEnd = Carbon::parse($logs->first()->first_time_out);
@@ -529,104 +531,103 @@ class AttendanceController extends Controller
 
                     $shiftFirstTime = $shiftFirstStart->diffInMinutes($shiftFirstEnd);
                     $shiftSecondTime = $shiftSecondStart->diffInMinutes($shiftSecondEnd);
-                    $totalShiftTime = $shiftFirstTime + $shiftSecondTime;
+                    $totalShiftDuration = $shiftFirstTime + $shiftSecondTime;
                 } else {
-                    $totalShiftTime = 0;
+                    $totalShiftDuration = 0;
                 }
 
-                // Rendered Hours Calculator
+                // Rendered Minutes Calculator
                 foreach ($logs as $log) {
                     if ($log->action == "Duty In" || $log->action == "Overtime In") {
                         if ($log->action == "Duty In") {
-                            $workStart = Carbon::parse($log->timestamp);
+                            $dutyStart = Carbon::parse($log->timestamp);
                             $dutyInFound = true;
                             $overtimeInFound = false;
                         } else {
-                            $workStart = Carbon::parse($log->timestamp);
+                            $dutyStart = Carbon::parse($log->timestamp);
                             $overtimeInFound = true;
                             $dutyInFound = false;
                         }
-                    } elseif (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) { // Recorded Duty Out & Calculations
-                        $workEnd = Carbon::parse($log->timestamp);
+                    } elseif (($dutyInFound && $log->action == "Duty Out") || ($overtimeInFound && $log->action == "Overtime Out")) {
+                        $dutyEnd = Carbon::parse($log->timestamp);
                         $dutyInFound = false;
                         $overtimeInFound = false;
 
                         // Total Hours Calculation [PREP]
-                        $workHoursStart = null;
-                        $workHoursEnd = null;
-                        $breakStart = null;
-                        $breakEnd = null;
+                        $actualStart = null;
+                        $actualEnd = null;
+                        $gapStart = null;
+                        $gapEnd = null;
                         if ($log->action == "Duty Out") {
                             switch ($log->shift_type) {
                                 case 'Regular':
-                                    $workHoursStart = Carbon::parse($log->first_time_in);
-                                    $workHoursEnd = Carbon::parse($log->first_time_out);
-                                    $breakStart = Carbon::parse($log->break_start);
-                                    $breakEnd = Carbon::parse($log->break_end);
+                                    $actualStart = Carbon::parse($log->first_time_in);
+                                    $actualEnd = Carbon::parse($log->first_time_out);
+                                    $gapStart = Carbon::parse($log->break_start);
+                                    $gapEnd = Carbon::parse($log->break_end);
                                     break;
                                 case 'Split':
                                     $firstPartEnd = Carbon::parse($log->first_time_out);
                                     $secondPartStart = Carbon::parse($log->second_time_in);
-                                    if ($workStart->format('H:i:s') < $firstPartEnd->format('H:i:s')) {
-                                        $workHoursStart = Carbon::parse($log->first_time_in);
-                                        $workHoursEnd = $firstPartEnd;
+                                    if ($dutyStart->format('H:i:s') < $firstPartEnd->format('H:i:s')) {
+                                        $actualStart = Carbon::parse($log->first_time_in);
+                                        $actualEnd = $firstPartEnd;
                                     } else {
-                                        $workHoursStart = $secondPartStart;
-                                        $workHoursEnd = Carbon::parse($log->second_time_out);
+                                        $actualStart = $secondPartStart;
+                                        $actualEnd = Carbon::parse($log->second_time_out);
                                     }
                                     break;
                                 default:
-                                    $workHoursStart = $workStart;
-                                    $workHoursEnd = $workEnd;
+                                    $actualStart = $dutyStart;
+                                    $actualEnd = $dutyEnd;
                             }
                         } else {
-                            $workHoursStart = Carbon::parse($log->over_time_in);
-                            $workHoursEnd = Carbon::parse($log->over_time_out);
+                            $actualStart = Carbon::parse($log->over_time_in);
+                            $actualEnd = Carbon::parse($log->over_time_out);
                         }
 
                         // Total Hours Calculation [MAIN]
                         if (
-                            $workStart->format('H:i:s') < $workHoursEnd->format('H:i:s')
+                            $dutyStart->format('H:i:s') < $actualEnd->format('H:i:s')
                             &&
-                            $workEnd->format('H:i:s') > $workHoursStart->format('H:i:s')
+                            $dutyEnd->format('H:i:s') > $actualStart->format('H:i:s')
                         ) {
                             // Normalizes dates to exclusively compare time
                             $today = Carbon::today();
-                            $workStartNormalized = $workStart->setDate($today->year, $today->month, $today->day);
-                            $workEndNormalized = $workEnd->setDate($today->year, $today->month, $today->day);
-                            $workHoursStartNormalized = $workHoursStart->setDate($today->year, $today->month, $today->day);
-                            $workHoursEndNormalized = $workHoursEnd->setDate($today->year, $today->month, $today->day);
-                            $breakStartNormalized = $breakStart ? $breakStart->setDate($today->year, $today->month, $today->day) : null;
-                            $breakEndNormalized = $breakEnd ? $breakEnd->setDate($today->year, $today->month, $today->day) : null;
+                            $fixedDutyStart = $dutyStart->setDate($today->year, $today->month, $today->day);
+                            $fixedDutyEnd = $dutyEnd->setDate($today->year, $today->month, $today->day);
+                            $fixedActualStart = $actualStart->setDate($today->year, $today->month, $today->day);
+                            $fixedActualEnd = $actualEnd->setDate($today->year, $today->month, $today->day);
+                            $fixedGapStart = $gapStart ? $gapStart->setDate($today->year, $today->month, $today->day) : null;
+                            $fixedGapEnd = $gapEnd ? $gapEnd->setDate($today->year, $today->month, $today->day) : null;
 
-                            $startWithinWorkHours = max($workStartNormalized, $workHoursStartNormalized);
-                            $endWithinWorkHours = min($workEndNormalized, $workHoursEndNormalized);
-
-                            $timeWorked = $startWithinWorkHours->diffInMinutes($endWithinWorkHours);
+                            $renderedStart = max($fixedDutyStart, $fixedActualStart);
+                            $renderedEnd = min($fixedDutyEnd, $fixedActualEnd);
+                            $minutesRendered = $renderedEnd->diffInMinutes($renderedStart);
 
                             // Remove Rendered Time during Break
-                            if ($log->action == "Duty Out" && $log->shift_type == 'Regular' && $breakStartNormalized && $breakEndNormalized) {
-                                $breakOverlapStart = max($startWithinWorkHours, $breakStartNormalized);
-                                $breakOverlapEnd = min($endWithinWorkHours, $breakEndNormalized);
+                            if ($log->action == "Duty Out" && $log->shift_type == 'Regular' && $fixedGapStart && $fixedGapEnd) {
+                                $breakOverlapStart = max($renderedStart, $fixedGapStart);
+                                $breakOverlapEnd = min($renderedEnd, $fixedGapEnd);
 
                                 if ($breakOverlapStart->format('H:i:s') < $breakOverlapEnd->format('H:i:s')) {
                                     $breakOverlap = $breakOverlapStart->diffInMinutes($breakOverlapEnd);
-                                    $timeWorked -= $breakOverlap;
+                                    $minutesRendered -= $breakOverlap;
                                 }
 
-                                $timeWorked = max($timeWorked, 0);
+                                $minutesRendered = max($minutesRendered, 0);
                             }
 
                             if ($log->action == "Duty Out") {
-                                $totalTime += $timeWorked;
+                                $totalRendered += $minutesRendered;
                             } else { // action is "Overtime Out"
-                                $totalOT += $timeWorked;
+                                $totalOvertime += $minutesRendered;
                             }
                         }
                     }
                 }
 
-                $totalLate = $totalShiftTime - $totalTime;
+                $totalLate = $totalShiftDuration - $totalRendered;
 
                 return [
                     'date' => $date,
@@ -634,8 +635,8 @@ class AttendanceController extends Controller
                     'time_out' => $timeOut ? $timeOut->timestamp : null,
                     'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
                     'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
-                    'total_time' => $totalTime,
-                    'total_ot' => $totalOT,
+                    'total_rendered' => $totalRendered,
+                    'total_overtime' => $totalOvertime,
                     'late_time' => $totalLate
                 ];
             })
