@@ -164,8 +164,6 @@ class TrainingsController extends Controller
 
         $trainingIds = $request->input('training_ids', []);
 
-        Log::info($trainingIds);
-
         $covers = array_fill_keys($trainingIds, null);
 
         $coverFiles = TrainingsModel::where('id', $trainingIds)
@@ -177,26 +175,5 @@ class TrainingsController extends Controller
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
-    }
-
-    public function getPageThumbnails(Request $request)
-    {
-        //Log::info("AnnouncementsController::getPageThumbnails");
-
-        $user = Auth::user();
-
-        $announcementIds = $request->input('announcement_ids', []);
-
-        $thumbnails = array_fill_keys($announcementIds, null);
-
-        $thumbnailFiles = TrainingsModel::whereIn('announcement_id', $announcementIds)
-            ->where('type', "Thumbnail")
-            ->get();
-
-        $thumbnailFiles->each(function ($file) use (&$thumbnails) {
-            $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
-        });
-
-        return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
     }
 }
