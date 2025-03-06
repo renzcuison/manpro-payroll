@@ -23,21 +23,20 @@ import {
     Card,
     CardMedia,
     CardContent,
-    CardActionArea,
+    CardActions,
     Pagination,
-    IconButton
+    IconButton,
+    CardActionArea
 } from "@mui/material";
-import { TaskAlt } from "@mui/icons-material";
+import { MoreVert } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import PageHead from "../../../components/Table/PageHead";
 import PageToolbar from "../../../components/Table/PageToolbar";
-import Swal from "sweetalert2";
 import {
     Link,
     useNavigate,
@@ -49,90 +48,105 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 import { first } from "lodash";
-import { CardActions } from "@material-ui/core";
+import Swal from "sweetalert2";
 
-const AnnouncementList = () => {
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import AnnouncementAdd from './Modals/AnnouncementAdd';
+import AnnouncementPublish from './Modals/AnnouncementPublish';
+import AnnouncementEdit from './Modals/AnnouncementEdit';
+import AnnouncementManage from './Modals/AnnouncementManage';
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+
+const TrainingsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    // ---------------- Announcement Data States
+    // ---------------- Training Data States
     const [isLoading, setIsLoading] = useState(true);
     const [imageLoading, setImageLoading] = useState(true);
-    const [announcements, setAnnouncements] = useState([]);
-    const [announcementReload, setAnnouncementReload] = useState(true);
+    const [trainings, setTrainings] = useState([]);
+    const [trainingReload, setTrainingReload] = useState(true);
 
     // ---------------- Pagination States
     const [currentPage, setCurrentPage] = useState(1);
-    const [announcementsPerPage, setAnnouncementsPerPage] = useState(9);
-    const [totalAnnouncements, setTotalAnnouncements] = useState(0);
+    const [trainingsPerPage, setTrainingsPerPage] = useState(9);
+    const [totalTrainings, setTotalTrainings] = useState(0);
 
-    const lastAnnouncement = currentPage * announcementsPerPage;
-    const firstAnnouncement = lastAnnouncement - announcementsPerPage;
-    const pageAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
+    const lastTraining = currentPage * trainingsPerPage;
+    const firstTraining = lastTraining - trainingsPerPage;
+    const pageTrainings = trainings.slice(firstTraining, lastTraining);
 
-    // ---------------- Announcement List API
+
     useEffect(() => {
-        fetchAnnouncements();
+        fetchTrainings();
     }, []);
 
-    const fetchAnnouncements = () => {
-        axiosInstance.get('/announcements/getMyAnnouncements', { headers })
+    const fetchTrainings = () => {
+        axiosInstance.get('/trainings/getTrainings', { headers })
             .then((response) => {
-                setAnnouncements(response.data.announcements);
-                setTotalAnnouncements(response.data.announcements.length);
-                setAnnouncementReload(false);
+                setTrainings(response.data.trainings);
+                setTotalTrainings(response.data.trainings.length);
+                setTrainingReload(false);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching announcements:', error);
+                console.error('Error fetching trainings:', error);
                 setIsLoading(false);
             });
-
     }
 
+    // ---------------- Training Image API
     useEffect(() => {
-        if (!announcementReload) {
-            setAnnouncementReload(true);
+        if (!trainingReload) {
+            setTrainingReload(true);
         }
-        fetchPageThumbnails();
-    }, [announcementReload, firstAnnouncement, lastAnnouncement]);
+        fetchPageCovers();
+    }, [trainingReload, firstTraining, lastTraining]);
 
-    const fetchPageThumbnails = () => {
-        if (announcements.length > 0) {
-            const pagedAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
-            const announcementIds = pagedAnnouncements.map(announcement => announcement.id);
+    // ---------------- Training Cover Loader
+    const fetchPageCovers = () => {
+        if (trainings.length > 0) {
+            const pagedTrainings = trainings.slice(firstTraining, lastTraining);
+            const trainingIds = pagedTrainings.map(training => training.id);
 
-            axiosInstance.post('/announcements/getPageThumbnails', { announcementIds }, { headers })
+            axiosInstance.get('/trainings/getPageCovers', {
+                headers, params: {
+                    training_ids: trainingIds
+                }
+            })
                 .then((response) => {
-                    const thumbnails = response.data.thumbnails;
+                    const covers = response.data.covers;
 
-                    setAnnouncements(prevAnnouncements => {
-                        const updatedAnnouncements = [...prevAnnouncements];
+                    setTrainings(prevTrainings => {
+                        const updatedTrainings = [...prevTrainings];
 
-                        pagedAnnouncements.forEach((announcement, paginatedIndex) => {
-                            const globalIndex = prevAnnouncements.indexOf(announcement);
+                        pagedTrainings.forEach((training, paginatedIndex) => {
+                            const globalIndex = prevTrainings.indexOf(training);
 
-                            if (paginatedIndex < thumbnails.length && thumbnails[paginatedIndex] !== null) {
-                                const byteCharacters = window.atob(thumbnails[paginatedIndex]);
+                            if (paginatedIndex < covers.length && covers[paginatedIndex] !== null) {
+                                const byteCharacters = window.atob(covers[paginatedIndex]);
                                 const byteNumbers = new Array(byteCharacters.length);
                                 for (let i = 0; i < byteCharacters.length; i++) {
                                     byteNumbers[i] = byteCharacters.charCodeAt(i);
                                 }
                                 const byteArray = new Uint8Array(byteNumbers);
                                 const blob = new Blob([byteArray], { type: 'image/png' });
-                                updatedAnnouncements[globalIndex] = { ...announcement, thumbnail: URL.createObjectURL(blob) };
+                                updatedTrainings[globalIndex] = { ...training, cover: URL.createObjectURL(blob) };
                             } else {
-                                updatedAnnouncements[globalIndex] = { ...announcement };
+                                updatedTrainings[globalIndex] = { ...training };
                             }
                         });
-                        return updatedAnnouncements;
+                        return updatedTrainings;
                     });
 
                     setImageLoading(false);
                 })
                 .catch((error) => {
-                    console.error('Error fetching thumbnails:', error);
+                    console.error('Error fetching covers:', error);
                     setImageLoading(false);
                 });
         } else {
@@ -140,59 +154,20 @@ const AnnouncementList = () => {
         }
     };
 
-    // ---------------- Acknowledge Announcement
-    const handleAcknowledgeAnnouncement = (unicode) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: "Acknowledge Announcement?",
-            text: "Do you want to acknowledge this announcement?",
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: "Yes",
-            confirmButtonColor: "#177604",
-            showCancelButton: true,
-            cancelButtonText: "No",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                const data = {
-                    code: unicode
-                };
-                axiosInstance
-                    .post(`announcements/acknowledgeAnnouncement`, data, {
-                        headers,
-                    })
-                    .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Announcement Acknowledged`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error acknowledging announcment:", error);
-                    });
-            }
-        });
-    };
-
     // ---------------- Pagination Controls
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
         setImageLoading(true);
-        fetchPageThumbnails();
+        fetchPageCovers();
     };
 
     // ---------------- Image Cleanup
     useEffect(() => {
         return () => {
-            announcements.forEach(announcement => {
-                if (announcement.thumbnail && announcement.thumbnail.startsWith('blob:')) {
-                    URL.revokeObjectURL(announcement.thumbnail);
+            //console.log("closed");
+            trainings.forEach(training => {
+                if (training.cover && training.cover.startsWith('blob:')) {
+                    URL.revokeObjectURL(training.cover);
                 }
             });
         };
@@ -200,13 +175,22 @@ const AnnouncementList = () => {
 
 
     return (
-        <Layout title={"AnnouncementList"}>
+        <Layout title={"TrainingsList"}>
             <Box sx={{ width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Announcements
+                            Trainings
                         </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenAnnouncementModal}
+                        >
+                            <p className="m-0">
+                                <i className="fa fa-plus"></i> Add {" "}
+                            </p>
+                        </Button>
                     </Box>
 
                     <Box sx={{ p: 3, justifyContent: 'center', alignItems: 'center' }} >
@@ -221,16 +205,16 @@ const AnnouncementList = () => {
                                     rowSpacing={3}
                                     columnSpacing={{ xs: 2, sm: 3 }}
                                     sx={{
-                                        ...(pageAnnouncements.length === 0 ? { justifyContent: "center" } : {}),
+                                        ...(pageTrainings.length === 0 ? { justifyContent: "center" } : {}),
                                     }}
                                 >
-                                    {pageAnnouncements.length > 0 ? (
-                                        pageAnnouncements.map(
-                                            (announcement, index) => (
+                                    {pageTrainings.length > 0 ? (
+                                        pageTrainings.map(
+                                            (training, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
-                                                    <CardActionArea component={Link} to={`/employee/announcement/${announcement.unique_code}`}>
+                                                    <CardActionArea onClick={() => console.log(training)}>
                                                         <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                                            {/* Card Thumbnail */}
+                                                            {/* Card Cover */}
                                                             {imageLoading ? (
                                                                 <Box
                                                                     sx={{
@@ -245,49 +229,37 @@ const AnnouncementList = () => {
                                                             ) : (
                                                                 <CardMedia
                                                                     sx={{ height: '180px' }}
-                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                    title={`${announcement.title}_Thumbnail`}
+                                                                    image={training.thumbnail ? training.thumbnail : "../../../images/ManProTab.png"}
+                                                                    title={`${training.title}_Cover`}
                                                                 />
                                                             )}
                                                             {/* Card Content */}
                                                             <CardContent>
-                                                                {/* Announcement Title */}
+                                                                {/* Training Title */}
                                                                 <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
-                                                                    {announcement.title}
-                                                                </Typography>
-                                                                {/* Announcement Details */}
-                                                                <Typography variant="body2" sx={{ my: 1, color: "text.secondary" }}>
-                                                                    {`Posted ${dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}`}
+                                                                    {training.title}
                                                                 </Typography>
                                                             </CardContent>
-                                                            {/*
-                                                                <CardActions>
-                                                                <IconButton
-                                                                    onClick={() => handleAcknowledgeAnnouncement(announcement.unique_code)}
-                                                                >
-                                                                    <TaskAlt />
-                                                                </IconButton>
-                                                            </CardActions>
-                                                            */}
-
                                                         </Card>
                                                     </CardActionArea>
                                                 </Grid>
                                             )
                                         )
                                     ) : (
+                                        // No Trainings
                                         <>
                                             <Box sx={{ mt: 5, p: 3, bgcolor: "#ffffff", borderRadius: 3, width: '100%', maxWidth: 350, textAlign: 'center' }}>
-                                                No Announcements
+                                                No Trainings
                                             </Box>
                                         </>
                                     )}
                                 </Grid>
-                                {totalAnnouncements > announcementsPerPage && (
+                                {/* Pagination Controls */}
+                                {totalTrainings > trainingsPerPage && (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                                         <Pagination
                                             shape="rounded"
-                                            count={Math.ceil(totalAnnouncements / announcementsPerPage)}
+                                            count={Math.ceil(totalTrainings / trainingsPerPage)}
                                             page={currentPage}
                                             onChange={handleChangePage}
                                             color="primary"
@@ -306,4 +278,4 @@ const AnnouncementList = () => {
     );
 };
 
-export default AnnouncementList;
+export default TrainingsList;

@@ -73,7 +73,7 @@ const AnnouncementList = () => {
 
     // ---------------- Pagination States
     const [currentPage, setCurrentPage] = useState(1);
-    const [announcementsPerPage] = useState(9);
+    const [announcementsPerPage, setAnnouncementsPerPage] = useState(9);
     const [totalAnnouncements, setTotalAnnouncements] = useState(0);
 
     const lastAnnouncement = currentPage * announcementsPerPage;

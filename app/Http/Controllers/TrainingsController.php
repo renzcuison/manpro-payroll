@@ -153,4 +153,25 @@ class TrainingsController extends Controller
 
         return response()->json(['status' => 200, 'media' => $media]);
     }
+
+    public function getPageCovers(Request $request)
+    {
+        //Log::info("AnnouncementsController::getPageCovers");
+
+        $user = Auth::user();
+
+        $trainingIds = $request->input('training_ids', []);
+
+        $covers = array_fill_keys($trainingIds, null);
+
+        $coverFiles = TrainingsModel::where('id', $trainingIds)
+            ->select('cover_photo')
+            ->get();
+
+        $coverFiles->each(function ($file) use (&$covers) {
+            $covers[$file->training_id] = base64_encode(Storage::disk('public')->get($file->path));
+        });
+
+        return response()->json(['status' => 200, 'covers' => array_values($covers)]);
+    }
 }
