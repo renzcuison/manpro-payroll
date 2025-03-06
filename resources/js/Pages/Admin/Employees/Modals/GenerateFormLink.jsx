@@ -187,7 +187,7 @@ const GenerateFormLink = ({ open, close }) => {
                                         minDate={dayjs()}
                                         views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => {
-                                            expDate = dayjs(newValue).startOf('hour');
+                                            const expDate = dayjs(newValue).startOf('hour');
                                             console.log(`New Expiry Date: ${expDate}`);
                                             setExpirationDate(expDate);
                                         }}
