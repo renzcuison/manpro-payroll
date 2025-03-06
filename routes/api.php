@@ -224,7 +224,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/downloadFile/{id}', [AnnouncementsController::class, 'downloadFile']);
         Route::get('/getThumbnail/{code}', [AnnouncementsController::class, 'getThumbnail']);
-        Route::post('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
+        Route::get('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
         Route::get('/getAnnouncementFiles/{code}', [AnnouncementsController::class, 'getAnnouncementFiles']);
         Route::get('/getEmployeeAnnouncementFiles/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementFiles']);
 
@@ -241,6 +241,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('trainings')->group(function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
+        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
         Route::get('/getTrainingMedia/{id}', [TrainingsController::class, 'getTrainingMedia']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);

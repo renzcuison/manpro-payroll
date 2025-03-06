@@ -449,7 +449,7 @@ class AnnouncementsController extends Controller
 
         $user = Auth::user();
 
-        $announcementIds = $request->input('announcementIds', []);
+        $announcementIds = $request->input('announcement_ids', []);
 
         $thumbnails = array_fill_keys($announcementIds, null);
 

@@ -103,7 +103,11 @@ const AnnouncementList = () => {
             const pagedAnnouncements = announcements.slice(firstAnnouncement, lastAnnouncement);
             const announcementIds = pagedAnnouncements.map(announcement => announcement.id);
 
-            axiosInstance.post('/announcements/getPageThumbnails', { announcementIds }, { headers })
+            axiosInstance.get('/announcements/getPageThumbnails', {
+                headers, params: {
+                    announcement_ids: announcementIds
+                }
+            })
                 .then((response) => {
                     const thumbnails = response.data.thumbnails;
 

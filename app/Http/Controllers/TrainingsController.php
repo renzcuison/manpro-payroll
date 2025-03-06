@@ -80,15 +80,17 @@ class TrainingsController extends Controller
                 $orderCounter = 0;
 
                 // Save Links
-                foreach ($request->input('link') as $link) {
-                    $orderCounter++;
-                    TrainingMediaModel::create([
-                        'training_id' => $training->id,
-                        'path' => null,
-                        'url' => $link,
-                        'type' => "Video",
-                        'order' => $orderCounter
-                    ]);
+                if ($request->has('link')) {
+                    foreach ($request->input('link') as $link) {
+                        $orderCounter++;
+                        TrainingMediaModel::create([
+                            'training_id' => $training->id,
+                            'path' => null,
+                            'url' => $link,
+                            'type' => "Video",
+                            'order' => $orderCounter
+                        ]);
+                    }
                 }
 
                 // Save Attachments
@@ -156,22 +158,45 @@ class TrainingsController extends Controller
 
     public function getPageCovers(Request $request)
     {
-        //Log::info("AnnouncementsController::getPageCovers");
+        //Log::info("TrainingsController::getPageCovers");
 
         $user = Auth::user();
 
         $trainingIds = $request->input('training_ids', []);
 
+        Log::info($trainingIds);
+
         $covers = array_fill_keys($trainingIds, null);
 
         $coverFiles = TrainingsModel::where('id', $trainingIds)
-            ->select('cover_photo')
+            ->select('id', 'cover_photo')
             ->get();
 
         $coverFiles->each(function ($file) use (&$covers) {
-            $covers[$file->training_id] = base64_encode(Storage::disk('public')->get($file->path));
+            $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
+    }
+
+    public function getPageThumbnails(Request $request)
+    {
+        //Log::info("AnnouncementsController::getPageThumbnails");
+
+        $user = Auth::user();
+
+        $announcementIds = $request->input('announcement_ids', []);
+
+        $thumbnails = array_fill_keys($announcementIds, null);
+
+        $thumbnailFiles = TrainingsModel::whereIn('announcement_id', $announcementIds)
+            ->where('type', "Thumbnail")
+            ->get();
+
+        $thumbnailFiles->each(function ($file) use (&$thumbnails) {
+            $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+        });
+
+        return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
     }
 }
