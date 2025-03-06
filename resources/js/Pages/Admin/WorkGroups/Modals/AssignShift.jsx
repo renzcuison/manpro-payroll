@@ -3,22 +3,46 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import moment from 'moment';
+
+import dayjs, { Dayjs } from 'dayjs';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
 const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDetails }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [workShift, setWorkShift] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [shiftName, setShiftName] = useState('');
+    const [shiftType, setShiftType] = useState('');
+
+    const [firstLabel, setFirstLabel] = useState('');
+    const [secondLabel, setSecondLabel] = useState('');
+
+    const [regularTimeIn, setRegularTimeIn] = useState(null);
+    const [regularTimeOut, setRegularTimeOut] = useState(null);
+
+    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
+    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
+    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
+    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
+
+    const [breakStart, setBreakStart] = useState(null);
+    const [breakEnd, setBreakEnd] = useState(null);
+    
+    const [overTimeIn, setOverTimeIn] = useState(null);
+    const [overTimeOut, setOverTimeOut] = useState(null);
+
     const [workShifts, setWorkShifts] = useState([]);
 
     const [selectedShiftError, setSelectedShiftError] = useState(false);
     const [selectedShift, setSelectedShift] = useState("");
 
     useEffect(() => {
-        setSelectedShift(currentShift ? currentShift : '');
-
         axiosInstance.get(`/workshedule/getWorkShifts`, { headers })
             .then((response) => {
                 if ( response.data.status === 200 ) {
@@ -27,22 +51,60 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
             });
+
+        console.log("currentShift: " + currentShift);
+
+        if (currentShift != "" ) {
+            setSelectedShift(currentShift ? currentShift : "");
+            getWorkShift(currentShift);
+        }
     }, []);
 
     const handleSelectWorkShift = (shiftId) => {
         setSelectedShift(shiftId);
         const selectedWorkShift = workShifts.find(shift => shift.id === shiftId);
-        setWorkShift(selectedWorkShift);
+        getWorkShift(selectedWorkShift);
     };
 
-    function formatTime(time) {
-        if (!time) return '';
-        const [hours, minutes] = time.split(':').map(Number);
-        const isAM = hours < 12;
-        const formattedHours = hours % 12 || 12;
-        const period = isAM ? 'AM' : 'PM';
-        return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-    }  
+    const getWorkShift = (shift) => {
+
+        const data = { shift, shift };
+
+        axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
+            .then((response) => {
+
+                setShiftName(response.data.workShift.name);
+
+                if ( response.data.workShift.shift_type == 'Regular') {
+                    setShiftType("regular");
+                } else {
+                    setShiftType("split");
+                    setFirstLabel(response.data.workShift.first_label);
+                    setSecondLabel(response.data.workShift.second_label);
+
+                    const firstTimeIn = dayjs(response.data.workHours.first_time_in, 'HH:mm:ss');
+                    const firstTimeOut = dayjs(response.data.workHours.first_time_out, 'HH:mm:ss');
+                    const secondTimeIn = dayjs(response.data.workHours.second_time_in, 'HH:mm:ss');
+                    const secondTimeOut = dayjs(response.data.workHours.second_time_out, 'HH:mm:ss');
+
+                    setSplitFirstTimeIn(firstTimeIn);
+                    setSplitFirstTimeOut(firstTimeOut);
+                    setSplitSecondTimeIn(secondTimeIn);
+                    setSplitSecondTimeOut(secondTimeOut);
+                }
+
+                const overTimeIn = dayjs(response.data.workHours.over_time_in, 'HH:mm:ss');
+                const overTimeOut = dayjs(response.data.workHours.over_time_out, 'HH:mm:ss');
+
+                setOverTimeIn(overTimeIn);
+                setOverTimeOut(overTimeOut);
+                
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching work shifts:', error);
+            });
+    }
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -85,9 +147,13 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
     };
 
     const saveInput = (event) => {
+
+        console.log(workShift);
+
+
         event.preventDefault();
 
-        const data = { workGroup: workGroup, workShift: workShift.id };
+        const data = { workGroup: workGroup.id, workShift: selectedShift };
 
         axiosInstance.post('/workshedule/saveWorkGroupShift', data, { headers })
             .then(response => {
@@ -111,6 +177,15 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                 console.error('Error:', error);
             });
     };
+
+    function formatTime(time) {
+        if (!time) return '';
+        const [hours, minutes] = time.split(':').map(Number);
+        const isAM = hours < 12;
+        const formattedHours = hours % 12 || 12;
+        const period = isAM ? 'AM' : 'PM';
+        return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }  
 
     return (
         <>
@@ -146,9 +221,249 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                             </FormControl>
                         </FormGroup>
 
-                        {workShift.shift_type === "Regular" && (
+
+                        {selectedShift != "" && (
                             <>
-                                <Typography sx={{ marginBottom: 3 }} >Attendance</Typography>
+                                {shiftType === "regular" && (
+                                    <>
+                                        <Typography>Work Hours</Typography>
+                                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                            '& label.Mui-focused': {color: '#97a5ba'},
+                                            '& .MuiOutlinedInput-root': {
+                                                '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            },
+                                        }}>
+                                            <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <TextField
+                                                    required
+                                                    id="firstLabel"
+                                                    label="First Label"
+                                                    variant="outlined"
+                                                    value="Attendance"
+                                                    InputProps={{ readOnly: true }}
+                                                />
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time In"
+                                                            views={['hours', 'minutes']}
+                                                            value={regularTimeIn}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time Out"
+                                                            views={['hours', 'minutes']}
+                                                            value={regularTimeOut}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+                                        </FormGroup>
+
+                                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                            '& label.Mui-focused': {color: '#97a5ba'},
+                                            '& .MuiOutlinedInput-root': {
+                                                '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            },
+                                        }}>
+                                            <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <TextField
+                                                    required
+                                                    id="breakTimeLabel"
+                                                    label="Break Time"
+                                                    variant="outlined"
+                                                    value="Break Time"
+                                                    InputProps={{ readOnly: true }}
+                                                />
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Break Start"
+                                                            views={['hours', 'minutes']}
+                                                            value={breakStart}
+                                                            slotProps={{ textField: { required: true, InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            requireds
+                                                            label="Break End"
+                                                            views={['hours', 'minutes']}
+                                                            value={breakEnd}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+                                        </FormGroup>
+                                    </>
+                                )}
+
+                                {shiftType === "split" && (
+                                    <>
+                                        <Typography>Work Hours</Typography>
+                                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                            '& label.Mui-focused': {color: '#97a5ba'},
+                                            '& .MuiOutlinedInput-root': {
+                                                '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            },
+                                        }}>
+                                            <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <TextField
+                                                    id="firstLabel"
+                                                    label="First Label"
+                                                    variant="outlined"
+                                                    value={firstLabel}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time In"
+                                                            views={['hours', 'minutes']}
+                                                            value={splitFirstTimeIn}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time Out"
+                                                            views={['hours', 'minutes']}
+                                                            value={splitFirstTimeOut}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+                                        </FormGroup>
+
+                                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                            '& label.Mui-focused': {color: '#97a5ba'},
+                                            '& .MuiOutlinedInput-root': {
+                                                '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            },
+                                        }}>
+                                            <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <TextField
+                                                    required
+                                                    id="secondLabel"
+                                                    label="Second Label"
+                                                    variant="outlined"
+                                                    value={secondLabel}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time In"
+                                                            views={['hours', 'minutes']}
+                                                            value={splitSecondTimeIn}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+
+                                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
+                                                },
+                                            }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                                    <DemoContainer components={['TimePicker']}>
+                                                        <TimePicker
+                                                            required
+                                                            label="Time Out"
+                                                            views={['hours', 'minutes']}
+                                                            value={splitSecondTimeOut}
+                                                            slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </FormControl>
+                                        </FormGroup>
+                                    </>
+                                )}
 
                                 <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                     '& label.Mui-focused': {color: '#97a5ba'},
@@ -162,246 +477,51 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                         },
                                     }}>
                                         <TextField
-                                            required
-                                            id="firstLabel"
-                                            label="Label"
-                                            variant="outlined"
-                                            value="Attendance"
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeIn"
-                                            label="Time In"
-                                            variant="outlined"
-                                            value={formatTime(workShift.first_time_in)}
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeOut"
-                                            label="Time Out"
-                                            variant="outlined"
-                                            value={formatTime(workShift.first_time_out)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
                                             id="overTimeLabel"
-                                            label="Label"
+                                            label="Over Time"
                                             variant="outlined"
                                             value="Over Time"
+                                            InputProps={{ readOnly: true }}
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': {
                                             '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                         },
                                     }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeIn"
-                                            label="Time In"
-                                            variant="outlined"
-                                            value={formatTime(workShift.over_time_in)}
-                                        />
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time In"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeIn}
+                                                    slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': {
                                             '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                         },
                                     }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeOut"
-                                            label="Time Out"
-                                            variant="outlined"
-                                            value={formatTime(workShift.over_time_out)}
-                                        />
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
+                                            <DemoContainer components={['TimePicker']}>
+                                                <TimePicker
+                                                    label="Time Out"
+                                                    views={['hours', 'minutes']}
+                                                    value={overTimeOut}
+                                                    slotProps={{ textField: { InputProps: { readOnly: true } } }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
                             </>
                         )}
 
-                        {workShift.shift_type === "Split" && (
-                            <>
-                                <Typography sx={{ marginBottom: 3 }} >Attendance</Typography>
-
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstLabel"
-                                            label="Label"
-                                            variant="outlined"
-                                            value="Attendance"
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeIn"
-                                            label="Time In"
-                                            variant="outlined"
-                                            value={formatTime(workShift.first_time_in)}
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeOut"
-                                            label="Time Out"
-                                            variant="outlined"
-                                            value={formatTime(workShift.first_time_out)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="secondLabel"
-                                            label="Label"
-                                            variant="outlined"
-                                            value="Attendance"
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="secondTimeIn"
-                                            label="Time In"
-                                            variant="outlined"
-                                            value={formatTime(workShift.second_time_in)}
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="secondTimeOut"
-                                            label="Time Out"
-                                            variant="outlined"
-                                            value={formatTime(workShift.second_time_out)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="overTimeLabel"
-                                            label="Label"
-                                            variant="outlined"
-                                            value="Over Time"
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeIn"
-                                            label="Time In"
-                                            variant="outlined"
-                                            value={formatTime(workShift.over_time_in)}
-                                        />
-                                    </FormControl>
-
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <TextField
-                                            required
-                                            id="firstTimeOut"
-                                            label="Time Out"
-                                            variant="outlined"
-                                            value={formatTime(workShift.over_time_out)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">

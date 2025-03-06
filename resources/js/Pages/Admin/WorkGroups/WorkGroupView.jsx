@@ -27,6 +27,8 @@ const WorkGroupView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [showError404, setShowError404] = useState(false);
 
+    const [shiftId, setShiftId] = useState("");
+
     const [workGroup, setWorkGroup] = useState([]);
     const [workShift, setWorkShift] = useState([]);
     const [workHours, setWorkHours] = useState([]);
@@ -47,9 +49,13 @@ const WorkGroupView = () => {
             .then((response) => {
                 const { workGroup, workShift, workHours, employees } = response.data;
 
-                if (!workGroup && !workShift && !workHours && !employees) {
+                if ( !workGroup ) {
                     setShowError404(true);
                     return;
+                }
+
+                if ( workShift ) {
+                    setShiftId(workShift.id);
                 }
 
                 setWorkGroup(workGroup);
@@ -128,7 +134,7 @@ const WorkGroupView = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Work Group</Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>View Work Group</Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenActions}>
                             Actions
@@ -200,27 +206,27 @@ const WorkGroupView = () => {
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Group Name </Grid>
-                                        <Grid item xs={8}></Grid>
+                                        <Grid item xs={8}>{workGroup.name}</Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Assigned Shift </Grid>
-                                        <Grid item xs={8}></Grid>
+                                        <Grid item xs={8}> Unassigned </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Shift Type </Grid>
-                                        <Grid item xs={8}></Grid>
+                                        <Grid item xs={8}> N/A </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Attendance </Grid>
-                                        <Grid item xs={8}></Grid>
+                                        <Grid item xs={8}> N/A </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
                                         <Grid item xs={4}> Over Time </Grid>
-                                        <Grid item xs={8}></Grid>
+                                        <Grid item xs={8}> N/A </Grid>
                                     </Grid>
                                 </Box>
                             }
@@ -271,7 +277,7 @@ const WorkGroupView = () => {
                 </Box>
 
                 {openAssignShiftModal &&
-                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={workShift.id} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
+                    <AssignShift open={openAssignShiftModal} close={handleCloseAssignShiftModal} currentShift={shiftId} workGroup={workGroup} onUpdateWorkGroupDetails={getWorkGroupDetails} />
                 }
 
                 {openEditWorkGroupModal &&
