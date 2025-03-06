@@ -160,14 +160,14 @@ const ClientsAdd = () => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
+                        text: "Client and Admin created successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/hr/performance-evaluation-review/${response.data.formId}`);
+                        navigate(`/clients`);
                     });
                 }
             })
