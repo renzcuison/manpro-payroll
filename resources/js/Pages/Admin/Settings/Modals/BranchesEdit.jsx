@@ -30,35 +30,16 @@ const BranchesEdit = ({ open, close, branchInfo }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
-
-        if (!address) {
-            setAddressError(true);
-        } else {
-            setAddressError(false);
-        }
-
-        if (!status) {
-            setStatusError(true);
-        } else {
-            setStatusError(false);
-        }
-
+        setNameError(!name);
+        setAcronymError(!acronym);
+        setAddressError(!address);
+        setStatusError(!status);
         if (leaveLimit == null) {
             setLeaveLimitError(true);
         } else {
             setLeaveLimitError(false);
         }
+
 
         if (!name || !acronym || !address || !status || leaveLimit == null) {
             Swal.fire({

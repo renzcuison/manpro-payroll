@@ -462,26 +462,11 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!appType) {
-            setAppTypeError(true);
-        } else {
-            setAppTypeError(false);
-        }
-        if (!fromDate) {
-            setFromDateError(true);
-        } else {
-            setFromDateError(false);
-        }
-        if (!toDate) {
-            setToDateError(true);
-        } else {
-            setToDateError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
+        // Requirement Checks
+        setAppTypeError(!appType);
+        setFromDateError(!fromDate);
+        setToDateError(!fromDate);
+        setDescriptionError(!description);
 
         const selectedType = applicationTypes.find(type => type.id == appType);
         const fileRequired = selectedType.require_files;

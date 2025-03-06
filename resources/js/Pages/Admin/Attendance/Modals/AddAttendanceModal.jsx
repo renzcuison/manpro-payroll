@@ -154,10 +154,10 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                         setSelectedAction(event.target.value)
                                     }
                                 >
-                                    <MenuItem value="Time In">
+                                    <MenuItem value="Duty In">
                                         Time In
                                     </MenuItem>
-                                    <MenuItem value="Time Out">
+                                    <MenuItem value="Duty Out">
                                         Time Out
                                     </MenuItem>
                                     <MenuItem value="Overtime In">
@@ -176,7 +176,6 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                         label="Time"
                                         value={timestamp}
                                         error={timestampError}
-                                        minDate={dayjs()}
                                         timeSteps={{ minutes: 1 }}
                                         onChange={(newValue) => {
                                             setTimestamp(newValue);

@@ -48,31 +48,26 @@ const AttendanceLogs = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Action</TableCell>
-                                                <TableCell align="center">Date & Time</TableCell>
                                                 <TableCell align="center">Name</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
                                                 <TableCell align="center">Role</TableCell>
+                                                <TableCell align="center">Timestamp</TableCell>
+                                                <TableCell align="center">Action</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {/* {employees.map((employee) => (
-                                                <TableRow
-                                                    key={employee.id}
-                                                    component={Link}
-                                                    to={`/admin/employee/${employee.user_name}`}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_type || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.employment_status || '-'}</TableCell>
+                                            {attendances.map((attendance) => (
+                                                <TableRow key={attendance.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
+                                                    <TableCell align="left">{attendance.name || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.branch || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.department || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.role || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.timeStamp || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.action || '-'}</TableCell>
                                                 </TableRow>
-                                            ))} */}
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

@@ -228,26 +228,11 @@ const TrainingsAdd = ({ open, close }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-        if (!title) {
-            setTitleError(true);
-        } else {
-            setTitleError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
-        if (!startDate) {
-            setFromDateError(true);
-        } else {
-            setFromDateError(false);
-        }
-        if (!endDate) {
-            setToDateError(true);
-        } else {
-            setToDateError(false);
-        }
+
+        setTitleError(!title);
+        setDescriptionError(!description);
+        setFromDateError(!startDate);
+        setToDateError(!endDate);
 
         if (!title || !description || !startDate || !endDate) {
             document.activeElement.blur();

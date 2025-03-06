@@ -193,11 +193,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                     </Table>
                                 </TableContainer>
                                 <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => setLogsView(false)}
-                                    >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(false)} >
                                         <p className="m-0">
                                             <i className="fa fa-list"></i>{" "}View Credits
                                         </p>
@@ -285,20 +281,12 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                     </Table>
                                 </TableContainer>
                                 <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => handleOpenAddLeaveCredit()}
-                                    >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddLeaveCredit()} >
                                         <p className="m-0">
                                             <i className="fa fa-plus"></i>{" "}Add Leave Credit
                                         </p>
                                     </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => setLogsView(true)}
-                                    >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(true)} >
                                         <p className="m-0">
                                             <i className="fa fa-list"></i>{" "}View Logs
                                         </p>

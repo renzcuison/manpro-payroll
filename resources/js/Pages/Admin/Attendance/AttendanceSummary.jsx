@@ -6,6 +6,7 @@ import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import dayjs from 'dayjs';
 
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -13,18 +14,23 @@ const AttendanceSummary = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
+    const [attendanceSummary, setAttendanceSummary] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching clients:', error);
-                setIsLoading(false);
-            });
+
+        axiosInstance.get('/attendance/getAttendanceSummary', {
+            headers,
+            params: {
+                month: dayjs().month() + 1,
+                year: dayjs().year(),
+            }
+        }).then((response) => {
+            setAttendanceSummary(response.data.attendance_summary);
+            setIsLoading(false);
+        }).catch((error) => {
+            console.error('Error fetching summary:', error);
+            setIsLoading(false);
+        });
     }, []);
 
     return (
@@ -55,26 +61,24 @@ const AttendanceSummary = () => {
                                                 <TableCell align="center">Hours</TableCell>
                                                 <TableCell align="center">Tardiness</TableCell>
                                                 <TableCell align="center">Absences</TableCell>
-                                                <TableCell align="center">Total</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {employees.map((employee) => (
+                                            {attendanceSummary.map((attendance) => (
                                                 <TableRow
-                                                    key={employee.id}
+                                                    key={attendance.emp_id}
                                                     component={Link}
-                                                    to={`/admin/attendance/${employee.user_name}`}
+                                                    to={`/admin/attendance/${attendance.emp_user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                                    <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                    <TableCell align="center">{employee.role || '-'}</TableCell>
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="center"></TableCell>
+                                                    <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>
+                                                    <TableCell align="center">{attendance.emp_branch || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.emp_department || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.emp_role || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.total_minutes || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.total_late || '-'}</TableCell>
+                                                    <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>

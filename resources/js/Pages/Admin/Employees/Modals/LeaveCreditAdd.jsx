@@ -51,16 +51,8 @@ const LeaveCreditAdd = ({ open, close, empId }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!leaveType) {
-            setLeaveTypeError(true);
-        } else {
-            setLeaveTypeError(false);
-        }
-        if (!creditCount) {
-            setCreditCountError(true);
-        } else {
-            setCreditCountError(false);
-        }
+        setLeaveTypeError(!leaveType);
+        setCreditCountError(!creditCount);
 
         if (!leaveType || !creditCount) {
             document.activeElement.blur();

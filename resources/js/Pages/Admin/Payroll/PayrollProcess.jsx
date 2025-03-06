@@ -184,13 +184,7 @@ const PayrollProcess = () => {
                 }
 
                 {openPayrollDetailsModal &&
-                    <PayrollDetails
-                        open={openPayrollDetailsModal}
-                        close={handleClosePayrollDetailsModal}
-                        selectedPayroll={selectedPayroll}
-                        currentStartDate={formattedStartDate}
-                        currentEndDate={formattedEndDate}
-                    />
+                    <PayrollDetails open={openPayrollDetailsModal} close={handleClosePayrollDetailsModal} selectedPayroll={selectedPayroll} currentStartDate={formattedStartDate} currentEndDate={formattedEndDate} />
                 }
 
             </Box>

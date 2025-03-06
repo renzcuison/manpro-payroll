@@ -12,6 +12,7 @@ use App\Models\WorkGroupsModel;
 use App\Models\BenefitsModel;
 use App\Models\UserFormsModel;
 
+use Carbon\Carbon;
 // use App\Models\NewModel;
 // use App\Models\NewModel;
 // use App\Models\NewModel;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeesController extends Controller
 {
@@ -227,10 +229,81 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employee' => null]);
     }
 
-    public function editEmmployeeDetails(Request $request)
+    public function getMyDetails(Request $request)
     {
-        log::info("EmployeesController::editEmmployeeDetails");
-        log::info($request);
+        // log::info("EmployeesController::getMyDetails");
+
+        $user = Auth::user();
+        $employee = UsersModel::find($user->id);
+
+        $employee = $this->enrichEmployeeDetails($employee);
+        return response()->json(['status' => 200, 'employee' => $employee]);
+    }
+
+    public function editMyProfile(Request $request)
+    {
+        //log::info("EmployeesController::editMyProfile");
+        //log::info($request);
+
+        $user = Auth::user();
+
+        $employee = UsersModel::find($request->id);
+
+        try {
+            DB::beginTransaction();
+
+            $employee->first_name = $request->input('first_name');
+            $employee->middle_name = $request->input('middle_name');
+            $employee->last_name = $request->input('last_name');
+            $employee->suffix = $request->input('suffix');
+
+            $employee->birth_date = $request->input('birth_date');
+            $employee->gender = $request->input('gender');
+
+            $employee->contact_number = $request->input('contact_number');
+            $employee->address = $request->input('address');
+
+            $dateTime = now()->format('YmdHis');
+
+            if ($request->hasFile('profile_pic')) {
+
+                $oldPicPath = $employee->profile_pic;
+
+                $profilePic = $request->file('profile_pic');
+                $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
+                $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
+                $employee->profile_pic = $profilePicPath;
+
+                if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
+                    //Log::info("Attempting to delete: public/" . $oldPicPath);
+                    if (Storage::disk('public')->delete($oldPicPath)) {
+                        //Log::info("Old picture deleted successfully.");
+                    } else {
+                        //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
+                    }
+                } else {
+                    //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
+                }
+            }
+
+            $employee->save();
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function editEmployeeDetails(Request $request)
+    {
+        //log::info("EmployeesController::editEmployeeDetails");
+        //log::info($request);
 
         $user = Auth::user();
         $employee = UsersModel::find($request->id);

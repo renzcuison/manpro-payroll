@@ -120,8 +120,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
+        Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
-        Route::post('/editEmmployeeDetails', [EmployeesController::class, 'editEmmployeeDetails']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
@@ -164,6 +166,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('attendance')->group(function () {
         Route::get('/getAttendanceLogs', [AttendanceController::class, 'getAttendanceLogs']);
+        Route::get('/getAttendanceSummary', [AttendanceController::class, 'getAttendanceSummary']);
         Route::get('/getEmployeeAttendanceLogs', [AttendanceController::class, 'getEmployeeAttendanceLogs']);
         Route::get('/getEmployeeAttendanceSummary', [AttendanceController::class, 'getEmployeeAttendanceSummary']);
         Route::get('/getEmployeeDashboardAttendance', [AttendanceController::class, 'getEmployeeDashboardAttendance']);
@@ -173,6 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
+        Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
     });
 
     Route::prefix('payroll')->group(function () {

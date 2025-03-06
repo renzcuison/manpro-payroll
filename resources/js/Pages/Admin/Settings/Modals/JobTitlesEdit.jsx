@@ -26,23 +26,9 @@ const JobTitlesEdit = ({ open, close, jobTitleInfo }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!name) {
-            setNameError(true);
-        } else {
-            setNameError(false);
-        }
-
-        if (!acronym) {
-            setAcronymError(true);
-        } else {
-            setAcronymError(false);
-        }
-
-        if (!status) {
-            setStatusError(true);
-        } else {
-            setStatusError(false);
-        }
+        setNameError(!name);
+        setAcronymError(!acronym);
+        setStatusError(!status);
 
         if (!name || !acronym || !status) {
             Swal.fire({

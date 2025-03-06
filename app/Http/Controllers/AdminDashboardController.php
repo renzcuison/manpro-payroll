@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
+use App\Models\BranchesModel;
+use App\Models\TrainingsModel;
 use App\Models\ApplicationsModel;
 use App\Models\AnnouncementsModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\TrainingsModel;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,44 +47,39 @@ class AdminDashboardController extends Controller
             $average = [];
             $attendance = [];
 
+            $today = Carbon::now();
+
             // ---- Counter Rows ---- //
             // Get Employees
-            $employees = UsersModel::where('client_id', $clientId)->get();
+            $employees = UsersModel::where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active")->get();
             $counter['head_count'] = count($employees);
 
             // Get Applications
-            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)
-                ->where('status', 'Pending')
-                ->count();
+            $counter['application_count'] = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->count();
 
             // Get Announcements
-            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)
-                ->where('status', "Published")
-                ->count();
+            $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)->where('status', "Published")->count();
 
             // Get Trainings 
-            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)
-                ->where('status', 'Active')
-                ->count();
+            $counter['training_count'] = TrainingsModel::where('client_id', $clientId)->where('status', 'Active')->count();
 
             // Average Age
             if ($employees->count() > 0) {
                 $totalAge = 0;
                 foreach ($employees as $employee) {
                     $birthDate = Carbon::parse($employee->birth_date);
-                    $today = Carbon::now();
                     $age = $today->diffInYears($birthDate) + ($today->diffInMonths($birthDate) % 12 / 12) + ($today->diffInDays($birthDate) % 30.42 / 365.25); // This gives the age with decimal precision
 
                     $totalAge += $age;
                 }
                 $average['age'] = round($totalAge / $employees->count(), 1);
             }
+
             // Average Tenureship
             if ($employees->count() > 0) {
                 $totalTenure = 0;
                 foreach ($employees as $employee) {
                     $hireDate = Carbon::parse($employee->date_start);
-                    $today = Carbon::now();
                     $tenureInYears = $today->diffInYears($hireDate) + ($today->diffInMonths($hireDate) % 12 / 12) + ($today->diffInDays($hireDate) % 30.42 / 365.25);
 
                     $totalTenure += $tenureInYears;
@@ -94,34 +91,24 @@ class AdminDashboardController extends Controller
             // Present Counter
             $attendance['present_count'] = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })
-                ->whereDate('timestamp', $today)
-                ->distinct('user_id')
-                ->count('user_id');
+            })->whereDate('timestamp', $today)->distinct('user_id')->count('user_id');
 
             // On Leave Counter
             $attendance['onleave_count'] = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })
-                ->where('status', 'Approved')
-                ->whereDate('duration_start', '<=', $today)
-                ->whereDate('duration_end', '>=', $today)
-                ->distinct('user_id')
-                ->count('user_id');
+            })->where('status', 'Approved')->whereDate('duration_start', '<=', $today)->whereDate('duration_end', '>=', $today)->distinct('user_id')->count('user_id');
 
             // ---- Chart Row ---- //
             // Branch Employees
-            $branchData = $employees->groupBy('branch_id')
-                ->mapWithKeys(function ($employeesInBranch, $branchId) {
-                    $branchName = $employeesInBranch->first()->branch->name;
-                    return [
-                        $branchId => [
-                            'name' => $branchName,
-                            'count' => $employeesInBranch->count(),
-                        ]
-                    ];
-                })
-                ->all();
+            $branches = [];
+            $rawBranches = BranchesModel::select('id', 'name', 'acronym', 'client_id')->where('client_id', $clientId)->get();
+
+            foreach ($rawBranches as $branch) {
+                $employees = UsersModel::select('name')->where('user_type', "Employee")->where('employment_status', "Active")->where('branch_id', $branch->id)->count();
+
+                $branches[] = ['name' => $branch->name, 'acronym' => $branch->acronym, 'employees' => $employees];
+            }
+
 
             // Salary Range
             $salaryRange = [];
@@ -184,61 +171,152 @@ class AdminDashboardController extends Controller
                 'counter' => $counter,
                 'average' => $average,
                 'attendance' => $attendance,
-                'branches' => $branchData,
+                'branches' => $branches,
                 'salary_range' => $salaryRange
             ]);
         }
     }
 
-    public function getAttendance()
+    public function getAttendance(Request $request)
     {
-        // Log::info("AdminDashboardController::getAttendance");
+        //Log::info("AdminDashboardController::getAttendance");
         $user = Auth::user();
+        $today = Carbon::now()->toDateString();
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
+            $type = $request->input('type', 1);
 
             $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
             })
                 ->whereDate('timestamp', Carbon::now()->toDateString())
-                ->with('user')
-                ->get()
-                ->groupBy('user_id')
-                ->sortKeysDesc()
-                ->map(function ($logs,) {
+                ->with('user', 'workHour')
+                ->get();
 
-                    // First Time In
-                    $timeIn = $logs->firstWhere('action', 'Duty In');
-                    // Last Time Out
-                    $timeOut = $logs->last(function ($log) {
-                        return $log->action === 'Duty Out';
-                    });
+            $result = [];
 
-                    // First Overtime In
-                    $overtimeIn = $logs->firstWhere('action', 'Overtime In');
-                    // Last Overtime Out
-                    $overtimeOut = $logs->last(function ($log) {
-                        return $log->action === 'Overtime Out';
-                    });
+            if ($type == 1) { // PRESENT
+                $result = $attendances->groupBy('user_id')
+                    ->sortKeysDesc()
+                    ->map(function ($logs) {
+                        $timeIn = $logs->firstWhere('action', 'Duty In');
+                        $timeOut = $logs->last(function ($log) {
+                            return $log->action === 'Duty Out';
+                        });
+                        $user = $logs->first()->user;
 
-                    $user = $logs->first()->user;
+                        return [
+                            'profile_pic' => $user->profile_pic ?? null,
+                            'first_name' => $user->first_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'middle_name' => $user->middle_name ?? null,
+                            'suffix' => $user->suffix ?? null,
+                            'time_in' => $timeIn ? $timeIn->timestamp : null,
+                            'time_out' => $timeOut ? $timeOut->timestamp : null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+
+                usort($result, function ($a, $b) {
+                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                });
+            } elseif ($type == 2) { // LATE
+                $result = $attendances->groupBy('user_id')
+                    ->map(function ($logs) {
+                        $timeIn = $logs->firstWhere('action', 'Duty In');
+                        $user = $logs->first()->user;
+                        $workStart = $logs->first()->workHour->first_time_in;
+                        $expectedStart = Carbon::parse($workStart);
+
+                        if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt(Carbon::parse($workStart))) {
+                            $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                            return [
+                                'profile_pic' => $user->profile_pic ?? null,
+                                'first_name' => $user->first_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'middle_name' => $user->middle_name ?? null,
+                                'suffix' => $user->suffix ?? null,
+                                'time_in' => $timeIn->timestamp,
+                                'start_time' => $expectedStart,
+                                'late_by' => $lateBy,
+                            ];
+                        }
+                        return null;
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                usort($result, function ($a, $b) {
+                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                });
+            } elseif ($type == 3) { // ABSENT
+                $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
+                $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
+                    $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
+                })
+                    ->where('status', 'Approved')
+                    ->whereDate('duration_start', '<=', $today)
+                    ->whereDate('duration_end', '>=', $today)
+                    ->distinct('user_id')
+                    ->pluck('user_id')
+                    ->toArray();
+
+                $allEmployees = UsersModel::where('client_id', $clientId)
+                    ->where('user_type', 'Employee')
+                    ->where('employment_status', 'Active')
+                    ->pluck('id')
+                    ->diff($attendedUserIds)
+                    ->diff($onLeaveUserIds)
+                    ->toArray();
+
+                $result = UsersModel::whereIn('id', $allEmployees)
+                    ->get()
+                    ->map(function ($user) {
+                        return [
+                            'profile_pic' => $user->profile_pic ?? null,
+                            'first_name' => $user->first_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'middle_name' => $user->middle_name ?? null,
+                            'suffix' => $user->suffix ?? null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            } elseif ($type == 4) { // ON LEAVE
+                $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
+                    $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
+                })
+                    ->where('status', 'Approved')
+                    ->whereDate('duration_start', '<=', $today)
+                    ->whereDate('duration_end', '>=', $today)
+                    ->with('user', 'type')
+                    ->get();
+
+                $result = $onLeaveApplications->map(function ($application) {
+                    $user = $application->user;
+                    $typeName = $application->type ? $application->type->name : 'Unknown';
+                    $startDate = Carbon::parse($application->duration_start);
+                    $endDate = Carbon::parse($application->duration_end);
 
                     return [
+                        'profile_pic' => $user->profile_pic ?? null,
                         'first_name' => $user->first_name ?? null,
                         'last_name' => $user->last_name ?? null,
                         'middle_name' => $user->middle_name ?? null,
                         'suffix' => $user->suffix ?? null,
-                        'time_in' => $timeIn ? $timeIn->timestamp : null,
-                        'time_out' => $timeOut ? $timeOut->timestamp : null,
-                        'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
-                        'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
+                        'type_name' => $typeName,
+                        'leave_start' => $startDate,
+                        'leave_end' => $endDate,
                     ];
                 })
-                ->values()
-                ->all();
+                    ->values()
+                    ->all();
+            }
 
-            return response()->json(['status' => 200, 'attendance' => $attendances]);
+            return response()->json(['status' => 200, 'attendance' => $result]);
         } else {
             return response()->json(['status' => 200, 'attendance' => null]);
         }

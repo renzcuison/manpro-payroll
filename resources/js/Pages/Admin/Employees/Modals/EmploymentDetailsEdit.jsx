@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 import moment from 'moment';
 import dayjs from 'dayjs';
 
-const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
+const EmploymentDetailsEdit = ({ open, close, employee }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -90,7 +90,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
             endDate: endDate,
         };
 
-        axiosInstance.post('/employee/editEmmployeeDetails', data, { headers })
+        axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -102,9 +102,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        if (onUpdateEmployee) {
-                            onUpdateEmployee();
-                        }
+                        close(true);
                     });
                 }
             })
@@ -119,7 +117,7 @@ const EmploymentDetailsEdit = ({ open, close, employee, onUpdateEmployee }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Employment Details </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 

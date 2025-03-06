@@ -55,16 +55,8 @@ const GenerateFormLink = ({ open, close }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!useLimit) {
-            setUseLimitError(true);
-        } else {
-            setUseLimitError(false);
-        }
-        if (!expirationDate) {
-            setExpirationDateError(true);
-        } else {
-            setExpirationDateError(false);
-        }
+        setUseLimitError(!useLimit);
+        setExpirationDateError(!expirationDate);
 
         if (!useLimit || !expirationDate) {
             document.activeElement.blur();

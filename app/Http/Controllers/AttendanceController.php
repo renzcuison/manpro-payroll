@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceLogsModel;
+use App\Models\AttendanceLogsMobileModel;
 use App\Models\ClientsModel;
 use App\Models\UsersModel;
 use App\Models\WorkDaysModel;
@@ -99,11 +100,54 @@ class AttendanceController extends Controller
         }
     }
 
+    public function saveMobileEmployeeAttendance(Request $request)
+    {
+        // log::info("AttendanceController::saveMobileEmployeeAttendance");
+
+        $validated = $request->validate(['action' => 'required']);
+
+        $user = Auth::user();
+
+        if ($validated) {
+            try {
+                DB::beginTransaction();
+
+                $attendance = AttendanceLogsModel::create([
+                    "user_id" => $user->id,
+                    "work_hour_id" => $user->workShift->work_hour_id,
+                    "action" => $request->action,
+                    "method" => 1,
+                ]);
+
+                $dateTime = now()->format('YmdHis');
+
+                if ($request->hasFile('image')) {
+                    $image = $request->file('image');
+                    $imageName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $image->getClientOriginalExtension();
+                    $imagePath = $image->storeAs('attendance/mobile', $imageName, 'public');
+                    AttendanceLogsMobileModel::create([
+                        "attendance_id" => $attendance->id,
+                        "path" => $imagePath
+                    ]);
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                //Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
     public function recordEmployeeAttendance(Request $request)
     {
         //log::info("AttendanceController::recordEmployeeAttendance");
         $validated = $request->validate(['action' => 'required']);
-
 
         $user = Auth::user();
 
@@ -141,9 +185,25 @@ class AttendanceController extends Controller
             $user = Auth::user();
             $clientId = $user->client_id;
 
-            $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+            $attendances = [];
+            $rawAttendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })->get();
+            })->orderBy('timestamp', 'desc')->get();
+
+            foreach ($rawAttendances as $rawAttendance) {
+                $employee = UsersModel::select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id')->find($rawAttendance->user_id);
+
+                $attendances[] = [
+                    'id' => $rawAttendance->id,
+                    'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'branch' => $employee->branch->name ?? '-',
+                    'department' => $employee->department->name ?? '-',
+                    'role' => $employee->role->name ?? '-',
+                    'timeStamp' => $rawAttendance->timestamp,
+                    'action' => $rawAttendance->action,
+                ];
+            }
+
 
             return response()->json(['status' => 200, 'attendances' => $attendances]);
         }
@@ -153,7 +213,7 @@ class AttendanceController extends Controller
 
     public function getEmployeeAttendanceLogs(Request $request)
     {
-        // Log::info("AttendanceController::getAttendanceLogs");
+        // Log::info("AttendanceController::getEmployeeAttendanceLogs");
 
         $user = Auth::user();
         $fromDate = $request->input('from_date');
@@ -170,6 +230,236 @@ class AttendanceController extends Controller
         $attendances = $query->orderBy('timestamp', 'desc')->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    public function getAttendanceSummary(Request $request)
+    {
+        //Log::info("AttendanceController::getAttendanceSummary");
+        //Log::info($request);
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+            $month = $request->input('month', Carbon::now()->month);
+            $year = $request->input('year', Carbon::now()->year);
+
+            //Log::info($month);
+            //Log::info($year);
+
+            try {
+                // Retrieve Employees
+                $employees = UsersModel::where('client_id', $clientId)
+                    ->where('user_type', 'Employee')
+                    ->where('employment_status', 'Active')
+                    ->get();
+
+                // Attendance Compiler
+                $attendanceSummary  = $employees->map(function ($employee) use ($month, $year) {
+                    // Retrieve Daily Logs per Employee
+                    $attendanceLogs = AttendanceLogsModel::with('workHour')
+                        ->where('user_id', $employee->id)
+                        ->whereYear('timestamp', $year)
+                        ->whereMonth('timestamp', $month)
+                        ->orderBy('timestamp', 'asc')
+                        ->get()
+                        ->groupBy(function ($log) {
+                            return Carbon::parse($log->timestamp)->format('Y-m-d');
+                        });
+
+                    // Data Prep
+                    $totalRendered = 0;         // minutes
+                    $totalLate = 0;             // seconds
+                    $totalAbsences = 0;         // days
+                    $totalShiftDuration = 0;    // minutes
+
+                    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+                    $endDay = ($year == Carbon::now()->year &&  $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+                    // $totalRenderedMinutes = 0;
+                    // $totalLateSeconds = 0;
+                    // $totalAbsences = 0;
+                    // $totalShiftMinutes = 0;
+                    // $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+                    // $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+                })->all();
+            } catch (\Exception $e) {
+            }
+            return response()->json(['status' => 200, 'summary' => $attendanceSummary]);
+        } else {
+            return response()->json(['status' => 200, 'summary' => null]);
+        }
+    }
+
+    public function getAttendanceSummaryOld(Request $request)
+    {
+        //Log::info("AttendanceController::getAttendanceSummary");
+        //Log::info($request);
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+            $month = $request->input('month', Carbon::now()->month);
+            $year = $request->input('year', Carbon::now()->year);
+
+            // Get the month's name from Carbon
+            $monthName = Carbon::createFromFormat('m', $month)->monthName;
+
+            //Log::info($monthName);
+            //Log::info($year);
+
+            try {
+                $employees = UsersModel::where('client_id', $clientId)
+                    ->where('user_type', 'Employee')
+                    ->where('employment_status', 'Active')
+                    ->get();
+
+                $attendanceSummary = $employees->map(function ($employee) use ($month, $year) {
+                    $attendanceLogs = AttendanceLogsModel::with('workHour')
+                        ->where('user_id', $employee->id)
+                        ->whereYear('timestamp', $year)
+                        ->whereMonth('timestamp', $month)
+                        ->orderBy('timestamp', 'asc')
+                        ->get()
+                        ->groupBy(function ($log) {
+                            return Carbon::parse($log->timestamp)->format('Y-m-d');
+                        });
+
+                    $totalRenderedMinutes = 0;
+                    $totalLateSeconds = 0;
+                    $totalAbsences = 0;
+                    $totalShiftMinutes = 0;
+                    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+                    $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->day : $daysInMonth;
+
+                    //Log::info($endDay);
+
+                    foreach (range(1, $endDay) as $day) {
+                        $currentDate = Carbon::create($year, $month, $day)->startOfDay();
+                        $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
+                        $currentDate = Carbon::create($year, $month, $day)->startOfDay();
+                        $logs = $attendanceLogs->get($currentDate->format('Y-m-d'));
+
+                        if ($logs) {
+                            $shiftType = $logs->first()->workHour->shift_type ?? 'Regular';
+                            $workStart = Carbon::parse($logs->first()->workHour->first_time_in ?? '00:00:00')
+                                ->setYear($currentDate->year)
+                                ->setMonth($currentDate->month)
+                                ->setDay($currentDate->day);
+                            $workEndTimes = [
+                                Carbon::parse($logs->first()->workHour->first_time_out ?? '00:00:00')
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day),
+                                Carbon::parse($logs->first()->workHour->second_time_out ?? '00:00:00')
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day),
+                            ];
+                            $breakStart = Carbon::parse($logs->first()->workHour->break_start ?? '00:00:00')
+                                ->setYear($currentDate->year)
+                                ->setMonth($currentDate->month)
+                                ->setDay($currentDate->day);
+                            $breakEnd = Carbon::parse($logs->first()->workHour->break_end ?? '00:00:00')
+                                ->setYear($currentDate->year)
+                                ->setMonth($currentDate->month)
+                                ->setDay($currentDate->day);
+
+                            $totalShiftMinutes = $shiftType === 'Split'
+                                ? $workEndTimes[0]->diffInMinutes($workEndTimes[0]) + $workEndTimes[1]->diffInMinutes($workEndTimes[1])
+                                : max(0, $workEndTimes[0]->diffInMinutes($workStart) - $breakStart->diffInMinutes($breakEnd));
+
+                            $dutyIn = $logs->firstWhere('action', 'Duty In');
+                            $dutyOut = $logs->last(fn($log) => $log->action === 'Duty Out');
+                            $overtimeIn = $logs->firstWhere('action', 'Overtime In');
+                            $overtimeOut = $logs->last(fn($log) => $log->action === 'Overtime Out');
+
+                            if ($dutyIn && $dutyOut) {
+                                $workStartNormalized = Carbon::parse($dutyIn->timestamp)
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day);
+                                $workEndNormalized = Carbon::parse($dutyOut->timestamp)
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day);
+                                $workHoursStart = $workStart;
+                                $workHoursEnd = $workEndTimes[0];
+
+                                $startWithinShift = max($workStartNormalized, $workHoursStart);
+                                $endWithinShift = min($workEndNormalized, $workHoursEnd);
+
+                                $renderedMinutes = $startWithinShift->diffInMinutes($endWithinShift);
+                                if (Carbon::parse($dutyIn->timestamp)->gt($workStart)) {
+                                    $lateStart = Carbon::parse($dutyIn->timestamp)
+                                        ->setYear($currentDate->year)
+                                        ->setMonth($currentDate->month)
+                                        ->setDay($currentDate->day);
+                                    $totalLateSeconds += max(0, $lateStart->diffInSeconds($workStart));
+                                }
+                                $totalRenderedMinutes += $renderedMinutes;
+
+                                if ($shiftType === 'Regular' && $breakStart->lt($endWithinShift) && $breakEnd->gt($startWithinShift)) {
+                                    $breakOverlapStart = max($startWithinShift, $breakStart);
+                                    $breakOverlapEnd = min($endWithinShift, $breakEnd);
+                                    $breakMinutes = $breakOverlapStart->diffInMinutes($breakOverlapEnd);
+                                    $totalRenderedMinutes -= min($breakMinutes, $renderedMinutes);
+                                }
+                            }
+
+                            if ($overtimeIn && $overtimeOut) {
+                                $overtimeStart = Carbon::parse($overtimeIn->timestamp)
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day);
+                                $overtimeEnd = Carbon::parse($overtimeOut->timestamp)
+                                    ->setYear($currentDate->year)
+                                    ->setMonth($currentDate->month)
+                                    ->setDay($currentDate->day);
+                                $totalRenderedMinutes += $overtimeStart->diffInMinutes($overtimeEnd);
+                            }
+                        } else {
+                            $totalAbsences++;
+                        }
+
+                        // Ensure totalShiftMinutes is used only when logs exist
+                        if ($logs) {
+                            $totalLateSeconds += max(0, $totalShiftMinutes * 60 - $totalRenderedMinutes * 60); // Convert to seconds
+                        }
+                    }
+
+                    $branchInfo = $employee->branch
+                        ? "{$employee->branch->name} ({$employee->branch->acronym})"
+                        : 'N/A';
+
+                    $departmentInfo = $employee->department
+                        ? "{$employee->department->name} ({$employee->department->acronym})"
+                        : 'N/A';
+
+                    return [
+                        'emp_id' => $employee->id,
+                        'emp_user_name' => $employee->user_name,
+                        'emp_first_name' => $employee->first_name,
+                        'emp_middle_name' => $employee->middle_name,
+                        'emp_last_name' => $employee->last_name,
+                        'emp_suffix' => $employee->suffix,
+                        'emp_branch' => $branchInfo,
+                        'emp_department' => $departmentInfo,
+                        'emp_role' => $employee->role->name ?? 'N/A',
+                        'total_minutes' => $totalRenderedMinutes,
+                        'total_late' => $totalLateSeconds,
+                        'total_absences' => $totalAbsences,
+                    ];
+                })->all();
+
+                // /Log::info($attendanceSummary);
+
+                return response()->json(['status' => 200, 'attendance_summary' => $attendanceSummary]);
+            } catch (\Exception $e) {
+                Log::error("Error in getAttendanceSummary: " . $e->getMessage());
+                return response()->json(['status' => 500, 'attendance_summary' => null], 500);
+            }
+        } else {
+            return response()->json(['status' => 200, 'attendance_summary' => null]);
+        }
     }
 
     public function getEmployeeAttendanceSummary(Request $request)

@@ -313,6 +313,7 @@ const WorkshiftAdd = () => {
 
             breakStart: breakStart.format('HH:mm:ss'),
             breakEnd: breakEnd.format('HH:mm:ss'),
+
             overTimeIn: overTimeIn.format('HH:mm:ss'),
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
@@ -356,7 +357,7 @@ const WorkshiftAdd = () => {
             breakStart: breakStart.format('HH:mm:ss'),
             breakEnd: breakEnd.format('HH:mm:ss'),
 
-            overTimeOut: overTimeOut.format('HH:mm:ss'),
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
             overTimeOut: overTimeOut.format('HH:mm:ss'),
         };
 
