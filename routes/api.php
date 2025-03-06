@@ -204,6 +204,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
         Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
+        Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
+
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
 

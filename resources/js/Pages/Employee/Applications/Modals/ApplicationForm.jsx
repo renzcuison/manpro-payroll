@@ -53,6 +53,8 @@ const ApplicationForm = ({ open, close }) => {
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState("");
     const [tenureship, setTenureship] = useState(0);
+    const [leaveCredits, setLeaveCredits] = useState(0);
+    const [availableLeave, setAvailableLeave] = useState(0);
 
     const [fromDate, setFromDate] = useState(dayjs().startOf('hour'));
     const [toDate, setToDate] = useState(dayjs().startOf('hour'));
@@ -73,6 +75,8 @@ const ApplicationForm = ({ open, close }) => {
 
     // Form Errors
     const [appTypeError, setAppTypeError] = useState(false);
+    const [tenureshipError, setTenureshipError] = useState(false);
+    const [availableLeaveError, setAvailableLeaveError] = useState(false);
 
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
@@ -104,6 +108,15 @@ const ApplicationForm = ({ open, close }) => {
             });
 
         axiosInstance
+            .get(`applications/getMyLeaveCredits`, { headers })
+            .then((response) => {
+                setLeaveCredits(response.data.leave_credits);
+            })
+            .catch((error) => {
+                console.error("Error fetching leave credits:", error);
+            });
+
+        axiosInstance
             .get(`workshedule/getWorkHours`, { headers })
             .then((response) => {
                 setWorkHours(response.data.workHours);
@@ -118,8 +131,9 @@ const ApplicationForm = ({ open, close }) => {
                 setFullDates(response.data.fullDates);
             })
             .catch((error) => {
-                console.error("Error fetching Full Days:", error);
+                console.error("Error fetching full days:", error);
             });
+
 
         axiosInstance
             .get(`applications/getNagerHolidays`, {
@@ -142,6 +156,13 @@ const ApplicationForm = ({ open, close }) => {
 
     const handleTypeChange = (value) => {
         const selectedType = applicationTypes.find(type => type.id == value);
+        const leaveType = leaveCredits.find(leave => leave.app_type_id == value);
+
+        const available = leaveType ? (leaveType.credit_number - leaveType.credit_used) : 0;
+        setAvailableLeave(available);
+        setAvailableLeaveError(leaveUsed > available);
+        setTenureshipError(tenureship < selectedType.tenureship_required);
+
         setFileRequired(selectedType.require_files);
         setAppType(value);
     };
@@ -394,10 +415,11 @@ const ApplicationForm = ({ open, close }) => {
                 }
             }
         }
+        const updatedCount = Number(creditsUsed.toFixed(2));
         setWeekendCount(weekends);
         setHolidayCount(holidays);
-        setLeaveUsed(Number(creditsUsed.toFixed(2)));
-        //console.log(`Total Used: ${Number(creditsUsed.toFixed(2))}`);
+        setLeaveUsed(updatedCount);
+        setAvailableLeaveError(updatedCount > availableLeave);
     }, [fromDate, toDate]);
 
     // Time Parser
@@ -559,19 +581,34 @@ const ApplicationForm = ({ open, close }) => {
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
                             <Grid item xs={12} sx={{ mt: 1 }}>
-                                <FormControl
-                                    fullWidth
-                                    sx={{
-                                        "& label.Mui-focused": { color: "#97a5ba" },
-                                        "& .MuiOutlinedInput-root": {
-                                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                                        },
-                                    }}
-                                >
-                                    <TextField required select id="application-type" label="Application Type" value={appType} error={appTypeError} onChange={(event) => handleTypeChange(event.target.value)} >
-                                        {applicationTypes.filter(type => tenureship >= type.tenureship_required)
+                                <FormControl fullWidth>
+                                    <TextField
+                                        required
+                                        select
+                                        id="application-type"
+                                        label="Application Type"
+                                        value={appType}
+                                        error={appTypeError || tenureshipError}
+                                        onChange={(event) => handleTypeChange(event.target.value)}
+                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? s : ""}` : ""}
+                                    >
+                                        {applicationTypes
+                                            .sort((a, b) => {
+                                                const validTypesA = tenureship >= a.tenureship_required;
+                                                const validTypesB = tenureship >= b.tenureship_required;
+                                                if (validTypesA === validTypesB) return 0;
+                                                return validTypesA ? -1 : 1;
+                                            })
                                             .map((type, index) => (
-                                                <MenuItem key={index} value={type.id}> {type.name} </MenuItem>
+                                                <MenuItem
+                                                    key={index}
+                                                    value={type.id}
+                                                    sx={{ color: tenureship < type.tenureship_required ? 'grey' : 'inherit' }}
+                                                >
+                                                    {type.name}
+                                                    {tenureship < type.tenureship_required &&
+                                                        " (Requires tenureship of " + type.tenureship_required + " months)"}
+                                                </MenuItem>
                                             ))}
                                     </TextField>
                                 </FormControl>
@@ -593,9 +630,9 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: fromDateError || dateRangeError || leaveUsedError,
+                                                error: fromDateError || dateRangeError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
                                     />
@@ -618,9 +655,9 @@ const ApplicationForm = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
-                                                error: toDateError || dateRangeError || leaveUsedError,
+                                                error: toDateError || dateRangeError,
                                                 readOnly: true,
-                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : leaveUsedError ? "Enter a Valid Date Range" : "",
+                                                helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
                                     />
@@ -630,10 +667,15 @@ const ApplicationForm = ({ open, close }) => {
                             <Grid item xs={4}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        label="Leave Used"
+                                        label="Credits Used/Available"
                                         value={leaveUsed}
-                                        error={leaveUsedError}
-                                        InputProps={{ readOnly: true }}
+                                        error={leaveUsedError || availableLeaveError}
+                                        InputProps={{
+                                            readOnly: true,
+                                            endAdornment: (
+                                                `/${!availableLeave ? "0" : availableLeave}`
+                                            )
+                                        }}
                                         sx={{
                                             '& .MuiFormHelperText-root': {
                                                 color: leaveUsedError ? "#f44336" : '#42a5f5',
@@ -643,14 +685,10 @@ const ApplicationForm = ({ open, close }) => {
                                             },
                                         }}
                                         helperText={
-                                            (holidayCount > 0 || weekendCount > 0) ? (
-                                                <>
-                                                    <InfoOutlined fontSize="small" />
-                                                    <span>
-                                                        {`${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`}
-                                                    </span>
-                                                </>
-                                            ) : ''
+                                            availableLeaveError ? `Credits used exceeds available credits`
+                                                : leaveUsedError ? `No leave credits has been used`
+                                                    : (holidayCount > 0 || weekendCount > 0) ? `${holidayCount > 0 ? `${holidayCount} Holiday${holidayCount > 1 ? 's' : ''}${weekendCount > 0 ? ', ' : ''}` : ''}${weekendCount > 0 ? `${weekendCount} Weekend${weekendCount > 1 ? 's' : ''}` : ''} excluded from count`
+                                                        : ''
                                         }
                                     />
                                 </FormControl>

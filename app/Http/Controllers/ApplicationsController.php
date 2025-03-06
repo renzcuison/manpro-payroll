@@ -387,10 +387,46 @@ class ApplicationsController extends Controller
         //Log::info("ApplicationsController::getLeaveCredits");
 
         $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $clientId = $user->client_id;
+
+            $leaves = LeaveCreditsModel::where('client_id', $clientId)
+                ->where('user_id', $id)
+                ->get();
+
+            $leaveCredits = [];
+
+            foreach ($leaves as $leave) {
+                $app_type = $leave->type;
+
+                $leaveCredits[] = [
+                    'id' => $leave->id,
+                    'client_id' => $leave->client_id,
+                    'user_id' => $leave->user_id,
+                    'app_type_id' => $app_type->id,
+                    'app_type_name' => $app_type->name,
+                    'credit_number' => $leave->number,
+                    'credit_used' => $leave->used,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
+        } else {
+            return response()->json(['status' => 200, 'leave_credits' => null]);
+        }
+    }
+
+    public function getMyLeaveCredits()
+    {
+        //Log::info("ApplicationsController::getMyLeaveCredits");
+
+        $user = Auth::user();
+
         $clientId = $user->client_id;
 
         $leaves = LeaveCreditsModel::where('client_id', $clientId)
-            ->where('user_id', $id)
+            ->where('user_id', $user->id)
             ->get();
 
         $leaveCredits = [];
@@ -400,8 +436,6 @@ class ApplicationsController extends Controller
 
             $leaveCredits[] = [
                 'id' => $leave->id,
-                'client_id' => $leave->client_id,
-                'user_id' => $leave->user_id,
                 'app_type_id' => $app_type->id,
                 'app_type_name' => $app_type->name,
                 'credit_number' => $leave->number,
