@@ -73,13 +73,13 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveAttendance(event);
+                    saveInput(event);
                 }
             });
         }
     }
 
-    const saveAttendance = (event) => {
+    const saveInput = (event) => {
         event.preventDefault();
 
 
@@ -109,7 +109,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        close();
+                        close(true);
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
@@ -129,7 +129,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                 <DialogTitle sx={{ padding: 3, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 2, fontWeight: 'bold' }}> Add Attendance </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
