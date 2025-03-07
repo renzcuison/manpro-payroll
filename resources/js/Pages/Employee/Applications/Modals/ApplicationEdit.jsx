@@ -428,6 +428,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
         setWeekendCount(weekends);
         setHolidayCount(holidays);
         setLeaveUsed(updatedCount);
+        // Error Prevention while awaiting Leave Credits API
         if (availableLeave != null) {
             setAvailableLeaveError(updatedCount > availableLeave);
         }

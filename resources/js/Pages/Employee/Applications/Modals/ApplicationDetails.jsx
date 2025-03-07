@@ -199,6 +199,14 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                                 </Typography>
                             </Stack>
                         </Grid>
+                        <Grid item xs={5} align="left">
+                            Credits Used
+                        </Grid>
+                        <Grid item xs={7} align="left">
+                            <Typography sx={{ fontWeight: "bold" }}>
+                                {appDetails.leave_used}
+                            </Typography>
+                        </Grid>
                         <Grid item xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
