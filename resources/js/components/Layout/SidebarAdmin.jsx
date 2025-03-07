@@ -1,7 +1,7 @@
 import avatar from '../../../images/admin.png';
 import manpro_logo from '../../../images/ManPro.png'
 import { useUser } from '../../hooks/useUser';
-import { capitalize, styled } from '@mui/material';
+import { capitalize, styled, Box, Avatar } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import SideItem from '../LayoutComponents/SideItem';
 import moment from 'moment/moment';
@@ -95,9 +95,9 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-calendar-check-o',
         children: [
             {
-            href: `/admin/attendance/summary?`,
-            text: 'Summary',
-            icon: 'fa fa-cogs',
+                href: `/admin/attendance/summary?`,
+                text: 'Summary',
+                icon: 'fa fa-cogs',
             }, {
                 href: `/admin/attendance/logs?`,
                 text: 'Logs',
@@ -115,7 +115,7 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/payroll/process?`,
                 text: 'Process',
                 icon: 'fa fa-cogs',
-            }, 
+            },
             // {
             //     href: `/hr/payroll-process?`,
             //     text: 'Process Old',
@@ -242,15 +242,27 @@ const Sidebar = ({ children, closeMini }) => {
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
                             <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
-                        <div className="sidebar-mini-hidden-b text-center" >
-                            <a className="img-link">
-                                {user.profile_pic ? (<img className="img-avatar" src={location.origin + "/storage/" + user.profile_pic} alt="" />) : (<img className="img-avatar" src={HomeLogo} alt="" />)}
-                            </a>
-                            <ul className="list-inline mt-10">
-                                <li className="list-inline-item">
-                                    <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.first_name)} {capitalize(user.last_name)}</a>
-                                </li>
-                            </ul>
+                        <div className="sidebar-mini-hidden-b text-center">
+                            <Box display="flex" flexDirection="column" alignItems="center">
+                                <Avatar
+                                    src={user.profile_pic ? `${location.origin}/storage/${user.profile_pic}` : HomeLogo}
+                                    alt={`${user.first_name} ${user.last_name}`}
+                                    sx={{
+                                        width: 64,
+                                        height: 64,
+                                        objectFit: 'contain',
+                                        bgcolor: 'grey.300',
+                                        '& .MuiAvatar-img': {
+                                            objectFit: 'cover',
+                                        },
+                                    }}
+                                />
+                                <ul className="list-inline mt-10">
+                                    <li className="list-inline-item">
+                                        <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.first_name)} {capitalize(user.last_name)}</a>
+                                    </li>
+                                </ul>
+                            </Box>
                         </div>
                     </div>
                     <div className="content-side content-side-full">
@@ -299,7 +311,7 @@ const Sidebar = ({ children, closeMini }) => {
 
 
 
-                                
+
 
                                 {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
