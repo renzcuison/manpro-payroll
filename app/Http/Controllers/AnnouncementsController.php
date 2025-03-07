@@ -55,7 +55,13 @@ class AnnouncementsController extends Controller
                 $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
                 $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
 
-                $recCount = UsersModel::whereIn('branch_id', $branches)->orWhereIn('department_id', $departments)->distinct()->count('id');
+                $recCount = UsersModel::where('user_type', "Employee")
+                    ->where(function ($query) use ($branches, $departments) {
+                        $query->whereIn('branch_id', $branches)
+                            ->orWhereIn('department_id', $departments);
+                    })
+                    ->distinct()
+                    ->count('id');
 
                 return [
                     'id' => $announcement->id,
@@ -620,6 +626,7 @@ class AnnouncementsController extends Controller
                     'emp_middle_name' => $emp->middle_name ?? '',
                     'emp_last_name' => $emp->last_name,
                     'emp_suffix' => $emp->suffix ?? '',
+                    'emp_profile_pic' => $emp->profile_pic ?? null,
                     'timestamp' => $ack->created_at,
                 ];
             })->all();
@@ -641,8 +648,9 @@ class AnnouncementsController extends Controller
                         $query->orWhereIn('department_id', $departments);
                     }
                 })
+                ->where('user_type', "Employee")
                 ->whereNotIn('id', $acknowledgedUsers)
-                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix')
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic')
                 ->get()
                 ->map(function ($employee) {
                     return [
@@ -650,7 +658,8 @@ class AnnouncementsController extends Controller
                         'emp_first_name' => $employee->first_name,
                         'emp_middle_name' => $employee->middle_name ?? '',
                         'emp_last_name' => $employee->last_name,
-                        'emp_suffix' => $employee->suffix ?? ''
+                        'emp_suffix' => $employee->suffix ?? '',
+                        'emp_profile_pic' => $employee->profile_pic ?? null,
                     ];
                 })
                 ->all();
