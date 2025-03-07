@@ -66,7 +66,13 @@ class TrainingsController extends Controller
                     $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
                 }
 
+                $uniqueCode = $this->generateRandomCode(16);
+                while (TrainingsModel::where('unique_code', $uniqueCode)->exists()) {
+                    $uniqueCode = $this->generateRandomCode(16);
+                }
+
                 $training = TrainingsModel::create([
+                    'unique_code' => $uniqueCode,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
                     'cover_photo' => $coverPath,
@@ -143,12 +149,12 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    public function getTrainingMedia($id)
+    public function getTrainingMedia($code)
     {
         //Log::info("TrainingsController::getTrainingMedia");
         $user = Auth::user();
 
-        $media = TrainingMediaModel::where('training_id', $id)
+        $media = TrainingMediaModel::where('unique_code', $code)
             ->select('id', 'order', 'url')
             ->orderBy('order', 'asc')
             ->get();
@@ -166,7 +172,7 @@ class TrainingsController extends Controller
 
         $covers = array_fill_keys($trainingIds, null);
 
-        $coverFiles = TrainingsModel::where('id', $trainingIds)
+        $coverFiles = TrainingsModel::whereIn('id', $trainingIds)
             ->select('id', 'cover_photo')
             ->get();
 
@@ -175,5 +181,19 @@ class TrainingsController extends Controller
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
+    }
+
+    function generateRandomCode($length)
+    {
+        // log::info("TrainingsController::generateRandomCode");
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $result = '';
+        $charsLength = strlen($chars);
+
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[rand(0, $charsLength - 1)];
+        }
+
+        return $result;
     }
 }

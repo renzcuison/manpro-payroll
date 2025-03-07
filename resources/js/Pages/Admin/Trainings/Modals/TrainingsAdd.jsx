@@ -304,7 +304,7 @@ const TrainingsAdd = ({ open, close }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
-                        close();
+                        close(true);
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
                         document.body.setAttribute("aria-hidden", "true");
@@ -323,7 +323,7 @@ const TrainingsAdd = ({ open, close }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Training </Typography>
-                        <IconButton onClick={close}> <i className="si si-close"></i> </IconButton>
+                        <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 

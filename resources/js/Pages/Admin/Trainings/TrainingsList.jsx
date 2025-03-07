@@ -79,7 +79,7 @@ const TrainingsList = () => {
     const firstTraining = lastTraining - trainingsPerPage;
     const pageTrainings = trainings.slice(firstTraining, lastTraining);
 
-
+    // ---------------- Training List API
     useEffect(() => {
         fetchTrainings();
     }, []);
@@ -177,9 +177,11 @@ const TrainingsList = () => {
     const handleOpenAddTrainingModal = () => {
         setOpenAddTrainingModal(true);
     };
-    const handleCloseAddTrainingModal = () => {
+    const handleCloseAddTrainingModal = (reload) => {
         setOpenAddTrainingModal(false);
-        fetchTrainings();
+        if (reload) {
+            fetchTrainings();
+        }
     };
 
     // Edit Training Modal
