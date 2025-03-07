@@ -28,7 +28,7 @@ const AttendanceSummary = () => {
                 year: dayjs(month).year(),
             }
         }).then((response) => {
-            setAttendanceSummary(response.data.attendance_summary || []);
+            setAttendanceSummary(response.data.summary || []);
             setIsLoading(false);
         }).catch((error) => {
             console.error('Error fetching summary:', error);
@@ -36,6 +36,7 @@ const AttendanceSummary = () => {
         });
     }, [month]);
 
+    // ---------------- Summary Details
     const formatTime = (time) => {
         if (!time) return '-';
 
@@ -112,16 +113,22 @@ const AttendanceSummary = () => {
                                                 attendanceSummary.map((attendance) => (
                                                     <TableRow
                                                         key={attendance.emp_id}
-                                                        component={Link}
-                                                        to={`/admin/attendance/${attendance.emp_user_name}`}
-                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
+                                                        onClick={() => navigate(`/admin/attendance/${attendance.emp_user_name}`)}
+                                                        sx={{
+                                                            '&:last-child td, &:last-child th': { border: 0 },
+                                                            textDecoration: 'none', color: 'inherit',
+                                                            "&:hover": {
+                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                                cursor: "pointer",
+                                                            },
+                                                        }}
                                                     >
                                                         <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>
                                                         <TableCell align="center">{attendance.emp_branch || '-'}</TableCell>
                                                         <TableCell align="center">{attendance.emp_department || '-'}</TableCell>
                                                         <TableCell align="center">{attendance.emp_role || '-'}</TableCell>
-                                                        <TableCell align="center">{attendance.total_minutes || '-'}</TableCell>
-                                                        <TableCell align="center">{attendance.total_late || '-'}</TableCell>
+                                                        <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
+                                                        <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
                                                         <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
                                                     </TableRow>
                                                 ))

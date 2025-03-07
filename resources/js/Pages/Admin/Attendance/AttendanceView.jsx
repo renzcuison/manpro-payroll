@@ -105,6 +105,21 @@ const AttendanceView = () => {
         });
     }
 
+    // ---------------- Summary Details
+    const formatTime = (time) => {
+        if (!time) return '-';
+
+        const absTime = Math.abs(time);
+
+        const hours = Math.floor(absTime / 60);
+        const minutes = absTime % 60;
+
+        if (hours > 0) {
+            return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
+        } else {
+            return `${minutes}m`;
+        }
+    }
 
     return (
         <Layout title={"EmployeeView"}>
@@ -224,19 +239,7 @@ const AttendanceView = () => {
                                                                         : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {(() => {
-                                                                    const totalMinutes = summary.total_rendered;
-                                                                    const hours =
-                                                                        Math.floor(totalMinutes / 60);
-                                                                    const minutes = totalMinutes % 60;
-                                                                    if (hours > 0 && minutes > 0) {
-                                                                        return `${hours} hour${hours > 1 ? "s" : ""}, ${minutes} minute${minutes > 1 ? "s" : ""}`;
-                                                                    } else if (hours > 0) {
-                                                                        return `${hours} hour${hours > 1 ? "s" : ""}`;
-                                                                    } else {
-                                                                        return `${minutes} minute${minutes > 1 ? "s" : ""}`;
-                                                                    }
-                                                                })()}
+                                                                {formatTime(summary.total_rendered)}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {summary.overtime_in
@@ -249,23 +252,8 @@ const AttendanceView = () => {
                                                                     : summary.overtime_in ? "Failed to Time Out"
                                                                         : "-"}
                                                             </TableCell>
-
                                                             <TableCell align="center">
-                                                                {(() => {
-                                                                    const totalOT = summary.total_ot;
-                                                                    const hoursOT = Math.floor(totalOT / 60);
-                                                                    const minutesOT = totalOT % 60;
-
-                                                                    if (hoursOT > 0 && minutesOT > 0) {
-                                                                        return `${hoursOT} hour${hoursOT > 1 ? "s" : ""}, ${minutesOT} minute${minutesOT > 1 ? "s" : ""}`;
-                                                                    } else if (hoursOT > 0) {
-                                                                        return `${hoursOT} hour${hoursOT > 1 ? "s" : ""}`;
-                                                                    } else if (minutesOT > 0) {
-                                                                        return `${minutesOT} minute${minutesOT > 1 ? "s" : ""}`;
-                                                                    } else {
-                                                                        return "-";
-                                                                    }
-                                                                })()}
+                                                                {formatTime(summary.total_ot)}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 <Typography
@@ -277,28 +265,7 @@ const AttendanceView = () => {
                                                                                     : null,
                                                                     }}
                                                                 >
-                                                                    {(() => {
-                                                                        if (summary.date === currentDate) {
-                                                                            return "Day Ongoing";
-                                                                        } else {
-                                                                            const totalLate = summary.late_time;
-                                                                            const hoursLate = Math.floor(totalLate / 60);
-                                                                            const minutesLate = totalLate % 60;
-
-                                                                            if (hoursLate > 0 && minutesLate > 0) {
-                                                                                return `${hoursLate} hour${hoursLate >
-                                                                                    1
-                                                                                    ? "s"
-                                                                                    : ""}, ${minutesLate} minute${minutesLate > 1 ? "s" : ""}`;
-                                                                            } else if (hoursLate > 0) {
-                                                                                return `${hoursLate} hour${hoursLate > 1 ? "s" : ""}`;
-                                                                            } else if (minutesLate > 0) {
-                                                                                return `${minutesLate} minute${minutesLate > 1 ? "s" : ""}`;
-                                                                            } else {
-                                                                                return "None";
-                                                                            }
-                                                                        }
-                                                                    })()}
+                                                                    {summary.date == currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
                                                                 </Typography>
                                                             </TableCell>
                                                         </TableRow>
