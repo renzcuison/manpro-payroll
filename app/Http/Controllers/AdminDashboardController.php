@@ -114,6 +114,7 @@ class AdminDashboardController extends Controller
             $salaryRange = [];
 
             $payRange1 = UsersModel::where('client_id', $clientId)
+                ->where('user_type', "Employee")
                 ->whereBetween(DB::raw('CASE 
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
@@ -124,6 +125,7 @@ class AdminDashboardController extends Controller
                 ->count();
 
             $payRange2 = UsersModel::where('client_id', $clientId)
+                ->where('user_type', "Employee")
                 ->whereBetween(DB::raw('CASE 
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
@@ -134,6 +136,7 @@ class AdminDashboardController extends Controller
                 ->count();
 
             $payRange3 = UsersModel::where('client_id', $clientId)
+                ->where('user_type', "Employee")
                 ->whereBetween(DB::raw('CASE 
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
@@ -144,6 +147,7 @@ class AdminDashboardController extends Controller
                 ->count();
 
             $payRange4 = UsersModel::where('client_id', $clientId)
+                ->where('user_type', "Employee")
                 ->whereBetween(DB::raw('CASE 
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
@@ -154,6 +158,7 @@ class AdminDashboardController extends Controller
                 ->count();
 
             $payRange5 = UsersModel::where('client_id', $clientId)
+                ->where('user_type', "Employee")
                 ->where(DB::raw('CASE 
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
