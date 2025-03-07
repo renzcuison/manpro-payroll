@@ -571,7 +571,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: `Application successfully edited!`,
+                    text: `Application successfully updated!`,
                     icon: "success",
                     showConfirmButton: true,
                     confirmButtonText: "Okay",

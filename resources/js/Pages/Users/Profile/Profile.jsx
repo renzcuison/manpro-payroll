@@ -23,6 +23,7 @@ const EmployeeView = () => {
 
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
 
+
     useEffect(() => {
         getMyDetails();
     }, []);
@@ -169,50 +170,49 @@ const EmployeeView = () => {
                         </Grid>
 
                         <Grid item xs={8}>
-                            <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            {employee.user_type == "Employee"
+                                ? <Box sx={{ mb: 3, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
-                                <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
+                                    <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
 
-                                <Grid container spacing={4}>
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Signed Payroll </Typography>
-                                            </Grid>
-                                        </Box>
+                                    <Grid container spacing={4}>
+                                        <Grid item xs={4}>
+                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
+                                                </Grid>
+                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Typography variant="h6"> Signed Payroll </Typography>
+                                                </Grid>
+                                            </Box>
+                                        </Grid>
+
+                                        <Grid item xs={4}>
+                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
+                                                </Grid>
+                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Typography variant="h6"> Attendance </Typography>
+                                                </Grid>
+                                            </Box>
+                                        </Grid>
+
+                                        <Grid item xs={4}>
+                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
+                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
+                                                </Grid>
+                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Typography variant="h6"> Applications </Typography>
+                                                </Grid>
+                                            </Box>
+                                        </Grid>
                                     </Grid>
+                                </Box> : null}
 
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Attendance </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Applications </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-
-                            <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
+                            <Box sx={{ py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employment Details </Typography>
-
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
                                         <Typography> Role </Typography>
