@@ -102,7 +102,7 @@ const EmployeeView = () => {
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                     <Avatar
                                         alt={`${employee.user_name} Profile Pic`}
-                                        src={employee.profile_pic ? `../../../../../../storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
+                                        src={employee.profile_pic ? `${location.origin}/storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
                                         sx={{
                                             width: '50%',
                                             height: 'auto',

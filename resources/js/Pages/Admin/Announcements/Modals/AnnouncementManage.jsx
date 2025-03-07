@@ -548,7 +548,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         width: "100%"
                                                     }}>
                                                     <img
-                                                        src={`../../../../../../storage/announcements/images/${image.filename}`}
+                                                        src={`${location.origin}/storage/announcements/images/${image.filename}`}
                                                         alt={image.filename}
                                                         loading="lazy"
                                                         style={{

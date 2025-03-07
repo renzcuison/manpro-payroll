@@ -133,7 +133,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                             acknowledgements.map((ack, index) => (
                                                 <ListItem key={index} align="flex-start">
                                                     <ListItemAvatar>
-                                                        <Avatar alt={`${ack.emp_first_name}_Avatar`} src={`../../../../../../storage/${ack.emp_profile_pic}` || "../../../../../images/avatarpic.jpg"} />
+                                                        <Avatar alt={`${ack.emp_first_name}_Avatar`} src={`${location.origin}/storage/${ack.emp_profile_pic}` || "../../../../../images/avatarpic.jpg"} />
                                                     </ListItemAvatar>
                                                     <ListItemText
                                                         primary={`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`}
@@ -158,7 +158,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                             unAcknowledged.map((unAck, index) => (
                                                 <ListItem key={index} align="flex-start">
                                                     <ListItemAvatar>
-                                                        <Avatar alt={`${unAck.emp_first_name}_Avatar`} src={`../../../../../../storage/${unAck.emp_profile_pic}` || "../../../../../images/avatarpic.jpg"} />
+                                                        <Avatar alt={`${unAck.emp_first_name}_Avatar`} src={`${location.origin}/storage/${unAck.emp_profile_pic}` || "../../../../../images/avatarpic.jpg"} />
                                                     </ListItemAvatar>
                                                     <ListItemText
                                                         primary={`${unAck.emp_first_name} ${unAck.emp_middle_name || ''} ${unAck.emp_last_name} ${unAck.emp_suffix || ''}`}

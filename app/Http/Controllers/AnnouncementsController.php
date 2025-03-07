@@ -560,7 +560,7 @@ class AnnouncementsController extends Controller
 
     public function downloadFile($id)
     {
-        Log::info("AnnouncementsController::downloadFile");
+        //Log::info("AnnouncementsController::downloadFile");
         $file = AnnouncementFilesModel::find($id);
 
         if (!$file) {

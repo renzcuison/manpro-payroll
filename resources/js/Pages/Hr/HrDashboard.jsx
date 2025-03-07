@@ -409,7 +409,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -479,7 +479,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -549,7 +549,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -613,7 +613,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `../../../../storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
