@@ -1086,7 +1086,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 >
                                     <p className="m-0">
                                         <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
-                                        Submit Application{" "}
+                                        Update Application{" "}
                                     </p>
                                 </Button>
                             </Grid>
