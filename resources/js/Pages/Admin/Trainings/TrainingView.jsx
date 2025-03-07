@@ -66,39 +66,32 @@ const TrainingView = () => {
     const navigate = useNavigate();
 
     // ---------------- Announcement Data States
-    const [isLoading, setIsLoading] = useState(false);
     const [announcement, setAnnouncement] = useState([]);
 
-    const [imagePath, setImagePath] = useState("");
-    const [imageLoading, setImageLoading] = useState(true);
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [training, setTraining] = useState([]);
+
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imagePath, setImagePath] = useState("");
+
+    const [videos, setVideos] = useState([]);
     const [images, setImages] = useState([]);
     const [attachments, setAttachments] = useState([]);
 
-    // ---------------- Announcement List API
     useEffect(() => {
-        getAnnouncementDetails();
-        getAnnouncementThumbnail();
-        getAnnouncementFiles();
+        getTrainingDetails();
+        getTrainingMedia();
     }, []);
 
-    // Announcement Details
-    const getAnnouncementDetails = () => {
-        axiosInstance.get(`/announcements/getEmployeeAnnouncementDetails/${code}`, { headers })
+    // Training Details
+    const getTrainingDetails = () => {
+        axiosInstance.get(`/trainings/getTrainingDetails/${code}`, { headers })
             .then((response) => {
-                setAnnouncement(response.data.announcement);
-            })
-            .catch((error) => {
-                console.error('Error fetching announcement details', error);
-            });
-    }
-
-    // Announcement Thumbnail
-    const getAnnouncementThumbnail = () => {
-        axiosInstance.get(`/announcements/getThumbnail/${code}`, { headers })
-            .then((response) => {
-                if (response.data.thumbnail) {
-                    const byteCharacters = window.atob(response.data.thumbnail);
+                setTraining(response.data.training);
+                console.log(response.data.training);
+                if (response.data.training.cover) {
+                    const byteCharacters = window.atob(response.data.training.cover);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -111,24 +104,24 @@ const TrainingView = () => {
                     setImagePath("../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
-
             })
             .catch((error) => {
-                console.error('Error fetching thumbnail:', error);
+                console.error('Error fetching training details', error);
                 setImagePath("../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
     }
 
-    // Announcement Files
-    const getAnnouncementFiles = () => {
-        axiosInstance.get(`/announcements/getEmployeeAnnouncementFiles/${code}`, { headers })
+    // Training Media
+    const getTrainingMedia = () => {
+        axiosInstance.get(`/trainings/getTrainingMedia/${code}`, { headers })
             .then((response) => {
                 setImages(response.data.images);
                 setAttachments(response.data.attachments);
+                setVideos(response.data.videos);
             })
             .catch((error) => {
-                console.error('Error fetching files:', error);
+                console.error('Error fetching training media:', error);
             });
     }
 
@@ -162,24 +155,41 @@ const TrainingView = () => {
 
     // Download Attachment
     const handleFileDownload = (filename, id) => {
-        axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
-            .then((response) => {
-                const blob = new Blob([response.data], {
-                    type: response.headers["content-type"],
-                });
-                const link = document.createElement("a");
-                link.href = window.URL.createObjectURL(blob);
-                link.download = filename;
-                link.click();
+        console.log(`Downloading File:      ${filename}`)
+        // axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+        //     .then((response) => {
+        //         const blob = new Blob([response.data], {
+        //             type: response.headers["content-type"],
+        //         });
+        //         const link = document.createElement("a");
+        //         link.href = window.URL.createObjectURL(blob);
+        //         link.download = filename;
+        //         link.click();
 
-                window.URL.revokeObjectURL(link.href);
-            })
-            .catch((error) => {
-                console.error("Error downloading file:", error);
-            });
+        //         window.URL.revokeObjectURL(link.href);
+        //     })
+        //     .catch((error) => {
+        //         console.error("Error downloading file:", error);
+        //     });
     };
 
-    // Announcement Menu
+    // ---------------- Time Formatter
+    const formatTime = (time) => {
+        if (!time) return '-';
+
+        const absTime = Math.abs(time);
+
+        const hours = Math.floor(absTime / 60);
+        const minutes = absTime % 60;
+
+        if (hours > 0) {
+            return `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` ${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`;
+        } else {
+            return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+        }
+    }
+
+    // Training Menu
     const [anchorEl, setAnchorEl] = React.useState(null);
     const menuOpen = Boolean(anchorEl);
     const handleMenuClick = (event) => {
@@ -189,55 +199,13 @@ const TrainingView = () => {
         setAnchorEl(null);
     };
 
-    // Acknowledge Announcement
-    const handleAcknowledgeAnnouncement = () => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: "Acknowledge Announcement?",
-            text: "Do you want to acknowledge this announcement?",
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: "Yes",
-            confirmButtonColor: "#177604",
-            showCancelButton: true,
-            cancelButtonText: "No",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                const data = {
-                    code: code
-                };
-                axiosInstance
-                    .post(`announcements/acknowledgeAnnouncement`, data, {
-                        headers,
-                    })
-                    .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Announcement Acknowledged`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        }).then((res) => {
-                            getAnnouncementDetails();
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error acknowledging announcment:", error);
-                    });
-            }
-        });
-    };
-
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Announcement
+                            Training
                         </Typography>
                     </Box>
 
@@ -256,44 +224,38 @@ const TrainingView = () => {
                                             <Grid item xs={12}>
                                                 <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography variant="h5">
-                                                        {announcement.title}
+                                                        {training.title}
                                                     </Typography>
-                                                    {/* Acknowledgement */}
-                                                    {!announcement.acknowledged && (
-                                                        <>
-                                                            <IconButton
-                                                                id="basic-button"
-                                                                size="small"
-                                                                aria-controls={open ? 'basic-menu' : undefined}
-                                                                aria-haspopup="true"
-                                                                aria-expanded={open ? 'true' : undefined}
-                                                                onClick={handleMenuClick}
-                                                            >
-                                                                <MoreVert />
-                                                            </IconButton>
-                                                            <Menu
-                                                                id="basic-menu"
-                                                                anchorEl={anchorEl}
-                                                                open={menuOpen}
-                                                                onClose={handleMenuClose}
-                                                                MenuListProps={{
-                                                                    'aria-labelledby': 'basic-button',
-                                                                }}
-                                                            >
-                                                                {/* Acknowledgement */}
-                                                                {!announcement.acknowledged && (
-                                                                    <MenuItem
-                                                                        onClick={(event) => {
-                                                                            event.stopPropagation();
-                                                                            handleAcknowledgeAnnouncement();
-                                                                            handleMenuClose();
-                                                                        }}>
-                                                                        Acknowledge Announcement
-                                                                    </MenuItem>
-                                                                )}
-                                                            </Menu>
-                                                        </>
-                                                    )}
+                                                    {/* Options */}
+                                                    <IconButton
+                                                        id="basic-button"
+                                                        size="small"
+                                                        aria-controls={open ? 'basic-menu' : undefined}
+                                                        aria-haspopup="true"
+                                                        aria-expanded={open ? 'true' : undefined}
+                                                        onClick={handleMenuClick}
+                                                    >
+                                                        <MoreVert />
+                                                    </IconButton>
+                                                    <Menu
+                                                        id="basic-menu"
+                                                        anchorEl={anchorEl}
+                                                        open={menuOpen}
+                                                        onClose={handleMenuClose}
+                                                        MenuListProps={{
+                                                            'aria-labelledby': 'basic-button',
+                                                        }}
+                                                    >
+                                                        {/* Acknowledgement */}
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                console.log(`Editing Training:  ${training.title}`);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Edit
+                                                        </MenuItem>
+                                                    </Menu>
                                                 </Stack>
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }} >
@@ -301,50 +263,56 @@ const TrainingView = () => {
                                             </Grid>
                                             {/* Posting Date */}
                                             <Grid item xs={5} align="left">
-                                                Posted
+                                                Created
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                    {dayjs(training.created_at).format("MMM D, YYYY    h:mm A")}
                                                 </Typography>
                                             </Grid>
                                             {/* Author Information */}
                                             <Grid item xs={5} align="left">
-                                                Posted by
+                                                Prepared by
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Stack>
                                                     <Typography sx={{ fontWeight: "bold", }}>
-                                                        {announcement.author_name}
+                                                        {training.author_name}
                                                     </Typography>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {announcement.author_title}
+                                                        {training.author_title}
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            {/* Acknowledgement Status */}
-                                            {announcement.acknowledged ? (
-                                                <>
-                                                    <Grid item xs={5} align="left">
-                                                        Acknowledged on
-                                                    </Grid>
-                                                    <Grid item xs={7} align="left">
-                                                        <Typography sx={{ fontWeight: "bold", }}>
-                                                            {dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A")}
-                                                        </Typography>
-                                                    </Grid>
-                                                </>
-                                            )
-                                                : <Grid item xs={12} align="left">
-                                                    You have not acknowledged this announcement yet
-                                                </Grid>}
-                                            {/* Recipient Branch/Department */}
-                                            <Grid item xs={12} align="left">
-                                                {`This announcement is posted for your ${announcement.department_matched && announcement.branch_matched
-                                                    ? "branch and department"
-                                                    : announcement.department_matched ? "department"
-                                                        : "branch"
-                                                    } `}
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                            {/* Opens */}
+                                            <Grid item xs={5} align="left">
+                                                Opens
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography sx={{ fontWeight: "bold", }}>
+                                                    {dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
+                                                </Typography>
+                                            </Grid>
+                                            {/* Closes */}
+                                            <Grid item xs={5} align="left">
+                                                Closes
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography sx={{ fontWeight: "bold", }}>
+                                                    {dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
+                                                </Typography>
+                                            </Grid>
+                                            {/* Duration */}
+                                            <Grid item xs={5} align="left">
+                                                Duration
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography sx={{ fontWeight: "bold", }}>
+                                                    {formatTime(training.duration)}
+                                                </Typography>
                                             </Grid>
                                         </Grid>
                                     </Grid>
@@ -359,7 +327,7 @@ const TrainingView = () => {
                                         }}>
                                             <img
                                                 src={imagePath}
-                                                alt={`${announcement.title} thumbnail`}
+                                                alt={`${training.title} thumbnail`}
                                                 style={{
                                                     width: '100%',
                                                     height: '100%',
@@ -382,7 +350,7 @@ const TrainingView = () => {
                                                 overflowWrap: 'break-word',
                                                 whiteSpace: 'pre-wrap',
                                             }}
-                                            dangerouslySetInnerHTML={{ __html: announcement.description }}
+                                            dangerouslySetInnerHTML={{ __html: training.description }}
                                         />
                                     </Grid>
                                     {/* Divider for Media if Present */}
@@ -407,7 +375,7 @@ const TrainingView = () => {
                                                                 width: "100%"
                                                             }}>
                                                             <img
-                                                                src={`../../../../../storage/announcements/images/${image.filename}`}
+                                                                src={`${location.origin}/storage/trainings/images/${image.filename}`}
                                                                 alt={image.filename}
                                                                 loading="lazy"
                                                                 style={{

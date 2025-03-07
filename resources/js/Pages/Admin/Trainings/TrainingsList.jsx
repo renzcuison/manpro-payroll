@@ -28,7 +28,7 @@ import {
     IconButton,
     CardActionArea
 } from "@mui/material";
-import { MoreVert } from "@mui/icons-material";
+import { OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -172,6 +172,58 @@ const TrainingsList = () => {
         };
     }, []);
 
+    // ---------------- Time Formatter
+    const formatTime = (time) => {
+        if (!time) return '-';
+
+        const absTime = Math.abs(time);
+
+        const hours = Math.floor(absTime / 60);
+        const minutes = absTime % 60;
+
+        if (hours > 0) {
+            return `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` ${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`;
+        } else {
+            return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+        }
+    }
+
+    // ---------------- Status-Based Card Content
+    const getTrainingStatus = (startDate, endDate, duration) => {
+        const now = dayjs();
+        const start = dayjs(startDate);
+        const end = dayjs(endDate);
+
+        if (now.isBefore(start)) {
+            return {
+                label: 'NOT YET OPENED',
+                color: '#e9ae20',
+                fields: [
+                    { label: 'Opens', value: start.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Duration', value: formatTime(duration) },
+                ],
+            };
+        } else if (now.isBefore(end)) {
+            return {
+                label: 'OPEN',
+                color: '#177604',
+                fields: [
+                    { label: 'Closes', value: end.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Duration', value: formatTime(duration) },
+                ],
+            };
+        } else {
+            return {
+                label: 'CLOSED',
+                color: '#f57c00',
+                fields: [
+                    { label: 'Opened', value: start.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Closed', value: end.format('MMM DD YYYY, hh:mm A') },
+                ],
+            };
+        }
+    };
+
     // Add Training Modal
     const [openAddTrainingModal, setOpenAddTrainingModal] = useState(false);
     const handleOpenAddTrainingModal = () => {
@@ -233,7 +285,7 @@ const TrainingsList = () => {
                                         pageTrainings.map(
                                             (training, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
-                                                    <CardActionArea onClick={() => console.log(training.title)}>
+                                                    <CardActionArea component={Link} to={`/admin/training/${training.unique_code}`}>
                                                         <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                                                             {/* Card Cover */}
                                                             {imageLoading ? (
@@ -255,12 +307,66 @@ const TrainingsList = () => {
                                                                 />
                                                             )}
                                                             {/* Card Content */}
-                                                            <CardContent>
-                                                                {/* Training Title */}
-                                                                <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
+                                                            <CardContent sx={{ pb: "5px" }}>
+                                                                <Typography
+                                                                    variant="h6"
+                                                                    component="div"
+                                                                    noWrap
+                                                                    sx={{ textOverflow: 'ellipsis' }}
+                                                                >
                                                                     {training.title}
                                                                 </Typography>
+                                                                {/* Status and Details */}
+                                                                {(() => {
+                                                                    const { label, color, fields } = getTrainingStatus(training.start_date, training.end_date, training.duration);
+                                                                    return (
+                                                                        <>
+                                                                            <Typography variant="body1" sx={{ color, fontWeight: 'bold' }}>
+                                                                                {label}
+                                                                            </Typography>
+                                                                            <Grid container sx={{ my: 1 }}>
+                                                                                {fields.map((field, index) => (
+                                                                                    <Grid container item key={index}>
+                                                                                        <Grid item xs={3}>
+                                                                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                                                                                                {field.label}
+                                                                                            </Typography>
+                                                                                        </Grid>
+                                                                                        <Grid item xs={9}>
+                                                                                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                                                {field.value}
+                                                                                            </Typography>
+                                                                                        </Grid>
+                                                                                    </Grid>
+                                                                                ))}
+                                                                            </Grid>
+                                                                        </>
+                                                                    );
+                                                                })()}
                                                             </CardContent>
+                                                            <CardActions sx={{ ml: "8px" }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                    {/* Media Icons */}
+                                                                    {training.video && <OndemandVideo sx={{ color: 'text.secondary' }} />}
+                                                                    {training.image && <Image sx={{ color: 'text.secondary' }} />}
+                                                                    {training.attachment && <Description sx={{ color: 'text.secondary' }} />}
+                                                                    {/* Media Text */}
+                                                                    <Box sx={{ ml: (training.video || training.image || training.attachment) ? 1 : 0 }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                            {(() => {
+                                                                                const available = [
+                                                                                    training.video && 'Video',
+                                                                                    training.image && 'Image',
+                                                                                    training.attachment && 'Document',
+                                                                                ].filter(Boolean);
+                                                                                return available.length > 0
+                                                                                    ? `Includes ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                    : 'No Media';
+                                                                            })()}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Box>
+                                                            </CardActions>
                                                         </Card>
                                                     </CardActionArea>
                                                 </Grid>

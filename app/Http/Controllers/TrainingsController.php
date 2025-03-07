@@ -39,9 +39,17 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            if ($this->checkUser()) {
-                $trainings = TrainingsModel::where('client_id', $user->client_id)->get();
-            }
+            $trainings = TrainingsModel::where('client_id', $user->client_id)
+                ->with(['media' => function ($query) {
+                    $query->select('training_id', 'type');
+                }])
+                ->get();
+
+            $trainings->each(function ($training) {
+                $training->video = $training->media->contains('type', 'Video');
+                $training->image = $training->media->contains('type', 'Image');
+                $training->attachment = $training->media->contains('type', 'Document');
+            });
 
             return response()->json(['status' => 200, 'trainings' => $trainings]);
         } else {
@@ -149,17 +157,99 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    public function getTrainingMedia($code)
+    public function getTrainingDetails($code)
     {
-        //Log::info("TrainingsController::getTrainingMedia");
+        Log::info("TrainingsController::getTrainingDetails");
+        Log::info($code);
+
         $user = Auth::user();
 
-        $media = TrainingMediaModel::where('unique_code', $code)
-            ->select('id', 'order', 'url')
-            ->orderBy('order', 'asc')
-            ->get();
+        if ($this->checkUser()) {
+            $training = TrainingsModel::where('unique_code', $code)
+                ->with('user')
+                ->firstOrFail();
 
-        return response()->json(['status' => 200, 'media' => $media]);
+            $author = $training->user;
+
+            $training->author_name = implode(' ', array_filter([
+                $author->first_name ?? null,
+                $author->middle_name ?? null,
+                $author->last_name ?? null,
+                $author->suffix ?? null
+            ]));
+            $training->author_title = $author->jobTitle->name;
+
+            if ($training->cover_photo) {
+                $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
+            } else {
+                $training->cover = null;
+            }
+
+            $trainingData = $training->toArray();
+            unset($trainingData['user']);
+
+            return response()->json(['status' => 200, 'training' => $trainingData]);
+        } else {
+            return response()->json(['status' => 200, 'training' => null]);
+        }
+    }
+
+    public function getTrainingMedia($code)
+    {
+        //Log::info("AnnouncementsController::getTrainingMedia");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $training = TrainingsModel::where('unique_code', $code)
+                ->select('id')
+                ->firstOrFail();
+
+            $media = TrainingMediaModel::where('training_id', $training->id)
+                ->select('id', 'path', 'type')
+                ->get();
+
+            $videoData = $media->where('type', 'Video')
+                ->map(function ($md) {
+                    return [
+                        'id' => $md->id,
+                        'url' => $md->url,
+                        'type' => $md->type
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $imageData = $media->where('type', 'Image')
+                ->map(function ($md) {
+                    return [
+                        'id' => $md->id,
+                        'filename' => basename($md->path),
+                        'type' => $md->type
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $attachmentData = $media->where('type', 'Document')
+                ->map(function ($md) {
+                    return [
+                        'id' => $md->id,
+                        'filename' => basename($md->path),
+                        'type' => $md->type
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return response()->json([
+                'status' => 200,
+                'videos' => $videoData,
+                'images' => $imageData,
+                'attachments' => $attachmentData
+            ]);
+        } else {
+            return response()->json(['status' => 200, 'videos' => null, 'images' => null, 'attachments' => null]);
+        }
     }
 
     public function getPageCovers(Request $request)

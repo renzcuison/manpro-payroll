@@ -17,6 +17,7 @@ import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
+import TrainingView from "../Pages/Admin/Trainings/TrainingView";
 
 import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
@@ -67,6 +68,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
 
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} />} />
+            <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} />} />
 
             <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />

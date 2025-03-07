@@ -75,7 +75,6 @@ const AnnouncementView = () => {
     const [images, setImages] = useState([]);
     const [attachments, setAttachments] = useState([]);
 
-    // ---------------- Announcement List API
     useEffect(() => {
         getAnnouncementDetails();
         getAnnouncementThumbnail();

@@ -245,6 +245,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
         Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
         Route::get('/getTrainingMedia/{code}', [TrainingsController::class, 'getTrainingMedia']);
+        Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);
     });
