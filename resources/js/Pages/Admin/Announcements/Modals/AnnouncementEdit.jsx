@@ -48,7 +48,10 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [thumbnailIndex, setThumbnailIndex] = useState(null);
+
     const [fileNames, setFileNames] = useState([]);
+    const [currentImages, setCurrentImages] = useState([]);
+    const [currentAttachments, setCurrentAttachments] = useState([]);
 
     const [deleteAttachments, setDeleteAttachments] = useState([]);
     const [deleteImages, setDeleteImages] = useState([]);
@@ -63,7 +66,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     useEffect(() => {
         axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setFileNames(response.data.files);
+                setCurrentImages(response.data.images);
+                setCurrentAttachments(response.data.attachments);
             })
             .catch((error) => {
                 console.error('Error fetching files:', error);
@@ -72,8 +76,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
-        const oldFiles = oldFileCompiler("Document");
-        const oldFileCount = oldFiles.length - deleteAttachments.length;
+        const oldFileCount = currentAttachments.length - deleteAttachments.length;
         const files = Array.from(input.target.files);
         let validFiles = validateFiles(files, attachment.length, oldFileCount, 5, 10485760, "document");
         if (validFiles) {
@@ -90,8 +93,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     // Image Handlers
     const handleImageUpload = (input) => {
-        const oldFiles = oldFileCompiler("Image");
-        const oldFileCount = oldFiles.length - deleteImages.length;
+        const oldFileCount = currentImages.length - deleteImages.length;
         const files = Array.from(input.target.files);
         let validFiles = validateFiles(files, image.length, oldFileCount, 10, 5242880, "image");
         if (validFiles) {
@@ -453,9 +455,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             </Stack>
                                         )}
                                         {/* Old Attachments */}
-                                        {(() => {
-                                            const documentFiles = oldFileCompiler("Document");
-                                            return documentFiles.length > 0 && (
+                                        {(() => (
+                                            currentAttachments.length > 0 && (
                                                 <>
                                                     <Stack direction="row" spacing={1}
                                                         sx={{
@@ -473,7 +474,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                             Remove
                                                         </Typography>
                                                     </Stack>
-                                                    {documentFiles.map((filename, index) => (
+                                                    {currentAttachments.map((attach, index) => (
                                                         <Box
                                                             key={index}
                                                             sx={{
@@ -484,28 +485,28 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                                 p: 1,
                                                                 borderRadius: "2px",
                                                                 border: '1px solid',
-                                                                borderColor: deleteAttachments.includes(filename.id)
+                                                                borderColor: deleteAttachments.includes(attach.id)
                                                                     ? "#f44336"
                                                                     : "#e0e0e0"
                                                             }}
                                                         >
                                                             <Typography variant="body2" noWrap>
-                                                                {filename.filename}
+                                                                {attach.filename}
                                                             </Typography>
                                                             <Checkbox
-                                                                checked={deleteAttachments.includes(filename.id)}
+                                                                checked={deleteAttachments.includes(attach.id)}
                                                                 onChange={() => {
-                                                                    const oldFileCount = documentFiles.length - deleteAttachments.length;
+                                                                    const oldFileCount = currentAttachments.length - deleteAttachments.length;
                                                                     setDeleteAttachments(prevAttachments => {
-                                                                        if (prevAttachments.includes(filename.id)) {
+                                                                        if (prevAttachments.includes(attach.id)) {
                                                                             if (attachment.length + oldFileCount == 5) {
                                                                                 fileCountError("You can only have up to 5 documents at a time.");
                                                                                 return prevAttachments;
                                                                             } else {
-                                                                                return prevAttachments.filter(id => id !== filename.id);
+                                                                                return prevAttachments.filter(id => id !== attach.id);
                                                                             }
                                                                         } else {
-                                                                            return [...prevAttachments, filename.id];
+                                                                            return [...prevAttachments, attach.id];
                                                                         }
 
                                                                     });
@@ -519,8 +520,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                         </Box>
                                                     ))}
                                                 </>
-                                            );
-                                        })()}
+                                            )
+                                        ))()}
                                     </Box>
                                 </FormControl>
                             </Grid>
@@ -614,9 +615,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             </Stack>
                                         )}
                                         {/* Old Images */}
-                                        {(() => {
-                                            const imageFiles = oldFileCompiler("Image");
-                                            return imageFiles.length > 0 && (
+                                        {(() => (
+                                            currentImages.length > 0 && (
                                                 <>
                                                     <Stack direction="row" spacing={1}
                                                         sx={{
@@ -634,7 +634,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                             Remove
                                                         </Typography>
                                                     </Stack>
-                                                    {imageFiles.map((filename, index) => (
+                                                    {currentImages.map((img, index) => (
                                                         <Box
                                                             key={index}
                                                             sx={{
@@ -645,28 +645,28 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                                 p: 1,
                                                                 borderRadius: "2px",
                                                                 border: '1px solid',
-                                                                borderColor: deleteImages.includes(filename.id)
+                                                                borderColor: deleteImages.includes(img.id)
                                                                     ? "#f44336"
                                                                     : "#e0e0e0"
                                                             }}
                                                         >
                                                             <Typography variant="body2" noWrap>
-                                                                {filename.filename}
+                                                                {img.filename}
                                                             </Typography>
                                                             <Checkbox
-                                                                checked={deleteImages.includes(filename.id)}
+                                                                checked={deleteImages.includes(img.id)}
                                                                 onChange={() => {
-                                                                    const oldFileCount = imageFiles.length - deleteImages.length;
+                                                                    const oldFileCount = currentImages.length - deleteImages.length;
                                                                     setDeleteImages(prevImages => {
-                                                                        if (prevImages.includes(filename.id)) {
+                                                                        if (prevImages.includes(img.id)) {
                                                                             if (image.length + oldFileCount == 10) {
                                                                                 fileCountError("You can only have up to 10 images at a time.");
                                                                                 return prevImages;
                                                                             } else {
-                                                                                return prevImages.filter(id => id !== filename.id);
+                                                                                return prevImages.filter(id => id !== img.id);
                                                                             }
                                                                         } else {
-                                                                            return [...prevImages, filename.id];
+                                                                            return [...prevImages, img.id];
                                                                         }
                                                                     });
                                                                 }}
@@ -679,8 +679,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                         </Box>
                                                     ))}
                                                 </>
-                                            );
-                                        })()}
+                                            )
+                                        ))()}
                                     </Box>
                                 </FormControl>
                             </Grid>

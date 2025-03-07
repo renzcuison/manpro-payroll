@@ -117,8 +117,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const handleCloseAnnouncementEdit = (reload) => {
         setOpenAnnouncementEdit(null);
         if (reload) {
-            setExitReload(true);
             announcementReloader();
+            setExitReload(true);
         }
     }
 
@@ -184,6 +184,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             });
         getAnnouncementThumbnail();
         getAnnouncementBranchDepts();
+        getAnnouncementFiles();
     }
 
     // ---------------- Announcement Files
@@ -513,10 +514,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                 <Divider />
                             </Grid>
                             {/* Description*/}
-                            <Grid item xs={2}>
+                            <Grid item xs={12} sx={{ mb: 1 }} align="left">
                                 Description
                             </Grid>
-                            <Grid item xs={10} sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                            <Grid item xs={12}>
                                 <div
                                     id="description"
                                     style={{
@@ -534,10 +535,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
-                                    <Grid item xs={2} align="left">
+                                    <Grid item xs={12} sx={{ mb: 1 }} align="left">
                                         Images
                                     </Grid>
-                                    <Grid item md={10} align="left">
+                                    <Grid item md={12} align="left">
                                         <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
                                             {images.map((image) => (
                                                 <ImageListItem
@@ -582,10 +583,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
-                                    <Grid item xs={2} align="left">
+                                    <Grid item xs={12} sx={{ mb: 1 }} align="left">
                                         Documents
                                     </Grid>
-                                    <Grid item md={10} align="left">
+                                    <Grid item md={12} align="left">
                                         <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
                                             {attachments.map((attachment) => {
                                                 const fileIcon = getFileIcon(attachment.filename);
