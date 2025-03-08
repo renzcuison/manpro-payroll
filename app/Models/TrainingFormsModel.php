@@ -4,24 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TrainingMediaModel extends Model
+class TrainingFormsModel extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
-    protected $table = 'training_media';
+    protected $table = 'training_forms';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'type',
-        'source',
+        'points',
+        'duration'
     ];
 
     public function trainingContents()
     {
         return $this->morphMany(TrainingContentModel::class, 'content');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(TrainingFormItemsModel::class, 'training_form_id');
     }
 }

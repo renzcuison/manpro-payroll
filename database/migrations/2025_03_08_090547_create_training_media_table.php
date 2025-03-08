@@ -17,7 +17,6 @@ class CreateTrainingMediaTable extends Migration
             $table->id();
             $table->enum('type', ['Video', 'Image', 'Document', 'PowerPoint']);
             $table->string('source', 512);
-            $table->softDeletes();
             $table->timestamps();
         });
     }

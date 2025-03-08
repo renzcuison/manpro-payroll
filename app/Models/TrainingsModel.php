@@ -18,12 +18,13 @@ class TrainingsModel extends Model
         'title',
         'description',
         'cover_photo',
-        'client_id',
-        'created_by',
         'status',
         'start_date',
         'end_date',
         'duration',
+        'client_id',
+        'created_by',
+        'sequential',
     ];
 
     public function client()
@@ -36,9 +37,9 @@ class TrainingsModel extends Model
         return $this->belongsTo(UsersModel::class, 'created_by');
     }
 
-    public function media()
+    public function content()
     {
-        return $this->hasMany(TrainingMediaModel::class, 'training_id');
+        return $this->hasMany(TrainingContentModel::class, 'training_id');
     }
 
     public function views()

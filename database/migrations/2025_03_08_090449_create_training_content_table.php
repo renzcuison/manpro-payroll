@@ -20,6 +20,7 @@ class CreateTrainingContentTable extends Migration
             $table->string('title', 128)->nullable();
             $table->string('description', 512)->nullable();
             $table->morphs('content'); // content_type, content_id (e.g., 'App\Models\TrainingMedia', 1)
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('training_id')->references('id')->on('trainings')->onDelete('cascade');

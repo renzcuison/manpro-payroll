@@ -14,7 +14,7 @@ class TrainingViewsModel extends Model
     protected $fillable = [
         'user_id',
         'training_id',
-        'training_media_id',
+        'training_content_id',
         'status',
         'completed_at'
     ];
@@ -24,13 +24,18 @@ class TrainingViewsModel extends Model
         return $this->belongsTo(TrainingsModel::class, 'training_id');
     }
 
-    public function media()
+    public function content()
     {
-        return $this->belongsTo(TrainingMediaModel::class, 'training_media_id');
+        return $this->belongsTo(TrainingContentModel::class, 'training_media_id');
     }
 
     public function user()
     {
         return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
+    public function responses()
+    {
+        return $this->hasMany(TrainingFormResponsesModel::class, 'training_view_id');
     }
 }

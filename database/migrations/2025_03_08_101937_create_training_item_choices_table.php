@@ -30,6 +30,6 @@ class CreateTrainingItemChoicesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('training_form_choices');
+        Schema::dropIfExists('training_item_choices');
     }
 }
