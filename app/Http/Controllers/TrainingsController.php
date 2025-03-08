@@ -159,8 +159,8 @@ class TrainingsController extends Controller
 
     public function getTrainingDetails($code)
     {
-        Log::info("TrainingsController::getTrainingDetails");
-        Log::info($code);
+        //Log::info("TrainingsController::getTrainingDetails");
+        //Log::info($code);
 
         $user = Auth::user();
 

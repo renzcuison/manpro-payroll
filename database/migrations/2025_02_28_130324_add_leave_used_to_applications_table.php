@@ -26,7 +26,7 @@ class AddLeaveUsedToApplicationsTable extends Migration
     public function down()
     {
         Schema::table('applications', function (Blueprint $table) {
-            $table->dropColumn('leave_limit');
+            $table->dropColumn('leave_used');
         });
     }
 }
