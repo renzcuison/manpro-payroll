@@ -4,12 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingMediaModel extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
     protected $table = 'training_media';
 
@@ -22,6 +20,6 @@ class TrainingMediaModel extends Model
 
     public function trainingContents()
     {
-        return $this->morphMany(TrainingContentModel::class, 'content');
+        return $this->morphOne(TrainingContentModel::class, 'content');
     }
 }

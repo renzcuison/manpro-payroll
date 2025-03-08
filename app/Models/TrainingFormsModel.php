@@ -20,7 +20,7 @@ class TrainingFormsModel extends Model
 
     public function trainingContents()
     {
-        return $this->morphMany(TrainingContentModel::class, 'content');
+        return $this->morphOne(TrainingContentModel::class, 'content');
     }
 
     public function items()
