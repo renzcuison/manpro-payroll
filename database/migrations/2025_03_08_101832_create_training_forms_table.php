@@ -15,10 +15,8 @@ class CreateTrainingFormsTable extends Migration
     {
         Schema::create('training_forms', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 256);
-            $table->boolean('multiselect')->default(false);
-            $table->unsignedInteger('points')->default(0);
-            $table->boolean('required')->default(false);
+            $table->unsignedInteger('points');
+            $table->unsignedInteger('duration')->nullable();
             $table->timestamps();
         });
     }

@@ -19,7 +19,7 @@ class CreateTrainingFormAnswersTable extends Migration
             $table->unsignedBigInteger('form_choice_id');
 
             $table->foreign('form_response_id')->references('id')->on('training_form_responses')->onDelete('cascade');
-            $table->foreign('form_choice_id')->references('id')->on('training_form_choices')->onDelete('cascade');
+            $table->foreign('form_choice_id')->references('id')->on('training_item_choices')->onDelete('cascade');
             $table->unique(['form_response_id', 'form_choice_id']);
         });
     }
