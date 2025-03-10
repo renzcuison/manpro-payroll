@@ -297,8 +297,8 @@ class ApplicationsController extends Controller
     public function manageApplication(Request $request)
     {
         //Log::info("ApplicationsController::manageApplication");
+        //Log::info($request);
         $user = Auth::user();
-        Log::info($request);
 
         if ($this->checkUser()) {
             $application = ApplicationsModel::find($request->input('app_id'));
