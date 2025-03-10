@@ -237,7 +237,7 @@ const HrDashboard = () => {
                                         paddingLeft: "12px"
                                     }} >
                                     <div className="block-content block-content-full">
-                                        <Link to="/hr/employees" style={{ color: "#777777" }} >
+                                        <Link to="/admin/employees" style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {headCount ? headCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Head Count </div>
                                         </Link>
@@ -256,7 +256,7 @@ const HrDashboard = () => {
                                         paddingLeft: "12px"
                                     }} >
                                     <div className="block-content block-content-full">
-                                        <Link to={"/hr/applications"} style={{ color: "#777777" }} >
+                                        <Link to={"/admin/applications"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {applicationCount ? applicationCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Applications </div>
                                         </Link>
@@ -275,7 +275,7 @@ const HrDashboard = () => {
                                         paddingLeft: "12px"
                                     }} >
                                     <div className="block-content block-content-full">
-                                        <Link to={"/hr/announcements"} style={{ color: "#777777" }} >
+                                        <Link to={"/admin/announcements"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {announcementCount ? announcementCount : 0} </div>
                                             <div className="font-size-h5 font-w600"> Announcements </div>
                                         </Link>
@@ -388,20 +388,22 @@ const HrDashboard = () => {
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
-                                                            <TableRow>
-                                                                <TableCell colSpan={3}>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            justifyContent: "center",
-                                                                            alignItems: "center",
-                                                                            minHeight: 200,
-                                                                        }}
-                                                                    >
-                                                                        <CircularProgress />
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </TableRow>
+                                                            <TableBody>
+                                                                <TableRow>
+                                                                    <TableCell colSpan={3}>
+                                                                        <Box
+                                                                            sx={{
+                                                                                display: "flex",
+                                                                                justifyContent: "center",
+                                                                                alignItems: "center",
+                                                                                minHeight: 200,
+                                                                            }}
+                                                                        >
+                                                                            <CircularProgress />
+                                                                        </Box>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            </TableBody>
                                                         ) : (
                                                             <TableBody>
                                                                 {paginatedAttendance.length > 0 ? (
@@ -458,20 +460,15 @@ const HrDashboard = () => {
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
-                                                            <TableRow>
-                                                                <TableCell colSpan={4}>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            justifyContent: "center",
-                                                                            alignItems: "center",
-                                                                            minHeight: 200,
-                                                                        }}
-                                                                    >
-                                                                        <CircularProgress />
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </TableRow>
+                                                            <TableBody>
+                                                                <TableRow>
+                                                                    <TableCell colSpan={4}>
+                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                                                                            <CircularProgress />
+                                                                        </Box>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            </TableBody>
                                                         ) : (
                                                             <TableBody>
                                                                 {paginatedAttendance.length > 0 ? (
@@ -483,40 +480,24 @@ const HrDashboard = () => {
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
-                                                                            </TableCell>
+                                                                            <TableCell align="center"> {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"} </TableCell>
+                                                                            <TableCell align="center"> {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"} </TableCell>
+                                                                            <TableCell align="center"> {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"} </TableCell>
                                                                         </TableRow>
                                                                     ))
                                                                 ) : (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                            No Late Employees Found
-                                                                        </TableCell>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                             </TableBody>
                                                         )}
                                                     </Table>
-                                                    <TablePagination
-                                                        rowsPerPageOptions={[5, 10, 20]}
-                                                        component="div"
-                                                        count={attendance.length}
-                                                        rowsPerPage={rowsPerPage}
-                                                        page={page}
-                                                        onPageChange={handleChangePage}
-                                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                                        sx={{ alignItems: "center" }}
-                                                    />
+                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                                 </TableContainer>
                                             </div>
                                         </TabPanel>
+
                                         {/* Absent */}
                                         <TabPanel value="3" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
@@ -528,20 +509,15 @@ const HrDashboard = () => {
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
-                                                            <TableRow>
-                                                                <TableCell colSpan={1}>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            justifyContent: "center",
-                                                                            alignItems: "center",
-                                                                            minHeight: 200,
-                                                                        }}
-                                                                    >
-                                                                        <CircularProgress />
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </TableRow>
+                                                            <TableBody>
+                                                                <TableRow>
+                                                                    <TableCell colSpan={1}>
+                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                                                                            <CircularProgress />
+                                                                        </Box>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            </TableBody>
                                                         ) : (
                                                             <TableBody>
                                                                 {paginatedAttendance.length > 0 ? (
@@ -557,27 +533,18 @@ const HrDashboard = () => {
                                                                     ))
                                                                 ) : (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                            No Absent Employees Found
-                                                                        </TableCell>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Absent Employees Found </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                             </TableBody>
                                                         )}
                                                     </Table>
-                                                    <TablePagination
-                                                        rowsPerPageOptions={[5, 10, 20]}
-                                                        component="div"
-                                                        count={attendance.length}
-                                                        rowsPerPage={rowsPerPage}
-                                                        page={page}
-                                                        onPageChange={handleChangePage}
-                                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                                        sx={{ alignItems: "center" }}
-                                                    />
+
+                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                                 </TableContainer>
                                             </div>
                                         </TabPanel>
+                                        
                                         {/* On Leave */}
                                         <TabPanel value="4" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
@@ -592,20 +559,15 @@ const HrDashboard = () => {
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
-                                                            <TableRow>
-                                                                <TableCell colSpan={4}>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            justifyContent: "center",
-                                                                            alignItems: "center",
-                                                                            minHeight: 200,
-                                                                        }}
-                                                                    >
-                                                                        <CircularProgress />
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </TableRow>
+                                                            <TableBody>
+                                                                <TableRow>
+                                                                    <TableCell colSpan={4}>
+                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                                                                            <CircularProgress />
+                                                                        </Box>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            </TableBody>
                                                         ) : (
                                                             <TableBody>
                                                                 {paginatedAttendance.length > 0 ? (
@@ -617,37 +579,20 @@ const HrDashboard = () => {
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.type_name}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {dayjs(attend.leave_start).format('MMM DD YYYY')}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {dayjs(attend.leave_end).format('MMM DD YYYY')}
-                                                                            </TableCell>
+                                                                            <TableCell align="center"> {attend.type_name} </TableCell>
+                                                                            <TableCell align="center"> {dayjs(attend.leave_start).format('MMM DD YYYY')} </TableCell>
+                                                                            <TableCell align="center"> {dayjs(attend.leave_end).format('MMM DD YYYY')} </TableCell>
                                                                         </TableRow>
                                                                     ))
                                                                 ) : (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                            No Employees on Leave Found
-                                                                        </TableCell>
+                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Employees on Leave Found </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                             </TableBody>
                                                         )}
                                                     </Table>
-                                                    <TablePagination
-                                                        rowsPerPageOptions={[5, 10, 20]}
-                                                        component="div"
-                                                        count={attendance.length}
-                                                        rowsPerPage={rowsPerPage}
-                                                        page={page}
-                                                        onPageChange={handleChangePage}
-                                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                                        sx={{ alignItems: "center" }}
-                                                    />
+                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                                 </TableContainer>
                                             </div>
                                         </TabPanel>
