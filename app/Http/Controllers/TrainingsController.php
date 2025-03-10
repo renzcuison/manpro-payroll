@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrainingContentModel;
+use App\Models\TrainingFormsModel;
 use App\Models\TrainingsModel;
 use App\Models\TrainingMediaModel;
 use App\Models\TrainingViewsModel;
@@ -40,31 +41,33 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $trainings = TrainingsModel::where('client_id', $user->client_id)->get();
+            try {
+                $trainings = TrainingsModel::where('client_id', $user->client_id)
+                    ->with(['contents' => function ($query) {
+                        $query->with('content');
+                    }])
+                    ->get();
 
-            return response()->json(['status' => 200, 'trainings' => $trainings]);
+                $trainings->each(function ($training) {
+                    $mediaTypes = $training->contents->pluck('content.type')->filter()->unique();
+                    $contentModels = $training->contents->pluck('content')->filter();
+
+                    $training->video = $mediaTypes->contains('Video');
+                    $training->image = $mediaTypes->contains('Image');
+                    $training->attachment = $mediaTypes->contains('Document');
+                    $training->form = $contentModels->contains(function ($content) {
+                        return $content instanceof \App\Models\TrainingFormsModel;
+                    });
+                });
+
+                return response()->json(['status' => 200, 'trainings' => $trainings]);
+            } catch (\Exception $e) {
+                Log::error("Error retrieving trainings: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error retrieving trainings'], 500);
+            }
         } else {
-            return response()->json(['status' => 200, 'trainings' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
-
-        // TO UPDATE: Transfer Content Checker from TrainingMediaModel to TrainingContentModel
-        // if ($this->checkUser()) {
-        //     $trainings = TrainingsModel::where('client_id', $user->client_id)
-        //         ->with(['media' => function ($query) {
-        //             $query->select('training_id', 'type');
-        //         }])
-        //         ->get();
-
-        //     $trainings->each(function ($training) {
-        //         $training->video = $training->media->contains('type', 'Video');
-        //         $training->image = $training->media->contains('type', 'Image');
-        //         $training->attachment = $training->media->contains('type', 'Document');
-        //     });
-
-        //     return response()->json(['status' => 200, 'trainings' => $trainings]);
-        // } else {
-        //     return response()->json(['status' => 200, 'trainings' => null]);
-        // }
     }
 
     public function saveTraining(Request $request)
@@ -179,6 +182,74 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
+            $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
+            $contentCount = TrainingContentModel::where('training_id', $training->id)->count();
+            $nextOrder = $contentCount + 1;
+
+            try {
+                DB::beginTransaction();
+                $contentType = $request->input('content_type');
+                $dateTime = now()->format('YmdHis');
+
+                // Relationship Prep
+                $contentData = null;
+                $source = null;
+
+                // Content Type Handler
+                switch ($contentType) {
+                    case 'Video':
+                        $source = $request->input('link');
+                        if (!$source) {
+                            return response()->json(['status' => 400, 'message' => 'Video link is required'], 400);
+                        }
+                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        break;
+
+                    case 'Image':
+                    case 'Document':
+                    case 'PowerPoint':
+                        if (!$request->hasFile('file')) {
+                            return response()->json(['status' => 400, 'message' => 'File is required'], 400);
+                        }
+                        $file = $request->file('file');
+                        $location = 'trainings/' . strtolower($contentType) . 's';
+                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                        $source = $file->storeAs($location, $fileName, 'public');
+                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        break;
+
+                    case 'Form':
+                        // FEATURE COMING SOON
+                        //$contentData = TrainingFormsModel::create([]); 
+                        break;
+
+                    default:
+                        return response()->json(['status' => 400, 'message' => 'Invalid content type'], 400);
+                }
+
+                // Final Save
+                $trainingContent = new TrainingContentModel([
+                    'training_id' => $training->id,
+                    'order' => $nextOrder,
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                ]);
+                $contentData->trainingContent()->save($trainingContent);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content saved successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving content: " . $e->getMessage());
+                // Transaction Fail Cleanup
+                if (isset($source) && $contentType !== 'Video' && $contentType !== 'Form' && Storage::disk('public')->exists($source)) {
+                    Storage::disk('public')->delete($source);
+                }
+                return response()->json(['status' => 500, 'message' => 'Error saving content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -223,7 +294,7 @@ class TrainingsController extends Controller
 
     public function getTrainingContent($code)
     {
-        //Log::info("AnnouncementsController::getTrainingContent");
+        //Log::info("TrainingsController::getTrainingContent");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -231,7 +302,10 @@ class TrainingsController extends Controller
                 ->select('id')
                 ->firstOrFail();
 
-            $content = TrainingContentModel::where('training_id', $training->id)->get();
+            $content = TrainingContentModel::with('content')
+                ->where('training_id', $training->id)
+                ->orderBy('order', 'asc')
+                ->get();
 
             return response()->json(['status' => 200, 'content' => $content]);
         } else {

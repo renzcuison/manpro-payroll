@@ -37,7 +37,7 @@ class TrainingsModel extends Model
         return $this->belongsTo(UsersModel::class, 'created_by');
     }
 
-    public function content()
+    public function contents()
     {
         return $this->hasMany(TrainingContentModel::class, 'training_id');
     }

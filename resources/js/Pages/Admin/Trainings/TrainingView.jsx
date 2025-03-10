@@ -111,6 +111,7 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
+                console.log(response.data.content);
                 setContent(response.data.content || []);
             })
             .catch((error) => {
@@ -181,6 +182,21 @@ const TrainingView = () => {
             return `${minutes} minute${minutes > 1 ? 's' : ''}`;
         }
     }
+
+    // Content Image
+    const renderImage = (source, type) => {
+        switch (type) {
+            case "Image":
+            case "Document":
+            case "PowerPoint":
+                return `${location.origin}/storage/${source}`;
+            case "Video":
+            case "Form":
+                return "../../../images/ManProTab.png";
+            default:
+                return "../../../images/ManProTab.png";
+        }
+    };
 
     // Training Menu
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -373,6 +389,7 @@ const TrainingView = () => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
+                                    {/* Content Header */}
                                     <Grid item xs={12} align="left">
                                         <Box display="flex" sx={{ alignItems: "center" }}>
                                             {content.length == 0 ? (
@@ -400,6 +417,26 @@ const TrainingView = () => {
                                             </Button>
                                         </Box>
                                     </Grid>
+                                    {/* Content List */}
+                                    {content && content.length > 0 && (
+                                        <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
+                                            {content.map((cont) => (
+                                                <Grid item xs={3} key={cont.id}>
+                                                    <Card sx={{ boxShadow: 3 }}>
+                                                        <CardMedia
+                                                            sx={{ height: '180px' }}
+                                                            image={renderImage(cont.content.source, cont.content.type || 'Form')}
+                                                            title={cont.title || 'Content Item'}
+                                                            alt={cont.title || 'Content Item'}
+                                                        />
+                                                        <CardContent>
+                                                            <Typography>{`${cont.order} - ${cont.title}`}</Typography>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    )}
                                 </Grid>
                             </>
                         )}

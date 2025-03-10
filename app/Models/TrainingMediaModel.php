@@ -18,7 +18,7 @@ class TrainingMediaModel extends Model
         'source',
     ];
 
-    public function trainingContents()
+    public function trainingContent()
     {
         return $this->morphOne(TrainingContentModel::class, 'content');
     }

@@ -18,7 +18,7 @@ class TrainingFormsModel extends Model
         'duration'
     ];
 
-    public function trainingContents()
+    public function trainingContent()
     {
         return $this->morphOne(TrainingContentModel::class, 'content');
     }
