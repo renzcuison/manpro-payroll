@@ -49,8 +49,6 @@ const TrainingsAdd = ({ open, close }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
-    const [trainingCourses, setTrainingCourses] = useState([]);
-    const [course, setCourse] = useState('');
     const [title, setTitle] = useState("");
 
     const [startDate, setFromDate] = useState(dayjs());
@@ -61,23 +59,16 @@ const TrainingsAdd = ({ open, close }) => {
     const [trainingHours, setTrainingHours] = useState(0);
 
     const [description, setDescription] = useState("");
-    const [image, setImage] = useState([]);
     const [coverImage, setCoverImage] = useState(null);
-    const [attachment, setAttachment] = useState([]);
-    const [linkInput, setLinkInput] = useState('');
-    const [links, setLinks] = useState([]);
 
     // Form Errors
-    const [courseError, setCourseError] = useState(false);
     const [titleError, setTitleError] = useState(false);
 
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
-    const [imageError, setImageError] = useState(false);
     const [coverImageError, setCoverImageError] = useState(false);
-    const [attachmentError, setAttachmentError] = useState(false);
 
     // Training Duration
     useEffect(() => {
@@ -87,36 +78,6 @@ const TrainingsAdd = ({ open, close }) => {
         const duration = (trainingHoursNumber * 60) + trainingMinutesNumber;
         setTrainingDuration(duration);
     }, [trainingHours, trainingMinutes]);
-
-    // Attachment Handlers
-    const handleAttachmentUpload = (input) => {
-        const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, attachment.length, 10, 10485760, "document");
-        if (validFiles) {
-            setAttachment(prev => [...prev, ...files]);
-        }
-    };
-
-    const handleDeleteAttachment = (index) => {
-        setAttachment(prevAttachments =>
-            prevAttachments.filter((_, i) => i !== index)
-        );
-
-    };
-
-    // Image Handlers
-    const handleImageUpload = (input) => {
-        const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, 20, 5242880, "image");
-        if (validFiles) {
-            setImage(prev => [...prev, ...files]);
-        }
-    };
-    const handleDeleteImage = (index) => {
-        setImage(prevAttachments =>
-            prevAttachments.filter((_, i) => i !== index)
-        );
-    };
 
     // Cover Image Handler
     const handleCoverUpload = (input) => {
@@ -136,45 +97,7 @@ const TrainingsAdd = ({ open, close }) => {
         }
     }
 
-    // Validate Files
-    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
-        if (newFiles.length + currentFileCount > countLimit) {
-            // The File Limit has been Exceeded
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Limit Reached!",
-                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-            return false;
-        } else {
-            let largeFiles = 0;
-            newFiles.forEach((file) => {
-                if (file.size > sizeLimit) {
-                    largeFiles++;
-                }
-            });
-            if (largeFiles > 0) {
-                // A File is Too Large
-                document.activeElement.blur();
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "File Too Large!",
-                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: "#177604",
-                });
-                return false;
-            } else {
-                // All File Criteria Met
-                return true;
-            }
-        }
-    }
+    // File Size
     const getFileSize = (size) => {
         if (size === 0) return "0 Bytes";
         const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
@@ -182,49 +105,6 @@ const TrainingsAdd = ({ open, close }) => {
         const i = Math.floor(Math.log(size) / Math.log(k));
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
-
-    // Link Handlers
-    const handleLinkAdd = (event) => {
-        const newLink = linkInput.trim();
-        if (!links.includes(newLink) && isValidUrl(newLink) && links.length < 10) {
-            setLinks(prev => [...prev, newLink]);
-            setLinkInput('');
-            event.target.value = '';
-        } else if (links.includes(newLink)) {
-            handleMediaError("Duplicate Link!", "This URL is already added.");
-        } else if (links.length >= 10) {
-            handleMediaError("Link Limit Reached!", "You can only have up to 10 links at a time.");
-        } else {
-            handleMediaError("Invalid URL!", "Please enter a valid URL starting with http:// or https://");
-        }
-    };
-    const handleDeleteLink = (index) => {
-        setLinks(prevLinks =>
-            prevLinks.filter((_, i) => i !== index)
-        );
-    };
-
-    // Validate Links
-    const isValidUrl = (url) => {
-        try {
-            new URL(url);
-            return url.startsWith('http://') || url.startsWith('https://');
-        } catch {
-            return false;
-        }
-    };
-
-    const handleMediaError = (title, error) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: title,
-            text: message,
-            icon: "error",
-            showConfirmButton: true,
-            confirmButtonColor: "#177604",
-        });
-    }
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -274,42 +154,29 @@ const TrainingsAdd = ({ open, close }) => {
         formData.append("end_date", endDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("duration", trainingDuration);
         formData.append("cover_image", coverImage);
-        if (attachment.length > 0) {
-            attachment.forEach(file => {
-                formData.append('attachment[]', file);
-            });
-        }
-        if (image.length > 0) {
-            image.forEach(file => {
-                formData.append('image[]', file);
-            });
-        }
-        if (links.length > 0) {
-            links.forEach(link => {
-                formData.append('link[]', link);
-            });
-        }
 
         axiosInstance.post("/trainings/saveTraining", formData, { headers })
             .then((response) => {
-                document.activeElement.blur();
-                document.body.removeAttribute("aria-hidden");
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Your training has been saved!`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close(true);
-                        document.body.setAttribute("aria-hidden", "true");
-                    } else {
-                        document.body.setAttribute("aria-hidden", "true");
-                    }
-                });
+                if (response.data.status == 200) {
+                    document.activeElement.blur();
+                    document.body.removeAttribute("aria-hidden");
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `Your training has been saved!`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close(true);
+                            document.body.setAttribute("aria-hidden", "true");
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -553,246 +420,6 @@ const TrainingsAdd = ({ open, close }) => {
                                     </div>
                                 </FormControl>
 
-                            </Grid>
-                            {/* Document Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Documents
-                                                </Typography>
-                                                <input
-                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
-                                                    id="attachment-upload"
-                                                    type="file"
-                                                    name="attachment"
-                                                    multiple
-                                                    style={{ display: "none" }}
-                                                    onChange={handleAttachmentUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
-                                                    onClick={() => document.getElementById('attachment-upload').click()}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add
-                                                    </p>
-                                                </Button>
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 10 Files, 10 MB Each
-                                            </Typography>
-                                            {attachment.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                    Remove
-                                                </Typography>
-                                            )}
-                                        </Stack>
-                                        {/* Added Documents */}
-                                        {attachment.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {attachment.map((file, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                    </Box>
-                                </FormControl>
-                            </Grid>
-                            {/* Image Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Images
-                                                </Typography>
-                                                <input
-                                                    accept=".png, .jpg, .jpeg"
-                                                    id="image-upload"
-                                                    type="file"
-                                                    name="image"
-                                                    multiple
-                                                    style={{ display: "none" }}
-                                                    onChange={handleImageUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
-                                                    onClick={() => document.getElementById('image-upload').click()}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add
-                                                    </p>
-                                                </Button>
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 20 Files, 5 MB Each
-                                            </Typography>
-                                            {image.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                    Remove
-                                                </Typography>
-                                            )}
-                                        </Stack>
-                                        {/* Added Images */}
-                                        {image.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {image.map((file, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                        <IconButton onClick={() => handleDeleteImage(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                    </Box>
-                                </FormControl>
-                            </Grid>
-                            {/* Video Link Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', justifyContent: "space-between", alignItems: 'center', flexGrow: 1 }}>
-                                                <Typography noWrap>
-                                                    Links
-                                                </Typography>
-                                                <TextField
-                                                    variant="outlined"
-                                                    placeholder="Enter URL (e.g., https://example.com)"
-                                                    size="small"
-                                                    value={linkInput}
-                                                    onChange={(event) => setLinkInput(event.target.value)}
-                                                    sx={{ width: "80%" }}
-                                                    InputProps={{
-                                                        endAdornment: (
-                                                            <Button
-                                                                variant="contained"
-                                                                size="small"
-                                                                sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: '8px' }}
-                                                                onClick={handleLinkAdd}
-                                                            >
-                                                                <p className="m-0">
-                                                                    <i className="fa fa-plus"></i> Add
-                                                                </p>
-                                                            </Button>
-                                                        ),
-                                                    }}
-                                                />
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 10 Links
-                                            </Typography>
-                                            {links.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                    Remove
-                                                </Typography>
-                                            )}
-                                        </Stack>
-                                        {/* Added Links */}
-                                        {links.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {links.map((link, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{link}</Typography>
-                                                        <IconButton onClick={() => handleDeleteLink(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                    </Box>
-                                </FormControl>
                             </Grid>
                             {/* Submit Button */}
                             <Grid

@@ -358,10 +358,12 @@ const TrainingsList = () => {
                                                                                     training.video && 'Video',
                                                                                     training.image && 'Image',
                                                                                     training.attachment && 'Document',
+                                                                                    training.powerpoint && 'PowerPoint',
+                                                                                    training.form && 'Form',
                                                                                 ].filter(Boolean);
                                                                                 return available.length > 0
                                                                                     ? `Includes ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
-                                                                                    : 'No Media';
+                                                                                    : 'No Content';
                                                                             })()}
                                                                         </Typography>
                                                                     </Box>
