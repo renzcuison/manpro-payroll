@@ -78,7 +78,6 @@ const TrainingView = () => {
     useEffect(() => {
         getTrainingDetails();
         getTrainingContent();
-        //getTrainingMedia();
     }, []);
 
     // Training Details
@@ -192,6 +191,18 @@ const TrainingView = () => {
         setAnchorEl(null);
     };
 
+    // Edit Training Modal
+    const [openEditTrainingModal, setOpenEditTrainingModal] = useState(false);
+    const handleOpenEditTrainingModal = () => {
+        setOpenEditTrainingModal(true);
+    };
+    const handleCloseEditTrainingModal = (reload) => {
+        setOpenEditTrainingModal(false);
+        if (reload) {
+            getTrainingDetails();
+        }
+    };
+
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -243,7 +254,7 @@ const TrainingView = () => {
                                                         <MenuItem
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
-                                                                console.log(`Editing Training:  ${training.title}`);
+                                                                handleOpenEditTrainingModal();
                                                                 handleMenuClose();
                                                             }}>
                                                             Edit
@@ -314,7 +325,7 @@ const TrainingView = () => {
                                         <Box sx={{
                                             position: 'relative',
                                             width: '100%',
-                                            height: 200,
+                                            aspectRatio: '2 / 1',
                                             borderRadius: "4px",
                                             border: '2px solid #e0e0e0',
                                         }}>
@@ -382,6 +393,15 @@ const TrainingView = () => {
                     </Box>
                 </Box>
             </Box>
+
+            {openEditTrainingModal && (
+                <TrainingsEdit
+                    open={openEditTrainingModal}
+                    close={handleCloseEditTrainingModal}
+                    trainingInfo={training}
+                />
+            )}
+
         </Layout>
     );
 };

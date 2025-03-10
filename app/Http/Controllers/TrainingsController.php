@@ -114,7 +114,60 @@ class TrainingsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function editTraining(Request $request)
+    {
+        //Log::info("TrainingsController::editTraining");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
+
+            try {
+                DB::beginTransaction();
+
+                $dateTime = now()->format('YmdHis');
+
+                $training->title = $request->input('title');
+                $training->description = $request->input('description');
+                $training->start_date = $request->input('start_date');
+                $training->end_date = $request->input('end_date');
+                $training->duration = $request->input('duration');
+
+                if ($request->hasFile('cover_image')) {
+                    $oldCover = $training->cover_photo;
+
+                    $cover = $request->file('cover_image');
+                    $coverName = pathinfo($cover->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $cover->getClientOriginalExtension();
+                    $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
+
+                    $training->cover_photo = $coverPath;
+
+                    if ($oldCover && Storage::disk('public')->exists($oldCover)) {
+                        Storage::disk('public')->delete($oldCover);
+                    }
+                }
+
+                $training->save();
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error updating: " . $e->getMessage());
+
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -142,8 +195,10 @@ class TrainingsController extends Controller
 
             if ($training->cover_photo) {
                 $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
+                $training->cover_name = basename($training->cover_photo);
             } else {
                 $training->cover = null;
+                $training->cover_name = null;
             }
 
             $trainingData = $training->toArray();
@@ -266,9 +321,7 @@ class TrainingsController extends Controller
         return $result;
     }
 
-
     // ------------- Old Functions
-
     public function saveTrainingOld(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");

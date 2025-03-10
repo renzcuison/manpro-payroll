@@ -58,7 +58,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
     const [trainingMinutes, setTrainingMinutes] = useState((trainingInfo.duration % 60) || 0);
     const [trainingHours, setTrainingHours] = useState(Math.floor(trainingInfo.duration / 60) || 0);
 
-    const [description, setDescription] = useState(trainingInfo.duration || '');
+    const [description, setDescription] = useState(trainingInfo.description || '');
     const [coverImage, setCoverImage] = useState(null);
 
     // Form Errors
@@ -128,16 +128,16 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to save this training?",
+                text: "Do you want to update this training?",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Save",
+                confirmButtonText: "Update",
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveInput(event);                   //saveInput(event);
+                    saveInput(event);
                 }
             });
         }
@@ -148,6 +148,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         event.preventDefault();
 
         const formData = new FormData();
+        formData.append("unique_code", trainingInfo.unique_code);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("start_date", startDate.format("YYYY-MM-DD HH:mm:ss"));
@@ -155,7 +156,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         formData.append("duration", trainingDuration);
         formData.append("cover_image", coverImage);
 
-        axiosInstance.post("/trainings/saveTraining", formData, { headers })
+        axiosInstance.post("/trainings/editTraining", formData, { headers })
             .then((response) => {
                 if (response.data.status == 200) {
                     document.activeElement.blur();
@@ -163,7 +164,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Your training has been saved!`,
+                        text: `Your training has been updated!`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",
@@ -189,14 +190,14 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Training </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
-                        <Grid container columnSpacing={2} rowSpacing={3}>
+                        <Grid container columnSpacing={2} rowSpacing={3} sx={{ mt: 1 }}>
                             {/* Title Field */}
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
@@ -228,6 +229,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         variant="outlined"
                                         value={coverImage ? `${coverImage.name}, ${getFileSize(coverImage.size)}` : ""}
                                         error={coverImageError}
+                                        placeholder={trainingInfo.cover_name}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             document.getElementById('cover-image-upload').click();
@@ -251,6 +253,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                                 </InputAdornment>
                                             ),
                                         }}
+                                        InputLabelProps={{ shrink: !!trainingInfo.cover_name }}
                                         helperText="Upload a cover image (.png, .jpg, .jpeg), 5 MB size limit"
                                     />
                                     <input
@@ -439,7 +442,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                     }}
                                     className="m-1"
                                 >
-                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Training </p>
+                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Update Training </p>
                                 </Button>
                             </Grid>
                         </Grid>

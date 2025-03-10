@@ -236,17 +236,6 @@ const TrainingsList = () => {
         }
     };
 
-    // Edit Training Modal
-    // const [openEditTrainingModal, setOpenEditTrainingModal] = useState(false);
-    // const handleOpenEditTrainingModal = (training) => {
-    //     setOpenEditTrainingModal(training);
-    // };
-    // const handleCloseEditTrainingModal = () => {
-    //     setOpenEditTrainingModal(false);
-    //     fetchTrainings();
-    // };
-
-
     return (
         <Layout title={"TrainingsList"}>
             <Box sx={{ width: "100%", whiteSpace: "nowrap" }} >
@@ -406,16 +395,6 @@ const TrainingsList = () => {
             {openAddTrainingModal && (
                 <TrainingsAdd open={openAddTrainingModal} close={handleCloseAddTrainingModal} />
             )}
-            {/*
-            {openEditTrainingModal && (
-                <TrainingsEdit
-                    open={true}
-                    close={handleCloseEditTrainingModal}
-                    trainingInfo={openEditTrainingModal}
-                />
-            )}
-            */}
-
         </Layout>
     );
 };

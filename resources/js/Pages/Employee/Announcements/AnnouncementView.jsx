@@ -352,7 +352,7 @@ const AnnouncementView = () => {
                                         <Box sx={{
                                             position: 'relative',
                                             width: '100%',
-                                            height: 200,
+                                            aspectRatio: '2 / 1',
                                             borderRadius: "4px",
                                             border: '2px solid #e0e0e0',
                                         }}>
