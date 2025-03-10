@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TrainingContentModel;
 use App\Models\TrainingsModel;
 use App\Models\TrainingMediaModel;
 use App\Models\TrainingViewsModel;
@@ -151,6 +152,24 @@ class TrainingsController extends Controller
             return response()->json(['status' => 200, 'training' => $trainingData]);
         } else {
             return response()->json(['status' => 200, 'training' => null]);
+        }
+    }
+
+    public function getTrainingContent($code)
+    {
+        //Log::info("AnnouncementsController::getTrainingContent");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $training = TrainingsModel::where('unique_code', $code)
+                ->select('id')
+                ->firstOrFail();
+
+            $content = TrainingContentModel::where('training_id', $training->id)->get();
+
+            return response()->json(['status' => 200, 'content' => $content]);
+        } else {
+            return response()->json(['status' => 200, 'content' => null]);
         }
     }
 

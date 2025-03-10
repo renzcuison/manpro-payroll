@@ -31,7 +31,7 @@ import {
     ImageListItemBar,
     Tooltip
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -65,23 +65,18 @@ const TrainingView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    // ---------------- Announcement Data States
-    const [announcement, setAnnouncement] = useState([]);
-
-
+    // ---------------- Training Data States
     const [isLoading, setIsLoading] = useState(false);
     const [training, setTraining] = useState([]);
+    const [content, setContent] = useState([]);
 
     const [imageLoading, setImageLoading] = useState(true);
     const [imagePath, setImagePath] = useState("");
 
-    const [videos, setVideos] = useState([]);
-    const [images, setImages] = useState([]);
-    const [attachments, setAttachments] = useState([]);
-
     useEffect(() => {
         getTrainingDetails();
-        getTrainingMedia();
+        getTrainingContent();
+        //getTrainingMedia();
     }, []);
 
     // Training Details
@@ -112,13 +107,11 @@ const TrainingView = () => {
             });
     }
 
-    // Training Media
-    const getTrainingMedia = () => {
-        axiosInstance.get(`/trainings/getTrainingMedia/${code}`, { headers })
+    const getTrainingContent = () => {
+        axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
-                setImages(response.data.images);
-                setAttachments(response.data.attachments);
-                setVideos(response.data.videos);
+                console.log(response.data.content);
+                setContent(response.data.content || []);
             })
             .catch((error) => {
                 console.error('Error fetching training media:', error);
@@ -205,7 +198,7 @@ const TrainingView = () => {
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training
+                            Training Information
                         </Typography>
                     </Box>
 
@@ -353,105 +346,36 @@ const TrainingView = () => {
                                             dangerouslySetInnerHTML={{ __html: training.description }}
                                         />
                                     </Grid>
-                                    {/* Divider for Media if Present */}
-                                    {(images.length > 0 || attachments.length > 0) &&
-                                        <Grid item xs={12} sx={{ my: 0 }} >
-                                            <Divider />
-                                        </Grid>
-                                    }
-                                    {/* Images */}
-                                    {images.length > 0 ? (
-                                        <Grid item container xs={12} md={12} spacing={2}>
-                                            <Grid item xs={12} align="left">
-                                                Images
-                                            </Grid>
-                                            <Grid item md={12} align="left">
-                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
-                                                    {images.map((image) => (
-                                                        <ImageListItem
-                                                            key={image.id}
-                                                            sx={{
-                                                                aspectRatio: "1/1",
-                                                                width: "100%"
-                                                            }}>
-                                                            <img
-                                                                src={`${location.origin}/storage/trainings/images/${image.filename}`}
-                                                                alt={image.filename}
-                                                                loading="lazy"
-                                                                style={{
-                                                                    height: "100%",
-                                                                    width: "100%",
-                                                                    objectFit: "cover"
-                                                                }}
-                                                            />
-                                                            <ImageListItemBar
-                                                                subtitle={image.filename}
-                                                                actionIcon={
-                                                                    <Tooltip title={'Download'}>
-                                                                        <IconButton
-                                                                            sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                            onClick={() => handleFileDownload(image.filename, image.id)}
-                                                                        >
-                                                                            <Download />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                }
-                                                            />
-                                                        </ImageListItem>
-                                                    ))}
-                                                </ImageList>
-                                            </Grid>
-                                        </Grid>)
-                                        : null
-                                    }
-                                    {/* Documents */}
-                                    {attachments.length > 0 ? (
-                                        <Grid item container xs={12} md={12} spacing={2}>
-                                            <Grid item xs={12} align="left">
-                                                Documents
-                                            </Grid>
-                                            <Grid item md={12} align="left">
-                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
-                                                    {attachments.map((attachment) => {
-                                                        const fileIcon = getFileIcon(attachment.filename);
-                                                        return (
-                                                            <ImageListItem
-                                                                key={attachment.id}
-                                                                sx={{
-                                                                    aspectRatio: "1/1",
-                                                                    width: "100%"
-                                                                }}>
-                                                                <img
-                                                                    src={fileIcon}
-                                                                    alt={attachment.filename}
-                                                                    loading="lazy"
-                                                                    style={{
-                                                                        height: "100%",
-                                                                        width: "100%",
-                                                                        objectFit: "cover"
-                                                                    }}
-                                                                />
-                                                                <ImageListItemBar
-                                                                    subtitle={attachment.filename}
-                                                                    actionIcon={
-                                                                        <Tooltip title={'Download'}>
-                                                                            <IconButton
-                                                                                sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                                onClick={() => handleFileDownload(attachment.filename, attachment.id)}
-                                                                            >
-                                                                                <Download />
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    }
-                                                                />
-                                                            </ImageListItem>
-                                                        );
-                                                    })}
-                                                </ImageList>
-                                            </Grid>
-                                        </Grid>)
-                                        : null
-                                    }
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    <Grid item xs={12} align="left">
+                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                            {content.length == 0 ? (
+                                                <>
+                                                    <WarningAmber sx={{ color: "#f44336" }} />
+                                                    <Typography sx={{ ml: 1, color: "#f44336" }}>
+                                                        No Content Found
+                                                    </Typography>
+                                                </>
+                                            ) : (
+                                                <Typography>
+                                                    {`Content${content.length > 1 ? 's' : ''}`}
+                                                </Typography>
+                                            )
+                                            }
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={() => console.log("Adding Content")}
+                                                sx={{ ml: 3 }}
+                                            >
+                                                <p className="m-0">
+                                                    <i className="fa fa-plus"></i> Add Content{" "}
+                                                </p>
+                                            </Button>
+                                        </Box>
+                                    </Grid>
                                 </Grid>
                             </>
                         )}
