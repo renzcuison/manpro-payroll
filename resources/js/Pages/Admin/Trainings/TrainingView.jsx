@@ -31,7 +31,7 @@ import {
     ImageListItemBar,
     Tooltip
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -430,6 +430,15 @@ const TrainingView = () => {
                                                             alt={cont.title || 'Content Item'}
                                                         />
                                                         <CardContent>
+                                                            {cont.content.type ? (
+                                                                <>
+                                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
+                                                                    {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
+                                                                    {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
+                                                                </>
+                                                            ) : (
+                                                                <Quiz sx={{ color: 'text.secondary' }} />
+                                                            )}
                                                             <Typography>{`${cont.order} - ${cont.title}`}</Typography>
                                                         </CardContent>
                                                     </Card>
