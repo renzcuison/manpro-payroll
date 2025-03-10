@@ -246,12 +246,19 @@ class AttendanceController extends Controller
 
             try {
                 // Retrieve Employees
-                $employees = UsersModel::where('client_id', $clientId)
+                $query = UsersModel::where('client_id', $clientId)
                     ->where('user_type', 'Employee')
                     ->where('employment_status', 'Active')
-                    ->with(['branch', 'department', 'role'])
-                    ->get();
+                    ->with(['branch', 'department', 'role']);
 
+                if ($request->input('branch') > 0) {
+                    $query->where('branch_id', $request->input('branch'));
+                }
+                if ($request->input('department') > 0) {
+                    $query->where('department_id', $request->input('department'));
+                }
+
+                $employees = $query->get();
                 // Retrieve Holidays
                 $holidays = $this->getNagerHolidays($year);
 

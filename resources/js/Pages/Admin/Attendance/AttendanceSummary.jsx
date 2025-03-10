@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, InputLabel, Select, FormControl } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -20,12 +20,21 @@ const AttendanceSummary = () => {
     const [attendanceSummary, setAttendanceSummary] = useState([]);
     const [month, setMonth] = useState(dayjs());
 
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [selectedBranch, setSelectedBranch] = useState(0);
+    const [selectedDepartment, setSelectedDepartment] = useState(0);
+
+    // Attendance Summary List
     useEffect(() => {
+        setIsLoading(true);
         axiosInstance.get('/attendance/getAttendanceSummary', {
             headers,
             params: {
                 month: dayjs(month).month() + 1,
                 year: dayjs(month).year(),
+                branch: selectedBranch,
+                department: selectedDepartment
             }
         }).then((response) => {
             setAttendanceSummary(response.data.summary || []);
@@ -34,7 +43,25 @@ const AttendanceSummary = () => {
             console.error('Error fetching summary:', error);
             setIsLoading(false);
         });
-    }, [month]);
+    }, [month, selectedBranch, selectedDepartment]);
+
+    // Branch, Department For Filters
+    useEffect(() => {
+        axiosInstance.get('/settings/getBranches', { headers, })
+            .then((response) => {
+                setBranches(response.data.branches || []);
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+                setIsLoading(false);
+            });
+        axiosInstance.get('/settings/getDepartments', { headers, })
+            .then((response) => {
+                setDepartments(response.data.departments || []);
+            }).catch((error) => {
+                console.error('Error fetching departments:', error);
+                setIsLoading(false);
+            });
+    }, []);
 
     // ---------------- Summary Details
     const formatTime = (time) => {
@@ -63,80 +90,126 @@ const AttendanceSummary = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                        {/* Filters */}
+                        <Grid container direction="row" justifyContent="flex-start" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                            <Grid item xs={2}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                    <DatePicker
+                                        label="Filter Month"
+                                        value={month}
+                                        views={['year', 'month']}
+                                        onChange={(newValue) => {
+                                            setMonth(newValue);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                        slotProps={{
+                                            textField: {
+                                                readOnly: true,
+                                            }
+                                        }}
+                                    />
+                                </LocalizationProvider>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <FormControl sx={{ width: "100%" }}>
+                                    <InputLabel id="branch-select-label"> Branch </InputLabel>
+                                    <Select
+                                        labelId="branch-select-label"
+                                        id="branch-select"
+                                        value={selectedBranch}
+                                        label="Branch"
+                                        onChange={(event) => setSelectedBranch(event.target.value)}
+                                    >
+                                        <MenuItem value="0"> All </MenuItem>
+                                        {branches.map((branch, index) => (
+                                            <MenuItem
+                                                key={index}
+                                                value={branch.id}
+                                            >
+                                                {`${branch.name} (${branch.acronym})`}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <FormControl sx={{ width: "100%" }}>
+                                    <InputLabel id="department-select-label"> Department </InputLabel>
+                                    <Select
+                                        labelId="department-select-label"
+                                        id="department-select"
+                                        value={selectedDepartment}
+                                        label="Department"
+                                        onChange={(event) => setSelectedDepartment(event.target.value)}
+                                    >
+                                        <MenuItem value="0"> All </MenuItem>
+                                        {departments.map((department, index) => (
+                                            <MenuItem
+                                                key={index}
+                                                value={department.id}
+                                            >
+                                                {`${department.name} (${department.acronym})`}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
+                        {/* Table */}
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <>
-                                <Grid container direction="row" justifyContent="flex-start" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                        <DatePicker
-                                            label="Filter Month"
-                                            value={month}
-                                            views={['year', 'month']}
-                                            onChange={(newValue) => {
-                                                setMonth(newValue);
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
-                                            )}
-                                            slotProps={{
-                                                textField: {
-                                                    readOnly: true,
-                                                }
-                                            }}
-                                        />
-                                    </LocalizationProvider>
-                                </Grid>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
-                                        <TableHead>
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <Table aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="center">Name</TableCell>
+                                            <TableCell align="center">Branch</TableCell>
+                                            <TableCell align="center">Department</TableCell>
+                                            <TableCell align="center">Role</TableCell>
+                                            <TableCell align="center">Hours</TableCell>
+                                            <TableCell align="center">Tardiness</TableCell>
+                                            <TableCell align="center">Absences</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {!Array.isArray(attendanceSummary) || attendanceSummary.length === 0 ? (
                                             <TableRow>
-                                                <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Hours</TableCell>
-                                                <TableCell align="center">Tardiness</TableCell>
-                                                <TableCell align="center">Absences</TableCell>
+                                                <TableCell colSpan={7} align="center">
+                                                    No attendance records found.
+                                                </TableCell>
                                             </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {!Array.isArray(attendanceSummary) || attendanceSummary.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={7} align="center">
-                                                        No attendance records found.
-                                                    </TableCell>
+                                        ) : (
+                                            attendanceSummary.map((attendance) => (
+                                                <TableRow
+                                                    key={attendance.emp_id}
+                                                    onClick={() => navigate(`/admin/attendance/${attendance.emp_user_name}`)}
+                                                    sx={{
+                                                        '&:last-child td, &:last-child th': { border: 0 },
+                                                        textDecoration: 'none', color: 'inherit',
+                                                        "&:hover": {
+                                                            backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                            cursor: "pointer",
+                                                        },
+                                                    }}
+                                                >
+                                                    <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>
+                                                    <TableCell align="center">{attendance.emp_branch || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.emp_department || '-'}</TableCell>
+                                                    <TableCell align="center">{attendance.emp_role || '-'}</TableCell>
+                                                    <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
+                                                    <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
+                                                    <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
                                                 </TableRow>
-                                            ) : (
-                                                attendanceSummary.map((attendance) => (
-                                                    <TableRow
-                                                        key={attendance.emp_id}
-                                                        onClick={() => navigate(`/admin/attendance/${attendance.emp_user_name}`)}
-                                                        sx={{
-                                                            '&:last-child td, &:last-child th': { border: 0 },
-                                                            textDecoration: 'none', color: 'inherit',
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
-                                                    >
-                                                        <TableCell align="left"> {attendance.emp_first_name} {attendance.emp_middle_name || ''} {attendance.emp_last_name} {attendance.emp_suffix || ''} </TableCell>
-                                                        <TableCell align="center">{attendance.emp_branch || '-'}</TableCell>
-                                                        <TableCell align="center">{attendance.emp_department || '-'}</TableCell>
-                                                        <TableCell align="center">{attendance.emp_role || '-'}</TableCell>
-                                                        <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
-                                                        <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
-                                                        <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
-                                                    </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         )}
                     </Box>
 
