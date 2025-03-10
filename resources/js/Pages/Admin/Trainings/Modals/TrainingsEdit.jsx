@@ -19,9 +19,7 @@ import {
     Select,
     MenuItem,
     Stack,
-    Radio,
-    Checkbox,
-    Link
+    Radio
 } from "@mui/material";
 import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -51,53 +49,26 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Form Fields
-    const [trainingCourses, setTrainingCourses] = useState([]);
-    const [course, setCourse] = useState(trainingInfo.training_course_id);
     const [title, setTitle] = useState(trainingInfo.title);
 
     const [startDate, setFromDate] = useState(dayjs(trainingInfo.start_date));
     const [endDate, setToDate] = useState(dayjs(trainingInfo.end_date));
 
-    const [trainingDuration, setTrainingDuration] = useState(0);
-    const [trainingMinutes, setTrainingMinutes] = useState(trainingInfo.duration % 60);
-    const [trainingHours, setTrainingHours] = useState(Math.floor(trainingInfo.duration / 60));
+    const [trainingDuration, setTrainingDuration] = useState(trainingInfo.duration || 0);
+    const [trainingMinutes, setTrainingMinutes] = useState((trainingInfo.duration % 60) || 0);
+    const [trainingHours, setTrainingHours] = useState(Math.floor(trainingInfo.duration / 60) || 0);
 
-    const [description, setDescription] = useState(trainingInfo.description);
-
-    const [image, setImage] = useState([]);
+    const [description, setDescription] = useState(trainingInfo.duration || '');
     const [coverImage, setCoverImage] = useState(null);
 
-    const [linkInput, setLinkInput] = useState('');
-    const [links, setLinks] = useState([]);
-
-    const [oldLinks, setOldLinks] = useState([]);
-    const [deleteLinks, setDeleteLinks] = useState([]);
-    const [oldImages, setOldImages] = useState([]);
-    const [deleteImages, setDeleteImages] = useState([]);
-
     // Form Errors
-    const [courseError, setCourseError] = useState(false);
     const [titleError, setTitleError] = useState(false);
 
     const [fromDateError, setFromDateError] = useState(false);
     const [toDateError, setToDateError] = useState(false);
 
     const [descriptionError, setDescriptionError] = useState(false);
-    const [imageError, setImageError] = useState(false);
     const [coverImageError, setCoverImageError] = useState(false);
-
-    // Training Courses
-    useEffect(() => {
-        axiosInstance
-            .get(`trainings/getTrainingCourses`, { headers })
-            .then((response) => {
-                setTrainingCourses(response.data.courses);
-            })
-            .catch((error) => {
-                console.error("Error fetching application types:", error);
-            });
-
-    }, []);
 
     // Training Duration
     useEffect(() => {
@@ -107,34 +78,6 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         const duration = (trainingHoursNumber * 60) + trainingMinutesNumber;
         setTrainingDuration(duration);
     }, [trainingHours, trainingMinutes]);
-
-    // Get Existing Links/Images
-    useEffect(() => {
-        axiosInstance.get(`trainings/getTrainingMedia/${trainingInfo.id}`, { headers })
-            .then((response) => {
-                console.log(response.data.links);
-                console.log(response.data.images);
-                setOldLinks(response.data.links);
-                setOldImages(response.data.images);
-            })
-            .catch((error) => {
-                console.error('Error fetching files:', error);
-            });
-    }, []);
-
-    // Image Handlers
-    const handleImageUpload = (input) => {
-        const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, 20, 5242880, "image");
-        if (validFiles) {
-            setImage(prev => [...prev, ...files]);
-        }
-    };
-    const handleDeleteImage = (index) => {
-        setImage(prevAttachments =>
-            prevAttachments.filter((_, i) => i !== index)
-        );
-    };
 
     // Cover Image Handler
     const handleCoverUpload = (input) => {
@@ -154,45 +97,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         }
     }
 
-    // Validate Files
-    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
-        if (newFiles.length + currentFileCount > countLimit) {
-            // The File Limit has been Exceeded
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Limit Reached!",
-                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-            return false;
-        } else {
-            let largeFiles = 0;
-            newFiles.forEach((file) => {
-                if (file.size > sizeLimit) {
-                    largeFiles++;
-                }
-            });
-            if (largeFiles > 0) {
-                // A File is Too Large
-                document.activeElement.blur();
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "File Too Large!",
-                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: "#177604",
-                });
-                return false;
-            } else {
-                // All File Criteria Met
-                return true;
-            }
-        }
-    }
+    // File Size
     const getFileSize = (size) => {
         if (size === 0) return "0 Bytes";
         const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
@@ -201,103 +106,15 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    // Link Handlers
-    const handleLinkAdd = (event) => {
-        const newLink = linkInput.trim();
-        if (!links.includes(newLink) && isValidUrl(newLink) && links.length < 10) {
-            setLinks(prev => [...prev, newLink]);
-            setLinkInput('');
-            event.target.value = '';
-        } else if (links.includes(newLink)) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Duplicate Link!",
-                text: "This URL is already added.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else if (links.length >= 10) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Link Limit Reached!",
-                text: "You can only have up to 10 links at a time.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Invalid URL!",
-                text: "Please enter a valid URL starting with http:// or https://",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        }
-    };
-    const handleDeleteLink = (index) => {
-        setLinks(prevLinks =>
-            prevLinks.filter((_, i) => i !== index)
-        );
-    };
-
-    // Validate Links
-    const isValidUrl = (url) => {
-        try {
-            new URL(url);
-            return url.startsWith('http://') || url.startsWith('https://');
-        } catch {
-            return false;
-        }
-    };
-
-    const mediaCountError = (message, type) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: `${type} Limit Reached!`,
-            text: message,
-            icon: "error",
-            showConfirmButton: true,
-            confirmButtonColor: "#177604",
-        });
-    }
-
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!course) {
-            setCourseError(true);
-        } else {
-            setCourseError(false);
-        }
-        if (!title) {
-            setTitleError(true);
-        } else {
-            setTitleError(false);
-        }
-        if (!description) {
-            setDescriptionError(true);
-        } else {
-            setDescriptionError(false);
-        }
-        if (!startDate) {
-            setFromDateError(true);
-        } else {
-            setFromDateError(false);
-        }
-        if (!endDate) {
-            setToDateError(true);
-        } else {
-            setToDateError(false);
-        }
+        setTitleError(!title);
+        setDescriptionError(!description);
+        setFromDateError(!startDate);
+        setToDateError(!endDate);
 
-        if (!course || !title || !description || !startDate || !endDate) {
+        if (!title || !description || !startDate || !endDate) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -320,7 +137,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    //saveInput(event);                   //saveInput(event);
+                    saveInput(event);                   //saveInput(event);
                 }
             });
         }
@@ -331,63 +148,40 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("course", course);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("start_date", startDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("end_date", endDate.format("YYYY-MM-DD HH:mm:ss"));
         formData.append("duration", trainingDuration);
         formData.append("cover_image", coverImage);
-        if (links.length > 0) {
-            links.forEach(link => {
-                formData.append('link[]', link);
-            });
-        }
-        if (image.length > 0) {
-            image.forEach(file => {
-                formData.append('image[]', file);
-            });
-        }
-        if (deleteLinks.length > 0) {
-            deleteLinks.forEach(del => {
-                formData.append('deleteLinks[]', del);
-            });
-        } else {
-            formData.append('deleteLinks[]', null);
-        }
-        if (deleteImages.length > 0) {
-            deleteImages.forEach(del => {
-                formData.append('deleteImages[]', del);
-            });
-        } else {
-            formData.append('deleteImages[]', null);
-        }
 
-        // axiosInstance.post("/trainings/editTraining", formData, { headers })
-        //     .then((response) => {
-        //         document.activeElement.blur();
-        //         document.body.removeAttribute("aria-hidden");
-        //         Swal.fire({
-        //             customClass: { container: "my-swal" },
-        //             title: "Success!",
-        //             text: `Your training has been saved!`,
-        //             icon: "success",
-        //             showConfirmButton: true,
-        //             confirmButtonText: "Okay",
-        //             confirmButtonColor: "#177604",
-        //         }).then((res) => {
-        //             if (res.isConfirmed) {
-        //                 close();
-        //                 document.body.setAttribute("aria-hidden", "true");
-        //             } else {
-        //                 document.body.setAttribute("aria-hidden", "true");
-        //             }
-        //         });
-        //     })
-        //     .catch((error) => {
-        //         console.error("Error:", error);
-        //         document.body.setAttribute("aria-hidden", "true");
-        //     });
+        axiosInstance.post("/trainings/saveTraining", formData, { headers })
+            .then((response) => {
+                if (response.data.status == 200) {
+                    document.activeElement.blur();
+                    document.body.removeAttribute("aria-hidden");
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `Your training has been saved!`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close(true);
+                            document.body.setAttribute("aria-hidden", "true");
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
     };
 
     return (
@@ -395,49 +189,14 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training </Typography>
-                        <IconButton onClick={close}> <i className="si si-close"></i> </IconButton>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Training </Typography>
+                        <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
-                            {/* Training Course Selector */}
-                            <Grid item xs={12} sx={{ mt: 1 }}>
-                                <FormControl
-                                    fullWidth
-                                    sx={{
-                                        "& label.Mui-focused": {
-                                            color: "#97a5ba",
-                                        },
-                                        "& .MuiOutlinedInput-root": {
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#97a5ba",
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <TextField
-                                        required
-                                        select
-                                        id="training-course"
-                                        label="Training Course"
-                                        value={course}
-                                        error={courseError}
-                                        onChange={(event) =>
-                                            setCourse(event.target.value)
-                                        }
-                                    >
-                                        {trainingCourses
-                                            .map((tcourse, index) => (
-                                                <MenuItem key={index} value={tcourse.id}>
-                                                    {tcourse.name}
-                                                </MenuItem>
-                                            ))}
-                                    </TextField>
-                                </FormControl>
-                            </Grid>
                             {/* Title Field */}
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
@@ -662,297 +421,6 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </FormControl>
 
                             </Grid>
-                            {/* Link Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', justifyContent: "space-between", alignItems: 'center', flexGrow: 1 }}>
-                                                <Typography noWrap>
-                                                    Links
-                                                </Typography>
-                                                <TextField
-                                                    variant="outlined"
-                                                    placeholder="Enter URL (e.g., https://example.com)"
-                                                    size="small"
-                                                    value={linkInput}
-                                                    onChange={(event) => setLinkInput(event.target.value)}
-                                                    sx={{ width: "80%" }}
-                                                    InputProps={{
-                                                        endAdornment: (
-                                                            <Button
-                                                                variant="contained"
-                                                                size="small"
-                                                                sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: '8px' }}
-                                                                onClick={handleLinkAdd}
-                                                            >
-                                                                <p className="m-0">
-                                                                    <i className="fa fa-plus"></i> Add
-                                                                </p>
-                                                            </Button>
-                                                        ),
-                                                    }}
-                                                />
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 10 Links
-                                            </Typography>
-                                            {links.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                    Remove
-                                                </Typography>
-                                            )}
-                                        </Stack>
-                                        {/* Added Links */}
-                                        {links.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {links.map((link, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{link}</Typography>
-                                                        <IconButton onClick={() => handleDeleteLink(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                        {(oldLinks) && (
-                                            <>
-                                                <Stack direction="row" spacing={1}
-                                                    sx={{
-                                                        pt: 1,
-                                                        pr: 1,
-                                                        justifyContent: "space-between",
-                                                        alignItems: "center",
-                                                        width: "100%",
-                                                    }}
-                                                >
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Current Links
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Remove
-                                                    </Typography>
-                                                </Stack>
-                                                {oldLinks.map((link, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            mt: 1,
-                                                            p: 1,
-                                                            borderRadius: "2px",
-                                                            border: '1px solid',
-                                                            borderColor: deleteLinks.includes(link.id)
-                                                                ? "#f44336"
-                                                                : "#e0e0e0"
-                                                        }}
-                                                    >
-                                                        <Typography variant="body2" noWrap>
-                                                            <Link to={link.url}>
-                                                                {link.url}
-                                                            </Link>
-                                                        </Typography>
-                                                        <Checkbox
-                                                            checked={deleteLinks.includes(link.id)}
-                                                            onChange={() => {
-                                                                const oldLinkCount = oldLinks.length - deleteLinks.length;
-                                                                setDeleteLinks(prevImages => {
-                                                                    if (prevImages.includes(link.id)) {
-                                                                        if (links.length + oldLinkCount == 10) {
-                                                                            mediaCountError("You can only have up to 10 links at a time.", "Link");
-                                                                            return prevImages;
-                                                                        } else {
-                                                                            return prevImages.filter(id => id !== link.id);
-                                                                        }
-                                                                    } else {
-                                                                        return [...prevImages, link.id];
-                                                                    }
-                                                                });
-                                                            }}
-                                                            sx={{
-                                                                '&.Mui-checked': {
-                                                                    color: "#f44336",
-                                                                },
-                                                            }}
-                                                        />
-                                                    </Box>
-                                                ))}
-                                            </>
-                                        )}
-                                    </Box>
-                                </FormControl>
-                            </Grid>
-                            {/* Image Upload */}
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Images
-                                                </Typography>
-                                                <input
-                                                    accept=".png, .jpg, .jpeg"
-                                                    id="image-upload"
-                                                    type="file"
-                                                    name="image"
-                                                    multiple
-                                                    style={{ display: "none" }}
-                                                    onChange={handleImageUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
-                                                    onClick={() => document.getElementById('image-upload').click()}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add
-                                                    </p>
-                                                </Button>
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 20 Files, 5 MB Each
-                                            </Typography>
-                                            {image.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                    Remove
-                                                </Typography>
-                                            )}
-                                        </Stack>
-                                        {/* Added Images */}
-                                        {image.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {image.map((file, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                        <IconButton onClick={() => handleDeleteImage(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                        {(oldImages) && (
-                                            <>
-                                                <Stack direction="row" spacing={1}
-                                                    sx={{
-                                                        pt: 1,
-                                                        pr: 1,
-                                                        justifyContent: "space-between",
-                                                        alignItems: "center",
-                                                        width: "100%",
-                                                    }}
-                                                >
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Current Images
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Remove
-                                                    </Typography>
-                                                </Stack>
-                                                {oldImages.map((filename, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            mt: 1,
-                                                            p: 1,
-                                                            borderRadius: "2px",
-                                                            border: '1px solid',
-                                                            borderColor: deleteImages.includes(filename.id)
-                                                                ? "#f44336"
-                                                                : "#e0e0e0"
-                                                        }}
-                                                    >
-                                                        <Typography variant="body2" noWrap>
-                                                            {filename.filename}
-                                                        </Typography>
-                                                        <Checkbox
-                                                            checked={deleteImages.includes(filename.id)}
-                                                            onChange={() => {
-                                                                const oldImageCount = oldImages.length - deleteImages.length;
-                                                                setDeleteImages(prevImages => {
-                                                                    if (prevImages.includes(filename.id)) {
-                                                                        if (image.length + oldImageCount == 20) {
-                                                                            mediaCountError("You can only have up to 20 images at a time.", "Image");
-                                                                            return prevImages;
-                                                                        } else {
-                                                                            return prevImages.filter(id => id !== filename.id);
-                                                                        }
-                                                                    } else {
-                                                                        return [...prevImages, filename.id];
-                                                                    }
-                                                                });
-                                                            }}
-                                                            sx={{
-                                                                '&.Mui-checked': {
-                                                                    color: "#f44336",
-                                                                },
-                                                            }}
-                                                        />
-                                                    </Box>
-                                                ))}
-                                            </>
-                                        )}
-                                    </Box>
-                                </FormControl>
-                            </Grid>
                             {/* Submit Button */}
                             <Grid
                                 item
@@ -971,7 +439,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                     }}
                                     className="m-1"
                                 >
-                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Update Training </p>
+                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Training </p>
                                 </Button>
                             </Grid>
                         </Grid>

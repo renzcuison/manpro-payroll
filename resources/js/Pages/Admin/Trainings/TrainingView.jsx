@@ -55,6 +55,8 @@ import {
 import { first } from "lodash";
 import { CardActions } from "@material-ui/core";
 
+import TrainingsEdit from "./Modals/TrainingsEdit";
+
 import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
 import XlsImage from '../../../../images/FileTypeIcons/Excel_file_icon.png';
@@ -84,7 +86,6 @@ const TrainingView = () => {
         axiosInstance.get(`/trainings/getTrainingDetails/${code}`, { headers })
             .then((response) => {
                 setTraining(response.data.training);
-                console.log(response.data.training);
                 if (response.data.training.cover) {
                     const byteCharacters = window.atob(response.data.training.cover);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -110,7 +111,6 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
-                console.log(response.data.content);
                 setContent(response.data.content || []);
             })
             .catch((error) => {
@@ -166,7 +166,7 @@ const TrainingView = () => {
         //     });
     };
 
-    // ---------------- Time Formatter
+    // Time Formatter
     const formatTime = (time) => {
         if (!time) return '-';
 
