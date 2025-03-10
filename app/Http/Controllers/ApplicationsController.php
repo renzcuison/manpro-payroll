@@ -522,7 +522,7 @@ class ApplicationsController extends Controller
             try {
                 $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($id) {
                     $query->where('user_id', $id);
-                })->get();
+                })->orderBy('created_at', 'desc')->get();
 
                 $logData = [];
 
