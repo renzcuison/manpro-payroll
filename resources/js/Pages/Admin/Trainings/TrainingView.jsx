@@ -56,6 +56,7 @@ import { first } from "lodash";
 import { CardActions } from "@material-ui/core";
 
 import TrainingsEdit from "./Modals/TrainingsEdit";
+import ContentAdd from "./Modals/ContentAdd";
 
 import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
@@ -113,7 +114,7 @@ const TrainingView = () => {
                 setContent(response.data.content || []);
             })
             .catch((error) => {
-                console.error('Error fetching training media:', error);
+                console.error('Error fetching training content:', error);
             });
     }
 
@@ -200,6 +201,18 @@ const TrainingView = () => {
         setOpenEditTrainingModal(false);
         if (reload) {
             getTrainingDetails();
+        }
+    };
+
+    // Edit Training Modal
+    const [openContentAddModal, setOpenContentAddModal] = useState(false);
+    const handleOpenContentAddModal = () => {
+        setOpenContentAddModal(true);
+    };
+    const handleCloseContentAddModal = (reload) => {
+        setOpenContentAddModal(false);
+        if (reload) {
+            getTrainingContent();
         }
     };
 
@@ -378,7 +391,7 @@ const TrainingView = () => {
                                             <Button
                                                 variant="contained"
                                                 color="primary"
-                                                onClick={() => console.log("Adding Content")}
+                                                onClick={() => handleOpenContentAddModal()}
                                                 sx={{ ml: 3 }}
                                             >
                                                 <p className="m-0">
@@ -401,7 +414,13 @@ const TrainingView = () => {
                     trainingInfo={training}
                 />
             )}
-
+            {openContentAddModal && (
+                <ContentAdd
+                    open={openContentAddModal}
+                    close={handleCloseContentAddModal}
+                    trainingCode={training.unique_code}
+                />
+            )}
         </Layout>
     );
 };

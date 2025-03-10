@@ -171,6 +171,17 @@ class TrainingsController extends Controller
         }
     }
 
+    public function saveContent(Request $request)
+    {
+        Log::info("TrainingsController::saveContent");
+        Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+        }
+    }
+
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
