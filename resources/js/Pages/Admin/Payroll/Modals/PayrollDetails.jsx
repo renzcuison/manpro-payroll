@@ -1,4 +1,4 @@
-import { 
+import {
     Box,
     Button,
     IconButton,
@@ -16,7 +16,7 @@ import {
     Switch,
     Select,
     MenuItem,
-    Checkbox, 
+    Checkbox,
     istItemText,
     Paper,
     Table,
@@ -70,6 +70,8 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
         axiosInstance.get(`/payroll/payrollDetails`, { params: data, headers })
             .then((response) => {
+                console.log(response.data.paid_leaves);
+                console.log(response.data.unpaid_leaves);
                 setPayroll(response.data.payroll);
                 setBenefits(response.data.benefits);
                 setSummaries(response.data.summaries);
@@ -77,7 +79,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                 setLeaves(response.data.leaves);
                 setEarnings(response.data.earnings);
                 setDeductions(response.data.deductions);
-                
+
                 getEmployeeData(response.data.payroll.employeeId);
             })
             .catch((error) => {
@@ -110,10 +112,10 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="lg" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '1200px', maxWidth: '1500px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="lg" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '1200px', maxWidth: '1500px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Employee Payslip </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Employee Payslip </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -122,7 +124,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                     <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <Box display="flex" flexDirection="column" alignItems="center" sx={{ mt: 1 }}>
-                            <Box component="div"sx={{backgroundImage: `url(${HomeLogo})`,backgroundSize: 'contain',backgroundRepeat: 'no-repeat',backgroundPosition: 'center', height: 105, width: 300}} />
+                            <Box component="div" sx={{ backgroundImage: `url(${HomeLogo})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', height: 105, width: 300 }} />
                             <Typography sx={{ marginTop: '5px' }}> Online Payslip </Typography>
                             <Typography sx={{ marginTop: '5px' }}> Pay Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)}</Typography>
                         </Box>
@@ -143,20 +145,22 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
                                                 </TableRow>
                                             ))}
+                                            {/*
                                             {leaves.map((leave) => (
                                                 <TableRow key={leave.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{leave.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {leaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(leave.amount) : "Loading..."}</TableCell>
                                                 </TableRow>
                                             ))}
+                                            */}
                                             {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
                                                 <TableRow key={deduction.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right">
                                                         {deductions
                                                             ? deduction.amount === 0
-                                                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount)
-                                                            : `-${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(Math.abs(deduction.amount))}`
+                                                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount)
+                                                                : `-${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(Math.abs(deduction.amount))}`
                                                             : "Loading..."
                                                         }
                                                     </TableCell>
@@ -200,15 +204,15 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                         <TableBody>
                                             <TableRow>
                                                 <TableCell sx={{ border: '1px solid #ccc' }}>Balance</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> { new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) } </TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
                                             </TableRow>
                                             <TableRow>
                                                 <TableCell sx={{ border: '1px solid #ccc' }}>Payment</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> { new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) } </TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
                                             </TableRow>
                                             <TableRow>
                                                 <TableCell sx={{ border: '1px solid #ccc' }}>Remaining</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> { new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) } </TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
@@ -244,7 +248,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                         <TableBody>
                                             <TableRow>
                                                 <TableCell sx={{ border: '1px solid #ccc' }}>Tax</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> { new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) } </TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>

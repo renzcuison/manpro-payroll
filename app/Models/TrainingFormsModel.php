@@ -14,7 +14,7 @@ class TrainingFormsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'points',
+        'passing_score',
         'duration'
     ];
 

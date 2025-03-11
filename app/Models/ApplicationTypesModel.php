@@ -15,6 +15,8 @@ class ApplicationTypesModel extends Model
 
     protected $fillable = [
         'name',
+        'is_paid_leave',
+        'amount',
         'percentage',
         'require_files',
         'tenureship_required',

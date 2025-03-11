@@ -176,8 +176,8 @@ class TrainingsController extends Controller
 
     public function saveContent(Request $request)
     {
-        Log::info("TrainingsController::saveContent");
-        Log::info($request);
+        //Log::info("TrainingsController::saveContent");
+        //Log::info($request);
 
         $user = Auth::user();
 

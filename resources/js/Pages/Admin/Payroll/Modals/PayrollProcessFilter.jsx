@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const PayrollProcessFilter = ({ open, close, passFilter , currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
+const PayrollProcessFilter = ({ open, close, passFilter, currentStartDate, currentEndDate, currentSelectedBranches, currentSelectedDepartments, currentSelectedCutOff }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -102,7 +102,7 @@ const PayrollProcessFilter = ({ open, close, passFilter , currentStartDate, curr
             setSelectedCutOffError(false);
         }
 
-        if ( selectedBranches.length == 0 || selectedDepartments.length == 0 || selectedStartDate == "" || selectedEndDate == "" || selectedCutOff == "" ) {
+        if (selectedBranches.length == 0 || selectedDepartments.length == 0 || selectedStartDate == "" || selectedEndDate == "" || selectedCutOff == "") {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -131,10 +131,10 @@ const PayrollProcessFilter = ({ open, close, passFilter , currentStartDate, curr
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Process Payroll </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Process Payroll </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -215,7 +215,7 @@ const PayrollProcessFilter = ({ open, close, passFilter , currentStartDate, curr
                                                 );
                                             }}
                                         >
-                                            <Checkbox checked={selectedDepartments.includes(branch.id)} />
+                                            <Checkbox checked={selectedBranches.includes(branch.id)} />
                                             <ListItemText primary={`${branch.name} (${branch.acronym})`} />
                                         </MenuItem>
                                     ))}

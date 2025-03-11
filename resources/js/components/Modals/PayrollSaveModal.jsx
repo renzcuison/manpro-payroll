@@ -11,7 +11,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    
+
     const [openThirteenthMonth, setOpenThirteenthMonth] = useState(false);
     const [incentives, setIncentives] = useState(0);
     const [allowance, setAllowance] = useState(0);
@@ -50,7 +50,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const [openConfirmation, setOpenConfirmation] = useState(false);
     useEffect(() => {
-        axiosInstance.post("/payroll_benefits",{ payrollData: data, cutoff: cutoff, basic_rate: basic_rate }, { headers })
+        axiosInstance.post("/payroll_benefits", { payrollData: data, cutoff: cutoff, basic_rate: basic_rate }, { headers })
             .then((response) => {
                 setAllEarningsData(response.data.earningsData);
                 setAllBenefitsData(response.data.benefitsAlldata);
@@ -103,7 +103,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         {list.list_name}
                     </TableCell>
                     <TableCell className="text-center  bg-light">
-                        <input id="demo-simple-select" style={{ height: 30, backgroundColor: "white" }} className="form-control" type="text" value={ list.totalAmount && list.status === "Approved" ? parseFloat(list.totalAmount.toFixed(2)) : 0 } onChange={earningState(index)} disabled />
+                        <input id="demo-simple-select" style={{ height: 30, backgroundColor: "white" }} className="form-control" type="text" value={list.totalAmount && list.status === "Approved" ? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={earningState(index)} disabled />
                     </TableCell>
                 </TableRow>
             );
@@ -130,15 +130,15 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
     };
 
     const handleComputeLeave = (totalAmountEarnings) => {
-        earnings.leaveEarnings = Object.values(totalAmountEarnings).reduce((acc, curr) => (acc += Number(curr)),0);
+        earnings.leaveEarnings = Object.values(totalAmountEarnings).reduce((acc, curr) => (acc += Number(curr)), 0);
     };
-    
+
     const handleLeaveAbsence = (totalLeaveAbsence) => {
-        earnings.leaveAbsence = Object.values(totalLeaveAbsence).reduce((acc, curr) => (acc += Number(curr)),0);
+        earnings.leaveAbsence = Object.values(totalLeaveAbsence).reduce((acc, curr) => (acc += Number(curr)), 0);
     };
 
     const handleLeaveHours = (totalLeaveHours) => {
-        earnings.leaveHours = Object.values(totalLeaveHours).reduce((acc, curr) => (acc += Number(curr)),0);
+        earnings.leaveHours = Object.values(totalLeaveHours).reduce((acc, curr) => (acc += Number(curr)), 0);
     };
 
     // const handleComputeIncentives = (e) => {
@@ -197,7 +197,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         {list.title}
                     </TableCell>
                     <TableCell className="text-center  bg-light">
-                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={list.totalAmount? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={benefitState(index)} />
+                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={benefitState(index)} />
                     </TableCell>
                 </TableRow>
             );
@@ -244,7 +244,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         {list.title}
                     </TableCell>
                     <TableCell className="text-center  bg-light">
-                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={ list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0 } onChange={loanState(index)} />
+                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={loanState(index)} />
                     </TableCell>
                 </TableRow>
             );
@@ -257,7 +257,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const handleTotalLoan = (totalLoanAmount) => {
         setLoanAmount(
-            Object.values(totalLoanAmount).reduce( (acc, curr) => (acc += Number(curr)), 0 )
+            Object.values(totalLoanAmount).reduce((acc, curr) => (acc += Number(curr)), 0)
         );
     };
 
@@ -282,8 +282,8 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
             setAllContributionData(contriArray);
         };
         total_contri = allContributionData.map((list, index) => {
-            totalDeductionAmount.push( list.totalAmount ? Number(list.totalAmount) : 0 );
-            totalContriAmount.push( list.totalAmount ? Number(list.totalAmount) : 0 );
+            totalDeductionAmount.push(list.totalAmount ? Number(list.totalAmount) : 0);
+            totalContriAmount.push(list.totalAmount ? Number(list.totalAmount) : 0);
 
             submitBenefitData.push({
                 ["benefitlist_id"]: list.benefitlist_id,
@@ -302,7 +302,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         {list.title}
                     </TableCell>
                     <TableCell className="text-center  bg-light">
-                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={ list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0 } onChange={contriState(index)} />
+                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={contriState(index)} />
                     </TableCell>
                 </TableRow>
             );
@@ -367,7 +367,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                     </TableCell>
 
                     <TableCell className="text-center  bg-light">
-                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={ list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0 } onChange={taxState(index)} />
+                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" name={list.title} value={list.totalAmount ? parseFloat(list.totalAmount.toFixed(2)) : 0} onChange={taxState(index)} />
                     </TableCell>
                 </TableRow>
             );
@@ -380,7 +380,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const handleTotalTax = (totalTaxAmount) => {
         setTaxAmount(
-            Object.values(totalTaxAmount).reduce( (acc, curr) => (acc += Number(curr)), 0 )
+            Object.values(totalTaxAmount).reduce((acc, curr) => (acc += Number(curr)), 0)
         );
     };
     // END Taxes Computation
@@ -389,17 +389,17 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
     useEffect(() => {
         handleNetPay(
             earnings.total_earn ? earnings.total_earn : earnings.grosspay +
-                      (earnings.leaveEarnings - earnings.deductions) +
-                      (incentives ? parseFloat(incentives.toFixed(2)) : 0) +
-                      (allowance ? parseFloat(allowance.toFixed(2)) : 0),
+                (earnings.leaveEarnings - earnings.deductions) +
+                (incentives ? parseFloat(incentives.toFixed(2)) : 0) +
+                (allowance ? parseFloat(allowance.toFixed(2)) : 0),
             totalDeduction ? parseFloat(totalDeduction.toFixed(2)) : 0,
             totalAddiotionalBenefit
         );
     }, [
         earnings.total_earn ? earnings.total_earn : earnings.grosspay +
-              (earnings.leaveEarnings - earnings.deductions) +
-              (incentives ? parseFloat(incentives.toFixed(2)) : 0) +
-              (allowance ? parseFloat(allowance.toFixed(2)) : 0),
+            (earnings.leaveEarnings - earnings.deductions) +
+            (incentives ? parseFloat(incentives.toFixed(2)) : 0) +
+            (allowance ? parseFloat(allowance.toFixed(2)) : 0),
         totalDeduction ? parseFloat(totalDeduction.toFixed(2)) : 0,
         totalAddiotionalBenefit,
     ]);
@@ -410,7 +410,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const handleTotalAdiiotionalBenefit = (totalAddiotionalBenefit) => {
         setTotalAddionBenefit(
-            Object.values(totalAddiotionalBenefit).reduce( (acc, curr) => (acc += Number(curr)), 0 )
+            Object.values(totalAddiotionalBenefit).reduce((acc, curr) => (acc += Number(curr)), 0)
         );
     };
 
@@ -420,7 +420,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
 
     const handleTotalDeduction = (totalDeductionAmount) => {
         setTotalDeduction(
-            Object.values(totalDeductionAmount).reduce( (acc, curr) => (acc += Number(curr)), 0 )
+            Object.values(totalDeductionAmount).reduce((acc, curr) => (acc += Number(curr)), 0)
         );
     };
 
@@ -490,25 +490,25 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
         }).then((res) => {
             if (res.isConfirmed) {
                 axiosInstance.post("/update_payrollBenefits", { emp_id: data.user_id, isupdated: 1, benefitsList: submitBenefitData }, { headers })
-                .then((response) => {
-                    if (response.data.updatedBenefits === "Success") {
-                        close();
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: "Payroll Details has been Updated successfully",
-                            icon: "success",
-                            timer: 1000,
-                            showConfirmButton: false,
-                        });
-                    } else {
-                        alert("Something went wrong");
-                        console.log(response);
-                    }
-                })
-                .catch((error) => {
-                    console.log("error", error.response);
-                });
+                    .then((response) => {
+                        if (response.data.updatedBenefits === "Success") {
+                            close();
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: "Payroll Details has been Updated successfully",
+                                icon: "success",
+                                timer: 1000,
+                                showConfirmButton: false,
+                            });
+                        } else {
+                            alert("Something went wrong");
+                            //console.log(response);
+                        }
+                    })
+                    .catch((error) => {
+                        //console.log("error", error.response);
+                    });
             }
         });
     };
@@ -524,25 +524,25 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
             showCancelButton: true,
         }).then((res) => {
             if (res.isConfirmed) {
-                axiosInstance.post("/delete_payrollBenefits",{emp_id: data.user_id,},{ headers })
-                .then((response) => {
-                    if (response.data.deleteBenefits === "Success") {
-                        close();
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: "Payroll Details has been Updated successfully",
-                            icon: "success",
-                            timer: 1000,
-                            showConfirmButton: false,
-                        });
-                    } else {
-                        alert("Something went wrong");
-                    }
-                })
-                .catch((error) => {
-                    console.log("error", error.response);
-                });
+                axiosInstance.post("/delete_payrollBenefits", { emp_id: data.user_id, }, { headers })
+                    .then((response) => {
+                        if (response.data.deleteBenefits === "Success") {
+                            close();
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: "Payroll Details has been Updated successfully",
+                                icon: "success",
+                                timer: 1000,
+                                showConfirmButton: false,
+                            });
+                        } else {
+                            alert("Something went wrong");
+                        }
+                    })
+                    .catch((error) => {
+                        //console.log("error", error.response);
+                    });
             }
         });
     };
@@ -551,47 +551,50 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
         <>
             <div className="row" style={{ marginTop: "10px" }}>
                 <div className="col-4 d-flex justify-content-center">
-                    <FormControl sx={{ marginBottom: 2, width: "100%",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} id="demo-simple-select-label" shrink={true} >
                             Daily Rate
                         </InputLabel>
-                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={ basic_rate ? parseFloat(basic_rate.toFixed(2)) : 0 } style={{ height: 40 }} />
+                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={basic_rate ? parseFloat(basic_rate.toFixed(2)) : 0} style={{ height: 40 }} />
                     </FormControl>
                 </div>
 
                 <div className="col-4 d-flex justify-content-center">
-                    <FormControl sx={{ marginBottom: 2, width: "100%",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Monthly Rate
                         </InputLabel>
-                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={ data.monthly_rate ? parseFloat(data.monthly_rate.toFixed(2)) : 0 } style={{ height: 40 }} />
+                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={data.monthly_rate ? parseFloat(data.monthly_rate.toFixed(2)) : 0} style={{ height: 40 }} />
                     </FormControl>
                 </div>
 
                 <div className="col-4 d-flex justify-content-center">
-                    <FormControl sx={{ marginBottom: 2, width: "100%",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Hourly Rate
                         </InputLabel>
-                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={ hourly_rate ? parseFloat(hourly_rate.toFixed(2)) : 0 } style={{ height: 40 }} />
+                        <input id="demo-simple-select" className="form-control" type="text" defaultValue={hourly_rate ? parseFloat(hourly_rate.toFixed(2)) : 0} style={{ height: 40 }} />
                     </FormControl>
                 </div>
             </div>
@@ -623,7 +626,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                                         13th Month Pay
                                     </TableCell>
                                     <TableCell className="text-center  bg-light">
-                                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" value={ incentives ? parseFloat(incentives.toFixed(2)) : 0 } onChange={(e) => setIncentives(parseFloat(e.target.value)) } />
+                                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" value={incentives ? parseFloat(incentives.toFixed(2)) : 0} onChange={(e) => setIncentives(parseFloat(e.target.value))} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -631,7 +634,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                                         Leave Credit
                                     </TableCell>
                                     <TableCell className="text-center  bg-light">
-                                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" value={allowance ? parseFloat(allowance.toFixed(2)) : 0 } onChange={(e) => setAllowance(parseFloat(e.target.value)) } />
+                                        <input id="demo-simple-select" style={{ height: 30 }} className="form-control" type="text" value={allowance ? parseFloat(allowance.toFixed(2)) : 0} onChange={(e) => setAllowance(parseFloat(e.target.value))} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -639,7 +642,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                                         Absences
                                     </TableCell>
                                     <TableCell className="text-center  bg-light">
-                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={ absenceLeave <= 0 ? 0 : absenceLeave } />
+                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={absenceLeave <= 0 ? 0 : absenceLeave} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -647,7 +650,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                                         Tardiness ({late} Min)
                                     </TableCell>
                                     <TableCell className="text-center  bg-light">
-                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={ tardiness ? parseFloat(tardiness.toFixed(2)) : 0 } />
+                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={tardiness ? parseFloat(tardiness.toFixed(2)) : 0} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -655,7 +658,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                                         Undertime
                                     </TableCell>
                                     <TableCell className="text-center  bg-light">
-                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={ undertime ? parseFloat(undertime.toFixed(2)) : 0 } />
+                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30 }} disabled className="form-control" type="text" defaultValue={undertime ? parseFloat(undertime.toFixed(2)) : 0} />
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -663,7 +666,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         </Table>
                     </TableContainer>
                 </div>
-                
+
                 <div className="col-4">
                     <TableContainer>
                         <Table className="table table-md table-vcenter table-bordered">
@@ -686,12 +689,13 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         </Table>
                     </TableContainer>
 
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Additional Benefits
@@ -699,12 +703,13 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         <input id="demo-simple-select" className="form-control" type="text" readOnly defaultValue={totalAddionBenefit} style={{ height: 40, backgroundColor: "white" }} />
                     </FormControl>
 
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "145px",
-                            "& label.Mui-focused": {color: "#97a5ba"},
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {borderColor: "#97a5ba"},
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "145px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Remaining Loan
@@ -733,12 +738,13 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         </Table>
                     </TableContainer>
 
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Loan Deduction
@@ -769,12 +775,13 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         </Table>
                     </TableContainer>
 
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": { color: "#97a5ba" },
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Contribution
@@ -803,30 +810,32 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         </Table>
                     </TableContainer>
 
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": {color: "#97a5ba"},
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {borderColor: "#97a5ba"},
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Taxes
                         </InputLabel>
                         <input id="demo-simple-select" className="form-control" type="text" readOnly value={taxAmount} style={{ height: 40, backgroundColor: "white" }} />
                     </FormControl>
-                
+
                 </div>
             </div>
 
             <div className="row" style={{ marginTop: 50 }}>
                 <div className="col-4">
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": {color: "#97a5ba"},
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {borderColor: "#97a5ba"},
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Earnings
@@ -834,7 +843,7 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                         <input id="demo-simple-select" className="form-control" type="text" style={{ height: 40, backgroundColor: "white" }} readOnly
                             value={
                                 parseFloat(
-                                    ( earnings.grosspay +
+                                    (earnings.grosspay +
                                         (earnings.leaveEarnings - earnings.deductions) +
                                         (incentives ? parseFloat(incentives.toFixed(2)) : 0) +
                                         (allowance ? parseFloat(allowance.toFixed(2)) : 0)
@@ -846,33 +855,35 @@ const PayrollSaveModal = ({ data, close, cutoff, processtype }) => {
                 </div>
 
                 <div className="col-4">
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": {color: "#97a5ba"},
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {borderColor: "#97a5ba"},
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Total Deductions
                         </InputLabel>
-                        <input id="demo-simple-select" className="form-control" type="text" value={ totalDeduction ? parseFloat(totalDeduction.toFixed(2)) : 0 } style={{ height: 40, backgroundColor: "white" }} readOnly />
+                        <input id="demo-simple-select" className="form-control" type="text" value={totalDeduction ? parseFloat(totalDeduction.toFixed(2)) : 0} style={{ height: 40, backgroundColor: "white" }} readOnly />
                     </FormControl>
                 </div>
 
                 <div className="col-4">
-                    <FormControl sx={{ marginBottom: 2, width: "100%", marginTop: "10px",
-                            "& label.Mui-focused": {color: "#97a5ba"},
-                            "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {borderColor: "#97a5ba"},
-                            },
-                        }}
+                    <FormControl sx={{
+                        marginBottom: 2, width: "100%", marginTop: "10px",
+                        "& label.Mui-focused": { color: "#97a5ba" },
+                        "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": { borderColor: "#97a5ba" },
+                        },
+                    }}
                     >
                         <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} >
                             Net Pay
                         </InputLabel>
 
-                        <input id="demo-simple-select" className="form-control" type="text"  onChange={(e) => setTotalNetPay(parseFloat(e.target.value)) } style={{ height: 40, backgroundColor: "white" }} readOnly
+                        <input id="demo-simple-select" className="form-control" type="text" onChange={(e) => setTotalNetPay(parseFloat(e.target.value))} style={{ height: 40, backgroundColor: "white" }} readOnly
                             value={parseFloat(
                                 (
                                     earnings.grosspay +

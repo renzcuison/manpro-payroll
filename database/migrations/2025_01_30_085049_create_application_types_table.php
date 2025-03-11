@@ -16,7 +16,7 @@ class CreateApplicationTypesTable extends Migration
         Schema::create('application_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
-            $table->decimal('percentage', 10, 2);
+            $table->decimal('percentage', 10, 2)->nullable();
             $table->boolean('require_files')->default(0);
             $table->integer('tenureship_required')->default(0);
             $table->unsignedBigInteger('client_id');

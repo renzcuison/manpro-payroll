@@ -95,9 +95,10 @@ const AttendanceSummary = () => {
                             <Grid item xs={2}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs} >
                                     <DatePicker
-                                        label="Filter Month"
+                                        label="Month"
                                         value={month}
                                         views={['year', 'month']}
+                                        maxDate={dayjs()}
                                         onChange={(newValue) => {
                                             setMonth(newValue);
                                         }}
