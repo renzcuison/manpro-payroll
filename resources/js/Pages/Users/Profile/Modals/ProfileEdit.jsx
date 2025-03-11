@@ -113,7 +113,7 @@ const ProfileEdit = ({ open, close, employee }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to update this employee?",
+                text: "Do you want to update your profile?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
