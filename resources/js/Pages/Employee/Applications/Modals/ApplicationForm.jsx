@@ -348,7 +348,7 @@ const ApplicationForm = ({ open, close }) => {
                             if (affectedEnd.isAfter(dayGapEnd)) {
                                 affectedTime -= affectedEnd.diff(dayGapEnd, 'hour', true);
                             } else if (affectedEnd.isBetween(dayGapStart, dayGapEnd)) {
-                                affectedTime = 0
+                                affectedTime = 0;
                             }
                         }
                         creditsUsed = affectedTime / workHours.total_hours;
