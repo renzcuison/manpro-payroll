@@ -493,19 +493,9 @@ class PayrollController extends Controller
                         // Log::info("Paid Leave");
                         // Log::info("Leave Percentage:    {$applicationType->percentage}%");
                         $earningPerHour = $hourlyRate * ($applicationType->percentage / 100);
-                    } else {
-                        // Log::info("Unpaid Leave");
-                        $earningPerHour = $hourlyRate;
-                    }
-                    $totalEarning = $totalHours * $earningPerHour;
-                    $leaveEarnings += $totalEarning;
+                        $totalEarning = $totalHours * $earningPerHour;
+                        $leaveEarnings += $totalEarning;
 
-                    // Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
-                    // Log::info("Earning Per Hour:    {$earningPerHour}");
-                    // Log::info("Total Earning:       {$totalEarning}");
-                    // Log::info("Total Leave Earnings:{$leaveEarnings}");
-
-                    if ($applicationType->is_paid_leave) {
                         $paidLeaves[] = [
                             'name' => $applicationType->name,
                             'days' => $days,
@@ -513,6 +503,11 @@ class PayrollController extends Controller
                             'amount' => $totalEarning,
                         ];
                     } else {
+                        // Log::info("Unpaid Leave");
+                        $earningPerHour = $hourlyRate;
+                        $totalEarning = $totalHours * $earningPerHour;
+                        $leaveEarnings += $totalEarning;
+
                         $unpaidLeaves[] = [
                             'name' => $applicationType->name,
                             'days' => $days,
@@ -520,6 +515,10 @@ class PayrollController extends Controller
                             'amount' => $totalEarning,
                         ];
                     }
+                    // Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
+                    // Log::info("Earning Per Hour:    {$earningPerHour}");
+                    // Log::info("Total Earning:       {$totalEarning}");
+                    // Log::info("Total Leave Earnings:{$leaveEarnings}");
                 }
             }
         }
