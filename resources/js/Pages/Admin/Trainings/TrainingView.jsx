@@ -199,6 +199,30 @@ const TrainingView = () => {
         }
     };
 
+    // Training Visibility
+
+    const renderVisibility = () => {
+
+        let color, label;
+
+        if (dayjs().isBefore(training.start_date)) {
+            label = 'NOT YET OPENED';
+            color = '#e9ae20';
+        } else if (dayjs().isBefore(training.end_date)) {
+            label = 'OPEN';
+            color = '#177604';
+        } else {
+            label = 'CLOSED';
+            color = '#f57c00';
+        }
+
+        return <Grid item xs={7} align="left">
+            <Typography sx={{ fontWeight: "bold", color: color }}>
+                {label}
+            </Typography>
+        </Grid>
+    }
+
     // Training Menu
     const [anchorEl, setAnchorEl] = React.useState(null);
     const menuOpen = Boolean(anchorEl);
@@ -336,6 +360,34 @@ const TrainingView = () => {
                                                     </Menu>
                                                 </Stack>
                                             </Grid>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                            {/* Status */}
+                                            <Grid item xs={5} align="left">
+                                                Status
+                                            </Grid>
+                                            <Grid item xs={7} align="left">
+                                                <Typography sx={{
+                                                    fontWeight: "bold",
+                                                    color: training.status == "Pending"
+                                                        ? "#e9ae20"
+                                                        : training.status == "Active"
+                                                            ? "#177604"
+                                                            : training.status == "Hidden"
+                                                                ? "#f57c00"
+                                                                : training.status == "Cancelled"
+                                                                    ? "#f44336"
+                                                                    : "#000000"
+                                                }}>
+                                                    {training.status}
+                                                </Typography>
+                                            </Grid>
+                                            {/* Visibility */}
+                                            <Grid item xs={5} align="left">
+                                                Visibility
+                                            </Grid>
+                                            {renderVisibility()}
                                             <Grid item xs={12} sx={{ my: 0 }} >
                                                 <Divider />
                                             </Grid>
