@@ -466,7 +466,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedStart->lessThan($gapEnd)) {
                                         $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
                                     }
-                                    Log::info("First Day:           {$affectedTime}");
+                                    //Log::info("First Day:           {$affectedTime}");
                                 } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
                                     $affectedEnd = min($appEnd, $lastEnd);
                                     $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
@@ -476,7 +476,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedEnd->greaterThan($lastGapStart)) {
                                         $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
                                     }
-                                    Log::info("Last Day:            {$affectedTime}");
+                                    //Log::info("Last Day:            {$affectedTime}");
                                 }
                                 $affectedTime = max(0, $affectedTime);
                             }
