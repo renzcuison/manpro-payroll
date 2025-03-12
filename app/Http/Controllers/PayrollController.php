@@ -306,11 +306,9 @@ class PayrollController extends Controller
 
         $absents = $perDay * $numberOfAbsentDays;
 
-        log::info("================================");
-        log::info("Cut Off       :" . $perCutOff);
-        log::info("Days          :" . $numberOfWorkingDays);
-
-
+        // log::info("================================");
+        // log::info("Cut Off       :" . $perCutOff);
+        // log::info("Days          :" . $numberOfWorkingDays);
 
         // ============== WORK HOURS ==============
         $start = Carbon::parse($startDate)->startOfDay();
@@ -325,7 +323,7 @@ class PayrollController extends Controller
             $secondIn = Carbon::createFromFormat('H:i:s', $workHours->second_time_in ?? '14:00:00');
             $secondOut = Carbon::createFromFormat('H:i:s', $workHours->second_time_out ?? '22:00:00');
         } catch (\Carbon\Exceptions\InvalidFormatException $e) {
-            Log::error("Failed to parse work hours for user ID: {$employee->id}, Error: {$e->getMessage()}");
+            //Log::error("Failed to parse work hours for user ID: {$employee->id}, Error: {$e->getMessage()}");
             $firstIn = Carbon::createFromFormat('H:i:s', '09:00:00');
             $firstOut = Carbon::createFromFormat('H:i:s', '17:00:00');
             $breakStart = Carbon::createFromFormat('H:i:s', '12:00:00');
@@ -346,12 +344,12 @@ class PayrollController extends Controller
             $gapEnd = $secondIn;
         }
 
-        Log::info("================================");
-        Log::info("Shift Type    :" . $workHours->shift_type);
-        Log::info("Day Start     :" . $dayStart);
-        Log::info("Day End       :" . $dayEnd);
-        Log::info("Day-Gap Start :" . $gapStart);
-        Log::info("Day-Gap End   :" . $gapEnd);
+        // Log::info("================================");
+        // Log::info("Shift Type    :" . $workHours->shift_type);
+        // Log::info("Day Start     :" . $dayStart);
+        // Log::info("Day End       :" . $dayEnd);
+        // Log::info("Day-Gap Start :" . $gapStart);
+        // Log::info("Day-Gap End   :" . $gapEnd);
 
         $totalWorkHours = $firstOut->diffInSeconds($firstIn) / 3600;
         if ($workHours->shift_type === 'Regular') {
@@ -361,10 +359,10 @@ class PayrollController extends Controller
         }
         $hourlyRate = $perDay / $totalWorkHours;
 
-        Log::info("================================");
-        Log::info("Daily Pay      :" . $perDay);
-        Log::info("Hours Per Day  :" . $totalWorkHours);
-        Log::info("Hourly Rate    :" . $hourlyRate);
+        // Log::info("================================");
+        // Log::info("Daily Pay      :" . $perDay);
+        // Log::info("Hours Per Day  :" . $totalWorkHours);
+        // Log::info("Hourly Rate    :" . $hourlyRate);
 
         // ============== LEAVES ==============
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')
@@ -396,9 +394,9 @@ class PayrollController extends Controller
             foreach ($apps as $app) {
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
-                Log::info("================================");
-                Log::info("App Starts     :" . $fromDate);
-                Log::info("App Ends       :" . $toDate);
+                // Log::info("================================");
+                // Log::info("App Starts     :" . $fromDate);
+                // Log::info("App Ends       :" . $toDate);
 
                 $overlapStart = max($fromDate->startOfDay(), $start);
                 $overlapEnd = min($toDate->startOfDay(), $end);
@@ -413,9 +411,9 @@ class PayrollController extends Controller
 
                     $currentDate = $overlapStart->copy();
                     if ($overlapStart->isSameDay($overlapEnd)) {
-                        Log::info("================================");
-                        Log::info("Same Day Leave");
-                        Log::info("Current Date   :" . $currentDate);
+                        // Log::info("================================");
+                        // Log::info("Same Day Leave");
+                        // Log::info("Current Date   :" . $currentDate);
                         $skipDay = $this->isExcludedDay($currentDate);
                         $skipDay = true;
                         if (!$skipDay) {
@@ -447,10 +445,10 @@ class PayrollController extends Controller
                             }
                         }
                     } else {
-                        Log::info("================================");
-                        Log::info("Multi Day Leave");
+                        // Log::info("================================");
+                        // Log::info("Multi Day Leave");
                         while ($currentDate->lessThanOrEqualTo($overlapEnd)) {
-                            Log::info("Current Date   :" . $currentDate);
+                            //Log::info("Current Date   :" . $currentDate);
                             $affectedTime = 0;
 
                             $skipDay = true;
@@ -459,15 +457,11 @@ class PayrollController extends Controller
                             } else {
                                 $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
                                 $appEnd = Carbon::parse($app->duration_end);
-
-                                Log::info($appStart);
                                 if ($currentDate->greaterThan($fromDate) && $currentDate->lessThan($toDate)) {
-                                    Log::info("Full Day");
+                                    //Log::info("Full Day");
                                     $affectedTime = $totalWorkHours;
                                 } elseif ($currentDate->isSameDay($fromDate) && !$appStart->isAfter($dayEnd)) {
                                     $affectedStart = max($appStart, $dayStart);
-                                    Log::info($appStart);
-                                    Log::info($affectedStart);
                                     $affectedTime = $dayEnd->diffInSeconds($affectedStart) / 3600;
 
                                     if ($affectedStart->lessThan($gapStart)) {
@@ -475,7 +469,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedStart->lessThan($gapEnd)) {
                                         $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
                                     }
-                                    Log::info("First Day:           {$affectedTime}");
+                                    //Log::info("First Day:           {$affectedTime}");
                                 } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
                                     $affectedEnd = min($appEnd, $lastEnd);
                                     $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
@@ -485,7 +479,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedEnd->greaterThan($lastGapStart)) {
                                         $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
                                     }
-                                    Log::info("Last Day:            {$affectedTime}");
+                                    //Log::info("Last Day:            {$affectedTime}");
                                 } else {
                                     // No Affected Hours within day, exclude from count
                                     $days--;
@@ -498,24 +492,23 @@ class PayrollController extends Controller
                         }
                     }
 
+                    // Log::info("================================");
                     $remainderHours = round($totalHours - ($days * $totalWorkHours), 2);
                     if ($applicationType->is_paid_leave) {
-                        Log::info("================================");
-                        Log::info("Paid Leave");
-                        Log::info("Leave Percentage:    {$applicationType->percentage}%");
+                        // Log::info("Paid Leave");
+                        // Log::info("Leave Percentage:    {$applicationType->percentage}%");
                         $earningPerHour = $hourlyRate * ($applicationType->percentage / 100);
                     } else {
-                        Log::info("================================");
-                        Log::info("Unpaid Leave");
+                        // Log::info("Unpaid Leave");
                         $earningPerHour = $hourlyRate;
                     }
                     $totalEarning = $totalHours * $earningPerHour;
                     $leaveEarnings += $totalEarning;
 
-                    Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
-                    Log::info("Earning Per Hour:    {$earningPerHour}");
-                    Log::info("Total Earning:       {$totalEarning}");
-                    Log::info("Total Leave Earnings:{$leaveEarnings}");
+                    // Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
+                    // Log::info("Earning Per Hour:    {$earningPerHour}");
+                    // Log::info("Total Earning:       {$totalEarning}");
+                    // Log::info("Total Leave Earnings:{$leaveEarnings}");
 
                     if ($applicationType->is_paid_leave) {
                         $paidLeaves[] = [
