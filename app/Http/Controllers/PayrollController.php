@@ -407,8 +407,6 @@ class PayrollController extends Controller
                 $lastGapEnd = $gapEnd->copy()->setDateFrom($overlapEnd);
 
                 if ($overlapStart <= $overlapEnd) {
-                    $days += $overlapStart->diffInDays($overlapEnd) + 1;
-
                     $currentDate = $overlapStart->copy();
                     if ($overlapStart->isSameDay($overlapEnd)) {
                         // Log::info("================================");
@@ -421,7 +419,6 @@ class PayrollController extends Controller
                         } else {
                             if ($fromDate->isAfter($dayEnd) || $toDate->isBefore($dayStart)) {
                                 // No Affected Hours within day, exclude from count
-                                $days--;
                                 $totalHours = 0;
                             } else {
                                 $affectedStart = max($fromDate, $dayStart);
@@ -469,7 +466,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedStart->lessThan($gapEnd)) {
                                         $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
                                     }
-                                    //Log::info("First Day:           {$affectedTime}");
+                                    Log::info("First Day:           {$affectedTime}");
                                 } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
                                     $affectedEnd = min($appEnd, $lastEnd);
                                     $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
@@ -479,10 +476,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedEnd->greaterThan($lastGapStart)) {
                                         $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
                                     }
-                                    //Log::info("Last Day:            {$affectedTime}");
-                                } else {
-                                    // No Affected Hours within day, exclude from count
-                                    $days--;
+                                    Log::info("Last Day:            {$affectedTime}");
                                 }
                                 $affectedTime = max(0, $affectedTime);
                             }
@@ -493,7 +487,8 @@ class PayrollController extends Controller
                     }
 
                     // Log::info("================================");
-                    $remainderHours = round($totalHours - ($days * $totalWorkHours), 2);
+                    $days = floor($totalHours / $totalWorkHours);
+                    $remainderHours = $totalHours % $totalWorkHours;
                     if ($applicationType->is_paid_leave) {
                         // Log::info("Paid Leave");
                         // Log::info("Leave Percentage:    {$applicationType->percentage}%");
