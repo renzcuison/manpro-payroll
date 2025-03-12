@@ -18,7 +18,8 @@ const AttendanceSummary = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [attendanceSummary, setAttendanceSummary] = useState([]);
-    const [month, setMonth] = useState(dayjs());
+    const [month, setMonth] = useState(dayjs().month());
+    const [year, setYear] = useState(dayjs());
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -31,8 +32,8 @@ const AttendanceSummary = () => {
         axiosInstance.get('/attendance/getAttendanceSummary', {
             headers,
             params: {
-                month: dayjs(month).month() + 1,
-                year: dayjs(month).year(),
+                month: month + 1,
+                year: dayjs(year).year(),
                 branch: selectedBranch,
                 department: selectedDepartment
             }
@@ -93,14 +94,58 @@ const AttendanceSummary = () => {
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="flex-start" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                             <Grid item xs={2}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            required
+                                            select
+                                            id="month-select"
+                                            label="Month"
+                                            value={month}
+                                            onChange={(event) => setMonth(event.target.value)}
+                                        >
+                                            {[
+                                                { value: 0, label: 'January' },
+                                                { value: 1, label: 'February' },
+                                                { value: 2, label: 'March' },
+                                                { value: 3, label: 'April' },
+                                                { value: 4, label: 'May' },
+                                                { value: 5, label: 'June' },
+                                                { value: 6, label: 'July' },
+                                                { value: 7, label: 'August' },
+                                                { value: 8, label: 'September' },
+                                                { value: 9, label: 'October' },
+                                                { value: 10, label: 'November' },
+                                                { value: 11, label: 'December' },
+                                            ].map((monthOption) => {
+                                                const currentYear = dayjs().year();
+                                                const currentMonth = dayjs().month();
+                                                const isCurrentYearSelected = year ? dayjs(year).year() === currentYear : false;
+                                                const isMonthDisabled = isCurrentYearSelected && monthOption.value > currentMonth;
+
+                                                return (
+                                                    <MenuItem
+                                                        key={monthOption.value}
+                                                        value={monthOption.value}
+                                                        disabled={isMonthDisabled}
+                                                    >
+                                                        {monthOption.label}
+                                                    </MenuItem>
+                                                );
+                                            })}
+                                        </TextField>
+                                    </FormControl>
+                                </LocalizationProvider>
+                            </Grid>
+                            <Grid item xs={2}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs} >
                                     <DatePicker
-                                        label="Month"
-                                        value={month}
-                                        views={['year', 'month']}
+                                        label="Year"
+                                        value={year}
+                                        views={['year']}
                                         maxDate={dayjs()}
                                         onChange={(newValue) => {
-                                            setMonth(newValue);
+                                            setYear(newValue);
                                         }}
                                         renderInput={(params) => (
                                             <TextField {...params} />
