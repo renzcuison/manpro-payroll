@@ -251,6 +251,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editTraining', [TrainingsController::class, 'editTraining']);
 
         Route::post('/saveContent', [TrainingsController::class, 'saveContent']);
+        Route::post('/toggleSequence', [TrainingsController::class, 'toggleSequence']);
     });
 
 

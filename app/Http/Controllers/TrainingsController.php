@@ -406,104 +406,35 @@ class TrainingsController extends Controller
         return $result;
     }
 
-    // ------------- Old Functions
-    public function saveTrainingOld(Request $request)
+    public function toggleSequence(Request $request)
     {
-        //Log::info("TrainingsController::saveTraining");
+        //Log::info("TrainingsController::toggleSequence");
+        //Log::info($request);
+
         $user = Auth::user();
 
         if ($this->checkUser()) {
+
+            $training = TrainingsModel::where('unique_code', $request->input('code'))->firstOrFail();
+
             try {
                 DB::beginTransaction();
 
-                $dateTime = now()->format('YmdHis');
-
-                if ($request->hasFile('cover_image')) {
-                    $cover = $request->file('cover_image');
-                    $coverName = pathinfo($cover->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $cover->getClientOriginalExtension();
-                    $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
-                }
-
-                $uniqueCode = $this->generateRandomCode(16);
-                while (TrainingsModel::where('unique_code', $uniqueCode)->exists()) {
-                    $uniqueCode = $this->generateRandomCode(16);
-                }
-
-                $training = TrainingsModel::create([
-                    'unique_code' => $uniqueCode,
-                    'title' => $request->input('title'),
-                    'description' => $request->input('description'),
-                    'cover_photo' => $coverPath,
-                    'start_date' => $request->input('start_date'),
-                    'end_date' => $request->input('end_date'),
-                    'duration' => $request->input('duration'),
-                    'client_id' => $user->client_id,
-                    'created_by' => $user->id,
-                ]);
-
-                $orderCounter = 0;
-
-                // Save Links
-                if ($request->has('link')) {
-                    foreach ($request->input('link') as $link) {
-                        $orderCounter++;
-                        TrainingMediaModel::create([
-                            'training_id' => $training->id,
-                            'path' => null,
-                            'url' => $link,
-                            'type' => "Video",
-                            'order' => $orderCounter
-                        ]);
-                    }
-                }
-
-                // Save Attachments
-                if ($request->hasFile('attachment')) {
-                    foreach ($request->file('attachment') as $file) {
-                        $orderCounter++;
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                        $filePath = $file->storeAs('trainings/attachments', $fileName, 'public');
-                        TrainingMediaModel::create([
-                            'training_id' => $training->id,
-                            'path' => $filePath,
-                            'url' => null,
-                            'type' => "Document",
-                            'order' => $orderCounter
-                        ]);
-                    }
-                }
-
-                // Save Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $file) {
-                        $orderCounter++;
-                        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                        $filePath = $file->storeAs('trainings/images', $fileName, 'public');
-                        TrainingMediaModel::create([
-                            'training_id' => $training->id,
-                            'path' => $filePath,
-                            'url' => null,
-                            'type' => "Image",
-                            'order' => $orderCounter
-                        ]);
-                    }
-                }
-
+                $training->sequential = !$training->sequential;
+                $training->save();
 
                 DB::commit();
 
-                return response()->json(['status' => 200]);
+                return response()->json(['status' => 200, 'message' => 'Sequence lock toggled successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
 
-                Log::error("Error saving: " . $e->getMessage());
+                Log::error("Error updating: " . $e->getMessage());
 
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
-
-        return response()->json(['status' => 200]);
     }
 }

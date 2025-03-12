@@ -15,6 +15,7 @@ import {
     TextField,
     Stack,
     Grid,
+    Chip,
     CircularProgress,
     FormControl,
     InputLabel,
@@ -23,6 +24,7 @@ import {
     Card,
     CardMedia,
     CardContent,
+    CardActions,
     Pagination,
     IconButton,
     Divider,
@@ -31,7 +33,7 @@ import {
     ImageListItemBar,
     Tooltip
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -53,7 +55,6 @@ import {
     stableSort,
 } from "../../../components/utils/tableUtils";
 import { first } from "lodash";
-import { CardActions } from "@material-ui/core";
 
 import TrainingsEdit from "./Modals/TrainingsEdit";
 import ContentAdd from "./Modals/ContentAdd";
@@ -189,9 +190,7 @@ const TrainingView = () => {
             case "Image":
                 return `${location.origin}/storage/${source}`;
             case "Document":
-                return DocImage;
             case "PowerPoint":
-                return PPTImage;
             case "Video":
             case "Form":
                 return "../../../images/ManProTab.png";
@@ -234,6 +233,50 @@ const TrainingView = () => {
         }
     };
 
+    // Sequential Content Toggle
+    const handleToggleSequential = () => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `${training.sequential ? "Disable" : "Enable"} Sequence Lock?`,
+            text: `Contents will ${training.sequential ? "be able to be done in any" : "have to be done in"} order.`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: training.sequential ? "Disable" : "Enable",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    code: code,
+                }
+                axiosInstance
+                    .post(`trainings/toggleSequence`, data, {
+                        headers
+                    })
+                    .then((response) => {
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Sequence Lock ${training.sequential ? "Disabled" : "Enabled"}`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                getTrainingDetails();
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error toggling sequence lock:", error);
+                    });
+            }
+        });
+    }
+
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -244,7 +287,7 @@ const TrainingView = () => {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "white", borderRadius: "8px", mb: 5 }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
@@ -393,30 +436,55 @@ const TrainingView = () => {
                                     </Grid>
                                     {/* Content Header */}
                                     <Grid item xs={12} align="left">
-                                        <Box display="flex" sx={{ alignItems: "center" }}>
-                                            {content.length == 0 ? (
-                                                <>
-                                                    <WarningAmber sx={{ color: "#f44336" }} />
-                                                    <Typography sx={{ ml: 1, color: "#f44336" }}>
-                                                        No Content Found
+                                        <Box display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                                {content.length == 0 ? (
+                                                    <>
+                                                        <WarningAmber sx={{ color: "#f44336" }} />
+                                                        <Typography sx={{ ml: 1, color: "#f44336" }}>
+                                                            No Content Found
+                                                        </Typography>
+                                                    </>
+                                                ) : (
+                                                    <Typography>
+                                                        {`Content${content.length > 1 ? 's' : ''}`}
                                                     </Typography>
-                                                </>
-                                            ) : (
-                                                <Typography>
-                                                    {`Content${content.length > 1 ? 's' : ''}`}
-                                                </Typography>
-                                            )
-                                            }
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                onClick={() => handleOpenContentAddModal()}
-                                                sx={{ ml: 3 }}
-                                            >
-                                                <p className="m-0">
-                                                    <i className="fa fa-plus"></i> Add Content{" "}
-                                                </p>
-                                            </Button>
+                                                )
+                                                }
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleOpenContentAddModal()}
+                                                    sx={{ ml: 3 }}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add Content{" "}
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                            <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
+                                                <Chip
+                                                    label={training.sequential ? "SEQUENTIAL" : "NOT SEQUENTIAL"}
+                                                    sx={{
+                                                        backgroundColor: training.sequential ? "#177604" : "#f57c00",
+                                                        color: "white",
+                                                        fontWeight: "bold",
+                                                        '& .MuiChip-label': { px: 1.5, py: 0.5 },
+                                                    }}
+                                                    variant="filled"
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleToggleSequential()}
+                                                    startIcon={<SwapHoriz />}
+                                                    sx={{ ml: 1 }}
+                                                >
+                                                    <p className="m-0">
+                                                        Toggle
+                                                    </p>
+                                                </Button>
+                                            </Box>
                                         </Box>
                                     </Grid>
                                     {/* Content List */}
@@ -432,11 +500,23 @@ const TrainingView = () => {
                                                             alt={cont.title || 'Content Item'}
                                                         />
                                                         <CardContent sx={{ pb: "5px" }}>
-                                                            <Typography>
-                                                                {cont.title || 'Content Item'}
-                                                            </Typography>
+                                                            <Stack direction="row" alignItems="center" spacing={1}>
+                                                                <Box sx={{
+                                                                    display: 'inline-flex',
+                                                                    backgroundColor: "#177604",
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px'
+                                                                }}>
+                                                                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                                                                        {cont.order}
+                                                                    </Typography>
+                                                                </Box>
+                                                                <Typography variant="body1" noWrap>
+                                                                    {cont.title || 'Content Item'}
+                                                                </Typography>
+                                                            </Stack>
                                                         </CardContent>
-                                                        <CardActions sx={{ ml: "12px" }}>
+                                                        <CardActions sx={{ ml: "8px" }}>
                                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                                 {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
                                                                 {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
