@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
+import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem, FormControl, InputLabel, Select } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
@@ -33,6 +33,7 @@ const AttendanceView = () => {
     const [summaryFromDate, setSummaryFromDate] = useState(
         dayjs().startOf("month")
     );
+    const [selectedRange, setSelectedRange] = useState("thisMonth");
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [summaryData, setSummaryData] = useState([]);
     const currentDate = dayjs().format("YYYY-MM-DD");
@@ -124,6 +125,41 @@ const AttendanceView = () => {
         }
     }
 
+    const setPredefinedDates = (range) => {
+        const today = dayjs();
+        switch (range) {
+            case "today":
+                setSummaryFromDate(today);
+                setSummaryToDate(today);
+                break;
+            case "yesterday":
+                setSummaryFromDate(today.subtract(1, "day"));
+                setSummaryToDate(today.subtract(1, "day"));
+                break;
+            case "last7days":
+                setSummaryFromDate(today.subtract(6, "day"));
+                setSummaryToDate(today);
+                break;
+            case "last30days":
+                setSummaryFromDate(today.subtract(29, "day"));
+                setSummaryToDate(today);
+                break;
+            case "thisMonth":
+                setSummaryFromDate(today.startOf("month"));
+                setSummaryToDate(today);
+                break;
+            case "lastMonth":
+                setSummaryFromDate(today.subtract(1, "month").startOf("month"));
+                setSummaryToDate(today.subtract(1, "month").endOf("month"));
+                break;
+            case "custom":
+
+            default:
+                break;
+        }
+        setSelectedRange(range);
+    };
+
     return (
         <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -150,34 +186,59 @@ const AttendanceView = () => {
                             </Box>
                         ) : (
                             <>
-                                <Grid container direction="row" justifyContent="flex-start" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                        <DatePicker
-                                            label="From Date"
-                                            value={summaryFromDate}
-                                            onChange={(newValue) => {
-                                                setSummaryFromDate(newValue);
-                                                if (newValue.isAfter(summaryToDate)) {
+                                <Grid container direction="row" justifyContent="flex-start" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                                    <Grid item xs={2}>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="date-range-select-label"> Date Range </InputLabel>
+
+                                            <Select
+                                                labelId="date-range-select-label"
+                                                id="date-range-select"
+                                                value={selectedRange}
+                                                label="Date Range"
+                                                onChange={(event) => setPredefinedDates(event.target.value)}
+                                            >
+                                                <MenuItem value="today"> Today </MenuItem>
+                                                <MenuItem value="yesterday"> Yesterday </MenuItem>
+                                                <MenuItem value="last7days"> Last 7 Days </MenuItem>
+                                                <MenuItem value="last30days"> Last 30 Days </MenuItem>
+                                                <MenuItem value="thisMonth"> This Month </MenuItem>
+                                                <MenuItem value="lastMonth"> Last Month </MenuItem>
+                                                <MenuItem value="custom"> Custom Range </MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                            <DatePicker
+                                                label="From Date"
+                                                value={summaryFromDate}
+                                                onChange={(newValue) => {
+                                                    setSummaryFromDate(newValue);
+                                                    if (newValue.isAfter(summaryToDate)) {
+                                                        setSummaryToDate(newValue);
+                                                    }
+                                                    setSelectedRange("custom");
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} />
+                                                )}
+                                                sx={{ mr: 2 }}
+                                            />
+                                            <DatePicker
+                                                label="To Date"
+                                                value={summaryToDate}
+                                                onChange={(newValue) => {
                                                     setSummaryToDate(newValue);
-                                                }
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
-                                            )}
-                                            sx={{ mr: 2 }}
-                                        />
-                                        <DatePicker
-                                            label="To Date"
-                                            value={summaryToDate}
-                                            onChange={(newValue) => {
-                                                setSummaryToDate(newValue);
-                                            }}
-                                            minDate={summaryFromDate}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
-                                            )}
-                                        />
-                                    </LocalizationProvider>
+                                                    setSelectedRange("custom");
+                                                }}
+                                                minDate={summaryFromDate}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} />
+                                                )}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
                                 </Grid>
                                 <TableContainer>
                                     <Table aria-label="attendance summary table">

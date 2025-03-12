@@ -97,7 +97,6 @@ const AttendanceSummary = () => {
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <FormControl fullWidth>
                                         <TextField
-                                            required
                                             select
                                             id="month-select"
                                             label="Month"
