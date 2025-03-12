@@ -92,114 +92,118 @@ const AttendanceSummary = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Filters */}
-                        <Grid container direction="row" justifyContent="flex-start" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                            <Grid item xs={2}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <FormControl fullWidth>
-                                        <TextField
-                                            select
-                                            id="month-select"
-                                            label="Month"
-                                            value={month}
-                                            onChange={(event) => setMonth(event.target.value)}
-                                        >
-                                            {[
-                                                { value: 0, label: 'January' },
-                                                { value: 1, label: 'February' },
-                                                { value: 2, label: 'March' },
-                                                { value: 3, label: 'April' },
-                                                { value: 4, label: 'May' },
-                                                { value: 5, label: 'June' },
-                                                { value: 6, label: 'July' },
-                                                { value: 7, label: 'August' },
-                                                { value: 8, label: 'September' },
-                                                { value: 9, label: 'October' },
-                                                { value: 10, label: 'November' },
-                                                { value: 11, label: 'December' },
-                                            ].map((monthOption) => {
-                                                const currentYear = dayjs().year();
-                                                const currentMonth = dayjs().month();
-                                                const isCurrentYearSelected = year ? dayjs(year).year() === currentYear : false;
-                                                const isMonthDisabled = isCurrentYearSelected && monthOption.value > currentMonth;
+                        <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                            <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
+                                <Grid item xs={6}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <FormControl fullWidth>
+                                            <TextField
+                                                select
+                                                id="month-select"
+                                                label="Month"
+                                                value={month}
+                                                onChange={(event) => setMonth(event.target.value)}
+                                            >
+                                                {[
+                                                    { value: 0, label: 'January' },
+                                                    { value: 1, label: 'February' },
+                                                    { value: 2, label: 'March' },
+                                                    { value: 3, label: 'April' },
+                                                    { value: 4, label: 'May' },
+                                                    { value: 5, label: 'June' },
+                                                    { value: 6, label: 'July' },
+                                                    { value: 7, label: 'August' },
+                                                    { value: 8, label: 'September' },
+                                                    { value: 9, label: 'October' },
+                                                    { value: 10, label: 'November' },
+                                                    { value: 11, label: 'December' },
+                                                ].map((monthOption) => {
+                                                    const currentYear = dayjs().year();
+                                                    const currentMonth = dayjs().month();
+                                                    const isCurrentYearSelected = year ? dayjs(year).year() === currentYear : false;
+                                                    const isMonthDisabled = isCurrentYearSelected && monthOption.value > currentMonth;
 
-                                                return (
-                                                    <MenuItem
-                                                        key={monthOption.value}
-                                                        value={monthOption.value}
-                                                        disabled={isMonthDisabled}
-                                                    >
-                                                        {monthOption.label}
-                                                    </MenuItem>
-                                                );
-                                            })}
-                                        </TextField>
+                                                    return (
+                                                        <MenuItem
+                                                            key={monthOption.value}
+                                                            value={monthOption.value}
+                                                            disabled={isMonthDisabled}
+                                                        >
+                                                            {monthOption.label}
+                                                        </MenuItem>
+                                                    );
+                                                })}
+                                            </TextField>
+                                        </FormControl>
+                                    </LocalizationProvider>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                        <DatePicker
+                                            label="Year"
+                                            value={year}
+                                            views={['year']}
+                                            maxDate={dayjs()}
+                                            onChange={(newValue) => {
+                                                setYear(newValue);
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField {...params} />
+                                            )}
+                                            slotProps={{
+                                                textField: {
+                                                    readOnly: true,
+                                                }
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                            </Grid>
+                            <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
+                                <Grid item xs={6}>
+                                    <FormControl sx={{ width: "100%" }}>
+                                        <InputLabel id="branch-select-label"> Branch </InputLabel>
+                                        <Select
+                                            labelId="branch-select-label"
+                                            id="branch-select"
+                                            value={selectedBranch}
+                                            label="Branch"
+                                            onChange={(event) => setSelectedBranch(event.target.value)}
+                                        >
+                                            <MenuItem value="0"> All </MenuItem>
+                                            {branches.map((branch, index) => (
+                                                <MenuItem
+                                                    key={index}
+                                                    value={branch.id}
+                                                >
+                                                    {`${branch.name} (${branch.acronym})`}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
                                     </FormControl>
-                                </LocalizationProvider>
-                            </Grid>
-                            <Grid item xs={2}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                    <DatePicker
-                                        label="Year"
-                                        value={year}
-                                        views={['year']}
-                                        maxDate={dayjs()}
-                                        onChange={(newValue) => {
-                                            setYear(newValue);
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
-                                        slotProps={{
-                                            textField: {
-                                                readOnly: true,
-                                            }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            <Grid item xs={2}>
-                                <FormControl sx={{ width: "100%" }}>
-                                    <InputLabel id="branch-select-label"> Branch </InputLabel>
-                                    <Select
-                                        labelId="branch-select-label"
-                                        id="branch-select"
-                                        value={selectedBranch}
-                                        label="Branch"
-                                        onChange={(event) => setSelectedBranch(event.target.value)}
-                                    >
-                                        <MenuItem value="0"> All </MenuItem>
-                                        {branches.map((branch, index) => (
-                                            <MenuItem
-                                                key={index}
-                                                value={branch.id}
-                                            >
-                                                {`${branch.name} (${branch.acronym})`}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={2}>
-                                <FormControl sx={{ width: "100%" }}>
-                                    <InputLabel id="department-select-label"> Department </InputLabel>
-                                    <Select
-                                        labelId="department-select-label"
-                                        id="department-select"
-                                        value={selectedDepartment}
-                                        label="Department"
-                                        onChange={(event) => setSelectedDepartment(event.target.value)}
-                                    >
-                                        <MenuItem value="0"> All </MenuItem>
-                                        {departments.map((department, index) => (
-                                            <MenuItem
-                                                key={index}
-                                                value={department.id}
-                                            >
-                                                {`${department.name} (${department.acronym})`}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <FormControl sx={{ width: "100%" }}>
+                                        <InputLabel id="department-select-label"> Department </InputLabel>
+                                        <Select
+                                            labelId="department-select-label"
+                                            id="department-select"
+                                            value={selectedDepartment}
+                                            label="Department"
+                                            onChange={(event) => setSelectedDepartment(event.target.value)}
+                                        >
+                                            <MenuItem value="0"> All </MenuItem>
+                                            {departments.map((department, index) => (
+                                                <MenuItem
+                                                    key={index}
+                                                    value={department.id}
+                                                >
+                                                    {`${department.name} (${department.acronym})`}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                             </Grid>
                         </Grid>
                         {/* Table */}
