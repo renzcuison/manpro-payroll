@@ -235,7 +235,8 @@ class AdminDashboardController extends Controller
                         $workStart = $logs->first()->workHour->first_time_in;
                         $expectedStart = Carbon::parse($workStart);
 
-                        if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt(Carbon::parse($workStart))) {
+                        $lateThreshold = $expectedStart->copy()->addMinute();
+                        if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt($lateThreshold)) {
                             $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
                             return [
                                 'profile_pic' => $user->profile_pic ?? null,
