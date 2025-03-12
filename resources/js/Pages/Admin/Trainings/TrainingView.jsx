@@ -60,7 +60,7 @@ import ContentAdd from "./Modals/ContentAdd";
 
 import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
-import XlsImage from '../../../../images/FileTypeIcons/Excel_file_icon.png';
+import PPTImage from '../../../../images/FileTypeIcons/Powerpoint_file_icon.png';
 
 const TrainingView = () => {
     const { code } = useParams();
@@ -187,9 +187,11 @@ const TrainingView = () => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-            case "Document":
-            case "PowerPoint":
                 return `${location.origin}/storage/${source}`;
+            case "Document":
+                return DocImage;
+            case "PowerPoint":
+                return PPTImage;
             case "Video":
             case "Form":
                 return "../../../images/ManProTab.png";
@@ -424,23 +426,29 @@ const TrainingView = () => {
                                                 <Grid item xs={3} key={cont.id}>
                                                     <Card sx={{ boxShadow: 3 }}>
                                                         <CardMedia
-                                                            sx={{ height: '180px' }}
+                                                            sx={{ height: '180px', backgroundColor: 'transparent' }}
                                                             image={renderImage(cont.content.source, cont.content.type || 'Form')}
                                                             title={cont.title || 'Content Item'}
                                                             alt={cont.title || 'Content Item'}
                                                         />
-                                                        <CardContent>
-                                                            {cont.content.type ? (
-                                                                <>
-                                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
-                                                                    {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
-                                                                    {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
-                                                                </>
-                                                            ) : (
-                                                                <Quiz sx={{ color: 'text.secondary' }} />
-                                                            )}
-                                                            <Typography>{`${cont.order} - ${cont.title}`}</Typography>
+                                                        <CardContent sx={{ pb: "5px" }}>
+                                                            <Typography>
+                                                                {cont.title || 'Content Item'}
+                                                            </Typography>
                                                         </CardContent>
+                                                        <CardActions sx={{ ml: "12px" }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
+                                                                {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
+                                                                {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
+                                                                {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
+                                                                <Box sx={{ ml: 1 }}>
+                                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                        {cont.content.type ? cont.content.type : "Form"}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+                                                        </CardActions>
                                                     </Card>
                                                 </Grid>
                                             ))}
