@@ -31,7 +31,8 @@ import {
     ImageList,
     ImageListItem,
     ImageListItemBar,
-    Tooltip
+    Tooltip,
+    CardActionArea
 } from "@mui/material";
 import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz } from "@mui/icons-material";
 import moment from "moment";
@@ -284,7 +285,7 @@ const TrainingView = () => {
             text: "Details and Content can no longer be edited",
             icon: "warning",
             showConfirmButton: true,
-            confirmButtonText: "Acticate",
+            confirmButtonText: "Activate",
             confirmButtonColor: "#177604",
             showCancelButton: true,
             cancelButtonText: "No",
@@ -563,44 +564,45 @@ const TrainingView = () => {
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
                                                 <Grid item xs={3} key={cont.id}>
-                                                    <Card sx={{ boxShadow: 3 }}>
-                                                        <CardMedia
-                                                            sx={{ height: '180px', backgroundColor: 'transparent' }}
-                                                            image={renderImage(cont.content.source, cont.content.type || 'Form')}
-                                                            title={cont.title || 'Content Item'}
-                                                            alt={cont.title || 'Content Item'}
-                                                        />
-                                                        <CardContent sx={{ pb: "5px" }}>
-                                                            <Stack direction="row" alignItems="center" spacing={1}>
-                                                                <Box sx={{
-                                                                    display: 'inline-flex',
-                                                                    backgroundColor: "#177604",
-                                                                    padding: '2px 6px',
-                                                                    borderRadius: '4px'
-                                                                }}>
-                                                                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                                                        {cont.order}
+                                                    <CardActionArea title={cont.title || 'Content Item'}>
+                                                        <Card sx={{ boxShadow: 3 }}>
+                                                            <CardMedia
+                                                                sx={{ height: '180px', backgroundColor: 'transparent' }}
+                                                                image={renderImage(cont.content.source, cont.content.type || 'Form')}
+                                                                alt={cont.title || 'Content Item'}
+                                                            />
+                                                            <CardContent sx={{ pb: "5px" }}>
+                                                                <Stack direction="row" alignItems="center" spacing={1}>
+                                                                    <Box sx={{
+                                                                        display: 'inline-flex',
+                                                                        backgroundColor: "#177604",
+                                                                        padding: '2px 6px',
+                                                                        borderRadius: '4px'
+                                                                    }}>
+                                                                        <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                                                                            {cont.order}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                    <Typography variant="body1" noWrap>
+                                                                        {cont.title || 'Content Item'}
                                                                     </Typography>
+                                                                </Stack>
+                                                            </CardContent>
+                                                            <CardActions sx={{ ml: "8px" }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
+                                                                    {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
+                                                                    {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
+                                                                    {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
+                                                                    <Box sx={{ ml: 1 }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                            {cont.content.type ? cont.content.type : "Form"}
+                                                                        </Typography>
+                                                                    </Box>
                                                                 </Box>
-                                                                <Typography variant="body1" noWrap>
-                                                                    {cont.title || 'Content Item'}
-                                                                </Typography>
-                                                            </Stack>
-                                                        </CardContent>
-                                                        <CardActions sx={{ ml: "8px" }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                                {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
-                                                                {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
-                                                                {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
-                                                                {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
-                                                                <Box sx={{ ml: 1 }}>
-                                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                                        {cont.content.type ? cont.content.type : "Form"}
-                                                                    </Typography>
-                                                                </Box>
-                                                            </Box>
-                                                        </CardActions>
-                                                    </Card>
+                                                            </CardActions>
+                                                        </Card>
+                                                    </CardActionArea>
                                                 </Grid>
                                             ))}
                                         </Grid>
