@@ -21,8 +21,9 @@ import {
     Stack,
     Radio,
     Divider,
+    CardMedia
 } from "@mui/material";
-import { Cancel, DragIndicator } from "@mui/icons-material";
+import { Cancel, DragIndicator, OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -44,6 +45,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
     // Form Fields
     const [content, setContent] = useState([]);
     const [inOrder, setInOrder] = useState(Boolean(trainingInfo?.sequential));
+    const [initialContent, setInitialContent] = useState([]);
     const [newOrder, setNewOrder] = useState([]);
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
@@ -54,8 +56,10 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                 id: item.id,
                 order: item.order,
                 title: item.title,
+                content: item.content,
             }));
             setContent(contentCopy);
+            setInitialContent(contentCopy);
             const initialOrder = contentCopy.map((item) => ({
                 id: item.id,
                 order: item.order,
@@ -63,10 +67,12 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
             setNewOrder(initialOrder);
         } else if (open) {
             setContent([]);
+            setInitialContent([]);
             setNewOrder([]);
         }
     }, [open]);
 
+    // Drag and Drop Handlers
     const handleDragStart = (e, index) => {
         //console.log("Drag started at index:", index);
         dragItem.current = index;
@@ -130,6 +136,31 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
         dragOverItem.current = null;
     };
 
+    // Reset Order to Default
+    const handleResetToDefault = () => {
+        setContent(initialContent);
+        const resetOrder = initialContent.map((item) => ({
+            id: item.id,
+            order: item.order,
+        }));
+        setNewOrder(resetOrder);
+    };
+
+    // Content Image
+    const renderImage = (source, type) => {
+        switch (type) {
+            case "Image":
+                return `${location.origin}/storage/${source}`;
+            case "Document":
+            case "PowerPoint":
+            case "Video":
+            case "Form":
+                return "../../../../images/ManProTab.png";
+            default:
+                return "../../../../images/ManProTab.png";
+        }
+    };
+
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -177,7 +208,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                         confirmButtonColor: "#177604",
                     }).then((res) => {
                         if (res.isConfirmed) {
-                            close(true);
+                            close(true, inOrder);
                             document.body.setAttribute("aria-hidden", "true");
                         } else {
                             document.body.setAttribute("aria-hidden", "true");
@@ -219,7 +250,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             Content Settings
                         </Typography>
-                        <IconButton onClick={() => close(false)}>
+                        <IconButton onClick={() => close(false, inOrder)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
@@ -249,11 +280,25 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                             <Grid item xs={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item xs={12} display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Box display="flex" sx={{ alignItems: "center" }}>
                                     <Typography>Content Order</Typography>
                                     <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>(Drag and Drop to Reorder)</Typography>
                                 </Box>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        backgroundColor: "#f57c00",
+                                        color: "white",
+                                    }}
+                                    onClick={handleResetToDefault}
+                                    disabled={initialContent.length === 0}
+                                    className="m-1"
+                                >
+                                    <p className="m-0">
+                                        <i className="fa fa-undo mr-2 mt-1"></i> Reset to Default
+                                    </p>
+                                </Button>
                             </Grid>
                             <Grid container item xs={12} spacing={2}>
                                 {content && content.length > 0 && content.every((cont) => cont && cont.id) ? (
@@ -272,24 +317,58 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                                         >
                                             <Box
                                                 display="flex"
+                                                alignItems="center"
+                                                justifyContent="space-between"
                                                 sx={{
                                                     width: "100%",
                                                     border: "1px solid #e0e0e0",
                                                     borderRadius: "4px",
-                                                    padding: "16px 12px",
+                                                    padding: "12px",
                                                     backgroundColor: "#fafafa",
                                                     boxShadow: 1,
                                                     cursor: "grab",
                                                     "&:hover": { backgroundColor: "#f0f0f0" },
+                                                    transition: "background-color 0.2s ease",
                                                 }}
                                             >
-                                                <DragIndicator sx={{ mr: 1, color: "text.secondary" }} />
-                                                <Typography>{`${cont.order} - ${cont.title}`}</Typography>
+                                                {/* Content Details */}
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <DragIndicator sx={{ color: "text.secondary", cursor: "grab" }} />
+                                                    <CardMedia
+                                                        component="img"
+                                                        sx={{
+                                                            width: "80px",
+                                                            height: "60px",
+                                                            objectFit: "contain",
+                                                            borderRadius: "4px",
+                                                            backgroundColor: "transparent",
+                                                        }}
+                                                        image={renderImage(cont.content.source, cont.content.type)}
+                                                        title={cont.title || "Content Item"}
+                                                        alt={cont.title || "Content Item"}
+                                                    />
+                                                    <Stack spacing={0.5} sx={{ ml: 1 }}>
+                                                        <Typography variant="body1" fontWeight="medium">
+                                                            {`${cont.order} - ${cont.title}`}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {cont.content.type || "Form"}
+                                                        </Typography>
+                                                    </Stack>
+                                                </Box>
+
+                                                {/* Content Icon */}
+                                                <Box>
+                                                    {cont.content.type === "Video" && <OndemandVideo sx={{ color: "text.secondary" }} />}
+                                                    {cont.content.type === "Image" && <Image sx={{ color: "text.secondary" }} />}
+                                                    {cont.content.type === "Document" && <Description sx={{ color: "text.secondary" }} />}
+                                                    {!cont.content.type && <Quiz sx={{ color: "text.secondary" }} />}
+                                                </Box>
                                             </Box>
                                         </Grid>
                                     ))
                                 ) : (
-                                    <Typography>No content available to reorder.</Typography>
+                                    <Typography sx={{ color: "text.secondary" }}>No content available</Typography>
                                 )}
                             </Grid>
                             {/* Submit Button */}

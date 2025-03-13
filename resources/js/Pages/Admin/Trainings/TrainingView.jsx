@@ -74,9 +74,11 @@ const TrainingView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [training, setTraining] = useState([]);
     const [content, setContent] = useState([]);
+    const [inOrder, setInOrder] = useState(null);
 
     const [imageLoading, setImageLoading] = useState(true);
     const [imagePath, setImagePath] = useState("");
+
 
     useEffect(() => {
         getTrainingDetails();
@@ -88,6 +90,7 @@ const TrainingView = () => {
         axiosInstance.get(`/trainings/getTrainingDetails/${code}`, { headers })
             .then((response) => {
                 setTraining(response.data.training);
+                setInOrder(Boolean(response.data.training.sequential));
                 if (response.data.training.cover) {
                     const byteCharacters = window.atob(response.data.training.cover);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -265,55 +268,12 @@ const TrainingView = () => {
     const handleOpenContentSettingsModal = () => {
         setOpenContentSettingsModal(true);
     }
-    const handleCloseContentSettingsModal = (reload) => {
+    const handleCloseContentSettingsModal = (reload, order) => {
         setOpenContentSettingsModal(false);
         if (reload) {
+            setInOrder(order);
             getTrainingContent();
         }
-    }
-
-    // Sequential Content Toggle
-    const handleToggleSequential = () => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: `${training.sequential ? "Disable" : "Enable"} Sequence Lock?`,
-            text: `Contents will ${training.sequential ? "be able to be done in any" : "have to be done in"} order.`,
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: training.sequential ? "Disable" : "Enable",
-            confirmButtonColor: "#E9AE20",
-            showCancelButton: true,
-            cancelButtonText: "Cancel",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                const data = {
-                    code: code,
-                }
-                axiosInstance
-                    .post(`trainings/toggleSequence`, data, {
-                        headers
-                    })
-                    .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Sequence Lock ${training.sequential ? "Disabled" : "Enabled"}`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        }).then((res) => {
-                            if (res.isConfirmed) {
-                                getTrainingDetails();
-                            }
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error toggling sequence lock:", error);
-                    });
-            }
-        });
     }
 
     return (
@@ -544,21 +504,23 @@ const TrainingView = () => {
                                                     </p>
                                                 </Button>
                                             </Box>
-                                            <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
-                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                    {`Contents ${training.sequential ? 'have to be completed in order.' : 'can be completed in any order.'}`}
-                                                </Typography>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={handleOpenContentSettingsModal}
-                                                    sx={{ ml: 1 }}
-                                                >
-                                                    <p className="m-0">
-                                                        Settings
-                                                    </p>
-                                                </Button>
-                                            </Box>
+                                            {content.length > 0 && (
+                                                <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                        {inOrder == null ? "-" : `Contents ${inOrder ? 'have to be completed in order.' : 'can be completed in any order.'}`}
+                                                    </Typography>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleOpenContentSettingsModal}
+                                                        sx={{ ml: 1 }}
+                                                    >
+                                                        <p className="m-0">
+                                                            Manage
+                                                        </p>
+                                                    </Button>
+                                                </Box>
+                                            )}
                                         </Box>
                                     </Grid>
                                     {/* Content List */}
