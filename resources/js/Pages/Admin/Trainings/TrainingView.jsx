@@ -64,6 +64,7 @@ import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
 import PPTImage from '../../../../images/FileTypeIcons/Powerpoint_file_icon.png';
 import ContentSettings from "./Modals/ContentSettings";
+import ContentView from "./Modals/ContentView";
 
 const TrainingView = () => {
     const { code } = useParams();
@@ -262,6 +263,21 @@ const TrainingView = () => {
             getTrainingContent();
         }
     };
+
+    // View Content Modal
+    const [openContentViewModal, setOpenContentViewModal] = useState(false);
+    const [loadContent, setLoadContent] = useState(null)
+    const handleOpenContentViewModal = (cont) => {
+        setLoadContent(cont);
+        setOpenContentViewModal(true);
+    }
+    const handleCloseContentViewModal = (reload) => {
+        setLoadContent(null);
+        setOpenContentViewModal(false);
+        if (reload) {
+            getTrainingContent();
+        }
+    }
 
     // Content Options Modal
     const [openContentSettingsModal, setOpenContentSettingsModal] = useState(false);
@@ -564,7 +580,7 @@ const TrainingView = () => {
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
                                                 <Grid item xs={3} key={cont.id}>
-                                                    <CardActionArea title={cont.title || 'Content Item'}>
+                                                    <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleOpenContentViewModal(cont)}>
                                                         <Card sx={{ boxShadow: 3 }}>
                                                             <CardMedia
                                                                 sx={{ height: '180px', backgroundColor: 'transparent' }}
@@ -626,6 +642,13 @@ const TrainingView = () => {
                     open={openContentAddModal}
                     close={handleCloseContentAddModal}
                     trainingCode={training.unique_code}
+                />
+            )}
+            {openContentViewModal && (
+                <ContentView
+                    open={openContentViewModal}
+                    close={handleCloseContentViewModal}
+                    content={loadContent}
                 />
             )}
             {openContentSettingsModal && (
