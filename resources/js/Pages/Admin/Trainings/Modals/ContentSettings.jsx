@@ -297,7 +297,52 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                     <Switch
                                         checked={inOrder}
                                         onChange={() => setInOrder(!inOrder)}
-                                        inputProps={{ "aria-label": "controlled" }}
+                                        inputProps={{ "aria-label": "Require content to be completed in order" }}
+                                        sx={{
+                                            "& .MuiSwitch-switchBase": {
+                                                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                "&.Mui-checked": {
+                                                    color: "#fff",
+                                                    "& + .MuiSwitch-track": {
+                                                        backgroundColor: "#177604",
+                                                        opacity: 1,
+                                                        border: 0,
+                                                        //boxShadow: "0 0 10px rgba(0, 255, 13, 0.5)",
+                                                    },
+                                                    "& .MuiSwitch-thumb": {
+                                                        animation: "$pulse 0.5s ease-out",
+                                                        border: "2px solid #177604",
+                                                    },
+                                                },
+                                                "&:hover": {
+                                                    "& .MuiSwitch-thumb": {
+                                                        boxShadow: "0 0 12px rgba(0, 255, 13, 0.5)",
+                                                    },
+                                                },
+                                                "&.Mui-focusVisible .MuiSwitch-thumb": {
+                                                    color: "#42a5f5",
+                                                    border: "4px solid #fff",
+                                                },
+                                                "&.Mui-disabled .MuiSwitch-thumb": {
+                                                    border: "4px solid #fff",
+                                                },
+                                            },
+                                            "& .MuiSwitch-thumb": {
+                                                boxSizing: "border-box",
+                                                border: "2px solid #a0a0a0",
+                                                transition: "border-color 0.3s ease",
+                                            },
+                                            "& .MuiSwitch-track": {
+                                                backgroundColor: inOrder ? "#177604" : "#a0a0a0",
+                                                opacity: 1,
+                                                transition: "background-color 0.3s ease, box-shadow 0.3s ease",
+                                            },
+                                            "& @keyframes pulse": {
+                                                "0%": { transform: "scale(1)" },
+                                                "50%": { transform: "scale(1.2)" },
+                                                "100%": { transform: "scale(1)" },
+                                            },
+                                        }}
                                     />
                                 </Box>
                             </Grid>

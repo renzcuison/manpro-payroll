@@ -203,7 +203,6 @@ const TrainingView = () => {
     };
 
     // Training Visibility
-
     const renderVisibility = () => {
 
         let color, label;
@@ -276,6 +275,38 @@ const TrainingView = () => {
         }
     }
 
+    // ---------------- Application Cancelling
+    const handleActivateTraining = () => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Activate Training",
+            text: "Details and Content can no longer be edited",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Acticate",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Success!",
+                    text: `Training successfully activated (not actually yet)`,
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        getTrainingDetails();
+                    }
+                });
+            }
+        });
+    };
+
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -336,7 +367,7 @@ const TrainingView = () => {
                                                         <MenuItem
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
-                                                                console.log("Activating Training");
+                                                                handleActivateTraining();
                                                                 handleMenuClose();
                                                             }}>
                                                             Activate
