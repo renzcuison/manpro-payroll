@@ -406,32 +406,40 @@ class TrainingsController extends Controller
         return $result;
     }
 
-    public function toggleSequence(Request $request)
+    public function saveContentSettings(Request $request)
     {
-        //Log::info("TrainingsController::toggleSequence");
-        //Log::info($request);
+        Log::info("TrainingsController::saveContentSettings");
+        Log::info($request);
 
+        $order = $request->input('new_order');
         $user = Auth::user();
 
         if ($this->checkUser()) {
-
-            $training = TrainingsModel::where('unique_code', $request->input('code'))->firstOrFail();
-
             try {
                 DB::beginTransaction();
 
-                $training->sequential = !$training->sequential;
-                $training->save();
+                $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
+                    ->with('contents')
+                    ->firstOrFail();
+
+                $orderMap = [];
+                foreach ($order as $ord) {
+                    $orderMap[$ord['id']] = $ord['order'];
+                }
+
+                $training->contents()->update([
+                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
+                        return "WHEN $id THEN " . $orderMap[$id];
+                    }, array_keys($orderMap))) . " END")
+                ]);
 
                 DB::commit();
 
-                return response()->json(['status' => 200, 'message' => 'Sequence lock toggled successfully']);
+                return response()->json(['status' => 200, 'message' => 'Content order updated successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                Log::error("Error updating: " . $e->getMessage());
-
-                throw $e;
+                Log::error("Error updating content order: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error updating content order'], 500);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);

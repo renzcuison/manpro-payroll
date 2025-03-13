@@ -62,6 +62,7 @@ import ContentAdd from "./Modals/ContentAdd";
 import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
 import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
 import PPTImage from '../../../../images/FileTypeIcons/Powerpoint_file_icon.png';
+import ContentSettings from "./Modals/ContentSettings";
 
 const TrainingView = () => {
     const { code } = useParams();
@@ -235,16 +236,6 @@ const TrainingView = () => {
         setAnchorEl(null);
     };
 
-    // Content Menu
-    const [contenEl, setContentEl] = useState(null);
-    const contentOpen = Boolean(contenEl);
-    const handleContentMenuClick = (event) => {
-        setContentEl(event.currentTarget);
-    };
-    const handleContentMenuClose = () => {
-        setContentEl(null);
-    }
-
     // Edit Training Modal
     const [openEditTrainingModal, setOpenEditTrainingModal] = useState(false);
     const handleOpenEditTrainingModal = () => {
@@ -257,7 +248,7 @@ const TrainingView = () => {
         }
     };
 
-    // Edit Training Modal
+    // Add Content Modal
     const [openContentAddModal, setOpenContentAddModal] = useState(false);
     const handleOpenContentAddModal = () => {
         setOpenContentAddModal(true);
@@ -268,6 +259,18 @@ const TrainingView = () => {
             getTrainingContent();
         }
     };
+
+    // Content Options Modal
+    const [openContentSettingsModal, setOpenContentSettingsModal] = useState(false);
+    const handleOpenContentSettingsModal = () => {
+        setOpenContentSettingsModal(true);
+    }
+    const handleCloseContentSettingsModal = (reload) => {
+        setOpenContentSettingsModal(false);
+        if (reload) {
+            getTrainingContent();
+        }
+    }
 
     // Sequential Content Toggle
     const handleToggleSequential = () => {
@@ -533,7 +536,7 @@ const TrainingView = () => {
                                                 <Button
                                                     variant="contained"
                                                     color="primary"
-                                                    onClick={() => handleOpenContentAddModal()}
+                                                    onClick={handleOpenContentAddModal}
                                                     sx={{ ml: 3 }}
                                                 >
                                                     <p className="m-0">
@@ -548,11 +551,11 @@ const TrainingView = () => {
                                                 <Button
                                                     variant="contained"
                                                     color="primary"
-                                                    onClick={() => console.log("Opening Options")}
+                                                    onClick={handleOpenContentSettingsModal}
                                                     sx={{ ml: 1 }}
                                                 >
                                                     <p className="m-0">
-                                                        Options
+                                                        Settings
                                                     </p>
                                                 </Button>
                                             </Box>
@@ -624,6 +627,14 @@ const TrainingView = () => {
                     open={openContentAddModal}
                     close={handleCloseContentAddModal}
                     trainingCode={training.unique_code}
+                />
+            )}
+            {openContentSettingsModal && (
+                <ContentSettings
+                    open={openContentSettingsModal}
+                    close={handleCloseContentSettingsModal}
+                    trainingInfo={training}
+                    contentInfo={content}
                 />
             )}
         </Layout>
