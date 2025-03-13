@@ -598,7 +598,6 @@ const ApplicationForm = ({ open, close }) => {
                                     <DateTimePicker
                                         label="From"
                                         value={fromDate}
-                                        minDate={dayjs()}
                                         views={['year', 'month', 'day', 'hours']}
                                         onChange={(newValue) => validateDates(newValue, "From")}
                                         shouldDisableDate={(day) => {
