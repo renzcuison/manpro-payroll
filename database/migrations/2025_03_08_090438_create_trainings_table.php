@@ -25,7 +25,7 @@ class CreateTrainingsTable extends Migration
             $table->unsignedInteger('duration');
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('created_by');
-            $table->boolean('sequential')->default(false);
+            $table->boolean('sequential')->default(true);
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients');

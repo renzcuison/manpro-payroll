@@ -112,7 +112,6 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
-                console.log(response.data.content);
                 setContent(response.data.content || []);
             })
             .catch((error) => {
@@ -211,9 +210,12 @@ const TrainingView = () => {
         } else if (dayjs().isBefore(training.end_date)) {
             label = 'OPEN';
             color = '#177604';
-        } else {
+        } else if (dayjs().isAfter(training.end_date)) {
             label = 'CLOSED';
             color = '#f57c00';
+        } else {
+            label = "-";
+            color = "black";
         }
 
         return <Grid item xs={7} align="left">
@@ -224,7 +226,7 @@ const TrainingView = () => {
     }
 
     // Training Menu
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const menuOpen = Boolean(anchorEl);
     const handleMenuClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -232,6 +234,16 @@ const TrainingView = () => {
     const handleMenuClose = () => {
         setAnchorEl(null);
     };
+
+    // Content Menu
+    const [contenEl, setContentEl] = useState(null);
+    const contentOpen = Boolean(contenEl);
+    const handleContentMenuClick = (event) => {
+        setContentEl(event.currentTarget);
+    };
+    const handleContentMenuClose = () => {
+        setContentEl(null);
+    }
 
     // Edit Training Modal
     const [openEditTrainingModal, setOpenEditTrainingModal] = useState(false);
@@ -307,7 +319,7 @@ const TrainingView = () => {
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training Information
+                            Training
                         </Typography>
                     </Box>
 
@@ -326,7 +338,7 @@ const TrainingView = () => {
                                             <Grid item xs={12}>
                                                 <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography variant="h5">
-                                                        {training.title}
+                                                        {training.title || "-"}
                                                     </Typography>
                                                     {/* Options */}
                                                     <IconButton
@@ -348,7 +360,7 @@ const TrainingView = () => {
                                                             'aria-labelledby': 'basic-button',
                                                         }}
                                                     >
-                                                        {/* Acknowledgement */}
+                                                        {/* Edit Training */}
                                                         <MenuItem
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
@@ -356,6 +368,15 @@ const TrainingView = () => {
                                                                 handleMenuClose();
                                                             }}>
                                                             Edit
+                                                        </MenuItem>
+                                                        {/* Activate Training */}
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                console.log("Activating Training");
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Activate
                                                         </MenuItem>
                                                     </Menu>
                                                 </Stack>
@@ -380,7 +401,7 @@ const TrainingView = () => {
                                                                     ? "#f44336"
                                                                     : "#000000"
                                                 }}>
-                                                    {training.status}
+                                                    {String(training.status || "-").toUpperCase()}
                                                 </Typography>
                                             </Grid>
                                             {/* Visibility */}
@@ -397,7 +418,7 @@ const TrainingView = () => {
                                             </Grid>
                                             <Grid item xs={7} align="left">
                                                 <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.created_at).format("MMM D, YYYY    h:mm A")}
+                                                    {dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
                                                 </Typography>
                                             </Grid>
                                             {/* Author Information */}
@@ -407,10 +428,10 @@ const TrainingView = () => {
                                             <Grid item xs={7} align="left">
                                                 <Stack>
                                                     <Typography sx={{ fontWeight: "bold", }}>
-                                                        {training.author_name}
+                                                        {training.author_name || "-"}
                                                     </Typography>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {training.author_title}
+                                                        {training.author_title || "-"}
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
@@ -455,16 +476,22 @@ const TrainingView = () => {
                                             borderRadius: "4px",
                                             border: '2px solid #e0e0e0',
                                         }}>
-                                            <img
-                                                src={imagePath}
-                                                alt={`${training.title} thumbnail`}
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    borderRadius: "4px",
-                                                }}
-                                            />
+                                            {imageLoading ?
+                                                <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                                    <CircularProgress />
+                                                </Box>
+                                                :
+                                                <img
+                                                    src={imagePath}
+                                                    alt={`${training.title} thumbnail`}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover',
+                                                        borderRadius: "4px",
+                                                    }}
+                                                />
+                                            }
                                         </Box>
                                     </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
@@ -515,25 +542,17 @@ const TrainingView = () => {
                                                 </Button>
                                             </Box>
                                             <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
-                                                <Chip
-                                                    label={training.sequential ? "SEQUENTIAL" : "NOT SEQUENTIAL"}
-                                                    sx={{
-                                                        backgroundColor: training.sequential ? "#177604" : "#f57c00",
-                                                        color: "white",
-                                                        fontWeight: "bold",
-                                                        '& .MuiChip-label': { px: 1.5, py: 0.5 },
-                                                    }}
-                                                    variant="filled"
-                                                />
+                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                    {`Contents ${training.sequential ? 'have to be completed in order.' : 'can be completed in any order.'}`}
+                                                </Typography>
                                                 <Button
                                                     variant="contained"
                                                     color="primary"
-                                                    onClick={() => handleToggleSequential()}
-                                                    startIcon={<SwapHoriz />}
+                                                    onClick={() => console.log("Opening Options")}
                                                     sx={{ ml: 1 }}
                                                 >
                                                     <p className="m-0">
-                                                        Toggle
+                                                        Options
                                                     </p>
                                                 </Button>
                                             </Box>

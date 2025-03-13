@@ -356,16 +356,23 @@ const AnnouncementView = () => {
                                             borderRadius: "4px",
                                             border: '2px solid #e0e0e0',
                                         }}>
-                                            <img
-                                                src={imagePath}
-                                                alt={`${announcement.title} thumbnail`}
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    borderRadius: "4px",
-                                                }}
-                                            />
+                                            {imageLoading ?
+                                                <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                                    <CircularProgress />
+                                                </Box>
+                                                :
+                                                <img
+                                                    src={imagePath}
+                                                    alt={`${announcement.title} thumbnail`}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover',
+                                                        borderRadius: "4px",
+                                                    }}
+                                                />
+                                            }
+
                                         </Box>
                                     </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
