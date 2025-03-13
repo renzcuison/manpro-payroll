@@ -210,7 +210,7 @@ const TrainingView = () => {
 
         if (dayjs().isBefore(training.start_date)) {
             label = 'NOT YET OPENED';
-            color = '#e9ae20';
+            color = '#42a5f5';
         } else if (dayjs().isBefore(training.end_date)) {
             label = 'OPEN';
             color = '#177604';
@@ -295,7 +295,7 @@ const TrainingView = () => {
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
                                     {/* Core Information */}
-                                    <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                    <Grid item container xs={8} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                         <Grid item container spacing={1} sx={{ mb: 1 }}>
                                             {/* Title and Action Menu */}
                                             <Grid item xs={12}>
@@ -368,10 +368,14 @@ const TrainingView = () => {
                                                 </Typography>
                                             </Grid>
                                             {/* Visibility */}
-                                            <Grid item xs={5} align="left">
-                                                Visibility
-                                            </Grid>
-                                            {renderVisibility()}
+                                            {training.status !== "Pending" && training.status !== "Cancelled" && (
+                                                <>
+                                                    <Grid item xs={5} align="left">
+                                                        Visibility
+                                                    </Grid>
+                                                    {renderVisibility()}
+                                                </>
+                                            )}
                                             <Grid item xs={12} sx={{ my: 0 }} >
                                                 <Divider />
                                             </Grid>
@@ -431,7 +435,7 @@ const TrainingView = () => {
                                         </Grid>
                                     </Grid>
                                     {/* Thumbnail */}
-                                    <Grid item xs={5}>
+                                    <Grid item xs={4}>
                                         <Box sx={{
                                             position: 'relative',
                                             width: '100%',
@@ -595,8 +599,9 @@ const TrainingView = () => {
                 <ContentSettings
                     open={openContentSettingsModal}
                     close={handleCloseContentSettingsModal}
-                    trainingInfo={training}
+                    trainingCode={training.unique_code}
                     contentInfo={content}
+                    contentOrder={inOrder}
                 />
             )}
         </Layout>

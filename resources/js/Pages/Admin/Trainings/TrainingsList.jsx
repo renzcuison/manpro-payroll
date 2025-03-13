@@ -189,15 +189,29 @@ const TrainingsList = () => {
     }
 
     // ---------------- Status-Based Card Content
-    const getTrainingStatus = (startDate, endDate, duration) => {
+    const getTrainingStatus = (startDate, endDate, duration, status) => {
         const now = dayjs();
         const start = dayjs(startDate);
         const end = dayjs(endDate);
 
-        if (now.isBefore(start)) {
+        if (status == "Pending") {
+            return {
+                label: 'PENDING',
+                color: '#e9ae20',
+                fields: [
+                    { label: 'Duration', value: formatTime(duration) },
+                ],
+            };
+        } else if (status == "Cancelled") {
+            return {
+                label: 'CANCELLED',
+                color: '#f44336',
+                fields: [],
+            };
+        } else if (now.isBefore(start)) {
             return {
                 label: 'NOT YET OPENED',
-                color: '#e9ae20',
+                color: '#42a5f5',
                 fields: [
                     { label: 'Opens', value: start.format('MMM DD YYYY, hh:mm A') },
                     { label: 'Duration', value: formatTime(duration) },
@@ -307,7 +321,7 @@ const TrainingsList = () => {
                                                                 </Typography>
                                                                 {/* Status and Details */}
                                                                 {(() => {
-                                                                    const { label, color, fields } = getTrainingStatus(training.start_date, training.end_date, training.duration);
+                                                                    const { label, color, fields } = getTrainingStatus(training.start_date, training.end_date, training.duration, training.status);
                                                                     return (
                                                                         <>
                                                                             <Typography variant="body1" sx={{ color, fontWeight: 'bold' }}>

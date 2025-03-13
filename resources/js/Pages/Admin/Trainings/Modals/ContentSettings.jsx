@@ -37,16 +37,17 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
+const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    // Form Fields
     const [content, setContent] = useState([]);
-    const [inOrder, setInOrder] = useState(Boolean(trainingInfo?.sequential));
+    const [inOrder, setInOrder] = useState(Boolean(contentOrder));
     const [initialContent, setInitialContent] = useState([]);
     const [newOrder, setNewOrder] = useState([]);
+    const [dropPosition, setDropPosition] = useState(null);
+
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
 
@@ -83,8 +84,8 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
 
     const handleDragEnter = (e, index) => {
         e.preventDefault();
-        //console.log("Dragging over index:", index);
         dragOverItem.current = index;
+        setDropPosition(index);
     };
 
     const handleDragOver = (e) => {
@@ -121,6 +122,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
             order: item.order,
         }));
         setNewOrder(updatedOrder);
+        setDropPosition(null);
 
         // console.log("Content after drop:", updatedItems);
         // console.log("New order:", updatedOrder);
@@ -132,6 +134,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
 
     const handleDragEnd = (e) => {
         e.target.style.opacity = "1";
+        setDropPosition(null);
         dragItem.current = null;
         dragOverItem.current = null;
     };
@@ -159,6 +162,27 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
             default:
                 return "../../../../images/ManProTab.png";
         }
+    };
+
+    const confirmExit = (event) => {
+        event.preventDefault();
+
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Leave Settings?",
+            text: "Any unsaved changes will be lost!",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Leave",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                close(false, inOrder);
+            }
+        });
     };
 
     const checkInput = (event) => {
@@ -189,7 +213,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
 
         const data = {
             in_order: inOrder,
-            unique_code: trainingInfo.unique_code,
+            unique_code: trainingCode,
             new_order: newOrder
         }
 
@@ -250,7 +274,7 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             Content Settings
                         </Typography>
-                        <IconButton onClick={() => close(false, inOrder)}>
+                        <IconButton onClick={(event) => confirmExit(event)}>
                             <i className="si si-close"></i>
                         </IconButton>
                     </Box>
@@ -300,76 +324,126 @@ const ContentSettings = ({ open, close, trainingInfo, contentInfo }) => {
                                     </p>
                                 </Button>
                             </Grid>
-                            <Grid container item xs={12} spacing={2}>
-                                {content && content.length > 0 && content.every((cont) => cont && cont.id) ? (
-                                    content.map((cont, index) => (
-                                        <Grid
-                                            item
-                                            xs={12}
-                                            key={cont.id}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, index)}
-                                            onDragEnter={(e) => handleDragEnter(e, index)}
-                                            onDragOver={handleDragOver}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={handleDrop}
-                                            onDragEnd={handleDragEnd}
-                                        >
-                                            <Box
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="space-between"
-                                                sx={{
-                                                    width: "100%",
-                                                    border: "1px solid #e0e0e0",
-                                                    borderRadius: "4px",
-                                                    padding: "12px",
-                                                    backgroundColor: "#fafafa",
-                                                    boxShadow: 1,
-                                                    cursor: "grab",
-                                                    "&:hover": { backgroundColor: "#f0f0f0" },
-                                                    transition: "background-color 0.2s ease",
-                                                }}
-                                            >
-                                                {/* Content Details */}
-                                                <Box display="flex" alignItems="center" gap={1}>
-                                                    <DragIndicator sx={{ color: "text.secondary", cursor: "grab" }} />
-                                                    <CardMedia
-                                                        component="img"
+                            <Grid item xs={12}>
+                                <Box
+                                    sx={{
+                                        maxHeight: "450px",
+                                        overflowY: "auto",
+                                        "&::-webkit-scrollbar": {
+                                            width: "8px",
+                                        },
+                                        "&::-webkit-scrollbar-track": {
+                                            background: "#f1f1f1",
+                                        },
+                                        "&::-webkit-scrollbar-thumb": {
+                                            background: "#888",
+                                            borderRadius: "4px",
+                                        },
+                                        "&::-webkit-scrollbar-thumb:hover": {
+                                            background: "#555",
+                                        },
+                                    }}
+                                >
+                                    <Grid container item xs={12} spacing={1}>
+                                        {content && content.length > 0 && content.every((cont) => cont && cont.id) ? (
+                                            content.map((cont, index) => (
+                                                <Grid
+                                                    item
+                                                    xs={12}
+                                                    key={cont.id}
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, index)}
+                                                    onDragEnter={(e) => handleDragEnter(e, index)}
+                                                    onDragOver={handleDragOver}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={handleDrop}
+                                                    onDragEnd={handleDragEnd}
+                                                >
+                                                    {dropPosition !== null && (dropPosition === index && dragItem.current > index) && (
+                                                        <Box
+                                                            sx={{
+                                                                left: 0,
+                                                                width: "100%",
+                                                                height: "2px",
+                                                                backgroundColor: "#42a5f5",
+                                                                boxShadow: "0 0 10px #42a5f5",
+                                                                zIndex: 10,
+                                                                mb: 1,
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <Box
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="space-between"
                                                         sx={{
-                                                            width: "80px",
-                                                            height: "60px",
-                                                            objectFit: "contain",
-                                                            borderRadius: "4px",
-                                                            backgroundColor: "transparent",
+                                                            width: "100%",
+                                                            border: "1px solid #e0e0e0",
+                                                            borderRadius: "8px",
+                                                            padding: "12px",
+                                                            mr: 2,
+                                                            mb: 1,
+                                                            backgroundColor: "#fafafa",
+                                                            boxShadow: 1,
+                                                            cursor: "grab",
+                                                            "&:hover": { backgroundColor: "#f0f0f0" },
+                                                            transition: "background-color 0.2s ease",
                                                         }}
-                                                        image={renderImage(cont.content.source, cont.content.type)}
-                                                        title={cont.title || "Content Item"}
-                                                        alt={cont.title || "Content Item"}
-                                                    />
-                                                    <Stack spacing={0.5} sx={{ ml: 1 }}>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {`${cont.order} - ${cont.title}`}
-                                                        </Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            {cont.content.type || "Form"}
-                                                        </Typography>
-                                                    </Stack>
-                                                </Box>
+                                                    >
+                                                        {/* Content Details */}
+                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                            <DragIndicator sx={{ color: "text.secondary", cursor: "grab" }} />
+                                                            <CardMedia
+                                                                component="img"
+                                                                sx={{
+                                                                    width: "80px",
+                                                                    height: "60px",
+                                                                    objectFit: "contain",
+                                                                    borderRadius: "4px",
+                                                                    backgroundColor: "transparent",
+                                                                }}
+                                                                image={renderImage(cont.content.source, cont.content.type)}
+                                                                title={cont.title || "Content Item"}
+                                                                alt={cont.title || "Content Item"}
+                                                            />
+                                                            <Stack spacing={0.5} sx={{ ml: 1 }}>
+                                                                <Typography variant="body1" fontWeight="medium">
+                                                                    {cont.title}
+                                                                </Typography>
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    {cont.content.type || "Form"}
+                                                                </Typography>
+                                                            </Stack>
+                                                        </Box>
 
-                                                {/* Content Icon */}
-                                                <Box>
-                                                    {cont.content.type === "Video" && <OndemandVideo sx={{ color: "text.secondary" }} />}
-                                                    {cont.content.type === "Image" && <Image sx={{ color: "text.secondary" }} />}
-                                                    {cont.content.type === "Document" && <Description sx={{ color: "text.secondary" }} />}
-                                                    {!cont.content.type && <Quiz sx={{ color: "text.secondary" }} />}
-                                                </Box>
-                                            </Box>
-                                        </Grid>
-                                    ))
-                                ) : (
-                                    <Typography sx={{ color: "text.secondary" }}>No content available</Typography>
-                                )}
+                                                        {/* Content Icon */}
+                                                        <Box>
+                                                            {cont.content.type === "Video" && <OndemandVideo sx={{ color: "text.secondary" }} />}
+                                                            {cont.content.type === "Image" && <Image sx={{ color: "text.secondary" }} />}
+                                                            {cont.content.type === "Document" && <Description sx={{ color: "text.secondary" }} />}
+                                                            {!cont.content.type && <Quiz sx={{ color: "text.secondary" }} />}
+                                                        </Box>
+                                                    </Box>
+                                                    {dropPosition !== null && (dropPosition === index && dragItem.current < index) && (
+                                                        <Box
+                                                            sx={{
+                                                                left: 0,
+                                                                width: "100%",
+                                                                height: "2px",
+                                                                backgroundColor: "#42a5f5",
+                                                                boxShadow: "0 0 10px #42a5f5",
+                                                                zIndex: 10,
+                                                                mb: 1,
+                                                            }}
+                                                        />
+                                                    )}
+                                                </Grid>
+                                            ))
+                                        ) : (
+                                            <Typography sx={{ color: "text.secondary" }}>No content available</Typography>
+                                        )}
+                                    </Grid>
+                                </Box>
                             </Grid>
                             {/* Submit Button */}
                             <Grid
