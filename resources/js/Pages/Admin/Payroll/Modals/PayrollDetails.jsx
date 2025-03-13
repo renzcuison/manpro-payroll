@@ -51,7 +51,9 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
     const [benefits, setBenefits] = useState([]);
     const [summaries, setSummaries] = useState([]);
 
-    const [leaves, setLeaves] = useState([]);
+    const [paidLeaves, setPaidLeaves] = useState([]);
+    const [unpaidLeaves, setUnpaidLeaves] = useState([]);
+
     const [earnings, setEarnings] = useState([]);
     const [deductions, setDeductions] = useState([]);
 
@@ -70,13 +72,13 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
         axiosInstance.get(`/payroll/payrollDetails`, { params: data, headers })
             .then((response) => {
-                console.log(response.data.paid_leaves);
-                console.log(response.data.unpaid_leaves);
                 setPayroll(response.data.payroll);
                 setBenefits(response.data.benefits);
                 setSummaries(response.data.summaries);
 
-                setLeaves(response.data.leaves);
+                setPaidLeaves(response.data.paid_leaves);
+                setUnpaidLeaves(response.data.unpaid_leaves);
+
                 setEarnings(response.data.earnings);
                 setDeductions(response.data.deductions);
 
@@ -145,14 +147,21 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
                                                 </TableRow>
                                             ))}
-                                            {/*
-                                            {leaves.map((leave) => (
-                                                <TableRow key={leave.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{leave.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {leaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(leave.amount) : "Loading..."}</TableCell>
+
+                                            {paidLeaves.map((paidLeave) => (
+                                                <TableRow key={paidLeave.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{paidLeave.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {paidLeaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(paidLeave.amount) : "Loading..."}</TableCell>
                                                 </TableRow>
                                             ))}
-                                            */}
+
+                                            {unpaidLeaves.map((unpaidLeave) => (
+                                                <TableRow key={unpaidLeave.name}>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{unpaidLeave.name}</TableCell>
+                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> -{unpaidLeaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(unpaidLeave.amount) : "Loading..."}</TableCell>
+                                                </TableRow>
+                                            ))}
+
                                             {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
                                                 <TableRow key={deduction.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
@@ -166,10 +175,12 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            <TableRow>
-                                                <TableCell sx={{ border: '1px solid #ccc' }}>Dispute</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {leaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0) : "Loading..."}</TableCell>
-                                            </TableRow>
+
+
+                                            {/* <TableRow> */}
+                                                {/* <TableCell sx={{ border: '1px solid #ccc' }}>Dispute</TableCell> */}
+                                                {/* <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell> */}
+                                            {/* </TableRow> */}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -224,7 +235,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employee Share</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employee Contribution</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
