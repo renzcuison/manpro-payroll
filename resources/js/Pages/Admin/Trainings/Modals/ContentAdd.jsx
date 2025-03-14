@@ -74,6 +74,9 @@ const ContentAdd = ({ open, close, trainingCode }) => {
         event.preventDefault;
         setLink('');
         setFile(null);
+        setLinkError(false)
+        setVideoError(false)
+        setFileError(false)
         setContentType(event.target.value);
     };
 
@@ -123,14 +126,19 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             if (youtubeId) {
                 const youtubeThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
                 const img = new Image();
-                img.src = youtubeThumbnail;
+
+                setIsVideoLoading(true);
                 img.onload = () => {
                     setThumbnailUrl(youtubeThumbnail);
                     setIsVideo(true);
+                    setVideoError(false);
+                    setIsVideoLoading(false);
                 };
                 img.onerror = () => {
                     setThumbnailUrl(null);
                     setIsVideo(false);
+                    setVideoError(true);
+                    setIsVideoLoading(false);
                 };
                 return;
             }
@@ -163,15 +171,14 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             }
         }
     };
-
-    // YouTube ID 
+    // YouTube ID Validation
     const getYouTubeId = (url) => {
         const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
         const match = url.match(regex);
         const id = match ? match[1] : null;
         return id && id.length === 11 ? id : null;
     };
-    // Generate Direct Video URL Thumbnail
+    // Direct URL Thumbnail
     const generateThumbnailFromVideo = (videoUrl) => {
         const video = document.createElement("video");
         const canvas = document.createElement("canvas");
@@ -218,6 +225,15 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "All Required Fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (videoError) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "URL does not link to a video!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
