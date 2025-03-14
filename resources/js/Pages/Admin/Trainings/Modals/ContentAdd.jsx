@@ -21,7 +21,7 @@ import {
     Stack,
     Radio
 } from "@mui/material";
-import { Cancel, VideocamOff } from "@mui/icons-material";
+import { Cancel, FolderOff, VideocamOff } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -73,10 +73,14 @@ const ContentAdd = ({ open, close, trainingCode }) => {
     const handleTypeChange = (event) => {
         event.preventDefault;
         setLink('');
+        setLinkError(false);
+        setVideoError(false);
+        setIsVideo(false);
+        setThumbnailUrl(null);
+
         setFile(null);
-        setLinkError(false)
-        setVideoError(false)
         setFileError(false)
+
         setContentType(event.target.value);
     };
 
@@ -413,7 +417,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                         </Grid>
                                     </Grid>
                                 ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
-                                    <FormControl fullWidth>
+                                    <FormControl fullWidth sx={{ display: "flex" }}>
                                         <TextField
                                             fullWidth
                                             label={`Upload ${contentType}`}
