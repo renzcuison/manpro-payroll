@@ -90,23 +90,14 @@ const AttendanceView = () => {
 
     //--------------- Attendance API
     const getEmployeeAttendance = () => {
-        axiosInstance.get(
-            "/attendance/getEmployeeAttendanceSummary",
-            {
-                headers,
-                params: {
-                    employee: employee.id,
-                    summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
-                    summary_to_date: summaryToDate.format("YYYY-MM-DD"),
-                },
-            }
-        ).then((response) => {
-            setSummaryData(response.data.summary);
-            setIsLoading(false);
-        }).catch((error) => {
-            console.error('Error fetching employee attendance:', error);
-            setIsLoading(false);
-        });
+        axiosInstance.get( "/attendance/getEmployeeAttendanceSummary", { headers, params: { employee: employee.id, summary_from_date: summaryFromDate.format("YYYY-MM-DD"), summary_to_date: summaryToDate.format("YYYY-MM-DD")}})
+            .then((response) => {
+                setSummaryData(response.data.summary);
+                setIsLoading(false);
+            }).catch((error) => {
+                console.error('Error fetching employee attendance:', error);
+                setIsLoading(false);
+            });
     }
 
     // ---------------- Summary Details
@@ -168,11 +159,7 @@ const AttendanceView = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Attendance - {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </Typography>
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenAddAttendance}
-                        >
+                        <Button variant="contained" color="primary" onClick={handleOpenAddAttendance} >
                             <p className="m-0">
                                 <i className="fa fa-plus"></i> Add {" "}
                             </p>
@@ -191,13 +178,7 @@ const AttendanceView = () => {
                                         <FormControl fullWidth>
                                             <InputLabel id="date-range-select-label"> Date Range </InputLabel>
 
-                                            <Select
-                                                labelId="date-range-select-label"
-                                                id="date-range-select"
-                                                value={selectedRange}
-                                                label="Date Range"
-                                                onChange={(event) => setPredefinedDates(event.target.value)}
-                                            >
+                                            <Select labelId="date-range-select-label" id="date-range-select" value={selectedRange} label="Date Range" onChange={(event) => setPredefinedDates(event.target.value)} >
                                                 <MenuItem value="today"> Today </MenuItem>
                                                 <MenuItem value="yesterday"> Yesterday </MenuItem>
                                                 <MenuItem value="last7days"> Last 7 Days </MenuItem>
@@ -244,30 +225,14 @@ const AttendanceView = () => {
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Date
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Time In
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Time Out
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Total Hours
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    OT In
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    OT Out
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Total OT
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "12.5%" }}>
-                                                    Late/Absences
-                                                </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Date </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Time In </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Time Out </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Total Hours </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> OT In </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> OT Out </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Total OT </TableCell>
+                                                <TableCell align="center" sx={{ width: "12.5%" }}> Late/Absences </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -277,58 +242,17 @@ const AttendanceView = () => {
                                                         <TableRow
                                                             key={index}
                                                             onClick={() => handleOpenAttendanceDetails(summary.date)}
-                                                            sx={{
-                                                                backgroundColor:
-                                                                    index % 2 === 0
-                                                                        ? "#f8f8f8"
-                                                                        : "#ffffff",
-                                                                "&:hover": {
-                                                                    backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                    cursor: "pointer",
-                                                                },
-                                                            }}
+                                                            sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer", }, }}
                                                         >
+                                                            <TableCell align="center"> {dayjs(summary.date).format("MMMM D, YYYY")} </TableCell>
+                                                            <TableCell align="center"> {summary.time_in ? dayjs(summary.time_in).format("hh:mm:ss A") : "-"} </TableCell>
+                                                            <TableCell align="center"> {summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out" : "-"} </TableCell>
+                                                            <TableCell align="center"> {formatTime(summary.total_rendered)} </TableCell>
+                                                            <TableCell align="center"> {summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"} </TableCell>
+                                                            <TableCell align="center"> {summary.overtime_out ? dayjs(summary.time_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"} </TableCell>
+                                                            <TableCell align="center"> {formatTime(summary.total_ot)} </TableCell>
                                                             <TableCell align="center">
-                                                                {dayjs(summary.date).format("MMMM D, YYYY")}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {summary.time_in
-                                                                    ? dayjs(summary.time_in).format("hh:mm:ss A")
-                                                                    : "-"}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {summary.time_out
-                                                                    ? dayjs(summary.time_out).format("hh:mm:ss A")
-                                                                    : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out"
-                                                                        : "-"}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {formatTime(summary.total_rendered)}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {summary.overtime_in
-                                                                    ? dayjs(summary.overtime_in).format("hh:mm:ss A")
-                                                                    : "-"}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {summary.overtime_out
-                                                                    ? dayjs(summary.time_out).format("hh:mm:ss A")
-                                                                    : summary.overtime_in ? "Failed to Time Out"
-                                                                        : "-"}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                {formatTime(summary.total_ot)}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                <Typography
-                                                                    sx={{
-                                                                        color:
-                                                                            summary.date === currentDate
-                                                                                ? "#177604"
-                                                                                : summary.late_time > 0 ? "#f44336"
-                                                                                    : null,
-                                                                    }}
-                                                                >
+                                                                <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }} >
                                                                     {summary.date == currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
                                                                 </Typography>
                                                             </TableCell>
@@ -337,12 +261,7 @@ const AttendanceView = () => {
                                                 )
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell
-                                                        colSpan={8}
-                                                        align="center"
-                                                        sx={{ color: "text.secondary", p: 1, }}>
-                                                        No Attendance Found
-                                                    </TableCell>
+                                                    <TableCell colSpan={8} align="center" sx={{ color: "text.secondary", p: 1, }}> No Attendance Found </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
@@ -353,25 +272,9 @@ const AttendanceView = () => {
                     </Box>
                 </Box>
             </Box>
-            {
-                openAttendanceDetails && (
-                    <AttendanceViewDetails
-                        open={true}
-                        close={handleCloseAttendanceDetails}
-                        date={openAttendanceDetails}
-                        employee={employee.id}
-                    />
-                )
-            }
-            {
-                openAddAttendance && (
-                    <AddAttendanceModal
-                        open={true}
-                        close={handleCloseAddAttendance}
-                        employee={employee.id}
-                    />
-                )
-            }
+
+            { openAttendanceDetails && ( <AttendanceViewDetails open={true} close={handleCloseAttendanceDetails} date={openAttendanceDetails} employee={employee.id} /> ) }
+            { openAddAttendance && ( <AddAttendanceModal open={true} close={handleCloseAddAttendance} employee={employee.id} /> ) }
         </Layout>
     )
 }
