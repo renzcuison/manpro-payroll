@@ -408,8 +408,8 @@ class TrainingsController extends Controller
 
     public function saveContentSettings(Request $request)
     {
-        Log::info("TrainingsController::saveContentSettings");
-        Log::info($request);
+        //Log::info("TrainingsController::saveContentSettings");
+        //Log::info($request);
 
         $order = $request->input('new_order');
         $user = Auth::user();

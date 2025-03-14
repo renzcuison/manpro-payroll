@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import AttendanceButton from "./Components/AttendanceButton";
+import AttendanceButtons from "./Components/AttendanceButtons";
 import Swal from "sweetalert2";
 import moment from "moment";
 import { AccessTime } from "@mui/icons-material";
@@ -314,85 +314,75 @@ const Attendance = ({ open, close }) => {
                             </Grid>
                         </Grid>
 
-                        {workShift.shift_type === "Regular" ? (
+                        {/*Regular Shift-------------------------------*/}
+                        {workShift.shift_type == "Regular" ? (
+                            <AttendanceButtons
+                                label="Attendance"
+                                onTimeIn={handleTimeInOut}
+                                onTimeOut={handleTimeInOut}
+                                disableTimeIn={onDuty}
+                                disableTimeOut={false}
+                                shiftType="Regular"
+                            />
+                        ) : null}
+
+                        {/*Split Shift--------------------------*/}
+                        {workShift.shift_type == "Split" ? (
                             <>
-                                {/* Regular Shift */}
-                                {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) && (
-                                    <AttendanceButton
-                                        label="Attendance"
-                                        onDuty={onDuty}
-                                        shiftType="Regular"
-                                        onTimeInOut={handleTimeInOut}
-                                    />
-                                )}
+                                {/*First Shift */}
+                                <AttendanceButtons
+                                    label={workShift.first_label}
+                                    onTimeIn={handleTimeInOut}
+                                    onTimeOut={handleTimeInOut}
+                                    disableTimeIn={onDuty || firstShiftExpired}
+                                    disableTimeOut={(!onDuty && firstShiftExpired) || latestTime > workHour.first_time_out}
+                                    shiftType="First"
+                                />
+                                {/*Second Shift */}
+                                <AttendanceButtons
+                                    label={workShift.second_label}
+                                    onTimeIn={handleTimeInOut}
+                                    onTimeOut={handleTimeInOut}
+                                    disableTimeIn={onDuty || (firstShiftExpired && onDuty) || secondShiftExpired}
+                                    disableTimeOut={!firstShiftExpired || (!onDuty && secondShiftExpired) || latestTime > workHour.second_time_out}
+                                    shiftType="Second"
+                                />
                             </>
                         ) : null}
 
-                        {workShift.shift_type === "Split" ? (
-                            <>
-                                {/* Top: First Shift, Bottom: Second Shift */}
-                                {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) ? (
-                                    <AttendanceButton
-                                        label={workShift.first_label}
-                                        onDuty={onDuty}
-                                        shiftType="First"
-                                        onTimeInOut={handleTimeInOut}
-                                    />
-                                ) : (!secondShiftExpired || (secondShiftExpired && onDuty && latestTime < workHour?.second_time_out)) ? (
-                                    <AttendanceButton
-                                        label={workShift.second_label}
-                                        onDuty={onDuty}
-                                        shiftType="Second"
-                                        onTimeInOut={handleTimeInOut}
-                                    />
-                                ) : null
-                                }
-                            </>
-                        ) : null}
-
-                        {/* Overtime and End of Day*/}
-                        {((workShift?.shift_type == "Regular" && firstShiftExpired && !(onDuty && latestTime < workHour?.first_time_out))
-                            || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) ? (
+                        {/*Overtime/End of Day ------------------------*/}
+                        {(workShift.shift_type === "Regular" && firstShiftExpired) ||
+                            (workShift.shift_type === "Split" && secondShiftExpired) ? (
                             firstDutyFinished ? (
                                 (() => {
-                                    if (exactTime < workHour?.over_time_in) {
+                                    if (exactTime < workHour.over_time_in) {
                                         return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Overtime Available at{" "}
-                                                {(() => {
-                                                    const { parse, format } = require("date-fns");
-
-                                                    const dummyDate = new Date();
-                                                    const parsedTime = parse(
-                                                        workHour.over_time_in,
-                                                        "HH:mm:ss",
-                                                        dummyDate
-                                                    );
-
-                                                    return format(parsedTime, "hh:mm:ss a");
-                                                })()}
+                                            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                                Overtime Available at {workHour.over_time_in}
                                             </Box>
                                         );
-                                    } else if (exactTime >= workHour?.over_time_in && exactTime <= workHour?.over_time_out) {
+                                    } else if (exactTime >= workHour.over_time_in && exactTime <= workHour.over_time_out) {
                                         return (
-                                            <AttendanceButton
+                                            <AttendanceButtons
                                                 label="Overtime"
-                                                onDuty={onDuty}
+                                                onTimeIn={handleTimeInOut}
+                                                onTimeOut={handleTimeInOut}
+                                                disableTimeIn={onDuty}
+                                                disableTimeOut={!latestAction == "Overtime In"}
                                                 shiftType="Overtime"
-                                                onTimeInOut={handleTimeInOut}
                                             />
                                         );
                                     } else {
                                         return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Day has ended
+                                            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                                Day has Ended
                                             </Box>
                                         );
                                     }
                                 })()
                             ) : (
-                                <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                    Day has ended
+                                <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center", }} >
+                                    Day has Ended
                                 </Box>
                             )
                         ) : null}
