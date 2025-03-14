@@ -42,6 +42,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
+import ContentEdit from "./ContentEdit";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -76,7 +77,19 @@ const ContentView = ({ open, close, content }) => {
         }
     };
 
-    // ---------------- Application Cancelling
+    // Edit Content
+    const [openContentEditModal, setOpenContentEditModal] = useState(false);
+    const handleOpenContentEditModal = () => {
+        setOpenContentEditModal(true);
+    };
+    const handleCloseContentEditModal = (reload) => {
+        setOpenContentEditModal(false);
+        if (reload) {
+            //set content details
+        }
+    };
+
+    // Remove Content
     const handleRemoveContent = () => {
         document.activeElement.blur();
         Swal.fire({
@@ -183,7 +196,7 @@ const ContentView = ({ open, close, content }) => {
                                         <MenuItem
                                             onClick={(event) => {
                                                 event.stopPropagation();
-                                                console.log("Editing Content");
+                                                handleOpenContentEditModal();
                                                 handleMenuClose();
                                             }}>
                                             Edit
@@ -218,6 +231,13 @@ const ContentView = ({ open, close, content }) => {
                         </Grid>
                     </Box>
                 </DialogContent>
+                {openContentEditModal && (
+                    <ContentEdit
+                        open={openContentEditModal}
+                        close={handleCloseContentEditModal}
+                        content={content}
+                    />
+                )}
             </Dialog>
         </>
     );

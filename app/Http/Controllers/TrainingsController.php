@@ -290,7 +290,6 @@ class TrainingsController extends Controller
         }
     }
 
-
     public function saveContentSettings(Request $request)
     {
         //Log::info("TrainingsController::saveContentSettings");
@@ -468,6 +467,12 @@ class TrainingsController extends Controller
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
+    }
+
+    public function getFile($id)
+    {
+        Log::info("TrainingsController::getFile");
+        Log::info($id);
     }
 
     function generateRandomCode($length)

@@ -81,7 +81,6 @@ const TrainingView = () => {
     const [imageLoading, setImageLoading] = useState(true);
     const [imagePath, setImagePath] = useState("");
 
-
     useEffect(() => {
         getTrainingDetails();
         getTrainingContent();
@@ -124,54 +123,6 @@ const TrainingView = () => {
                 console.error('Error fetching training content:', error);
             });
     }
-
-    // Document Icon
-    const getFileIcon = (filename) => {
-        const fileType = filename
-            .split(".")
-            .pop()
-            .toLowerCase();
-
-        let src = null;
-
-        switch (fileType) {
-            case "doc":
-            case "docx":
-                src = DocImage;
-                break;
-            case "pdf":
-                src = PdfImage;
-                break;
-            case "xls":
-            case "xlsx":
-                src = XlsImage;
-                break;
-            default:
-                src = null;
-        }
-
-        return src;
-    };
-
-    // Download Attachment
-    const handleFileDownload = (filename, id) => {
-        console.log(`Downloading File:      ${filename}`)
-        // axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
-        //     .then((response) => {
-        //         const blob = new Blob([response.data], {
-        //             type: response.headers["content-type"],
-        //         });
-        //         const link = document.createElement("a");
-        //         link.href = window.URL.createObjectURL(blob);
-        //         link.download = filename;
-        //         link.click();
-
-        //         window.URL.revokeObjectURL(link.href);
-        //     })
-        //     .catch((error) => {
-        //         console.error("Error downloading file:", error);
-        //     });
-    };
 
     // Time Formatter
     const formatTime = (time) => {
@@ -292,36 +243,48 @@ const TrainingView = () => {
         }
     }
 
-    // ---------------- Application Cancelling
+    // Training Activation
     const handleActivateTraining = () => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: "Activate Training",
-            text: "Details and Content can no longer be edited",
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: "Activate",
-            confirmButtonColor: "#177604",
-            showCancelButton: true,
-            cancelButtonText: "No",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Training successfully activated (not actually yet)`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        getTrainingDetails();
-                    }
-                });
-            }
-        });
+        if (content.length == 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "No Content!",
+                text: "You cannot activate a training without any content",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Activate Training",
+                text: "Details and Content can no longer be edited",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Activate",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "No",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `Training successfully activated (not actually yet)`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            getTrainingDetails();
+                        }
+                    });
+                }
+            });
+        }
     };
 
     return (
