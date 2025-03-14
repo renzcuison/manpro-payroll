@@ -10,60 +10,28 @@ const AttendanceButtons = ({
 }) => {
     return (
         <>
-            {/* Mobile Layout */}
-            <Grid
-                container
-                direction="column"
-                alignItems="flex-start"
-                sx={{ display: { xs: "flex", sm: "none" }, pt: 1.5 }}
-            >
-                <Grid item xs={12}>
-                    {label}
-                </Grid>
-
-                <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <Button
-                        variant="contained"
-                        sx={{
-                            backgroundColor: onDuty ? "#f44336" : "#177604",
-                            "& .MuiButton-startIcon": {
-                                display: { xs: "none", sm: "flex" },
-                            },
-                        }}
-                        startIcon={<AccessTime />}
-                        onClick={() => onTimeInOut(shiftType, !onDuty)}
-                    >
-                        {`Time ${onDuty ? "Out" : "In"}`}
-                    </Button>
-                </Grid>
-            </Grid>
-
-            {/* Tablet and Larger Layout */}
             <Grid
                 container
                 direction="row"
-                alignItems="flex-start"
-                sx={{ display: { xs: "none", sm: "flex" }, pt: 1.5 }}
+                sx={{ justifyContent: "flex-start", alignItems: "center", pt: 1.5 }}
             >
-                <Grid item xs={6}>
+                <Grid item xs={8}>
                     {label}
                 </Grid>
 
-                <Grid
-                    item
-                    xs={6}
-                    sx={{ display: "flex", justifyContent: "flex-end" }}
-                >
+                <Grid item xs={4} sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <Button
+                        fullWidth
                         variant="contained"
+                        startIcon={<AccessTime />}
+                        onClick={() => onTimeInOut(shiftType, !onDuty)}
                         sx={{
                             backgroundColor: onDuty ? "#f44336" : "#177604",
                             "& .MuiButton-startIcon": {
                                 display: { xs: "none", sm: "flex" },
                             },
+                            alignItems: "center"
                         }}
-                        startIcon={<AccessTime />}
-                        onClick={() => onTimeInOut(shiftType, !onDuty)}
                     >
                         {`Time ${onDuty ? "Out" : "In"}`}
                     </Button>
