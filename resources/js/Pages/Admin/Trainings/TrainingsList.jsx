@@ -199,6 +199,8 @@ const TrainingsList = () => {
                 label: 'PENDING',
                 color: '#e9ae20',
                 fields: [
+                    { label: 'Opens', value: start.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Closes', value: end.format('MMM DD YYYY, hh:mm A') },
                     { label: 'Duration', value: formatTime(duration) },
                 ],
             };

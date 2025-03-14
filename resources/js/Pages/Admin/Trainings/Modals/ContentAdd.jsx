@@ -21,7 +21,7 @@ import {
     Stack,
     Radio
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
+import { Cancel, VideocamOff } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -56,6 +56,11 @@ const ContentAdd = ({ open, close, trainingCode }) => {
     const [link, setLink] = useState('');
     const [file, setFile] = useState(null);
 
+    const [videoError, setVideoError] = useState(false);
+    const [isVideo, setIsVideo] = useState(false);
+    const [isVideoLoading, setIsVideoLoading] = useState(false);
+    const [thumbnailUrl, setThumbnailUrl] = useState(null);
+
     // Form Errors
     const [contentTypeError, setContentTypeError] = useState(false);
     const [titleError, setTitleError] = useState(false);
@@ -64,9 +69,13 @@ const ContentAdd = ({ open, close, trainingCode }) => {
     const [linkError, setLinkError] = useState(false);
     const [fileError, setFileError] = useState(false);
 
-    useEffect(() => {
-        // insert potential functions
-    }, []);
+    // Content Type
+    const handleTypeChange = (event) => {
+        event.preventDefault;
+        setLink('');
+        setFile(null);
+        setContentType(event.target.value);
+    };
 
     // File Size
     const getFileSize = (size) => {
@@ -75,13 +84,6 @@ const ContentAdd = ({ open, close, trainingCode }) => {
         const k = 1024;
         const i = Math.floor(Math.log(size) / Math.log(k));
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-
-    const handleTypeChange = (event) => {
-        event.preventDefault;
-        setLink('');
-        setFile(null);
-        setContentType(event.target.value);
     };
 
     const handleFileUpload = (input) => {
@@ -101,6 +103,102 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             setFile(media);
         }
     }
+
+    // Video Link Handlers
+    const verifyLink = (value) => {
+        setLink(value);
+
+        // Basic URL format validation
+        const isValidUrl = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)$/.test(value);
+        setLinkError(!isValidUrl);
+
+        setVideoError(false);
+        setIsVideo(false);
+        setIsVideoLoading(false);
+        setThumbnailUrl(null);
+
+        if (isValidUrl) {
+            // YouTube Link
+            const youtubeId = getYouTubeId(value);
+            if (youtubeId) {
+                const youtubeThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+                const img = new Image();
+                img.src = youtubeThumbnail;
+                img.onload = () => {
+                    setThumbnailUrl(youtubeThumbnail);
+                    setIsVideo(true);
+                };
+                img.onerror = () => {
+                    setThumbnailUrl(null);
+                    setIsVideo(false);
+                };
+                return;
+            }
+
+            // Direct Video URL with file extension
+            const hasVideoExtension = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(value.toLowerCase());
+            if (hasVideoExtension) {
+                setIsVideoLoading(true);
+                (async () => {
+                    try {
+                        const response = await fetch(value, { method: "HEAD" });
+                        const contentType = response.headers.get("Content-Type") || "";
+                        const isVideo = contentType.toLowerCase().startsWith("video/");
+                        setVideoError(!isVideo);
+                        setIsVideo(isVideo);
+                        setIsVideoLoading(false);
+
+                        if (isVideo) {
+                            generateThumbnailFromVideo(value);
+                        }
+                    } catch (error) {
+                        setVideoError(true);
+                        setIsVideo(false);
+                        setIsVideoLoading(false);
+                        setThumbnailUrl(null);
+                    }
+                })();
+            } else {
+                setVideoError(true);
+            }
+        }
+    };
+
+    // YouTube ID 
+    const getYouTubeId = (url) => {
+        const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+        const match = url.match(regex);
+        const id = match ? match[1] : null;
+        return id && id.length === 11 ? id : null;
+    };
+    // Generate Direct Video URL Thumbnail
+    const generateThumbnailFromVideo = (videoUrl) => {
+        const video = document.createElement("video");
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        video.src = videoUrl;
+        video.crossOrigin = "anonymous";
+        video.preload = "metadata";
+
+        video.addEventListener("loadedmetadata", () => {
+            video.currentTime = Math.min(10, video.duration / 2);
+        });
+
+        video.addEventListener("seeked", () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
+            setThumbnailUrl(thumbnail);
+            video.remove();
+            canvas.remove();
+        });
+
+        video.addEventListener("error", () => {
+            setThumbnailUrl(null);
+        });
+    };
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -241,24 +339,63 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                             {/* Upload Field */}
                             <Grid item xs={12}>
                                 {contentType === "Video" ? (
-                                    <FormControl fullWidth>
-                                        <TextField
-                                            required
-                                            fullWidth
-                                            label="Video Link"
-                                            variant="outlined"
-                                            type="url"
-                                            value={link}
-                                            error={linkError}
-                                            onChange={(event) => {
-                                                const value = event.target.value;
-                                                setLink(value);
-                                                setLinkError(!/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/.test(value));
-                                            }}
-                                            inputProps={{ maxLength: 512 }}
-                                            helperText={linkError ? "Please enter a valid URL" : "Enter a video URL (e.g., https://youtube.com/watch?v=xyz)"}
-                                        />
-                                    </FormControl>
+                                    <Grid container direction="row" alignItems="center" spacing={2}>
+                                        <Grid item sm={9}>
+                                            <FormControl fullWidth sx={{ display: "flex" }}>
+                                                <TextField
+                                                    fullWidth
+                                                    required
+                                                    label="Video Link"
+                                                    variant="outlined"
+                                                    type="url"
+                                                    value={link}
+                                                    error={linkError || videoError}
+                                                    onChange={(event) => verifyLink(event.target.value)}
+                                                    inputProps={{ maxLength: 512 }}
+                                                    helperText={
+                                                        linkError
+                                                            ? "Please enter a valid URL"
+                                                            : videoError
+                                                                ? "URL does not point to a video"
+                                                                : isVideoLoading
+                                                                    ? "Checking URL..."
+                                                                    : "Enter a video URL (e.g., https://youtube.com/watch?v=xyz)"
+                                                    }
+                                                />
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item sm={3}>
+                                            <Stack sx={{ placeContent: "center", placeItems: "center" }}>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        alignItems: "center",
+                                                        padding: thumbnailUrl ? 0 : 2,
+                                                        border: "2px solid #e0e0e0",
+                                                        borderRadius: thumbnailUrl ? 0 : "4px",
+                                                        width: thumbnailUrl ? "auto" : "80%",
+                                                        height: "90px",
+                                                        overflow: "hidden",
+                                                    }}
+                                                >
+                                                    {thumbnailUrl ? (
+                                                        <img
+                                                            src={thumbnailUrl}
+                                                            alt="Video Thumbnail"
+                                                            style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                                                            onError={() => setThumbnailUrl(null)}
+                                                        />
+                                                    ) : (
+                                                        <VideocamOff sx={{ color: "text.secondary", fontSize: "32px" }} />
+                                                    )}
+                                                </Box>
+                                                <Typography variant="caption" sx={{ color: "text.secondary", mt: 1 }}>
+                                                    {thumbnailUrl ? "Video Thumbnail" : "No Video Selected"}
+                                                </Typography>
+                                            </Stack>
+                                        </Grid>
+                                    </Grid>
                                 ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
                                     <FormControl fullWidth>
                                         <TextField
