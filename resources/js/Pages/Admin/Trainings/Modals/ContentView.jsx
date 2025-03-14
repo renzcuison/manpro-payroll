@@ -21,9 +21,10 @@ import {
     Stack,
     Radio,
     CardMedia,
-    Divider
+    Divider,
+    Menu
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
+import { Cancel, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -50,9 +51,15 @@ const ContentView = ({ open, close, content }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    useEffect(() => {
-        // insert potential functions
-    }, []);
+    // Training Menu
+    const [anchorEl, setAnchorEl] = useState(null);
+    const menuOpen = Boolean(anchorEl);
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
 
     // Content Image
     const renderImage = (source, type) => {
@@ -67,6 +74,51 @@ const ContentView = ({ open, close, content }) => {
             default:
                 return "../../../../images/ManProTab.png";
         }
+    };
+
+    // ---------------- Application Cancelling
+    const handleRemoveContent = () => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Remove Content?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Remove",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    id: content.id
+                };
+                axiosInstance
+                    .post(`trainings/removeContent`, data, {
+                        headers,
+                    })
+                    .then((response) => {
+                        document.activeElement.blur();
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Content successfully removed`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                close(true);
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error removing content:", error);
+                    });
+            }
+        });
     };
 
     return (
@@ -102,18 +154,51 @@ const ContentView = ({ open, close, content }) => {
                                     <Divider />
                                 </Grid>
                             )}
-                            {content.content.type == "Video" && (
-                                <Grid item xs={12}>
-                                    <video>
-
-                                    </video>
-                                    <Divider />
-                                </Grid>
-                            )}
-                            <Grid item xs={12} align="left">
-                                <Typography variant="h5">
-                                    {content.title}
-                                </Typography>
+                            <Grid item xs={12}>
+                                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                    <Typography variant="h5">
+                                        {content.title}
+                                    </Typography>
+                                    {/* Options */}
+                                    <IconButton
+                                        id="basic-button"
+                                        size="small"
+                                        aria-controls={open ? 'basic-menu' : undefined}
+                                        aria-haspopup="true"
+                                        aria-expanded={open ? 'true' : undefined}
+                                        onClick={handleMenuClick}
+                                    >
+                                        <MoreVert />
+                                    </IconButton>
+                                    <Menu
+                                        id="basic-menu"
+                                        anchorEl={anchorEl}
+                                        open={menuOpen}
+                                        onClose={handleMenuClose}
+                                        MenuListProps={{
+                                            'aria-labelledby': 'basic-button',
+                                        }}
+                                    >
+                                        {/* Edit Content */}
+                                        <MenuItem
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                console.log("Editing Content");
+                                                handleMenuClose();
+                                            }}>
+                                            Edit
+                                        </MenuItem>
+                                        {/* Remove Content */}
+                                        <MenuItem
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleRemoveContent();
+                                                handleMenuClose();
+                                            }}>
+                                            Remove
+                                        </MenuItem>
+                                    </Menu>
+                                </Stack>
                             </Grid>
                             <Grid item xs={12} sx={{ my: 0 }} >
                                 <Divider />

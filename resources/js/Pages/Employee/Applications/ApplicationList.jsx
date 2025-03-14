@@ -141,6 +141,7 @@ const ApplicationList = () => {
                         headers,
                     })
                     .then((response) => {
+                        document.activeElement.blur();
                         Swal.fire({
                             customClass: { container: "my-swal" },
                             title: "Success!",

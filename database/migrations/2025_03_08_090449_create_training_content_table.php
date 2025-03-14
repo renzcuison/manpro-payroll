@@ -16,7 +16,7 @@ class CreateTrainingContentTable extends Migration
         Schema::create('training_content', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('training_id');
-            $table->unsignedInteger('order')->default(0);
+            $table->unsignedInteger('order')->default(0)->nullable();
             $table->string('title', 128)->nullable();
             $table->string('description', 512)->nullable();
             $table->morphs('content'); // content_type, content_id (e.g., 'App\Models\TrainingMedia', 1)

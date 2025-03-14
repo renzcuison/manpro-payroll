@@ -253,6 +253,83 @@ class TrainingsController extends Controller
         }
     }
 
+    public function removeContent(Request $request)
+    {
+        // Log::info("TrainingsController::removeContent");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $content = TrainingContentModel::find($request->input('id'));
+                if (!$content) {
+                    return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+                }
+
+                $deletedOrder = $content->order;
+                $content->order = null;
+                $content->delete();
+
+                TrainingContentModel::where('order', '>', $deletedOrder)
+                    ->decrement('order', 1);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error removing content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+
+    public function saveContentSettings(Request $request)
+    {
+        //Log::info("TrainingsController::saveContentSettings");
+        //Log::info($request);
+
+        $order = $request->input('new_order');
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
+                    ->with('contents')
+                    ->firstOrFail();
+
+                $orderMap = [];
+                foreach ($order as $ord) {
+                    $orderMap[$ord['id']] = $ord['order'];
+                }
+
+                $training->contents()->update([
+                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
+                        return "WHEN $id THEN " . $orderMap[$id];
+                    }, array_keys($orderMap))) . " END")
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content order updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error updating content order: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error updating content order'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
@@ -404,45 +481,5 @@ class TrainingsController extends Controller
         }
 
         return $result;
-    }
-
-    public function saveContentSettings(Request $request)
-    {
-        //Log::info("TrainingsController::saveContentSettings");
-        //Log::info($request);
-
-        $order = $request->input('new_order');
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            try {
-                DB::beginTransaction();
-
-                $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
-                    ->with('contents')
-                    ->firstOrFail();
-
-                $orderMap = [];
-                foreach ($order as $ord) {
-                    $orderMap[$ord['id']] = $ord['order'];
-                }
-
-                $training->contents()->update([
-                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
-                        return "WHEN $id THEN " . $orderMap[$id];
-                    }, array_keys($orderMap))) . " END")
-                ]);
-
-                DB::commit();
-
-                return response()->json(['status' => 200, 'message' => 'Content order updated successfully']);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error("Error updating content order: " . $e->getMessage());
-                return response()->json(['status' => 500, 'message' => 'Error updating content order'], 500);
-            }
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
     }
 }

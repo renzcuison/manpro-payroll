@@ -272,7 +272,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                         }}
                     >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
-                            Content Settings
+                            Content Manager
                         </Typography>
                         <IconButton onClick={(event) => confirmExit(event)}>
                             <i className="si si-close"></i>
