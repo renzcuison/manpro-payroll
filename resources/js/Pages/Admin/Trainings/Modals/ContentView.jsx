@@ -102,6 +102,14 @@ const ContentView = ({ open, close, content }) => {
                                     <Divider />
                                 </Grid>
                             )}
+                            {content.content.type == "Video" && (
+                                <Grid item xs={12}>
+                                    <video>
+
+                                    </video>
+                                    <Divider />
+                                </Grid>
+                            )}
                             <Grid item xs={12} align="left">
                                 <Typography variant="h5">
                                     {content.title}

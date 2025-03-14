@@ -129,21 +129,50 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             const youtubeId = getYouTubeId(value);
             if (youtubeId) {
                 const youtubeThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-                const img = new Image();
-                img.src = youtubeThumbnail;
                 setIsVideoLoading(true);
-                img.onload = () => {
-                    setThumbnailUrl(youtubeThumbnail);
-                    setIsVideo(true);
-                    setVideoError(false);
-                    setIsVideoLoading(false);
-                };
-                img.onerror = () => {
+                try {
+                    fetch(youtubeThumbnail)
+                        .then((response) => {
+                            if (response.status === 200) {
+                                // Valid Image
+                                const img = new Image();
+                                img.src = youtubeThumbnail;
+
+                                img.onload = () => {
+                                    setThumbnailUrl(youtubeThumbnail);
+                                    setIsVideo(true);
+                                    setVideoError(false);
+                                    setIsVideoLoading(false);
+                                };
+
+                                img.onerror = () => {
+                                    setThumbnailUrl(null);
+                                    setIsVideo(false);
+                                    setVideoError(true);
+                                    setIsVideoLoading(false);
+                                };
+                            } else {
+                                setThumbnailUrl(null);
+                                setIsVideo(false);
+                                setVideoError(true);
+                                setIsVideoLoading(false);
+                            }
+                        })
+                        .catch((error) => {
+                            // Network/Other Errors
+                            setThumbnailUrl(null);
+                            setIsVideo(false);
+                            setVideoError(true);
+                            setIsVideoLoading(false);
+                        });
+                } catch (error) {
+                    // Unexpected Errors
                     setThumbnailUrl(null);
                     setIsVideo(false);
                     setVideoError(true);
                     setIsVideoLoading(false);
-                };
+                }
+
                 return;
             }
 
