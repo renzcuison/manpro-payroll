@@ -126,7 +126,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
             if (youtubeId) {
                 const youtubeThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
                 const img = new Image();
-
+                img.src = youtubeThumbnail;
                 setIsVideoLoading(true);
                 img.onload = () => {
                     setThumbnailUrl(youtubeThumbnail);
