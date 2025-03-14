@@ -271,6 +271,7 @@ class TrainingsController extends Controller
 
                 $deletedOrder = $content->order;
                 $content->order = null;
+                $content->save();
                 $content->delete();
 
                 TrainingContentModel::where('order', '>', $deletedOrder)
