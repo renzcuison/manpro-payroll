@@ -1,0 +1,35 @@
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import AccessTime from "@mui/icons-material/AccessTime";
+
+const AttendanceTable = ({ title, logs }) => {
+    if (!logs || logs.length === 0) return null;
+
+    return (
+        <>
+            <Box sx={{ mt: 2 }}>
+                <AccessTime sx={{ color: "text.secondary" }} />
+                <Typography variant="caption" sx={{ ml: 1, fontWeight: "bold", color: "text.secondary" }}>
+                    {title}
+                </Typography>
+            </Box>
+            <TableContainer sx={{ maxHeight: "350px", overflowY: "auto" }}>
+                <Table size="small">
+                    <TableBody>
+                        {logs.map((log, index) => (
+                            <TableRow key={index}>
+                                <TableCell align="left" sx={{ pl: 0 }}>
+                                    {log.action}
+                                </TableCell>
+                                <TableCell align="left" sx={{ pl: 0 }}>
+                                    {log.timestamp}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </>
+    );
+};
+
+export default AttendanceTable;

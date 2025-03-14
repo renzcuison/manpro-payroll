@@ -76,7 +76,7 @@ const AttendanceView = () => {
     // ---------------- Employee API
     const getEmployeeDetails = () => {
         let data = { username: user };
-
+        setIsLoading(true);
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {

@@ -21,6 +21,7 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import { AccessTime } from "@mui/icons-material";
 import dayjs from "dayjs";
+import AttendanceTable from "./Components/AttendanceTable";
 
 const Attendance = ({ open, close }) => {
     //const navigate = useNavigate();
@@ -404,118 +405,86 @@ const Attendance = ({ open, close }) => {
                             <Box>
                                 Today's Attendance:
                             </Box>
-                            <TableContainer sx={{ maxHeight: "350px", overflowY: "auto" }}>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
-                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                    Action
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="left" sx={{ width: "50%", pl: 0 }}>
-                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                    Timestamp
-                                                </Typography>
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {(() => {
-                                            let firstShiftHeaderAdded = false;
-                                            let secondShiftHeaderAdded = false;
-                                            let overtimeHeaderAdded = false;
+                            {(() => {
+                                const timeToSeconds = (timeStr) => {
+                                    if (!timeStr) return 0;
+                                    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+                                    return hours * 3600 + minutes * 60 + seconds;
+                                };
 
-                                            const timeToSeconds = (timeStr) => {
-                                                if (!timeStr) return 0;
-                                                const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-                                                return hours * 3600 + minutes * 60 + seconds;
-                                            };
+                                const firstTimeIn = timeToSeconds(workHour?.first_time_in);
+                                const firstTimeOut = timeToSeconds(workHour?.first_time_out);
+                                const secondTimeIn = timeToSeconds(workHour?.second_time_in);
+                                const secondTimeOut = timeToSeconds(workHour?.second_time_out);
+                                const overTimeIn = timeToSeconds(workHour?.over_time_in);
+                                const overTimeOut = timeToSeconds(workHour?.over_time_out);
 
-                                            const firstTimeIn = timeToSeconds(workHour?.first_time_in);
-                                            const firstTimeOut = timeToSeconds(workHour?.first_time_out);
-                                            const secondTimeIn = timeToSeconds(workHour?.second_time_in);
-                                            const secondTimeOut = timeToSeconds(workHour?.second_time_out);
-                                            const overTimeIn = timeToSeconds(workHour?.over_time_in);
-                                            const overTimeOut = timeToSeconds(workHour?.over_time_out);
+                                // Initialize log arrays
+                                const regularLogs = [];
+                                const splitFirstLogs = [];
+                                const splitSecondLogs = [];
+                                const overtimeLogs = [];
 
-                                            const rows = [];
-                                            employeeAttendance.forEach((log, index) => {
-                                                const logTimeStr = log.timestamp.split(" ")[1];
-                                                const logTime = timeToSeconds(logTimeStr);
+                                // Track the active session
+                                let currentShift = null; // "First Shift", "Second Shift", or null
+                                let inOvertimeSession = false;
 
-                                                let shift = null;
-                                                if (workShift?.shift_type === "Split") {
-                                                    if (logTime >= firstTimeIn && logTime <= firstTimeOut) {
-                                                        shift = "First Shift";
-                                                    } else if (logTime >= secondTimeIn && logTime <= secondTimeOut) {
-                                                        shift = "Second Shift";
-                                                    }
-                                                }
-                                                const isOvertime = log.action === "Overtime In" || (logTime >= overTimeIn && logTime <= overTimeOut && log.action.includes("Overtime"));
+                                employeeAttendance.forEach((log, index) => {
+                                    const logTimeStr = log.timestamp.split(" ")[1];
+                                    const logTime = timeToSeconds(logTimeStr);
 
-                                                if (workShift?.shift_type === "Split") {
-                                                    if (shift === "First Shift" && !firstShiftHeaderAdded && log.action === "Duty In") {
-                                                        rows.push(
-                                                            <TableRow key={`header-first-${index}`} sx={{ mt: 1 }}>
-                                                                <TableCell colSpan={2} sx={{ pl: 0, py: 0.5 }} >
-                                                                    <AccessTime sx={{ color: "text.secondary" }} />
-                                                                    <Typography variant="caption" sx={{ ml: 1, fontWeight: "bold", color: "text.secondary" }}>
-                                                                        First Shift
-                                                                    </Typography>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                        firstShiftHeaderAdded = true;
-                                                    } else if (shift === "Second Shift" && !secondShiftHeaderAdded && log.action === "Duty In") {
-                                                        rows.push(
-                                                            <TableRow key={`header-second-${index}`} sx={{ mt: 1 }}>
-                                                                <TableCell colSpan={2} sx={{ pl: 0, py: 0.5 }}>
-                                                                    <AccessTime sx={{ color: "text.secondary" }} />
-                                                                    <Typography variant="caption" sx={{ ml: 1, fontWeight: "bold", color: "text.secondary" }}>
-                                                                        Second Shift
-                                                                    </Typography>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                        secondShiftHeaderAdded = true;
-                                                    }
-                                                }
-                                                if (isOvertime && !overtimeHeaderAdded && log.action === "Overtime In") {
-                                                    rows.push(
-                                                        <TableRow key={`header-overtime-${index}`} sx={{ mt: 1 }}>
-                                                            <TableCell colSpan={2} sx={{ pl: 0, py: 0.5 }}>
-                                                                <AccessTime sx={{ color: "text.secondary" }} />
-                                                                <Typography variant="caption" sx={{ ml: 1, fontWeight: "bold", color: "text.secondary" }}>
-                                                                    Overtime
-                                                                </Typography>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                    overtimeHeaderAdded = true;
-                                                }
+                                    // Overtime Logs
+                                    if (log.action === "Overtime In") {
+                                        inOvertimeSession = true;
+                                        overtimeLogs.push(log);
+                                    } else if (log.action === "Overtime Out") {
+                                        inOvertimeSession = false;
+                                        overtimeLogs.push(log);
+                                        return;
+                                    } else if (inOvertimeSession) {
+                                        overtimeLogs.push(log);
+                                        return;
+                                    }
+                                    if (log.action.includes("Overtime")) return;
 
-                                                rows.push(
-                                                    <TableRow key={index}>
-                                                        <TableCell align="left" sx={{ pl: 0 }}>
-                                                            {log.action}
-                                                        </TableCell>
-                                                        <TableCell align="left" sx={{ pl: 0 }}>
-                                                            {log.timestamp}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            });
+                                    // Regular Shifts
+                                    if (workShift?.shift_type === "Regular") {
+                                        regularLogs.push(log);
+                                        return;
+                                    }
 
-                                            if (!firstShiftHeaderAdded && !secondShiftHeaderAdded && !overtimeHeaderAdded) {
-                                                return null;
+                                    // Split Shifts
+                                    if (workShift?.shift_type === "Split") {
+                                        // Duty In Handling
+                                        if (log.action === "Duty In") {
+                                            if (logTime <= firstTimeOut) {
+                                                currentShift = "First Shift";
+                                                splitFirstLogs.push(log);
+                                            } else if (logTime >= secondTimeIn || (logTime > firstTimeOut && logTime <= secondTimeOut)) {
+                                                currentShift = "Second Shift";
+                                                splitSecondLogs.push(log);
                                             }
+                                        } else if (log.action === "Duty Out") {
+                                            if (currentShift === "First Shift") {
+                                                splitFirstLogs.push(log);
+                                                currentShift = null;
+                                            } else if (currentShift === "Second Shift") {
+                                                splitSecondLogs.push(log);
+                                                currentShift = null;
+                                            }
+                                        }
+                                    }
+                                });
 
-                                            return rows;
-                                        })()}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                return (
+                                    <>
+                                        {regularLogs.length > 0 && <AttendanceTable title="Attendance" logs={regularLogs} />}
+                                        {splitFirstLogs.length > 0 && <AttendanceTable title={workShift.first_label} logs={splitFirstLogs} />}
+                                        {splitSecondLogs.length > 0 && <AttendanceTable title={workShift.second_label} logs={splitSecondLogs} />}
+                                        {overtimeLogs.length > 0 && <AttendanceTable title="Overtime" logs={overtimeLogs} />}
+                                    </>
+                                );
+                            })()}
                         </>
                     ) : (
                         <Box
