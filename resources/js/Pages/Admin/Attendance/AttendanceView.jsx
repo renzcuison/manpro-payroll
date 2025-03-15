@@ -66,11 +66,9 @@ const AttendanceView = () => {
         setOpenAddAttendance(true);
     };
 
-    const handleCloseAddAttendance = (reload) => {
+    const handleCloseAddAttendance = () => {
+        getEmployeeAttendance();
         setOpenAddAttendance(false);
-        if (reload) {
-            getEmployeeAttendance();
-        }
     };
 
     // ---------------- Employee API
