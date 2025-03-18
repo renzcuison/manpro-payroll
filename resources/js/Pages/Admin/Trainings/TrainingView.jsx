@@ -63,7 +63,7 @@ import ContentAdd from "./Modals/ContentAdd";
 import PdfImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
 import XlsImage from '../../../../../public/media/assets/Excel_file_icon.png';
-import PPTImage from '../../../../../public/media/assets/Powerpoint_file_icon.png';
+import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.png';
 
 import ContentSettings from "./Modals/ContentSettings";
 import ContentView from "./Modals/ContentView";
