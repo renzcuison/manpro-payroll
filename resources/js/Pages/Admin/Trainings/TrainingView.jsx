@@ -629,7 +629,7 @@ const TrainingView = () => {
                 <ContentView
                     open={openContentViewModal}
                     close={handleCloseContentViewModal}
-                    content={loadContent}
+                    contentInfo={loadContent}
                 />
             )}
             {openContentSettingsModal && (

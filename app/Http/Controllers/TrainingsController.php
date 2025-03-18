@@ -281,6 +281,86 @@ class TrainingsController extends Controller
         }
     }
 
+    public function editContent(Request $request)
+    {
+        // Log::info("TrainingsController::editContent");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $content = TrainingContentModel::find($request->input('id'));
+
+            try {
+                DB::beginTransaction();
+
+                $content->title = $request->input('title', $content->title);
+                $content->description = $request->input('description', $content->description);
+                $content->order = $request->input('order', $content->order);
+
+                $relatedContent = $content->content;
+                if (!$relatedContent) {
+                    return response()->json(['status' => 400, 'message' => 'Related content not found'], 400);
+                }
+
+                $dateTime = now()->format('YmdHis');
+                $contentType = $relatedContent->type;
+
+                switch ($contentType) {
+                    case 'Video':
+                        $newSource = $request->input('link');
+                        if ($newSource && $newSource !== $relatedContent->source) {
+                            $relatedContent->source = $newSource;
+                            $relatedContent->save();
+                        }
+                        break;
+
+                    case 'Image':
+                    case 'Document':
+                    case 'PowerPoint':
+                        Log::info($request->input('newFile'));
+                        if ($request->hasFile('file') && $request->input('newFile') == "true") {
+                            Log::info("Replacing File");
+                            $file = $request->file('file');
+                            $location = 'trainings/' . strtolower($contentType) . 's';
+                            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                            $newSource = $file->storeAs($location, $fileName, 'public');
+
+                            if ($relatedContent->source && $relatedContent->source !== $newSource && Storage::disk('public')->exists($relatedContent->source)) {
+                                Storage::disk('public')->delete($relatedContent->source);
+                            }
+
+                            $relatedContent->source = $newSource;
+                            $relatedContent->save();
+                        }
+                        break;
+
+                    default:
+                        Log::info("Content is of type Form. Editor Function to be added soon");
+                        break;
+                }
+
+                // Save the parent content
+                $content->save();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error updating content ID {$request->input('id')}: " . $e->getMessage());
+                if (isset($newSource) && $contentType !== 'Video' && Storage::disk('public')->exists($newSource)) {
+                    Storage::disk('public')->delete($newSource);
+                }
+
+                return response()->json(['status' => 500, 'message' => 'Error updating content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
     public function removeContent(Request $request)
     {
         // Log::info("TrainingsController::removeContent");
@@ -418,9 +498,21 @@ class TrainingsController extends Controller
         }
     }
 
+    public function getContentDetails($id)
+    {
+        Log::info("TrainingsController::getContentDetails");
+        Log::info($id);
+
+        $user = Auth::user();
+
+        $content = TrainingContentModel::with('content')->find($id);
+
+        return response()->json(['status' => 200, 'content' => $content]);
+    }
+
     public function getTrainingMedia($code)
     {
-        //Log::info("AnnouncementsController::getTrainingMedia");
+        //Log::info("TrainingsController::getTrainingMedia");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -497,10 +589,37 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
     }
 
-    public function getFile($id)
+    public function getSource($id)
     {
-        Log::info("TrainingsController::getFile");
+        Log::info("TrainingsController:getSource");
         Log::info($id);
+
+        try {
+            $content = TrainingContentModel::find($id);
+            if (!$content || !$content->content->source) {
+                return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+            }
+
+            $filePath = $content->content->source;
+            $fileContents = Storage::disk('public')->get($filePath);
+            $base64 = base64_encode($fileContents);
+
+            $mimeType = Storage::disk('public')->mimeType($filePath);
+            $fileName = basename($filePath);
+
+            return response()->json([
+                'status' => 200,
+                'file' => [
+                    'data' => "data:{$mimeType};base64,{$base64}",
+                    'name' => $fileName,
+                    'size' => Storage::disk('public')->size($filePath),
+                    'type' => $mimeType
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error fetching file for content ID {$id}: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error fetching file'], 500);
+        }
     }
 
     function generateRandomCode($length)

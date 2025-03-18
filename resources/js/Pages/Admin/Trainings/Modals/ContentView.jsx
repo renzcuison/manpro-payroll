@@ -47,12 +47,15 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ContentView = ({ open, close, content }) => {
+const ContentView = ({ open, close, contentInfo }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    // Training Menu
+    const [content, setContent] = useState(contentInfo)
+    const [exitReload, setExitReload] = useState(false);
+
+    // Content Menu
     const [anchorEl, setAnchorEl] = useState(null);
     const menuOpen = Boolean(anchorEl);
     const handleMenuClick = (event) => {
@@ -85,9 +88,21 @@ const ContentView = ({ open, close, content }) => {
     const handleCloseContentEditModal = (reload) => {
         setOpenContentEditModal(false);
         if (reload) {
-            //set content details
+            setExitReload(true);
+            getContentDetails();
         }
     };
+
+    // Reload Content
+    const getContentDetails = () => {
+        axiosInstance.get(`/trainings/getContentDetails/${content.id}`, { headers })
+            .then((response) => {
+                setContent(response.data.content);
+            })
+            .catch((error) => {
+                console.error('Error fetching content details', error);
+            });
+    }
 
     // Remove Content
     const handleRemoveContent = () => {
@@ -140,7 +155,7 @@ const ContentView = ({ open, close, content }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Content Details </Typography>
-                        <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
+                        <IconButton onClick={() => close(exitReload)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
 

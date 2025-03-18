@@ -55,6 +55,7 @@ const ContentEdit = ({ open, close, content }) => {
 
     const [link, setLink] = useState("");
     const [file, setFile] = useState(null);
+    const [newFile, setNewFile] = useState(false);
 
     const [videoError, setVideoError] = useState(false);
     const [isVideo, setIsVideo] = useState(false);
@@ -70,19 +71,30 @@ const ContentEdit = ({ open, close, content }) => {
     const [fileError, setFileError] = useState(false);
 
     useEffect(() => {
-        if (content.content.type == "Video") {
+        if (content.content.type === "Video") {
             verifyLink(content.content.source);
             setLink(content.content.source);
         } else if (["Image", "Document", "PowerPoint"].includes(contentType)) {
-            axiosInstance
-                .get(`trainings/getFile/${content.id}`, {
-                    headers,
-                })
+            axiosInstance.get(`/trainings/getSource/${content.id}`, { headers })
                 .then((response) => {
-                    setFile(response.data.file_url);
+                    if (response.data.file) {
+                        const byteCharacters = atob(response.data.file.data.split(',')[1]);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const media = new File([byteArray], response.data.file.name, {
+                            type: response.data.file.type
+                        });
+                        setFile(media);
+                    } else {
+                        setFile(null);
+                    }
                 })
                 .catch((error) => {
-                    console.error("Error retrieving file:", error);
+                    console.error('Error fetching content file', error);
+                    setFile(null);
                 });
         }
     }, []);
@@ -111,6 +123,7 @@ const ContentEdit = ({ open, close, content }) => {
             });
         } else {
             setFile(media);
+            setNewFile(true);
         }
     }
 
@@ -245,7 +258,7 @@ const ContentEdit = ({ open, close, content }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-
+        console.log(newFile);
         setContentTypeError(!contentType);
         setTitleError(!title);
         setDescriptionError(!description);
@@ -304,6 +317,7 @@ const ContentEdit = ({ open, close, content }) => {
         formData.append("description", description);
         formData.append("link", link);
         formData.append("file", file);
+        formData.append("newFile", newFile)
 
         axiosInstance.post("/trainings/editContent", formData, { headers })
             .then((response) => {
