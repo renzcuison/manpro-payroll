@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
 use App\Models\PayslipsModel;
+use App\Models\PayslipLeavesModel;
 use App\Models\PayslipEarningsModel;
 use App\Models\PayslipDeductionsModel;
+
 
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
@@ -567,11 +569,7 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        $payrollRequest = new Request([
-            'selectedPayroll' => $request->selectedPayroll,
-            'currentStartDate' => $request->currentStartDate,
-            'currentEndDate' => $request->currentEndDate,
-        ]);
+        $payrollRequest = new Request([ 'selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate ]);
     
         // Call payrollDetails() and get response
         $payrollResponse = $this->payrollDetails($payrollRequest);
@@ -614,30 +612,24 @@ class PayrollController extends Controller
             "user_id" => $user->id,
         ]);
 
-        log::info($payslip);
-
-
         foreach ($payrollData['earnings'] as $earning) {
-
-            $newEarning = PayslipEarningsModel::create([
-                "payslip_id" => $payslip->id,
-                "earning_id" => $earning['earning'],
-                "amount" => $earning['amount'],
-            ]);
-
-
-            log::info($newEarning);
+            $newEarning = PayslipEarningsModel::create([ "payslip_id" => $payslip->id, "earning_id" => $earning['earning'], "amount" => $earning['amount'] ]);
         }
 
         foreach ($payrollData['deductions'] as $deduction) {
+            $newDeduction = PayslipDeductionsModel::create([ "payslip_id" => $payslip->id, "deduction_id" => $deduction['deduction'], "amount" => $deduction['amount'] ]);
+        }
 
-            $newDeduction = PayslipDeductionsModel::create([
-                "payslip_id" => $payslip->id,
-                "deduction_id" => $deduction['deduction'],
-                "amount" => $deduction['amount'],
-            ]);
+        foreach ($payrollData['paid_leaves'] as $paidLeave) {
+            $newPaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => $paidLeave['application'], "amount" => $paidLeave['amount'], "is_paid" => true ]);
 
-            log::info($newDeduction);
+            log::info($newPaidLeave);
+        }
+
+        foreach ($payrollData['unpaid_leaves'] as $unpaidLeave) {
+            $newUnpaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => $unpaidLeave['application'], "amount" => $unpaidLeave['amount'], "is_paid" => false ]);
+
+            log::info($newUnpaidLeave);
         }
 
 
@@ -663,12 +655,10 @@ class PayrollController extends Controller
     
         // Log each component separately
 
-        // Log::info("Payroll Data: ", $payrollData['payroll'] ?? []);
+
         // Log::info("Benefits: ", $payrollData['benefits'] ?? []);
 
 
-        // Log::info("Paid Leaves: ", $payrollData['paid_leaves'] ?? []);
-        // Log::info("Unpaid Leaves: ", $payrollData['unpaid_leaves'] ?? []);
     
         // Now you can process or save payroll data as needed
 
