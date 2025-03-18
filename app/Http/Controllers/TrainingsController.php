@@ -174,6 +174,34 @@ class TrainingsController extends Controller
         }
     }
 
+    public function updateTrainingStatus(Request $request)
+    {
+        //Log::info("TrainingsController::editTraining");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $training = TrainingsModel::where('unique_code', $request->input('code'))->firstOrFail();
+                $training->status = $request->input('status');
+                $training->save();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => "Training status updated successfully"]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error updating: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
+    }
+
     public function saveContent(Request $request)
     {
         //Log::info("TrainingsController::saveContent");

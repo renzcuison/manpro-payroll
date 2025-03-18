@@ -204,6 +204,16 @@ const TrainingsList = () => {
                     { label: 'Duration', value: formatTime(duration) },
                 ],
             };
+        } else if (status == "Hidden") {
+            return {
+                label: 'HIDDEN',
+                color: '#e9ae20',
+                fields: [
+                    { label: 'Opens', value: start.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Closes', value: end.format('MMM DD YYYY, hh:mm A') },
+                    { label: 'Duration', value: formatTime(duration) },
+                ],
+            };
         } else if (status == "Cancelled") {
             return {
                 label: 'CANCELLED',
@@ -291,7 +301,13 @@ const TrainingsList = () => {
                                             (training, index) => (
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
                                                     <CardActionArea component={Link} to={`/admin/training/${training.unique_code}`}>
-                                                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                                        <Card sx={{
+                                                            borderRadius: 2,
+                                                            boxShadow: 3,
+                                                            height: "360px",
+                                                            display: "flex",
+                                                            flexDirection: "column"
+                                                        }}>
                                                             {/* Card Cover */}
                                                             {imageLoading ? (
                                                                 <Box
@@ -312,7 +328,7 @@ const TrainingsList = () => {
                                                                 />
                                                             )}
                                                             {/* Card Content */}
-                                                            <CardContent sx={{ pb: "5px" }}>
+                                                            <CardContent sx={{ pb: "5px", flexGrow: 1 }}>
                                                                 <Typography
                                                                     variant="h6"
                                                                     component="div"

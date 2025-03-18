@@ -271,19 +271,35 @@ const TrainingView = () => {
                 cancelButtonText: "No",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    Swal.fire({
-                        customClass: { container: "my-swal" },
-                        title: "Success!",
-                        text: `Training successfully activated (not actually yet)`,
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
-                    }).then((res) => {
-                        if (res.isConfirmed) {
-                            getTrainingDetails();
-                        }
-                    });
+                    const data = {
+                        code: training.unique_code,
+                        status: "Active"
+                    };
+                    axiosInstance
+                        .post("/trainings/updateTrainingStatus", data, {
+                            headers,
+                        })
+                        .then((response) => {
+                            document.activeElement.blur();
+                            document.body.removeAttribute("aria-hidden");
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: `Training successfully activated!`,
+                                icon: "success",
+                                showConfirmButton: true,
+                                confirmButtonText: "Okay",
+                                confirmButtonColor: "#177604",
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                    getTrainingDetails();
+                                }
+                            })
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            document.body.setAttribute("aria-hidden", "true");
+                        });
                 }
             });
         }
