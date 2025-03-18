@@ -37,7 +37,7 @@ import 'react-quill/dist/quill.snow.css';
 
 import PDFImage from "../../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../../public/media/assets/Docx_file_icon.png";
-import PPTImage from "../../../../../../public/media/assets/PowerPoint_file_icon.png"
+import PPTImage from "../../../../../../public/media/assets/PowerPoint_file_icon.png";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -509,7 +509,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                     </Grid>
                                 ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
                                     <Grid container direction="row" alignItems="center" spacing={2}>
-                                        <Grid item sm={9}>
+                                        <Grid item xs={9}>
                                             <FormControl fullWidth sx={{ display: "flex" }}>
                                                 <TextField
                                                     fullWidth
@@ -552,7 +552,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                 />
                                             </FormControl>
                                         </Grid>
-                                        <Grid item sm={3}>
+                                        <Grid item xs={3}>
                                             <Stack sx={{ placeContent: "center", placeItems: "center" }}>
                                                 <Box
                                                     sx={{

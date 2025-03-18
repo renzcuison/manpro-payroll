@@ -25,15 +25,16 @@ import { Cancel, FolderOff, VideocamOff } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+import PDFImage from "../../../../../../public/media/assets/PDF_file_icon.png";
+import DocImage from "../../../../../../public/media/assets/Docx_file_icon.png";
+import PPTImage from "../../../../../../public/media/assets/PowerPoint_file_icon.png";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -125,7 +126,65 @@ const ContentEdit = ({ open, close, content }) => {
             setFile(media);
             setNewFile(true);
         }
-    }
+    };
+
+    const getFilePreview = () => {
+        if (!file) {
+            return <FolderOff sx={{ color: "text.secondary", fontSize: "32px" }} />;
+        }
+
+        if (contentType === "Image") {
+            return (
+                <img
+                    src={URL.createObjectURL(file)}
+                    alt={`${contentType} Preview`}
+                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    onError={() => setFile(null)}
+                />
+            );
+        }
+
+        if (contentType === "Document") {
+            const fileExtension = file.name.toLowerCase();
+            if (fileExtension.endsWith('.pdf')) {
+                return (
+                    <img
+                        src={PDFImage}
+                        alt="PDF Icon"
+                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    />
+                );
+            } else if (fileExtension.match(/\.docx?$/)) {
+                return (
+                    <img
+                        src={DocImage}
+                        alt="Document Icon"
+                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    />
+                );
+            }
+            return (
+                <img
+                    src={DocImage}
+                    alt="Document Icon"
+                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                />
+            );
+        }
+
+        if (contentType === "PowerPoint") {
+            return (
+                <img
+                    src={PPTImage}
+                    alt={`${contentType} Icon`}
+                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                />
+            );
+        }
+
+        return null;
+    };
+    const filePreview = getFilePreview();
 
     // Video Link Handlers
     const verifyLink = (value) => {
@@ -462,46 +521,89 @@ const ContentEdit = ({ open, close, content }) => {
                                         </Grid>
                                     </Grid>
                                 ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
-                                    <FormControl fullWidth sx={{ display: "flex" }}>
-                                        <TextField
-                                            fullWidth
-                                            label={`Upload ${contentType}`}
-                                            variant="outlined"
-                                            value={file ? `${file.name}, ${getFileSize(file.size)}` : ""}
-                                            error={fileError}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                document.getElementById('file-upload').click();
-                                            }}
-                                            InputProps={{
-                                                readOnly: true,
-                                                endAdornment: (
-                                                    <InputAdornment position="end">
-                                                        {file && (
-                                                            <IconButton
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    setFile(null);
-                                                                }}
-                                                                size="small"
-                                                                sx={{ marginLeft: '8px' }}
-                                                            >
-                                                                <Cancel />
-                                                            </IconButton>
-                                                        )}
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                            helperText={
-                                                contentType === "Image"
-                                                    ? "Upload an image (.png, .jpg, .jpeg), 5 MB size limit"
-                                                    : contentType === "Document"
-                                                        ? "Upload a document (.doc, .docx, .pdf), 10 MB size limit"
-                                                        : contentType === "PowerPoint"
-                                                            ? "Upload a PowerPoint (.ppt, .pptx, etc.), 20 MB size limit"
-                                                            : ""
-                                            }
-                                        />
+                                    <Grid container direction="row" alignItems="center" spacing={2}>
+                                        <Grid item xs={9}>
+                                            <FormControl fullWidth sx={{ display: "flex" }}>
+                                                <TextField
+                                                    fullWidth
+                                                    label={`Upload ${contentType}`}
+                                                    variant="outlined"
+                                                    value={file ? `${file.name}, ${getFileSize(file.size)}` : ""}
+                                                    error={fileError}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        document.getElementById('file-upload').click();
+                                                    }}
+                                                    InputProps={{
+                                                        readOnly: true,
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                {file && (
+                                                                    <IconButton
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            setFile(null);
+                                                                        }}
+                                                                        size="small"
+                                                                        sx={{ marginLeft: '8px' }}
+                                                                    >
+                                                                        <Cancel />
+                                                                    </IconButton>
+                                                                )}
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    helperText={
+                                                        contentType === "Image"
+                                                            ? "Upload an image (.png, .jpg, .jpeg), 5 MB size limit"
+                                                            : contentType === "Document"
+                                                                ? "Upload a document (.doc, .docx, .pdf), 10 MB size limit"
+                                                                : contentType === "PowerPoint"
+                                                                    ? "Upload a PowerPoint (.ppt, .pptx, etc.), 20 MB size limit"
+                                                                    : ""
+                                                    }
+                                                />
+                                                <input
+                                                    accept={
+                                                        contentType === "Image"
+                                                            ? ".png, .jpg, .jpeg"
+                                                            : contentType === "Document"
+                                                                ? ".doc, .docx, .pdf"
+                                                                : contentType === "PowerPoint"
+                                                                    ? ".ppt, .pptx, .pptm, .potx, .potm, .ppsx, .ppsm"
+                                                                    : ""
+                                                    }
+                                                    id="file-upload"
+                                                    type="file"
+                                                    name="file"
+                                                    style={{ display: "none" }}
+                                                    aria-label={`Upload ${contentType}`}
+                                                    onChange={handleFileUpload}
+                                                />
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item xs={3}>
+                                            <Stack sx={{ placeContent: "center", placeItems: "center" }}>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        alignItems: "center",
+                                                        padding: file ? 0 : 2,
+                                                        border: "2px solid #e0e0e0",
+                                                        borderRadius: file ? 0 : "4px",
+                                                        width: file ? "auto" : "80%",
+                                                        height: "90px",
+                                                        overflow: "hidden",
+                                                    }}
+                                                >
+                                                    {filePreview}
+                                                </Box>
+                                                <Typography variant="caption" sx={{ color: "text.secondary", mt: 1 }}>
+                                                    {file ? `${contentType} Preview` : "No File Selected"}
+                                                </Typography>
+                                            </Stack>
+                                        </Grid>
                                         <input
                                             accept={
                                                 contentType === "Image"
@@ -519,7 +621,8 @@ const ContentEdit = ({ open, close, content }) => {
                                             aria-label={`Upload ${contentType}`}
                                             onChange={handleFileUpload}
                                         />
-                                    </FormControl>
+                                    </Grid>
+
                                 ) : null}
                             </Grid>
                             {/* Description Field */}
