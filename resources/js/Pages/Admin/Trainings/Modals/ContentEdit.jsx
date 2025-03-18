@@ -535,7 +535,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                     setDescription(value);
                                                 }
                                             }}
-                                            placeholder="Enter training description here *"
+                                            placeholder="Enter content description here *"
                                             modules={{
                                                 toolbar: [
                                                     [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
