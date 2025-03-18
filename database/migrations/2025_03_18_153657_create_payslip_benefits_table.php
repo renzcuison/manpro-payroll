@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('payslip_benefits', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('payslip_id');
+            $table->unsignedBigInteger('benefit_id');
+            $table->decimal('employee_amount', 10, 2)->nullable();
+            $table->decimal('employer_amount', 10, 2)->nullable();
             $table->timestamps();
+
+            $table->foreign('payslip_id')->references('id')->on('payslips');
+            $table->foreign('benefit_id')->references('id')->on('benefits');
         });
     }
 

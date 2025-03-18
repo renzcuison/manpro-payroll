@@ -18,6 +18,9 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->boolean('is_paid');
             $table->timestamps();
+
+            $table->foreign('payslip_id')->references('id')->on('payslips');
+            $table->foreign('application_type_id')->references('id')->on('application_types');
         });
     }
 
