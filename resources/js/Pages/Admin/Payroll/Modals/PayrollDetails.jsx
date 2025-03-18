@@ -169,6 +169,50 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                         </Box>
 
                         <Grid container spacing={4} sx={{ px: 8 }}>
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employee Name</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Role</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.role} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Department</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.department} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employment Type</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.employment_type} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Title</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.jobTitle} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Branch</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.branch} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
+
+                        <Grid container spacing={4} sx={{ px: 8 }}>
                             <Grid item xs={4}>
                                 <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
                                     <Table size="small">
