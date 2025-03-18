@@ -170,6 +170,47 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
                         <Grid container spacing={4} sx={{ px: 8 }}>
                             <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Monthly Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perMonth) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Daily Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perDay) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Hourly Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perHour) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
+
+                        <Grid container spacing={4} sx={{ px: 8 }}>
+                            <Grid item xs={4}>
                                 <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
                                     <Table size="small">
                                         <TableHead>
@@ -307,7 +348,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                         <Grid container spacing={4} sx={{ px: 8 }}>
                             {summaries.map((summary) => (
                                 <Grid item xs={4} key={summary.name}>
-                                    <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <TableContainer sx={{ mb: 4, border: '1px solid #ccc' }}>
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
