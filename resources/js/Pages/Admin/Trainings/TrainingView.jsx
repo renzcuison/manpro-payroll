@@ -267,8 +267,35 @@ const TrainingView = () => {
     }
 
     // Training Activation
-    const handleActivateTraining = () => {
-        if (content.length == 0) {
+    const handleUpdateStatus = (type) => {
+        let title, text, status, endMessage;
+        switch (type) {
+            case "Activate":
+                title = "Activate Training?";
+                text = "Details and Content can no longer be edited";
+                endMessage = "activated";
+                status = "Active";
+                break;
+            case "Show":
+                title = "Show Training?";
+                text = "Training will be visible to employees";
+                endMessage = "displayed";
+                status = "Active";
+                break;
+            case "Hide":
+                title = "Hide Training?";
+                text = "Training will be hidden from employees";
+                endMessage = "hidden";
+                status = "Hidden";
+                break;
+            case "Cancel":
+                title = "Cancel Training?";
+                text = "This action cannot be undone!";
+                endMessage = "cancelled";
+                status = "Cancelled";
+                break;
+        }
+        if (content.length == 0 && type == "Activate") {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -282,11 +309,11 @@ const TrainingView = () => {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                title: "Activate Training",
-                text: "Details and Content can no longer be edited",
+                title: title,
+                text: text,
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Activate",
+                confirmButtonText: type,
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "No",
@@ -294,7 +321,7 @@ const TrainingView = () => {
                 if (res.isConfirmed) {
                     const data = {
                         code: training.unique_code,
-                        status: "Active"
+                        status: status
                     };
                     axiosInstance
                         .post("/trainings/updateTrainingStatus", data, {
@@ -306,7 +333,7 @@ const TrainingView = () => {
                             Swal.fire({
                                 customClass: { container: "my-swal" },
                                 title: "Success!",
-                                text: `Training successfully activated!`,
+                                text: `Training successfully ${endMessage}!`,
                                 icon: "success",
                                 showConfirmButton: true,
                                 confirmButtonText: "Okay",
@@ -354,44 +381,80 @@ const TrainingView = () => {
                                                         {training.title || "-"}
                                                     </Typography>
                                                     {/* Options */}
-                                                    <IconButton
-                                                        id="basic-button"
-                                                        size="small"
-                                                        aria-controls={open ? 'basic-menu' : undefined}
-                                                        aria-haspopup="true"
-                                                        aria-expanded={open ? 'true' : undefined}
-                                                        onClick={handleMenuClick}
-                                                    >
-                                                        <MoreVert />
-                                                    </IconButton>
-                                                    <Menu
-                                                        id="basic-menu"
-                                                        anchorEl={anchorEl}
-                                                        open={menuOpen}
-                                                        onClose={handleMenuClose}
-                                                        MenuListProps={{
-                                                            'aria-labelledby': 'basic-button',
-                                                        }}
-                                                    >
-                                                        {/* Edit Training */}
-                                                        <MenuItem
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleOpenEditTrainingModal();
-                                                                handleMenuClose();
-                                                            }}>
-                                                            Edit
-                                                        </MenuItem>
-                                                        {/* Activate Training */}
-                                                        <MenuItem
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleActivateTraining();
-                                                                handleMenuClose();
-                                                            }}>
-                                                            Activate
-                                                        </MenuItem>
-                                                    </Menu>
+                                                    {training.status != "Cancelled" && (
+                                                        <>
+                                                            <IconButton
+                                                                id="basic-button"
+                                                                size="small"
+                                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                                aria-haspopup="true"
+                                                                aria-expanded={open ? 'true' : undefined}
+                                                                onClick={handleMenuClick}
+                                                            >
+                                                                <MoreVert />
+                                                            </IconButton>
+                                                            <Menu
+                                                                id="basic-menu"
+                                                                anchorEl={anchorEl}
+                                                                open={menuOpen}
+                                                                onClose={handleMenuClose}
+                                                                MenuListProps={{
+                                                                    'aria-labelledby': 'basic-button',
+                                                                }}
+                                                            >
+                                                                {/* Edit Training */}
+                                                                {training.status == "Pending" && (
+                                                                    <MenuItem
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleOpenEditTrainingModal();
+                                                                            handleMenuClose();
+                                                                        }}>
+                                                                        Edit
+                                                                    </MenuItem>
+                                                                )}
+                                                                {/* Activate Training */}
+                                                                {training.status == "Pending" && (
+                                                                    <MenuItem
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleUpdateStatus("Activate");
+                                                                            handleMenuClose();
+                                                                        }}>
+                                                                        Activate
+                                                                    </MenuItem>
+                                                                )}
+                                                                {training.status == "Active" && (
+                                                                    <MenuItem
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleUpdateStatus("Hide");
+                                                                            handleMenuClose();
+                                                                        }}>
+                                                                        Hide
+                                                                    </MenuItem>
+                                                                )}
+                                                                {training.status == "Hidden" && (
+                                                                    <MenuItem
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleUpdateStatus("Show");
+                                                                            handleMenuClose();
+                                                                        }}>
+                                                                        Show
+                                                                    </MenuItem>
+                                                                )}
+                                                                <MenuItem
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        handleUpdateStatus("Cancel");
+                                                                        handleMenuClose();
+                                                                    }}>
+                                                                    Cancel
+                                                                </MenuItem>
+                                                            </Menu>
+                                                        </>
+                                                    )}
                                                 </Stack>
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }} >
