@@ -116,6 +116,7 @@ const TrainingView = () => {
             });
     }
 
+    // Training Content
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
@@ -144,17 +145,37 @@ const TrainingView = () => {
 
     // Content Image
     const renderImage = (source, type) => {
+        let src = "../../../images/ManProTab.png";
+
         switch (type) {
             case "Image":
                 return `${location.origin}/storage/${source}`;
             case "Document":
             case "PowerPoint":
             case "Video":
+                // YouTube links
+                const youtubeId = getYouTubeId(source);
+                if (youtubeId) {
+                    src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+                    return src;
+                }
+                // Direct Video URLs
+                const hasVideoExtension = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
+                if (hasVideoExtension) {
+                    // Add Later
+                }
+                return src;
             case "Form":
                 return "../../../images/ManProTab.png";
             default:
                 return "../../../images/ManProTab.png";
         }
+    };
+    const getYouTubeId = (url) => {
+        const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+        const match = url.match(regex);
+        const id = match ? match[1] : null;
+        return id && id.length === 11 ? id : null;
     };
 
     // Training Visibility

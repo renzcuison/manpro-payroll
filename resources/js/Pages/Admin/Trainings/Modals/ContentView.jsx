@@ -73,11 +73,27 @@ const ContentView = ({ open, close, contentInfo }) => {
             case "Document":
             case "PowerPoint":
             case "Video":
+                const youtubeId = getYouTubeId(source);
+                if (youtubeId) {
+                    return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+
+                }
+                // Direct Video URLs
+                const hasVideoExtension = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
+                if (hasVideoExtension) {
+                    // Add Later
+                }
             case "Form":
                 return "../../../../images/ManProTab.png";
             default:
                 return "../../../../images/ManProTab.png";
         }
+    };
+    const getYouTubeId = (url) => {
+        const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+        const match = url.match(regex);
+        const id = match ? match[1] : null;
+        return id && id.length === 11 ? id : null;
     };
 
     // Edit Content
@@ -151,7 +167,7 @@ const ContentView = ({ open, close, contentInfo }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' }, maxHeight: "450px" }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Content Details </Typography>
@@ -162,12 +178,12 @@ const ContentView = ({ open, close, contentInfo }) => {
                 <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box>
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
-                            {content.content.type == "Image" && (
+                            {["Image", "Video"].includes(content.content.type) && (
                                 <Grid item xs={12}>
                                     <CardMedia
                                         component="img"
                                         sx={{
-                                            width: "56%",
+                                            width: "100%",
                                             aspectRatio: "16 / 9",
                                             objectFit: "contain",
                                             borderRadius: "4px",
