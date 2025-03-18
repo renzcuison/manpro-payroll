@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payslip_earnings', function (Blueprint $table) {
+        Schema::create('payslip_deductions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('payslip_id');
-            $table->integer('earning_id');
+            $table->integer('deduction_id');
             $table->decimal('amount', 10, 2);
             $table->timestamps();
 
@@ -27,11 +27,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payslip_earnings');
+        Schema::dropIfExists('payslip_deductions');
     }
 
     // Reference for 'earning_id':
-    // 1 - Basic Pay
-    // 2 - Overtime Pay
-    // 3 - Holiday Pay
+    // 1 - Absents
+    // 2 - Tardiness
+    // 3 - Cash Advance
+    // 4 - Loans
+    // 5 - Tax
 };

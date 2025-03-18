@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
 use App\Models\PayslipsModel;
+use App\Models\PayslipEarningsModel;
+use App\Models\PayslipDeductionsModel;
 
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
-
-
-
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -524,9 +523,9 @@ class PayrollController extends Controller
         $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings;
 
         $earnings = [
-            ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay], // Earning Type - 1
-            ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay], // Earning Type - 2
-            ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay], // Earning Type - 3
+            ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
+            ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
+            ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
         ];
 
         $tardiness = 0;
@@ -618,6 +617,30 @@ class PayrollController extends Controller
         log::info($payslip);
 
 
+        foreach ($payrollData['earnings'] as $earning) {
+
+            $newEarning = PayslipEarningsModel::create([
+                "payslip_id" => $payslip->id,
+                "earning_id" => $earning['earning'],
+                "amount" => $earning['amount'],
+            ]);
+
+
+            log::info($newEarning);
+        }
+
+        foreach ($payrollData['deductions'] as $deduction) {
+
+            $newDeduction = PayslipDeductionsModel::create([
+                "payslip_id" => $payslip->id,
+                "deduction_id" => $deduction['deduction'],
+                "amount" => $deduction['amount'],
+            ]);
+
+            log::info($newDeduction);
+        }
+
+
 
 
 
@@ -639,12 +662,11 @@ class PayrollController extends Controller
 
     
         // Log each component separately
-        // Log::info("Take Home Pay: " . ($payrollData['takeHomePay'] ?? 'N/A'));
+
         // Log::info("Payroll Data: ", $payrollData['payroll'] ?? []);
         // Log::info("Benefits: ", $payrollData['benefits'] ?? []);
-        // Log::info("Earnings: ", $payrollData['earnings'] ?? []);
-        // Log::info("Deductions: ", $payrollData['deductions'] ?? []);
-        // Log::info("Summaries: ", $payrollData['summaries'] ?? []);
+
+
         // Log::info("Paid Leaves: ", $payrollData['paid_leaves'] ?? []);
         // Log::info("Unpaid Leaves: ", $payrollData['unpaid_leaves'] ?? []);
     
@@ -652,10 +674,7 @@ class PayrollController extends Controller
 
 
 
-        return response()->json([
-            'status' => 200,
-            // 'payrollData' => $payrollData
-        ]);
+        return response()->json([ 'status' => 200 ]);
     }    
     
 }
