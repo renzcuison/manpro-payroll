@@ -79,22 +79,14 @@ const EmployeeAddBenefit = ({ open, close, empId }) => {
         }
     };
 
-
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = {
-            employee: empId,
-            benefit: benefit,
-            number: number
-        };
-
-        console.log(data);
+        const data = { employee: empId, benefit: benefit, number: number };
 
         axiosInstance.post('/benefits/addEmployeeBenefit', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
-
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Benefit added successfully!",

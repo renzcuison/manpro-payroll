@@ -105,8 +105,45 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
     const checkInput = (event) => {
         event.preventDefault();
+    
+        new Swal({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "You want to save this payslip?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: 'Save',
+            confirmButtonColor: '#177604',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                saveInput(event); 
+            }
+        });
     };
-
+    
+    const saveInput = (event) => {
+        event.preventDefault();
+    
+        const data = {
+            selectedPayroll: selectedPayroll,
+            currentStartDate: currentStartDate,
+            currentEndDate: currentEndDate,
+        };
+    
+        console.log(data);
+    
+        axiosInstance.post('/payroll/savePayroll', data, { headers })
+            .then(response => {
+                console.log("Payroll saved successfully!", response.data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+    
+    
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
@@ -123,7 +160,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                 </DialogTitle>
 
                 <DialogContent sx={{ px: 5, pb: 5 }}>
-                    <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                    <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <Box display="flex" flexDirection="column" alignItems="center" sx={{ mt: 1 }}>
                             <Box component="div" sx={{ backgroundImage: `url(${HomeLogo})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', height: 105, width: 300 }} />
@@ -141,7 +178,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {earnings.filter((earning) => earning.name !== "Total Earnings").map((earning) => (
+                                            {earnings.map((earning) => (
                                                 <TableRow key={earning.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{earning.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
@@ -162,7 +199,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                                 </TableRow>
                                             ))}
 
-                                            {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
+                                            {deductions.map((deduction) => (
                                                 <TableRow key={deduction.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right">
@@ -286,7 +323,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                     </Box>
 
                     <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
-                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={checkInput}>
                             <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                         </Button>
                     </Box>
