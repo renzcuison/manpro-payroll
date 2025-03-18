@@ -55,9 +55,9 @@ import {
 import { first } from "lodash";
 import { CardActions } from "@material-ui/core";
 
-import PdfImage from '../../../../images/FileTypeIcons/PDF_file_icon.png';
-import DocImage from '../../../../images/FileTypeIcons/Docx_file_icon.png';
-import XlsImage from '../../../../images/FileTypeIcons/Excel_file_icon.png';
+import PdfImage from '../../../../../public/media/assets/PDF_file_icon.png';
+import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
+import XlsImage from '../../../../../public/media/assets/Excel_file_icon.png';
 
 const AnnouncementView = () => {
     const { code } = useParams();
