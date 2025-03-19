@@ -301,11 +301,11 @@ const Sidebar = ({ children, closeMini }) => {
                                     <i className="fa fa-bullhorn" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
                                 </StyledNav>
 
-                                {/* <StyledNav to={`/admin/trainings`} >
+                                <StyledNav to={`/admin/trainings`} >
                                     <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Trainings</span>
                                 </StyledNav>
 
-                                <StyledNav to={`/admin/performance-evaluation`} >
+                                {/*<StyledNav to={`/admin/performance-evaluation`} >
                                     <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                 </StyledNav> */}
 
