@@ -154,14 +154,30 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
         switch (type) {
             case "Image":
                 return `${location.origin}/storage/${source}`;
+
+            case "Video":
+                const youtubeId = getYouTubeId(source);
+                if (youtubeId) {
+                    return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+                }
+                const hasVideoExtension = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
+                if (hasVideoExtension) {
+                    // Add Later
+                    return "../../../../images/ManProTab.png";
+                }
             case "Document":
             case "PowerPoint":
-            case "Video":
             case "Form":
                 return "../../../../images/ManProTab.png";
             default:
                 return "../../../../images/ManProTab.png";
         }
+    };
+    const getYouTubeId = (url) => {
+        const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+        const match = url.match(regex);
+        const id = match ? match[1] : null;
+        return id && id.length === 11 ? id : null;
     };
 
     const confirmExit = (event) => {
