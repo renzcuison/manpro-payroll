@@ -60,9 +60,8 @@ import { first } from "lodash";
 import TrainingsEdit from "./Modals/TrainingsEdit";
 import ContentAdd from "./Modals/ContentAdd";
 
-import PdfImage from '../../../../../public/media/assets/PDF_file_icon.png';
+import PDFImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
-import XlsImage from '../../../../../public/media/assets/Excel_file_icon.png';
 import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.png';
 
 import ContentSettings from "./Modals/ContentSettings";
@@ -150,6 +149,17 @@ const TrainingView = () => {
         switch (type) {
             case "Image":
                 return `${location.origin}/storage/${source}`;
+            case "Document":
+                const docExtension = source.split('.').pop().toLowerCase();
+                if (docExtension === 'pdf') {
+                    return PDFImage;
+                }
+                if (['doc', 'docx'].includes(docExtension)) {
+                    return DocImage;
+                }
+                return "../../../../images/ManProTab.png";
+            case "PowerPoint":
+                return PPTImage;
             case "Video":
                 // YouTube links
                 const youtubeId = getYouTubeId(source);
@@ -163,8 +173,6 @@ const TrainingView = () => {
                     // Add Later
                 }
                 return src;
-            case "Document":
-            case "PowerPoint":
             case "Form":
                 return "../../../images/ManProTab.png";
             default:
@@ -648,7 +656,19 @@ const TrainingView = () => {
                                                     <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleOpenContentViewModal(cont)}>
                                                         <Card sx={{ boxShadow: 3 }}>
                                                             <CardMedia
-                                                                sx={{ height: '180px', backgroundColor: 'transparent' }}
+                                                                sx={{
+                                                                    height: '180px',
+                                                                    backgroundColor: 'transparent',
+                                                                    width: '100%',
+                                                                    display: 'flex',
+                                                                    placeSelf: 'center',
+                                                                    ...(["Document", "PowerPoint"].includes(cont.content.type)
+                                                                        ? {
+                                                                            objectFit: "contain",
+                                                                            width: '64%',
+                                                                        }
+                                                                        : {}),
+                                                                }}
                                                                 image={renderImage(cont.content.source, cont.content.type || 'Form')}
                                                                 alt={cont.title || 'Content Item'}
                                                             />
