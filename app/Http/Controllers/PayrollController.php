@@ -3,27 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
-use App\Models\WorkHoursModel;
-use App\Models\WorkGroupsModel;
-use App\Models\WorkShiftsModel;
-use App\Models\AttendanceLogsModel;
+use App\Models\PayslipsModel;
+use App\Models\PayslipLeavesModel;
+use App\Models\PayslipBenefitsModel;
+use App\Models\PayslipEarningsModel;
+use App\Models\PayslipDeductionsModel;
 
-use App\Models\WorkDaysModel;
-use App\Models\BranchesModel;
-use App\Models\JobTitlesModel;
-use App\Models\DepartmentsModel;
-use App\Models\EmployeeRolesModel;
-use App\Models\LeaveCreditsModel;
+
 use App\Models\ApplicationsModel;
+use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
-
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Crypt;
 
 use Carbon\Carbon;
 
@@ -261,10 +258,11 @@ class PayrollController extends Controller
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
 
-            $benefits[] = ['name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount];
+            $benefits[] = ['benefit' => encrypt($benefit->id), 'name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount];
         }
 
         $benefits[] = [
+            'benefit' => "",
             'name' => "Total Benefits",
             'employeeAmount' => $employeeShare,
             'employerAmount' => $employerShare
@@ -290,13 +288,6 @@ class PayrollController extends Controller
 
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
-
-        $perCutOff = $employee->salary / 2;
-        $perDay = $perCutOff / $numberOfWorkingDays;
-        $perHour = $perDay / 8;
-        $perMin = $perHour / 60;
-
-        $absents = $perDay * $numberOfAbsentDays;
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -336,7 +327,13 @@ class PayrollController extends Controller
         } elseif ($workHours->shift_type === 'Split') {
             $totalWorkHours += $secondOut->diffInSeconds($secondIn) / 3600;
         }
-        $hourlyRate = $perDay / $totalWorkHours;
+
+        $perCutOff = $employee->salary / 2;
+        $perDay = $perCutOff / $numberOfWorkingDays;
+        $perHour = $perDay / $totalWorkHours;
+        $perMin = $perHour / 60;
+
+        $absents = $perDay * $numberOfAbsentDays;
 
         // ============== LEAVES ==============
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $employee->client_id)->get();
@@ -356,13 +353,11 @@ class PayrollController extends Controller
             ->get()
             ->groupBy('type_id');
 
-        log::info($applications);
-
         foreach ($applicationTypes as $applicationType) {
-            log::info($applicationType);
+            // log::info($applicationType);
 
             $apps = $applications->get($applicationType->id, collect());
-            log::info($apps);
+            // log::info($apps);
             $days = 0;
             $totalHours = 0;
 
@@ -469,11 +464,12 @@ class PayrollController extends Controller
                     if ($applicationType->is_paid_leave) {
                         Log::info("Paid Leave");
                         Log::info("Leave Percentage:    {$applicationType->percentage}%");
-                        $earningPerHour = $hourlyRate * ($applicationType->percentage / 100);
+                        $earningPerHour = $perHour * ($applicationType->percentage / 100);
                         $totalEarning = $totalHours * $earningPerHour;
                         $leaveEarnings += $totalEarning;
 
                         $paidLeaves[] = [
+                            'application' => encrypt($applicationType->id),
                             'name' => $applicationType->name,
                             'days' => $days,
                             'hours' => $remainderHours,
@@ -481,11 +477,12 @@ class PayrollController extends Controller
                         ];
                     } else {
                         Log::info("Unpaid Leave");
-                        $earningPerHour = $hourlyRate;
+                        $earningPerHour = $perHour;
                         $totalEarning = $totalHours * $earningPerHour;
                         $leaveEarnings += $totalEarning;
 
                         $unpaidLeaves[] = [
+                            'application' => encrypt($applicationType->id),
                             'name' => $applicationType->name,
                             'days' => $days,
                             'hours' => $remainderHours,
@@ -512,9 +509,9 @@ class PayrollController extends Controller
             'numberOfSaturday' => $numberOfSaturday,
             'numberOfSunday' => $numberOfSunday,
             'numberOfHoliday' => $numberOfHoliday,
-            'grossPay' => $employee->salary,
-            'perCutOff' => $perCutOff,
+            'perMonth' => $employee->salary,
             'perDay' => $perDay,
+            'perHour' => $perHour,
             'perMin' => $perMin,
             'employeeShare' => $employeeShare,
             'employerShare' => $employerShare,
@@ -529,10 +526,9 @@ class PayrollController extends Controller
         $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings;
 
         $earnings = [
-            ['name' => 'Basic Pay', 'amount' => $basicPay],
-            ['name' => 'Over Time Pay', 'amount' => $overTimePay],
-            ['name' => 'Holiday Pay', 'amount' => $holidayPay],
-            ['name' => 'Total Earnings', 'amount' => $totalEarnings],
+            ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
+            ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
+            ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
         ];
 
         $tardiness = 0;
@@ -543,26 +539,21 @@ class PayrollController extends Controller
         $totalDeductions =  $employeeShare + $tardiness + $cashAdvance + $loans + $tax;
 
         $deductions = [
-            // ['name' => 'Benefits', 'amount' => $employeeShare],
-            ['name' => 'Absents', 'amount' => $absents],
-            ['name' => 'Tardiness', 'amount' => $tardiness],
-            ['name' => 'Cash Advance', 'amount' => $cashAdvance],
-            ['name' => 'Loans', 'amount' => $loans],
-            ['name' => 'Tax', 'amount' => $tax],
-            ['name' => 'Total Deductions', 'amount' => $totalDeductions],
+            ['deduction' => '1', 'name' => 'Absents', 'amount' => $absents],
+            ['deduction' => '2', 'name' => 'Tardiness', 'amount' => $tardiness],
+            ['deduction' => '3', 'name' => 'Cash Advance', 'amount' => $cashAdvance],
+            ['deduction' => '4','name' => 'Loans', 'amount' => $loans],
+            ['deduction' => '5','name' => 'Tax', 'amount' => $tax],
         ];
-
-        $takeHomePay = $totalEarnings - $totalDeductions;
 
         $summaries = [
             ['name' => 'Total Earnings', 'amount' => $totalEarnings],
             ['name' => 'Total Deductions', 'amount' => $totalDeductions],
-            ['name' => 'Net Pay', 'amount' =>  $takeHomePay],
+            ['name' => 'Net Pay', 'amount' =>  $totalEarnings - $totalDeductions],
         ];
 
         return response()->json([
             'status' => 200,
-            'takeHomePay' => $takeHomePay,
             'payroll' => $payroll,
             'benefits' => $benefits,
             'earnings' => $earnings,
@@ -572,4 +563,102 @@ class PayrollController extends Controller
             'unpaid_leaves' => $unpaidLeaves
         ]);
     }
+
+    public function savePayroll(Request $request)
+    {
+        Log::info("PayrollController::savePayroll");
+
+        $user = Auth::user();
+
+        $payrollRequest = new Request([ 'selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate ]);
+    
+        // Call payrollDetails() and get response
+        $payrollResponse = $this->payrollDetails($payrollRequest);
+    
+        // Decode JSON response to access data
+        $payrollData = json_decode($payrollResponse->getContent(), true);
+    
+        if (!$payrollData) {
+            Log::error("Failed to decode payroll data.");
+            return response()->json(['error' => 'Invalid payroll data'], 500);
+        }
+
+        $totalEarning = 0;
+        $totalDeduction = 0;
+
+        foreach ($payrollData['summaries'] as $summary) {
+            if ($summary['name'] === 'Total Earnings') {
+                $totalEarning = $summary['amount'];
+            }
+
+            if ($summary['name'] === 'Total Deductions') {
+                $totalDeduction = $summary['amount'];
+            }
+        }
+
+        $payroll = $payrollData['payroll'];
+
+        try {
+            DB::beginTransaction();
+
+            $payslip = PayslipsModel::create([
+                "employee_id" => $request->selectedPayroll,
+                "period_start" => $request->currentStartDate,
+                "period_end" => $request->currentEndDate,
+    
+                "total_earnings" => $totalEarning,
+                "total_deductions" => $totalDeduction,
+    
+                "rate_monthly" => $payroll['grossPay'],
+                "rate_daily" => $payroll['perDay'],
+                "rate_hourly" => $payroll['perHour'],
+    
+                "user_id" => $user->id,
+            ]);
+    
+            foreach ($payrollData['earnings'] as $earning) {
+                $newEarning = PayslipEarningsModel::create([ "payslip_id" => $payslip->id, "earning_id" => $earning['earning'], "amount" => $earning['amount'] ]);
+            }
+    
+            foreach ($payrollData['deductions'] as $deduction) {
+                $newDeduction = PayslipDeductionsModel::create([ "payslip_id" => $payslip->id, "deduction_id" => $deduction['deduction'], "amount" => $deduction['amount'] ]);
+            }
+    
+            foreach ($payrollData['paid_leaves'] as $paidLeave) {
+                $newPaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => decrypt($paidLeave['application']), "amount" => $paidLeave['amount'], "is_paid" => true ]);
+    
+                log::info($newPaidLeave);
+            }
+    
+            foreach ($payrollData['unpaid_leaves'] as $unpaidLeave) {
+                $newUnpaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => decrypt($unpaidLeave['application']), "amount" => $unpaidLeave['amount'], "is_paid" => false ]);
+    
+                log::info($newUnpaidLeave);
+            }
+    
+            foreach ($payrollData['benefits'] as $benefit) {
+                if ($benefit['name'] != "Total Benefits") {
+                    log::info($benefit);
+                    $newBenefit = PayslipBenefitsModel::create([ "payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount'] ]);
+        
+                    log::info($newBenefit);
+                }
+            }
+
+            DB::commit();
+        
+            return response()->json([ 'status' => 200 ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
+
+
+        return response()->json([ 'status' => 200 ]);
+    }    
+    
 }

@@ -105,8 +105,45 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
     const checkInput = (event) => {
         event.preventDefault();
+    
+        new Swal({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "You want to save this payslip?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: 'Save',
+            confirmButtonColor: '#177604',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                saveInput(event); 
+            }
+        });
     };
-
+    
+    const saveInput = (event) => {
+        event.preventDefault();
+    
+        const data = {
+            selectedPayroll: selectedPayroll,
+            currentStartDate: currentStartDate,
+            currentEndDate: currentEndDate,
+        };
+    
+        console.log(data);
+    
+        axiosInstance.post('/payroll/savePayroll', data, { headers })
+            .then(response => {
+                console.log("Payroll saved successfully!", response.data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+    
+    
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
@@ -123,13 +160,98 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                 </DialogTitle>
 
                 <DialogContent sx={{ px: 5, pb: 5 }}>
-                    <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                    <Box component="form" sx={{ mt: 3, py: 6, bgcolor: '#ffffff' }} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <Box display="flex" flexDirection="column" alignItems="center" sx={{ mt: 1 }}>
                             <Box component="div" sx={{ backgroundImage: `url(${HomeLogo})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', height: 105, width: 300 }} />
                             <Typography sx={{ marginTop: '5px' }}> Online Payslip </Typography>
                             <Typography sx={{ marginTop: '5px' }}> Pay Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)}</Typography>
                         </Box>
+
+                        <Grid container spacing={4} sx={{ px: 8 }}>
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employee Name</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Role</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.role} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Department</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.department} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employment Type</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.employment_type} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Title</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.jobTitle} </TableCell>
+                                            </TableRow>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Branch</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.branch} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
+
+                        <Grid container spacing={4} sx={{ px: 8 }}>
+                            <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Monthly Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perMonth) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Daily Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perDay) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Hourly Rate</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perHour) : "0"} </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
 
                         <Grid container spacing={4} sx={{ px: 8 }}>
                             <Grid item xs={4}>
@@ -141,7 +263,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {earnings.filter((earning) => earning.name !== "Total Earnings").map((earning) => (
+                                            {earnings.map((earning) => (
                                                 <TableRow key={earning.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{earning.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
@@ -162,7 +284,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                                                 </TableRow>
                                             ))}
 
-                                            {deductions.filter((deduction) => deduction.name !== "Total Deductions").map((deduction) => (
+                                            {deductions.map((deduction) => (
                                                 <TableRow key={deduction.name}>
                                                     <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
                                                     <TableCell sx={{ border: '1px solid #ccc' }} align="right">
@@ -270,7 +392,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                         <Grid container spacing={4} sx={{ px: 8 }}>
                             {summaries.map((summary) => (
                                 <Grid item xs={4} key={summary.name}>
-                                    <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
+                                    <TableContainer sx={{ mb: 4, border: '1px solid #ccc' }}>
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
@@ -286,7 +408,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                     </Box>
 
                     <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
-                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                        <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={checkInput}>
                             <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                         </Button>
                     </Box>
