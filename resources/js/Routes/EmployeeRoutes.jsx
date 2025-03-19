@@ -10,6 +10,8 @@ import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
 import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 import AnnouncementList from "../Pages/Employee/Announcements/AnnouncementList";
 import AnnouncementView from "../Pages/Employee/Announcements/AnnouncementView";
+import TrainingList from "../Pages/Employee/Trainings/TrainingList";
+import TrainingView from "../Pages/Employee/Trainings/TrainingView";
 import ProfileEdit from "../Pages/Employee/Profile/ProfileEdit";
 
 import MemberAttendance from "../Pages/Member/MemberAttendance";
@@ -46,6 +48,9 @@ const EmployeeRoutes = ({ user }) => {
             {/* Announcement Routes ----------------------------------------- */}
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
             <Route path="announcement/:code" element={<ProtectedRoute element={<AnnouncementView />} user={user} />} />
+
+            <Route path="trainings" element={<ProtectedRoute element={<TrainingList />} user={user} />} />
+            <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} />} />
 
             {/* Profile Routes ----------------------------------------- */}
             <Route path="profile-edit" element={<ProtectedRoute element={<ProfileEdit />} user={user} />} />

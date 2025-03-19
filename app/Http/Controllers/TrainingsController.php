@@ -54,7 +54,7 @@ class TrainingsController extends Controller
 
                     $training->video = $mediaTypes->contains('Video');
                     $training->image = $mediaTypes->contains('Image');
-                    $training->attachment = $mediaTypes->contains('Document');
+                    $training->attachment = $mediaTypes->contains('Document') || $mediaTypes->contains('Powerpoint');
                     $training->form = $contentModels->contains(function ($content) {
                         return $content instanceof \App\Models\TrainingFormsModel;
                     });
@@ -67,6 +67,43 @@ class TrainingsController extends Controller
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function getEmployeeTrainings()
+    {
+        Log::info("TrainingsController::getEmployeeTrainings");
+        $user = Auth::user();
+
+        try {
+            $trainings = TrainingsModel::where('client_id', $user->client_id)
+                ->where('status', 'Active')
+                ->where('start_date', "<=", now())
+                ->where('end_date', ">=", now())
+                ->with(['contents' => function ($query) {
+                    $query->with('content');
+                }])
+                ->get();
+
+            Log::info($trainings);
+
+
+            $trainings->each(function ($training) {
+                $mediaTypes = $training->contents->pluck('content.type')->filter()->unique();
+                $contentModels = $training->contents->pluck('content')->filter();
+
+                $training->video = $mediaTypes->contains('Video');
+                $training->image = $mediaTypes->contains('Image');
+                $training->attachment = $mediaTypes->contains('Document') || $mediaTypes->contains('PowerPoint');
+                $training->form = $contentModels->contains(function ($content) {
+                    return $content instanceof \App\Models\TrainingFormsModel;
+                });
+            });
+
+            return response()->json(['status' => 200, 'trainings' => $trainings]);
+        } catch (\Exception $e) {
+            Log::error("Error retrieving trainings: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error retrieving trainings'], 500);
         }
     }
 
@@ -496,6 +533,58 @@ class TrainingsController extends Controller
         } else {
             return response()->json(['status' => 200, 'content' => null]);
         }
+    }
+
+    public function getEmployeeTrainingDetails($code)
+    {
+        Log::info("TrainingsController::getEmployeeTrainingDetails");
+        //Log::info($code);
+
+        $user = Auth::user();
+
+        $training = TrainingsModel::where('unique_code', $code)
+            ->with('user')
+            ->firstOrFail();
+
+        $author = $training->user;
+
+        $training->author_name = implode(' ', array_filter([
+            $author->first_name ?? null,
+            $author->middle_name ?? null,
+            $author->last_name ?? null,
+            $author->suffix ?? null
+        ]));
+        $training->author_title = $author->jobTitle->name;
+
+        if ($training->cover_photo) {
+            $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
+            $training->cover_name = basename($training->cover_photo);
+        } else {
+            $training->cover = null;
+            $training->cover_name = null;
+        }
+
+        $trainingData = $training->toArray();
+        unset($trainingData['user']);
+
+        return response()->json(['status' => 200, 'training' => $trainingData]);
+    }
+
+    public function getEmployeeTrainingContent($code)
+    {
+        Log::info("TrainingsController::getEmployeeTrainingDetails");
+        $user = Auth::user();
+
+        $training = TrainingsModel::where('unique_code', $code)
+            ->select('id')
+            ->firstOrFail();
+
+        $content = TrainingContentModel::with('content')
+            ->where('training_id', $training->id)
+            ->orderBy('order', 'asc')
+            ->get();
+
+        return response()->json(['status' => 200, 'content' => $content]);
     }
 
     public function getContentDetails($id)
