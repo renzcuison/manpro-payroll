@@ -693,7 +693,7 @@ const TrainingView = () => {
                                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                                     {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
                                                                     {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
-                                                                    {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
+                                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: 'text.secondary' }} />}
                                                                     {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
                                                                     <Box sx={{ ml: 1 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>

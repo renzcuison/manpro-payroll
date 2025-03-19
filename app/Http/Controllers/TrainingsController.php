@@ -72,7 +72,7 @@ class TrainingsController extends Controller
 
     public function getEmployeeTrainings()
     {
-        Log::info("TrainingsController::getEmployeeTrainings");
+        //Log::info("TrainingsController::getEmployeeTrainings");
         $user = Auth::user();
 
         try {
@@ -84,9 +84,6 @@ class TrainingsController extends Controller
                     $query->with('content');
                 }])
                 ->get();
-
-            Log::info($trainings);
-
 
             $trainings->each(function ($training) {
                 $mediaTypes = $training->contents->pluck('content.type')->filter()->unique();
@@ -355,9 +352,9 @@ class TrainingsController extends Controller
                     case 'Image':
                     case 'Document':
                     case 'PowerPoint':
-                        Log::info($request->input('newFile'));
+                        //Log::info($request->input('newFile'));
                         if ($request->hasFile('file') && $request->input('newFile') == "true") {
-                            Log::info("Replacing File");
+                            //Log::info("Replacing File");
                             $file = $request->file('file');
                             $location = 'trainings/' . strtolower($contentType) . 's';
                             $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -537,7 +534,7 @@ class TrainingsController extends Controller
 
     public function getEmployeeTrainingDetails($code)
     {
-        Log::info("TrainingsController::getEmployeeTrainingDetails");
+        //Log::info("TrainingsController::getEmployeeTrainingDetails");
         //Log::info($code);
 
         $user = Auth::user();
@@ -572,7 +569,7 @@ class TrainingsController extends Controller
 
     public function getEmployeeTrainingContent($code)
     {
-        Log::info("TrainingsController::getEmployeeTrainingDetails");
+        //Log::info("TrainingsController::getEmployeeTrainingDetails");
         $user = Auth::user();
 
         $training = TrainingsModel::where('unique_code', $code)
@@ -589,8 +586,7 @@ class TrainingsController extends Controller
 
     public function getContentDetails($id)
     {
-        Log::info("TrainingsController::getContentDetails");
-        Log::info($id);
+        //Log::info("TrainingsController::getContentDetails");
 
         $user = Auth::user();
 
@@ -680,8 +676,8 @@ class TrainingsController extends Controller
 
     public function getSource($id)
     {
-        Log::info("TrainingsController:getSource");
-        Log::info($id);
+        //Log::info("TrainingsController:getSource");
+        //Log::info($id);
 
         try {
             $content = TrainingContentModel::find($id);

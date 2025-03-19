@@ -61,7 +61,7 @@ import PDFImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
 import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.png';
 
-const TrainingView = () => {
+const ContentView = () => {
     const { code } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -360,7 +360,7 @@ const TrainingView = () => {
                                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                                     {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
                                                                     {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
-                                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: 'text.secondary' }} />}
+                                                                    {cont.content.type === 'Document' && <Description sx={{ color: 'text.secondary' }} />}
                                                                     {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
                                                                     <Box sx={{ ml: 1 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -385,4 +385,4 @@ const TrainingView = () => {
     );
 };
 
-export default TrainingView;
+export default ContentView;

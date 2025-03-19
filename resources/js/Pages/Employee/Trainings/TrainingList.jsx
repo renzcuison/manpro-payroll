@@ -219,7 +219,7 @@ const TrainingList = () => {
                                                         <Card sx={{
                                                             borderRadius: 2,
                                                             boxShadow: 3,
-                                                            height: "360px",
+                                                            height: "300px",
                                                             display: "flex",
                                                             flexDirection: "column"
                                                         }}>
@@ -252,8 +252,8 @@ const TrainingList = () => {
                                                                 >
                                                                     {training.title}
                                                                 </Typography>
-                                                                {/* Status and Details */}
-                                                                <Grid container item key={index}>
+                                                                {/* Details */}
+                                                                <Grid container item key={index} sx={{ my: 1 }}>
                                                                     <Grid item xs={3}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
                                                                             Closes
