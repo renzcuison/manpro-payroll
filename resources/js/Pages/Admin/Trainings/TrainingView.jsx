@@ -150,8 +150,6 @@ const TrainingView = () => {
         switch (type) {
             case "Image":
                 return `${location.origin}/storage/${source}`;
-            case "Document":
-            case "PowerPoint":
             case "Video":
                 // YouTube links
                 const youtubeId = getYouTubeId(source);
@@ -165,6 +163,8 @@ const TrainingView = () => {
                     // Add Later
                 }
                 return src;
+            case "Document":
+            case "PowerPoint":
             case "Form":
                 return "../../../images/ManProTab.png";
             default:

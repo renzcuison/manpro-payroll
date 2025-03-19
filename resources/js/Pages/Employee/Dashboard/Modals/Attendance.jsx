@@ -360,18 +360,7 @@ const Attendance = ({ open, close }) => {
                                         return (
                                             <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
                                                 Overtime Available at{" "}
-                                                {(() => {
-                                                    const { parse, format } = require("date-fns");
-
-                                                    const dummyDate = new Date();
-                                                    const parsedTime = parse(
-                                                        workHour.over_time_in,
-                                                        "HH:mm:ss",
-                                                        dummyDate
-                                                    );
-
-                                                    return format(parsedTime, "hh:mm:ss a");
-                                                })()}
+                                                {dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
                                             </Box>
                                         );
                                     } else if (exactTime >= workHour?.over_time_in && exactTime <= workHour?.over_time_out) {
