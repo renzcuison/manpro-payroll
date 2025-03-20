@@ -57,6 +57,10 @@ import {
 } from "../../../components/utils/tableUtils";
 import { first } from "lodash";
 
+import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
+import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
+import PPTImage from "../../../../../public/media/assets/PowerPoint_file_icon.png";
+
 
 const ContentView = () => {
     const { code } = useParams();
@@ -73,6 +77,7 @@ const ContentView = () => {
     const [contentId, setContentId] = useState(null);
     const [contentList, setContentList] = useState([]);
 
+    // Load Session Data
     useEffect(() => {
         const storedContentId = sessionStorage.getItem('contentId');
         if (storedContentId) {
@@ -91,7 +96,6 @@ const ContentView = () => {
         setIsLoading(true);
         axiosInstance.get(`/trainings/getContentDetails/${id}`, { headers })
             .then((response) => {
-                console.log(response.data.content);
                 setContent(response.data.content);
                 setIsLoading(false);
             })
@@ -118,6 +122,62 @@ const ContentView = () => {
         getContentDetails(id);
         sessionStorage.setItem('contentId', id);
     }
+
+    // Content Image
+    const renderImage = (source, type) => {
+        switch (type) {
+            case "Image":
+                return `${location.origin}/storage/${source}`;
+            case "Document":
+                const docExtension = source.split('.').pop().toLowerCase();
+                if (docExtension === 'pdf') {
+                    return PDFImage;
+                }
+                if (['doc', 'docx'].includes(docExtension)) {
+                    return DocImage;
+                }
+                return "../../../../images/ManProTab.png";
+            case "PowerPoint":
+                return PPTImage;
+            case "Video":
+                return null;
+            case "Form":
+                return "../../../../images/ManProTab.png";
+            default:
+                return "../../../../images/ManProTab.png";
+        }
+    };
+
+    // Content Video
+    const renderVideo = (source) => {
+        const youtubeMatch = source.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+        if (youtubeMatch && youtubeMatch[1]) {
+            const videoId = youtubeMatch[1];
+            return (
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                    title={content.title || "Youtube Video Player"}
+                    style={{ border: '0' }}
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen></iframe>
+            );
+        }
+
+        const isDirectURL = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
+        if (isDirectURL) {
+            return (
+                <video width="100%" height="100%" controls>
+                    <source src={source} type={`video/${source.split('.').pop().toLowerCase()}`} />
+                    Your browser does not support the video tag.
+                </video>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <Layout title={"ContentView"}>
@@ -167,9 +227,70 @@ const ContentView = () => {
                                 ) : (
                                     <Grid container spacing={2}>
                                         <Grid item xs={12}>
-                                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                                            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sx={{ placeContent: "center", placeItems: "center" }}>
+                                            {content.content.type !== "Form" && (
+                                                <>
+                                                    {content.content.type === "Video" ? (
+                                                        <Box
+                                                            sx={{
+                                                                width: "90%",
+                                                                aspectRatio: "16 / 9",
+                                                                placeSelf: "center",
+                                                                mb: 1,
+                                                            }}
+                                                        >
+                                                            {renderVideo(content.content.source)}
+                                                        </Box>
+                                                    ) : (
+                                                        <CardMedia
+                                                            component="img"
+                                                            sx={{
+                                                                width: "80%",
+                                                                aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
+                                                                objectFit: "contain",
+                                                                borderRadius: "4px",
+                                                                backgroundColor: "transparent",
+                                                                placeSelf: "center",
+                                                                mb: 1,
+                                                                ...(["Document", "PowerPoint"].includes(content.content.type) && {
+                                                                    p: 1,
+                                                                    "&:hover": {
+                                                                        backgroundColor: "#e0e0e0",
+                                                                        transition: "background-color 0.3s ease",
+                                                                    },
+                                                                }),
+                                                            }}
+                                                            image={renderImage(content.content.source, content.content.type)}
+                                                            title={content.title || "Content Item"}
+                                                            alt={content.title || "Content Item"}
+                                                            onClick={
+                                                                ["Document", "PowerPoint"].includes(content.content.type)
+                                                                    ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                                    : undefined
+                                                            }
+                                                        />
+                                                    )}
+                                                </>
+                                            )}
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <Divider />
+                                        </Grid>
+                                        <Grid item xs={12} >
+                                            <div
+                                                id="description"
+                                                style={{
+                                                    wordWrap: 'break-word',
+                                                    wordBreak: 'break-word',
+                                                    overflowWrap: 'break-word',
+                                                    whiteSpace: 'pre-wrap',
+                                                }}
+                                                dangerouslySetInnerHTML={{ __html: content.description }}
+                                            />
                                         </Grid>
                                     </Grid>
                                 )}
