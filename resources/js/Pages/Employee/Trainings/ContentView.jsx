@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -113,8 +113,14 @@ const ContentView = () => {
                     const blob = new Blob([byteArray], { type: resContent.image_mime });
 
                     setImage(URL.createObjectURL(blob));
+                    if (!resContent.is_finished) {
+                        handleTrainingViews(resContent.id, true);
+                    }
                 } else {
                     setImage(null);
+                    if (!resContent.is_viewed && !resContent.is_finished) {
+                        handleTrainingViews(resContent.id, false);
+                    }
                 }
                 setIsLoading(false);
             })
@@ -206,6 +212,26 @@ const ContentView = () => {
         return null;
     };
 
+    // Content Viewed
+    const handleTrainingViews = (id, finished) => {
+        const data = {
+            code: code,
+            id: id,
+            finished: finished
+        };
+        axiosInstance
+            .post("/trainings/handleTrainingViews", data, {
+                headers,
+            })
+            .then((response) => {
+                getTrainingContent();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    }
+
     return (
         <Layout title={"ContentView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -240,6 +266,7 @@ const ContentView = () => {
                                                 display="flex"
                                                 sx={{
                                                     py: 1.5,
+                                                    justifyContent: "space-between",
                                                     ...(cont.id == contentId && {
                                                         backgroundColor: "#e9ae20",
                                                         borderRadius: "8px",
@@ -248,9 +275,21 @@ const ContentView = () => {
                                                 }}
                                                 onClick={() => handleContentChange(cont.id)}
                                             >
-                                                <Typography sx={{ color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
-                                                    {cont.title}
-                                                </Typography>
+                                                <Box display="flex">
+                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                    {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                    {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
+                                                        {cont.title}
+                                                    </Typography>
+                                                </Box>
+                                                {cont.is_finished ? (
+                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604" }} />
+                                                ) : cont.has_viewed ? (
+                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00" }} />
+                                                )
+                                                    : null}
                                             </Box>
                                         ))
                                     )}

@@ -32,4 +32,9 @@ class TrainingContentModel extends Model
     {
         return $this->morphTo();
     }
+
+    public function views()
+    {
+        return $this->hasMany(TrainingViewsModel::class, 'training_content_id');
+    }
 }

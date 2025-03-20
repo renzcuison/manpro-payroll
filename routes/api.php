@@ -264,6 +264,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editContent', [TrainingsController::class, 'editContent']);
         Route::post('/removeContent', [TrainingsController::class, 'removeContent']);
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
+
+        Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
     });
 
 

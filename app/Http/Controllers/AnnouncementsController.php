@@ -489,7 +489,9 @@ class AnnouncementsController extends Controller
                     return [
                         'id' => $file->id,
                         'filename' => basename($file->path),
-                        'type' => $file->type
+                        'type' => $file->type,
+                        'data' => base64_encode(Storage::disk('public')->get($file->path)),
+                        'mime' => mime_content_type(storage_path('app/public/' . $file->path))
                     ];
                 })
                 ->values()
@@ -534,7 +536,9 @@ class AnnouncementsController extends Controller
                 return [
                     'id' => $file->id,
                     'filename' => basename($file->path),
-                    'type' => $file->type
+                    'type' => $file->type,
+                    'data' => base64_encode(Storage::disk('public')->get($file->path)),
+                    'mime' => mime_content_type(storage_path('app/public/' . $file->path))
                 ];
             })
             ->values()

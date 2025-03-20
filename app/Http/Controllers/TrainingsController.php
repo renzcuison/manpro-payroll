@@ -35,6 +35,7 @@ class TrainingsController extends Controller
         return false;
     }
 
+    // Training List
     public function getTrainings()
     {
         //Log::info("TrainingsController::getTrainings");
@@ -104,6 +105,7 @@ class TrainingsController extends Controller
         }
     }
 
+    // Training CRUD
     public function saveTraining(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");
@@ -236,6 +238,7 @@ class TrainingsController extends Controller
         }
     }
 
+    // Content CRUD
     public function saveContent(Request $request)
     {
         //Log::info("TrainingsController::saveContent");
@@ -472,6 +475,7 @@ class TrainingsController extends Controller
         }
     }
 
+    // Training/Content Details
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
@@ -571,17 +575,28 @@ class TrainingsController extends Controller
 
     public function getEmployeeTrainingContent($code)
     {
-        //Log::info("TrainingsController::getEmployeeTrainingDetails");
+        // Log::info("TrainingsController::getEmployeeTrainingDetails");
         $user = Auth::user();
 
         $training = TrainingsModel::where('unique_code', $code)
             ->select('id')
             ->firstOrFail();
 
-        $content = TrainingContentModel::with('content')
+        $content = TrainingContentModel::with(['content', 'views' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])
             ->where('training_id', $training->id)
             ->orderBy('order', 'asc')
             ->get();
+
+        $content->each(function ($contentItem) {
+            $view = $contentItem->views->first();
+
+            $contentItem->has_viewed = !is_null($view);
+            $contentItem->is_finished = $view && $view->status === 'Finished';
+
+            unset($contentItem->views);
+        });
 
         return response()->json(['status' => 200, 'content' => $content]);
     }
@@ -592,17 +607,26 @@ class TrainingsController extends Controller
 
         $user = Auth::user();
 
-        $content = TrainingContentModel::with('content')->find($id);
+        $content = TrainingContentModel::with(['content', 'views' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->find($id);
 
         if (!$content) {
             return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
         }
 
+        // View Check
+        $view = $content->views->first();
+        $content->has_viewed = !is_null($view);
+        $content->is_finished = $view && $view->status === 'Finished';
+
+        unset($content->views);
+
         // Image -> Blob Conversion
         if ($content->content instanceof TrainingMediaModel && $content->content->type === 'Image') {
             try {
                 $content->image = base64_encode(Storage::disk('public')->get($content->content->source));
-                $content->image_mime =  mime_content_type(storage_path('app/public/' . $content->content->source));
+                $content->image_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
             } catch (\Exception $e) {
                 Log::error("Failed to convert image to blob: " . $e->getMessage());
             }
@@ -720,6 +744,54 @@ class TrainingsController extends Controller
         } catch (\Exception $e) {
             Log::error("Error fetching file for content ID {$id}: " . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Error fetching file'], 500);
+        }
+    }
+
+    // Training Views
+    public function handleTrainingViews(Request $request)
+    {
+        //Log::info("TrainingsController:handleTrainingViews");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        try {
+            DB::beginTransaction();
+
+            $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id')->firstOrFail();
+            $content = TrainingContentModel::find($request->input('id'));
+
+            if ($request->input("finished")) {
+                if ($content->content->type == "Image") {
+                    TrainingViewsModel::create([
+                        'user_id' => $user->id,
+                        'training_id' => $training->id,
+                        'training_content_id' => $content->id,
+                        'status' => "Finished",
+                        'completed_at' => Carbon::now(),
+                    ]);
+                } else {
+                    $view = TrainingViewsModel::where('content_id', $content->id)
+                        ->where('user_id', $user->id)
+                        ->firstOrFail();
+                    $view->status = "Finished";
+                    $view->save();
+                }
+            } else {
+                TrainingViewsModel::create([
+                    'user_id' => $user->id,
+                    'training_id' => $training->id,
+                    'training_content_id' => $content->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['status' => 200, 'message' => "Progress recorded successfully"]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
         }
     }
 

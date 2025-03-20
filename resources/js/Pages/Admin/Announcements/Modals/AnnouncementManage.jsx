@@ -291,6 +291,19 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             });
     };
 
+    // ---------------- Image Renders
+    const renderImage = (data, mime) => {
+        const byteCharacters = atob(data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mime });
+
+        return URL.createObjectURL(blob);
+    }
+
     return (
         <>
             <Dialog
@@ -547,7 +560,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         width: "100%"
                                                     }}>
                                                     <img
-                                                        src={`${location.origin}/storage/announcements/images/${image.filename}`}
+                                                        src={renderImage(image.data, image.mime)}
                                                         alt={image.filename}
                                                         loading="lazy"
                                                         style={{
