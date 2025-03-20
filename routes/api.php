@@ -73,7 +73,7 @@ Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword'
 
 Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
 
-
+Route::post('/employeeList', [EmployeesController::class, 'employeeList']);
 
 //Unprotected
 Route::prefix('mobile')->group(function () {

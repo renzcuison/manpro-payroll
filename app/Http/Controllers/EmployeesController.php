@@ -41,6 +41,15 @@ class EmployeesController extends Controller
         return false;
     }
 
+    public function employeeList(Request $request)
+    {
+        // log::info("EmployeesController::employeeList");
+
+        $employees = UsersModel::where('user_type', 'Employee')->get();
+
+        return response()->json(['status' => 200, 'employees' => $employees]);
+    }
+
     private function enrichEmployeeDetails($employee)
     {
         $employee->role = "";

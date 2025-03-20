@@ -586,11 +586,25 @@ class TrainingsController extends Controller
 
     public function getContentDetails($id)
     {
-        //Log::info("TrainingsController::getContentDetails");
+        // Log::info("TrainingsController::getContentDetails");
 
         $user = Auth::user();
 
         $content = TrainingContentModel::with('content')->find($id);
+
+        if (!$content) {
+            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        }
+
+        // Image -> Blob Conversion
+        if ($content->content instanceof TrainingMediaModel && $content->content->type === 'Image') {
+            try {
+                $content->image = base64_encode(Storage::disk('public')->get($content->content->source));
+                $content->imageMime =  mime_content_type(storage_path('app/public/' . $imagePath));
+            } catch (\Exception $e) {
+                Log::error("Failed to convert image to blob: " . $e->getMessage());
+            }
+        }
 
         return response()->json(['status' => 200, 'content' => $content]);
     }

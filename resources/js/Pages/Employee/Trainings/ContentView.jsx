@@ -77,6 +77,8 @@ const ContentView = () => {
     const [contentId, setContentId] = useState(null);
     const [contentList, setContentList] = useState([]);
 
+    const [image, setImage] = useState(null);
+
     // Load Session Data
     useEffect(() => {
         const storedContentId = sessionStorage.getItem('contentId');
@@ -96,7 +98,28 @@ const ContentView = () => {
         setIsLoading(true);
         axiosInstance.get(`/trainings/getContentDetails/${id}`, { headers })
             .then((response) => {
-                setContent(response.data.content);
+                const resContent = (response.data.content);
+                setContent(resContent);
+                if (
+                    resContent?.content?.type === 'Image' &&
+                    resContent?.content?.image
+                ) {
+                    const dataUrl = resContent.content.image;
+                    const base64String = dataUrl.split(',')[1];
+                    const mimeType = dataUrl.match(/data:([^;]+);/)[1];
+
+                    const byteCharacters = atob(base64String);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mimeType });
+
+                    setImage(URL.createObjectURL(blob));
+                } else {
+                    setImage(null);
+                }
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -104,6 +127,14 @@ const ContentView = () => {
                 setIsLoading(false);
             });
     }
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            if (image) {
+                URL.revokeObjectURL(image);
+            }
+        };
+    }, [image]);
 
     // Content List
     const getTrainingContent = () => {
@@ -127,7 +158,7 @@ const ContentView = () => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return `${location.origin}/storage/${source}`;
+                return image;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -187,6 +218,15 @@ const ContentView = () => {
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Training Content
                         </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate(`employee/training/${code}`)}
+                        >
+                            <p className="m-0">
+                                Return to Training
+                            </p>
+                        </Button>
                     </Box>
 
                     <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px" }} >
@@ -211,7 +251,7 @@ const ContentView = () => {
                                                 }}
                                                 onClick={() => handleContentChange(cont.id)}
                                             >
-                                                <Typography sx={{ color: "text.secondary", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
+                                                <Typography sx={{ color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
                                                     {cont.title}
                                                 </Typography>
                                             </Box>
