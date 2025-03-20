@@ -182,6 +182,7 @@ const TrainingView = () => {
     const handleContentViewer = (cont) => {
         sessionStorage.setItem('contentId', cont.id);
         sessionStorage.setItem('trainingTitle', training.title);
+        sessionStorage.setItem('trainingSequence', training.sequential);
         navigate(`/employee/training-content/${training.unique_code}`);
     };
 

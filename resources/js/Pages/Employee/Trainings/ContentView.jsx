@@ -76,6 +76,7 @@ const ContentView = () => {
     const [content, setContent] = useState(null);
     const [contentId, setContentId] = useState(null);
     const [contentList, setContentList] = useState([]);
+    const [sequential, setSequential] = useState(false);
 
     const [image, setImage] = useState(null);
 
@@ -88,6 +89,10 @@ const ContentView = () => {
         const storedTrainingTitle = sessionStorage.getItem('trainingTitle');
         if (storedTrainingTitle) {
             setTitle(storedTrainingTitle);
+        }
+        const storedSequence = sessionStorage.getItem('trainingSequence');
+        if (storedSequence) {
+            setSequential(storedSequence);
         }
         getContentDetails(storedContentId);
         getTrainingContent();
@@ -150,10 +155,22 @@ const ContentView = () => {
     }
 
     // Content Selection
-    const handleContentChange = (id) => {
-        setContentId(id);
-        getContentDetails(id);
-        sessionStorage.setItem('contentId', id);
+    const handleContentChange = (id, unlocked) => {
+        if (unlocked) {
+            setContentId(id);
+            getContentDetails(id);
+            sessionStorage.setItem('contentId', id);
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Content Locked!",
+                text: "Finish previous content to unlock",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        }
     }
 
     // Content Image
@@ -267,34 +284,43 @@ const ContentView = () => {
                                                 sx={{
                                                     mt: 0.5,
                                                     py: 1.5,
+                                                    borderRadius: "8px",
                                                     justifyContent: "space-between",
-                                                    transition: "background-color 0.5s ease, padding 0.5s ease",
-                                                    ...(cont.id == contentId ? {
-                                                        backgroundColor: "#e9ae20",
-                                                        borderRadius: "8px",
-                                                        pl: 1,
-                                                    } : {
-                                                        "&:hover": {
-                                                            backgroundColor: "#e0e0e0",
-                                                            pl: 1,
-                                                        }
-                                                    }),
+                                                    transition: "background-color 0.3s ease, padding 0.3s ease",
+                                                    ...(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false
+                                                        ? { backgroundColor: "#777777" }
+                                                        : cont.id == contentId
+                                                            ? {
+                                                                backgroundColor: "#e9ae20",
+                                                                pl: 1,
+                                                            }
+                                                            : {
+                                                                "&:hover": {
+                                                                    backgroundColor: "#e0e0e0",
+                                                                    pl: 1,
+                                                                },
+                                                            }),
                                                 }}
-                                                onClick={() => handleContentChange(cont.id)}
+                                                onClick={() =>
+                                                    handleContentChange(
+                                                        cont.id,
+                                                        !(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false)
+                                                    )
+                                                }
                                             >
                                                 <Box display="flex">
                                                     {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
                                                     {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
                                                     {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
                                                     {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transiton: "color 0.5s ease", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
+                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transiton: "color 0.3s ease", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
                                                         {cont.title}
                                                     </Typography>
                                                 </Box>
                                                 {cont.is_finished ? (
-                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transiton: "color 0.5s ease" }} />
+                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transiton: "color 0.3s ease" }} />
                                                 ) : cont.has_viewed ? (
-                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transiton: "color 0.5s ease" }} />
+                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transiton: "color 0.3s ease" }} />
                                                 )
                                                     : null}
                                             </Box>
