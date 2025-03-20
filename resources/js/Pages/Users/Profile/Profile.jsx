@@ -218,14 +218,14 @@ const EmployeeView = () => {
                                         <Typography> Role </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.role || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.role || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Job Title </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.jobTitle || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.jobTitle || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -234,14 +234,14 @@ const EmployeeView = () => {
                                         <Typography> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.department || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.department || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.branch || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.branch || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -250,14 +250,14 @@ const EmployeeView = () => {
                                         <Typography> Type </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.employment_type || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.employment_type || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Status </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.employment_status || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.employment_status || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
@@ -266,14 +266,14 @@ const EmployeeView = () => {
                                         <Typography> Work Group </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.work_group || '-'} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.work_group || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
                                         <Typography> Employment Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
+                                        <Typography sx={{ fontWeight: "bold" }}> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
                                     </Grid>
                                 </Grid>
                             </Box>

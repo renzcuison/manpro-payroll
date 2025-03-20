@@ -68,18 +68,20 @@ const ContentView = () => {
     // Content Information
     const [isLoading, setIsLoading] = useState(true);
 
+    const [title, setTitle] = useState('');
     const [content, setContent] = useState(null);
     const [contentId, setContentId] = useState(null);
     const [contentList, setContentList] = useState([]);
-
-
 
     useEffect(() => {
         const storedContentId = sessionStorage.getItem('contentId');
         if (storedContentId) {
             setContentId(storedContentId);
         }
-
+        const storedTrainingTitle = sessionStorage.getItem('trainingTitle');
+        if (storedTrainingTitle) {
+            setTitle(storedTrainingTitle);
+        }
         getContentDetails(storedContentId);
         getTrainingContent();
     }, []);
@@ -89,6 +91,7 @@ const ContentView = () => {
         setIsLoading(true);
         axiosInstance.get(`/trainings/getContentDetails/${id}`, { headers })
             .then((response) => {
+                console.log(response.data.content);
                 setContent(response.data.content);
                 setIsLoading(false);
             })
@@ -109,6 +112,13 @@ const ContentView = () => {
             });
     }
 
+    // Content Selection
+    const handleContentChange = (id) => {
+        setContentId(id);
+        getContentDetails(id);
+        sessionStorage.setItem('contentId', id);
+    }
+
     return (
         <Layout title={"ContentView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -119,25 +129,52 @@ const ContentView = () => {
                         </Typography>
                     </Box>
 
-                    <Box display="flex" sx={{ bgcolor: "white", borderRadius: "8px" }} >
-                        {isLoading ? (
-                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
-                                <CircularProgress />
+                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px" }} >
+                        <>
+                            <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0", }}>
+                                <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
+                                    {title}
+                                </Typography>
+                                <Box sx={{ height: "95%" }}>
+                                    {contentList.length > 0 && (
+                                        contentList.map((cont) => (
+                                            <Box
+                                                key={cont.id}
+                                                display="flex"
+                                                sx={{
+                                                    py: 1.5,
+                                                    ...(cont.id == contentId && {
+                                                        backgroundColor: "#e9ae20",
+                                                        borderRadius: "8px",
+                                                        pl: 1,
+                                                    }),
+                                                }}
+                                                onClick={() => handleContentChange(cont.id)}
+                                            >
+                                                <Typography sx={{ color: "text.secondary", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
+                                                    {cont.title}
+                                                </Typography>
+                                            </Box>
+                                        ))
+                                    )}
+                                </Box>
                             </Box>
-                        ) : (
-                            <>
-                                <Box sx={{ width: "20%", my: 2, mb: 5, p: 3, backgroundColor: "#abcdef" }}>
-                                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                        {`TO ADD: Details for Training No. ${code}`}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ width: "80%", mt: 6, mb: 5, p: 3, backgroundColor: "#123456" }}>
-                                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                        {`TO ADD: Details for Content No. ${content.id}`}
-                                    </Typography>
-                                </Box>
-                            </>
-                        )}
+                            <Box sx={{ width: "80%", mt: 6, mb: 2, p: 3 }}>
+                                {isLoading ? (
+                                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                                        <CircularProgress />
+                                    </Box>
+                                ) : (
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12}>
+                                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                                                {content.title || "-"}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                )}
+                            </Box>
+                        </>
                     </Box>
                 </Box>
             </Box>

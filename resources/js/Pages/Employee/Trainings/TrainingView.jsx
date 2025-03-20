@@ -181,6 +181,7 @@ const TrainingView = () => {
     // Content Navigator
     const handleContentViewer = (cont) => {
         sessionStorage.setItem('contentId', cont.id);
+        sessionStorage.setItem('trainingTitle', training.title);
         navigate(`/employee/training-content/${training.unique_code}`);
     };
 
