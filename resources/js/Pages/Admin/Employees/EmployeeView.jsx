@@ -171,13 +171,7 @@ const EmployeeView = () => {
                                     <Avatar
                                         alt={`${employee.user_name} Profile Pic`}
                                         src={employee.profile_pic ? `../../../../../../storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
-                                        sx={{
-                                            width: '50%',
-                                            height: 'auto',
-                                            aspectRatio: '1 / 1',
-                                            objectFit: 'cover',
-                                            boxShadow: 3,
-                                        }}
+                                        sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
                                     />
                                 </Grid>
 
@@ -284,14 +278,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Role </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Role </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.role || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Job Title </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Job Title </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.jobTitle || '-'} </Typography>
@@ -300,14 +294,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Department </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.department || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Branch </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.branch || '-'} </Typography>
@@ -316,14 +310,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Type </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Type </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.employment_type || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Status </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Status </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.employment_status || '-'} </Typography>
@@ -332,14 +326,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Work Group </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Work Group </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.work_group || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Employment Date </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Employment Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
@@ -368,26 +362,14 @@ const EmployeeView = () => {
                 </Box>
 
                 {openEmploymentDetailsEditModal &&
-                    <EmploymentDetailsEdit
-                        open={openEmploymentDetailsEditModal}
-                        close={handleCloseEmploymentDetailsEditModal}
-                        employee={employee}
-                    />
+                    <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} />
                 }
 
                 {openEmployeeBenefitsModal &&
-                    <EmployeeBenefits
-                        open={openEmployeeBenefitsModal}
-                        close={handleCloseEmployeeBenefitsModal}
-                        employee={employee}
-                    />}
+                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />}
 
                 {openEmployeeLeaveCreditsModal &&
-                    <EmployeeLeaveCredits
-                        open={openEmployeeLeaveCreditsModal}
-                        close={handleCloseEmployeeLeaveCreditsModal}
-                        employee={employee}
-                    />}
+                    <EmployeeLeaveCredits open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} employee={employee} />}
 
             </Box>
         </Layout >
