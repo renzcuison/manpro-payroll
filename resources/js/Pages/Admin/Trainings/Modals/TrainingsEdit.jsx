@@ -392,7 +392,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                             name='description'
                                             value={description}
                                             onChange={(value) => {
-                                                if (value.length <= 512) {
+                                                if (value.length <= 1028) {
                                                     setDescription(value);
                                                 }
                                             }}
@@ -418,7 +418,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
                                         <FormHelperText>
-                                            {description.length}/{512}
+                                            {description.length}/{1028}
                                         </FormHelperText>
                                     </div>
                                 </FormControl>
