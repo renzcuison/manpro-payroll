@@ -118,7 +118,7 @@ const ContentView = () => {
                     }
                 } else {
                     setImage(null);
-                    if (!resContent.is_viewed && !resContent.is_finished) {
+                    if (!resContent.has_viewed && !resContent.is_finished) {
                         handleTrainingViews(resContent.id, false);
                     }
                 }
@@ -265,12 +265,19 @@ const ContentView = () => {
                                                 key={cont.id}
                                                 display="flex"
                                                 sx={{
+                                                    mt: 0.5,
                                                     py: 1.5,
                                                     justifyContent: "space-between",
-                                                    ...(cont.id == contentId && {
+                                                    transition: "background-color 0.5s ease, padding 0.5s ease",
+                                                    ...(cont.id == contentId ? {
                                                         backgroundColor: "#e9ae20",
                                                         borderRadius: "8px",
                                                         pl: 1,
+                                                    } : {
+                                                        "&:hover": {
+                                                            backgroundColor: "#e0e0e0",
+                                                            pl: 1,
+                                                        }
                                                     }),
                                                 }}
                                                 onClick={() => handleContentChange(cont.id)}
@@ -280,14 +287,14 @@ const ContentView = () => {
                                                     {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
                                                     {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
                                                     {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
+                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transiton: "color 0.5s ease", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
                                                         {cont.title}
                                                     </Typography>
                                                 </Box>
                                                 {cont.is_finished ? (
-                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604" }} />
+                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transiton: "color 0.5s ease" }} />
                                                 ) : cont.has_viewed ? (
-                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00" }} />
+                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transiton: "color 0.5s ease" }} />
                                                 )
                                                     : null}
                                             </Box>
