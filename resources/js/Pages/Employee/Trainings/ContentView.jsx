@@ -64,21 +64,50 @@ const ContentView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    // ---------------- Training Data States
-    const [isLoading, setIsLoading] = useState(false);
-    const [training, setTraining] = useState([]);
-    const [content, setContent] = useState([]);
 
-    const [imageLoading, setImageLoading] = useState(true);
-    const [imagePath, setImagePath] = useState("");
+    // Content Information
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [content, setContent] = useState(null);
+    const [contentId, setContentId] = useState(null);
+    const [contentList, setContentList] = useState([]);
+
+
 
     useEffect(() => {
-        //await new functions
+        const storedContentId = sessionStorage.getItem('contentId');
+        if (storedContentId) {
+            setContentId(storedContentId);
+        }
+
+        getContentDetails(storedContentId);
+        getTrainingContent();
     }, []);
 
-    const functionName = () => {
+    // Content Details
+    const getContentDetails = (id) => {
+        setIsLoading(true);
+        axiosInstance.get(`/trainings/getContentDetails/${id}`, { headers })
+            .then((response) => {
+                setContent(response.data.content);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching content details', error);
+                setIsLoading(false);
+            });
+    }
 
-    };
+    // Content List
+    const getTrainingContent = () => {
+        axiosInstance.get(`/trainings/getEmployeeTrainingContent/${code}`, { headers })
+            .then((response) => {
+                setContentList(response.data.content || []);
+            })
+            .catch((error) => {
+                console.error('Error fetching training content:', error);
+            });
+    }
 
     return (
         <Layout title={"ContentView"}>
@@ -99,12 +128,12 @@ const ContentView = () => {
                             <>
                                 <Box sx={{ width: "20%", my: 2, mb: 5, p: 3, backgroundColor: "#abcdef" }}>
                                     <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                        Content List Here
+                                        {`TO ADD: Details for Training No. ${code}`}
                                     </Typography>
                                 </Box>
                                 <Box sx={{ width: "80%", mt: 6, mb: 5, p: 3, backgroundColor: "#123456" }}>
                                     <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                        Insert Content Here
+                                        {`TO ADD: Details for Content No. ${content.id}`}
                                     </Typography>
                                 </Box>
                             </>

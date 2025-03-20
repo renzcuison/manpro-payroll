@@ -677,7 +677,6 @@ class AttendanceController extends Controller
             ->sortKeysDesc()
             ->map(function ($logs, $date) {
                 // Find first time in
-                Log::info($logs);
                 $timeIn = $logs->firstWhere('action', 'Duty In');
 
                 // Find last time out

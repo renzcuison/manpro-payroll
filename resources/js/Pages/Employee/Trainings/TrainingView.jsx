@@ -178,6 +178,12 @@ const TrainingView = () => {
         return id && id.length === 11 ? id : null;
     };
 
+    // Content Navigator
+    const handleContentViewer = (cont) => {
+        sessionStorage.setItem('contentId', cont.id);
+        navigate(`/employee/training-content/${training.unique_code}`);
+    };
+
     return (
         <Layout title={"TrainingView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -320,7 +326,7 @@ const TrainingView = () => {
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
                                                 <Grid item xs={3} key={cont.id}>
-                                                    <CardActionArea title={cont.title || 'Content Item'} component={Link} to={`/employee/training-content/${training.unique_code}`}>
+                                                    <CardActionArea title={cont.title || 'Content Item'} component={Link} to={`/employee/training-content/${training.unique_code}`} onClick={() => handleContentViewer(cont)}>
                                                         <Card sx={{ boxShadow: 3 }}>
                                                             <CardMedia
                                                                 sx={{

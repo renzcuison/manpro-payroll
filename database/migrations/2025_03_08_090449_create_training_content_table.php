@@ -18,7 +18,7 @@ class CreateTrainingContentTable extends Migration
             $table->unsignedBigInteger('training_id');
             $table->unsignedInteger('order')->default(0)->nullable();
             $table->string('title', 128)->nullable();
-            $table->string('description', 1028)->nullable();
+            $table->string('description', 1024)->nullable();
             $table->morphs('content'); // content_type, content_id (e.g., 'App\Models\TrainingMedia', 1)
             $table->softDeletes();
             $table->timestamps();
