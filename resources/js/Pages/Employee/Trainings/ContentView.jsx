@@ -102,19 +102,15 @@ const ContentView = () => {
                 setContent(resContent);
                 if (
                     resContent?.content?.type === 'Image' &&
-                    resContent?.content?.image
+                    resContent?.image
                 ) {
-                    const dataUrl = resContent.content.image;
-                    const base64String = dataUrl.split(',')[1];
-                    const mimeType = dataUrl.match(/data:([^;]+);/)[1];
-
-                    const byteCharacters = atob(base64String);
+                    const byteCharacters = atob(resContent.image);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: mimeType });
+                    const blob = new Blob([byteArray], { type: resContent.image_mime });
 
                     setImage(URL.createObjectURL(blob));
                 } else {
@@ -218,15 +214,16 @@ const ContentView = () => {
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Training Content
                         </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate(`employee/training/${code}`)}
-                        >
-                            <p className="m-0">
-                                Return to Training
-                            </p>
-                        </Button>
+                        <Link to={`/employee/training/${code}`}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                            >
+                                <p className="m-0">
+                                    Return to Training
+                                </p>
+                            </Button>
+                        </Link>
                     </Box>
 
                     <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px" }} >

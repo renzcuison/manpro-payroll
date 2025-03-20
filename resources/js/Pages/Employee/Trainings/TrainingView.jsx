@@ -92,7 +92,7 @@ const TrainingView = () => {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'image/png' });
+                    const blob = new Blob([byteArray], { type: response.data.training.cover_mime });
 
                     setImagePath(URL.createObjectURL(blob));
                 } else {

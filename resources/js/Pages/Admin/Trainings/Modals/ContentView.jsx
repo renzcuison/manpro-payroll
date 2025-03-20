@@ -51,13 +51,21 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ContentView = ({ open, close, contentInfo }) => {
+const ContentView = ({ open, close, contentId }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [content, setContent] = useState(contentInfo)
+    const [content, setContent] = useState(null)
     const [exitReload, setExitReload] = useState(false);
+    const [image, setImage] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Content Details
+    useEffect(() => {
+        getContentDetails();
+    }, []);
+
 
     // Content Menu
     const [anchorEl, setAnchorEl] = useState(null);
@@ -73,7 +81,7 @@ const ContentView = ({ open, close, contentInfo }) => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return `${location.origin}/storage/${source}`;
+                return image;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -139,12 +147,32 @@ const ContentView = ({ open, close, contentInfo }) => {
 
     // Reload Content
     const getContentDetails = () => {
-        axiosInstance.get(`/trainings/getContentDetails/${content.id}`, { headers })
+        setIsLoading(true);
+        axiosInstance.get(`/trainings/getContentDetails/${contentId}`, { headers })
             .then((response) => {
-                setContent(response.data.content);
+                const resContent = (response.data.content);
+                setContent(resContent);
+                if (
+                    resContent?.content?.type === 'Image' &&
+                    resContent?.image
+                ) {
+                    const byteCharacters = atob(resContent.image);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: resContent.image_mime });
+
+                    setImage(URL.createObjectURL(blob));
+                } else {
+                    setImage(null);
+                }
+                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching content details', error);
+                setIsLoading(false);
             });
     }
 
@@ -204,125 +232,132 @@ const ContentView = ({ open, close, contentInfo }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mb: 3, maxHeight: "580px" }}>
-                    <Box>
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
-                                {content.content.type !== "Form" && (
-                                    <>
-                                        {content.content.type === "Video" ? (
-                                            <Box
-                                                sx={{
-                                                    width: "90%",
-                                                    aspectRatio: "16 / 9",
-                                                    placeSelf: "center",
-                                                    mb: 1,
+                    {isLoading ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <Box>
+                            <Grid container spacing={2} sx={{ mt: 2 }}>
+                                <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
+                                    {content.content.type !== "Form" && (
+                                        <>
+                                            {content.content.type === "Video" ? (
+                                                <Box
+                                                    sx={{
+                                                        width: "90%",
+                                                        aspectRatio: "16 / 9",
+                                                        placeSelf: "center",
+                                                        mb: 1,
+                                                    }}
+                                                >
+                                                    {renderVideo(content.content.source)}
+                                                </Box>
+                                            ) : (
+                                                <CardMedia
+                                                    component="img"
+                                                    sx={{
+                                                        width: "80%",
+                                                        aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
+                                                        objectFit: "contain",
+                                                        borderRadius: "4px",
+                                                        backgroundColor: "transparent",
+                                                        placeSelf: "center",
+                                                        mb: 1,
+                                                        ...(["Document", "PowerPoint"].includes(content.content.type) && {
+                                                            p: 1,
+                                                            "&:hover": {
+                                                                backgroundColor: "#e0e0e0",
+                                                                transition: "background-color 0.3s ease",
+                                                            },
+                                                        }),
+                                                    }}
+                                                    image={renderImage(content.content.source, content.content.type)}
+                                                    title={content.title || "Content Item"}
+                                                    alt={content.title || "Content Item"}
+                                                    onClick={
+                                                        ["Document", "PowerPoint"].includes(content.content.type)
+                                                            ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                            : undefined
+                                                    }
+                                                />
+                                            )}
+                                            {["Document", "PowerPoint"].includes(content.content.type) ? (
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>Click to open file</Typography>
+                                            ) : (
+                                                <Divider />
+                                            )}
+                                        </>
+                                    )}
+                                </Grid>
+                                <Grid container item spacing={2} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
+                                    {!["Document", "PowerPoint"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
+                                    <Grid item xs={12}>
+                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                            <Typography variant="h5">
+                                                {content.title}
+                                            </Typography>
+                                            {/* Options */}
+                                            <IconButton
+                                                id="basic-button"
+                                                size="small"
+                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                aria-haspopup="true"
+                                                aria-expanded={open ? 'true' : undefined}
+                                                onClick={handleMenuClick}
+                                            >
+                                                <MoreVert />
+                                            </IconButton>
+                                            <Menu
+                                                id="basic-menu"
+                                                anchorEl={anchorEl}
+                                                open={menuOpen}
+                                                onClose={handleMenuClose}
+                                                MenuListProps={{
+                                                    'aria-labelledby': 'basic-button',
                                                 }}
                                             >
-                                                {renderVideo(content.content.source)}
-                                            </Box>
-                                        ) : (
-                                            <CardMedia
-                                                component="img"
-                                                sx={{
-                                                    width: "80%",
-                                                    aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
-                                                    objectFit: "contain",
-                                                    borderRadius: "4px",
-                                                    backgroundColor: "transparent",
-                                                    placeSelf: "center",
-                                                    mb: 1,
-                                                    ...(["Document", "PowerPoint"].includes(content.content.type) && {
-                                                        p: 1,
-                                                        "&:hover": {
-                                                            backgroundColor: "#e0e0e0",
-                                                            transition: "background-color 0.3s ease",
-                                                        },
-                                                    }),
-                                                }}
-                                                image={renderImage(content.content.source, content.content.type)}
-                                                title={content.title || "Content Item"}
-                                                alt={content.title || "Content Item"}
-                                                onClick={
-                                                    ["Document", "PowerPoint"].includes(content.content.type)
-                                                        ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
-                                                        : undefined
-                                                }
-                                            />
-                                        )}
-                                        {["Document", "PowerPoint"].includes(content.content.type) ? (
-                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>Click to open file</Typography>
-                                        ) : (
-                                            <Divider />
-                                        )}
-                                    </>
-                                )}
-                            </Grid>
-                            <Grid container item spacing={2} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
-                                {!["Document", "PowerPoint"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
-                                <Grid item xs={12}>
-                                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                        <Typography variant="h5">
-                                            {content.title}
-                                        </Typography>
-                                        {/* Options */}
-                                        <IconButton
-                                            id="basic-button"
-                                            size="small"
-                                            aria-controls={open ? 'basic-menu' : undefined}
-                                            aria-haspopup="true"
-                                            aria-expanded={open ? 'true' : undefined}
-                                            onClick={handleMenuClick}
-                                        >
-                                            <MoreVert />
-                                        </IconButton>
-                                        <Menu
-                                            id="basic-menu"
-                                            anchorEl={anchorEl}
-                                            open={menuOpen}
-                                            onClose={handleMenuClose}
-                                            MenuListProps={{
-                                                'aria-labelledby': 'basic-button',
+                                                {/* Edit Content */}
+                                                <MenuItem
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleOpenContentEditModal();
+                                                        handleMenuClose();
+                                                    }}>
+                                                    Edit
+                                                </MenuItem>
+                                                {/* Remove Content */}
+                                                <MenuItem
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleRemoveContent();
+                                                        handleMenuClose();
+                                                    }}>
+                                                    Remove
+                                                </MenuItem>
+                                            </Menu>
+                                        </Stack>
+                                    </Grid>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
+                                    <Grid item xs={12} >
+                                        <div
+                                            id="description"
+                                            style={{
+                                                wordWrap: 'break-word',
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'break-word',
+                                                whiteSpace: 'pre-wrap',
                                             }}
-                                        >
-                                            {/* Edit Content */}
-                                            <MenuItem
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    handleOpenContentEditModal();
-                                                    handleMenuClose();
-                                                }}>
-                                                Edit
-                                            </MenuItem>
-                                            {/* Remove Content */}
-                                            <MenuItem
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    handleRemoveContent();
-                                                    handleMenuClose();
-                                                }}>
-                                                Remove
-                                            </MenuItem>
-                                        </Menu>
-                                    </Stack>
-                                </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
-                                    <Divider />
-                                </Grid>
-                                <Grid item xs={12} >
-                                    <div
-                                        id="description"
-                                        style={{
-                                            wordWrap: 'break-word',
-                                            wordBreak: 'break-word',
-                                            overflowWrap: 'break-word',
-                                            whiteSpace: 'pre-wrap',
-                                        }}
-                                        dangerouslySetInnerHTML={{ __html: content.description }}
-                                    />
+                                            dangerouslySetInnerHTML={{ __html: content.description }}
+                                        />
+                                    </Grid>
                                 </Grid>
                             </Grid>
-                        </Grid>
-                    </Box>
+                        </Box>
+                    )}
+
                 </DialogContent>
                 {openContentEditModal && (
                     <ContentEdit

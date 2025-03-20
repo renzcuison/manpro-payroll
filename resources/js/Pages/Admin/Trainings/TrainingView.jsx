@@ -250,7 +250,7 @@ const TrainingView = () => {
     const [openContentViewModal, setOpenContentViewModal] = useState(false);
     const [loadContent, setLoadContent] = useState(null)
     const handleOpenContentViewModal = (cont) => {
-        setLoadContent(cont);
+        setLoadContent(cont.id);
         setOpenContentViewModal(true);
     }
     const handleCloseContentViewModal = (reload) => {
@@ -733,7 +733,7 @@ const TrainingView = () => {
                 <ContentView
                     open={openContentViewModal}
                     close={handleCloseContentViewModal}
-                    contentInfo={loadContent}
+                    contentId={loadContent}
                 />
             )}
             {openContentSettingsModal && (

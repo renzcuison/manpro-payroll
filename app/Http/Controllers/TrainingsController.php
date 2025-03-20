@@ -556,9 +556,11 @@ class TrainingsController extends Controller
         if ($training->cover_photo) {
             $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
             $training->cover_name = basename($training->cover_photo);
+            $training->cover_mime =  mime_content_type(storage_path('app/public/' . $training->cover_photo));
         } else {
             $training->cover = null;
             $training->cover_name = null;
+            $training->cover_mime = null;
         }
 
         $trainingData = $training->toArray();
@@ -600,7 +602,7 @@ class TrainingsController extends Controller
         if ($content->content instanceof TrainingMediaModel && $content->content->type === 'Image') {
             try {
                 $content->image = base64_encode(Storage::disk('public')->get($content->content->source));
-                $content->imageMime =  mime_content_type(storage_path('app/public/' . $imagePath));
+                $content->image_mime =  mime_content_type(storage_path('app/public/' . $content->content->source));
             } catch (\Exception $e) {
                 Log::error("Failed to convert image to blob: " . $e->getMessage());
             }
