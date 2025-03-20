@@ -24,6 +24,7 @@ import MemberEvaluation from "../Pages/Member/MemberEvaluation";
 import MemberMyEvaluation from "../Pages/Member/MemberMyEvaluation";
 import MemberForEvaluation from "../Pages/Member/MemberForEvaluation";
 import MemberIncidentReports from "../Pages/Member/MemberIncidentReports";
+import ContentView from "../Pages/Employee/Trainings/ContentView";
 
 const EmployeeRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -51,6 +52,7 @@ const EmployeeRoutes = ({ user }) => {
 
             <Route path="trainings" element={<ProtectedRoute element={<TrainingList />} user={user} />} />
             <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} />} />
+            <Route path="training-content/:code" element={<ProtectedRoute element={<ContentView />} user={user} />} />
 
             {/* Profile Routes ----------------------------------------- */}
             <Route path="profile-edit" element={<ProtectedRoute element={<ProfileEdit />} user={user} />} />

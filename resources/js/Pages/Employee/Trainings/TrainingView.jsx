@@ -179,7 +179,7 @@ const TrainingView = () => {
     };
 
     return (
-        <Layout title={"AnnouncementView"}>
+        <Layout title={"TrainingView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
@@ -320,7 +320,7 @@ const TrainingView = () => {
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
                                                 <Grid item xs={3} key={cont.id}>
-                                                    <CardActionArea title={cont.title || 'Content Item'} onClick={() => console.log(`Viewing Content - ${cont.title}`)}>
+                                                    <CardActionArea title={cont.title || 'Content Item'} component={Link} to={`/employee/training-content/${training.unique_code}`}>
                                                         <Card sx={{ boxShadow: 3 }}>
                                                             <CardMedia
                                                                 sx={{
