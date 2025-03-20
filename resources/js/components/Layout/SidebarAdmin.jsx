@@ -43,9 +43,8 @@ const Sidebar = ({ children, closeMini }) => {
     const isAttendanceActive = useIsActive('/hr/attendance');
     const isAttendanceEmployeeActive = useIsActive('/hr/attendance-employee');
 
-    const isReportsActive = useIsActive('/reports');
-    const isReportEditActive = useIsActive('/report-edit');
-    const isReportCreateActive = useIsActive('/report-create');
+    const isDocumentsActive = useIsActive('/documents');
+    const isDocumentEditActive = useIsActive('/document-edit');
 
     const [workshifts, setWorkshifts] = useState([]);
     const [workgroups, setWorkgroups] = useState([]);
@@ -302,8 +301,12 @@ const Sidebar = ({ children, closeMini }) => {
                                 </StyledNav>
 
                                 <StyledNav to={`/admin/trainings`} >
-                                    <i className="si si-grid" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Trainings</span>
+                                    <i><Iconify icon="healthicons:i-training-class-outline" style={{ color: '#2a800f' }} /></i> <span id="navName" className="sidebar-mini-hide">Trainings</span>
                                 </StyledNav>
+
+                                {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
+                                    {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
+                                {/* </StyledNav> */}
 
                                 {/*<StyledNav to={`/admin/performance-evaluation`} >
                                     <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
@@ -328,9 +331,6 @@ const Sidebar = ({ children, closeMini }) => {
                                 </StyledNav>
                                 <StyledNav to={`/hr/performance-evaluation`} >
                                     <i className="fa fa-check" style={{ color: '#2a800f' }} ></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
-                                </StyledNav>
-                                <StyledNav to={`/reports`} className={isReportsActive || isReportCreateActive ? 'active' : ''} >
-                                    <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span>
                                 </StyledNav> */}
 
 

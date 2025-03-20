@@ -22,6 +22,8 @@ import TrainingView from "../Pages/Admin/Trainings/TrainingView";
 import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 
+import DocumentsList from "../Pages/Documents/DocumentsList";
+
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
@@ -72,6 +74,8 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
+
+            <Route path="documents" element={<ProtectedRoute element={<DocumentsList />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
