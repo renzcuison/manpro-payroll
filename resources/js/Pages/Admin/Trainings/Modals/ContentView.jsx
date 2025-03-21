@@ -224,9 +224,18 @@ const ContentView = ({ open, close, contentId }) => {
         });
     };
 
+    // Image Cleanup
     useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (image && image.startsWith('blob:')) {
+                URL.revokeObjectURL(image);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
-            if (image) {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            if (image && image.startsWith('blob:')) {
                 URL.revokeObjectURL(image);
             }
         };

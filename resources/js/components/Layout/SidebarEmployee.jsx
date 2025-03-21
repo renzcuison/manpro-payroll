@@ -186,6 +186,45 @@ const Sidebar = ({ children, closeMini }) => {
     const isReportEditActive = useIsActive("/report-edit");
     const isReportCreateActive = useIsActive("/report-create");
 
+    const [imagePath, setImagePath] = useState('');
+
+    // Load Session Data
+    useEffect(() => {
+        const storedAvatar = sessionStorage.getItem('avatar');
+        if (storedAvatar) {
+            setImagePath(storedAvatar);
+        } else {
+            getMyAvatar();
+        }
+    }, []);
+
+    const getMyAvatar = () => {
+        axiosInstance.get(`/employee/getMyAvatar`, { headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const avatarData = response.data.avatar
+                    if (avatarData.image && avatarData.mime) {
+                        const byteCharacters = window.atob(avatarData.image);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: avatarData.mime });
+
+                        const newBlob = URL.createObjectURL(blob)
+                        setImagePath(newBlob);
+                        sessionStorage.setItem('avatar', newBlob);
+                    } else {
+                        setImagePath(null);
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching avatar:', error);
+            });
+    }
+
     return (
         <nav
             id="sidebar"
@@ -217,7 +256,7 @@ const Sidebar = ({ children, closeMini }) => {
                             <div className="sidebar-mini-hidden-b text-center">
                                 <Box display="flex" flexDirection="column" alignItems="center">
                                     <Avatar
-                                        src={user.profile_pic ? `${location.origin}/storage/${user.profile_pic}` : HomeLogo}
+                                        src={imagePath ? imagePath : HomeLogo}
                                         alt={`${user.first_name} ${user.last_name}`}
                                         sx={{
                                             width: 64,

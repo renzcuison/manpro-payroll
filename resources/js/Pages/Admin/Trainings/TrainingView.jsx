@@ -116,12 +116,20 @@ const TrainingView = () => {
     }
     // Image Cleanup
     useEffect(() => {
-        return () => {
+        const handleBeforeUnload = () => {
             if (imagePath && imagePath.startsWith('blob:')) {
                 URL.revokeObjectURL(imagePath);
             }
         };
-    }, []);
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, [imagePath]);
 
     // Training Content
     const getTrainingContent = () => {

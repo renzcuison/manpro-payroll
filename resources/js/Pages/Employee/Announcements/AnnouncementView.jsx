@@ -230,33 +230,40 @@ const AnnouncementView = () => {
         });
     };
 
-    // Image Renders
-    const [blobURLs, setBlobURLs] = useState([]);
+    // ---------------- Image Renders
+    const [blobMap, setBlobMap] = useState({});
 
-    const renderImage = (data, mime) => {
-        const byteCharacters = atob(data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
+    const renderImage = (id, data, mime) => {
+        if (!blobMap[id]) {
+            const byteCharacters = atob(data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mime });
+            const newBlob = URL.createObjectURL(blob);
+
+            setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+
+            return newBlob;
+        } else {
+            return blobMap[id];
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: mime });
-        const newBlobURL = URL.createObjectURL(blob);
-        setBlobURLs((prev) => [...prev, newBlobURL]);
-        return newBlobURL;
-    };
+    }
 
+    // Image Cleanup
     useEffect(() => {
         return () => {
             if (imagePath && imagePath.startsWith('blob:')) {
                 URL.revokeObjectURL(imagePath);
             }
-            blobURLs.forEach((url) => {
+            Object.values(blobMap).forEach((url) => {
                 if (url.startsWith('blob:')) {
                     URL.revokeObjectURL(url);
                 }
             });
-            setBlobURLs([]);
+            setBlobMap({});
         };
     }, []);
 
@@ -443,7 +450,7 @@ const AnnouncementView = () => {
                                                                 width: "100%"
                                                             }}>
                                                             <img
-                                                                src={renderImage(image.data, image.mime)}
+                                                                src={renderImage(image.id, image.data, image.mime)}
                                                                 alt={image.filename}
                                                                 loading="lazy"
                                                                 style={{

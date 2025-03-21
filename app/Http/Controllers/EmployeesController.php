@@ -256,6 +256,24 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employee' => $employee]);
     }
 
+    public function getMyAvatar()
+    {
+        //log::info("EmployeesController::getMyAvatar");
+        $user = Auth::user();
+
+        $avatar = [
+            'image' => null,
+            'mime' => null
+        ];
+
+        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
+            $avatar['image'] = base64_encode(Storage::disk('public')->get($user->profile_pic));
+            $avatar['mime'] = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+        }
+
+        return response()->json(['status' => 200, 'avatar' => $avatar]);
+    }
+
     public function editMyProfile(Request $request)
     {
         //log::info("EmployeesController::editMyProfile");

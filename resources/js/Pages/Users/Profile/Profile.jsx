@@ -45,7 +45,9 @@ const EmployeeView = () => {
                         const byteArray = new Uint8Array(byteNumbers);
                         const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
 
-                        setImagePath(URL.createObjectURL(blob));
+                        const newBlob = URL.createObjectURL(blob);
+                        setImagePath(newBlob);
+                        sessionStorage.setItem('avatar', newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -54,14 +56,6 @@ const EmployeeView = () => {
                 console.error('Error fetching details:', error);
             });
     };
-    // Image Cleanup
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePath);
-            }
-        };
-    }, []);
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
