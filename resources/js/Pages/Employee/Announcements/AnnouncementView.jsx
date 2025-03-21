@@ -231,6 +231,8 @@ const AnnouncementView = () => {
     };
 
     // Image Renders
+    const [blobURLs, setBlobURLs] = useState([]);
+
     const renderImage = (data, mime) => {
         const byteCharacters = atob(data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -239,9 +241,21 @@ const AnnouncementView = () => {
         }
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: mime });
+        const newBlobURL = URL.createObjectURL(blob);
+        setBlobURLs((prev) => [...prev, newBlobURL]);
+        return newBlobURL;
+    };
 
-        return URL.createObjectURL(blob);
-    }
+    useEffect(() => {
+        return () => {
+            blobURLs.forEach((url) => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            setBlobURLs([]);
+        };
+    }, []);
 
     return (
         <Layout title={"AnnouncementView"}>

@@ -156,6 +156,9 @@ const ContentView = ({ open, close, contentId }) => {
                     resContent?.content?.type === 'Image' &&
                     resContent?.image
                 ) {
+                    if (image) {
+                        URL.revokeObjectURL(image);
+                    }
                     const byteCharacters = atob(resContent.image);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
@@ -220,6 +223,14 @@ const ContentView = ({ open, close, contentId }) => {
             }
         });
     };
+
+    useEffect(() => {
+        return () => {
+            if (image) {
+                URL.revokeObjectURL(image);
+            }
+        };
+    }, [image]);
 
     return (
         <>
