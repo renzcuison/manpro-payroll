@@ -542,8 +542,6 @@ class PayrollController extends Controller
             ['deduction' => '1', 'name' => 'Absents', 'amount' => $absents],
             ['deduction' => '2', 'name' => 'Tardiness', 'amount' => $tardiness],
             ['deduction' => '3', 'name' => 'Cash Advance', 'amount' => $cashAdvance],
-            ['deduction' => '4','name' => 'Loans', 'amount' => $loans],
-            ['deduction' => '5','name' => 'Tax', 'amount' => $tax],
         ];
 
         $summaries = [
