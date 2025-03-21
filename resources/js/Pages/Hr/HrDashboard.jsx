@@ -213,6 +213,45 @@ const HrDashboard = () => {
             return `${sec}s`;
         }
     };
+
+
+    // "../../../images/avatarpic.jpg"
+    const [blobMap, setBlobMap] = useState({});
+
+    const renderProfile = (id, avatar, mime) => {
+        if (!blobMap[id]) {
+            if (avatar && mime) {
+                const byteCharacters = atob(avatar);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: mime });
+                const newBlob = URL.createObjectURL(blob);
+
+                setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+
+                return newBlob;
+            } else {
+                return "../../../images/avatarpic.jpg";
+            }
+        } else {
+            return blobMap[id];
+        }
+    }
+
+    useEffect(() => {
+        return () => {
+            Object.values(blobMap).forEach((url) => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            setBlobMap({});
+        };
+    }, []);
+
     return (
         <Layout>
             <Box sx={{ mx: 12 }}>
@@ -411,7 +450,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -476,7 +515,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -525,7 +564,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -544,7 +583,7 @@ const HrDashboard = () => {
                                                 </TableContainer>
                                             </div>
                                         </TabPanel>
-                                        
+
                                         {/* On Leave */}
                                         <TabPanel value="4" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
@@ -575,7 +614,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={attend.profile_pic ? `${location.origin}/storage/${attend.profile_pic}` : "../../../images/avatarpic.jpg"} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>

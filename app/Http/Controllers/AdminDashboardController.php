@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
 
@@ -211,8 +212,18 @@ class AdminDashboardController extends Controller
                         });
                         $user = $logs->first()->user;
 
+                        if ($user->profile_pic) {
+                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                        } else {
+                            $user->avatar = null;
+                            $user->avatar_mime = null;
+                        }
+
                         return [
-                            'profile_pic' => $user->profile_pic ?? null,
+                            'id' => $user->id,
+                            'avatar' => $user->avatar,
+                            'avatar_mime' => $user->avatar_mime,
                             'first_name' => $user->first_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
@@ -236,10 +247,21 @@ class AdminDashboardController extends Controller
                         $expectedStart = Carbon::parse($workStart);
 
                         $lateThreshold = $expectedStart->copy()->addMinute();
+
+                        if ($user->profile_pic) {
+                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                        } else {
+                            $user->avatar = null;
+                            $user->avatar_mime = null;
+                        }
+
                         if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt($lateThreshold)) {
                             $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
                             return [
-                                'profile_pic' => $user->profile_pic ?? null,
+                                'id' => $user->id,
+                                'avatar' => $user->avatar,
+                                'avatar_mime' => $user->avatar_mime,
                                 'first_name' => $user->first_name ?? null,
                                 'last_name' => $user->last_name ?? null,
                                 'middle_name' => $user->middle_name ?? null,
@@ -281,8 +303,17 @@ class AdminDashboardController extends Controller
                 $result = UsersModel::whereIn('id', $allEmployees)
                     ->get()
                     ->map(function ($user) {
+                        if ($user->profile_pic) {
+                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                        } else {
+                            $user->avatar = null;
+                            $user->avatar_mime = null;
+                        }
                         return [
-                            'profile_pic' => $user->profile_pic ?? null,
+                            'id' => $user->id,
+                            'avatar' => $user->avatar,
+                            'avatar_mime' => $user->avatar_mime,
                             'first_name' => $user->first_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
@@ -307,8 +338,18 @@ class AdminDashboardController extends Controller
                     $startDate = Carbon::parse($application->duration_start);
                     $endDate = Carbon::parse($application->duration_end);
 
+                    if ($user->profile_pic) {
+                        $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                        $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                    } else {
+                        $user->avatar = null;
+                        $user->avatar_mime = null;
+                    }
+
                     return [
-                        'profile_pic' => $user->profile_pic ?? null,
+                        'id' => $user->id,
+                        'avatar' => $user->avatar,
+                        'avatar_mime' => $user->avatar_mime,
                         'first_name' => $user->first_name ?? null,
                         'last_name' => $user->last_name ?? null,
                         'middle_name' => $user->middle_name ?? null,

@@ -635,64 +635,6 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200, 'content' => $content]);
     }
 
-    public function getTrainingMedia($code)
-    {
-        //Log::info("TrainingsController::getTrainingMedia");
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            $training = TrainingsModel::where('unique_code', $code)
-                ->select('id')
-                ->firstOrFail();
-
-            $media = TrainingMediaModel::where('training_id', $training->id)
-                ->select('id', 'path', 'type')
-                ->get();
-
-            $videoData = $media->where('type', 'Video')
-                ->map(function ($md) {
-                    return [
-                        'id' => $md->id,
-                        'url' => $md->url,
-                        'type' => $md->type
-                    ];
-                })
-                ->values()
-                ->all();
-
-            $imageData = $media->where('type', 'Image')
-                ->map(function ($md) {
-                    return [
-                        'id' => $md->id,
-                        'filename' => basename($md->path),
-                        'type' => $md->type
-                    ];
-                })
-                ->values()
-                ->all();
-
-            $attachmentData = $media->where('type', 'Document')
-                ->map(function ($md) {
-                    return [
-                        'id' => $md->id,
-                        'filename' => basename($md->path),
-                        'type' => $md->type
-                    ];
-                })
-                ->values()
-                ->all();
-
-            return response()->json([
-                'status' => 200,
-                'videos' => $videoData,
-                'images' => $imageData,
-                'attachments' => $attachmentData
-            ]);
-        } else {
-            return response()->json(['status' => 200, 'videos' => null, 'images' => null, 'attachments' => null]);
-        }
-    }
-
     public function getPageCovers(Request $request)
     {
         //Log::info("TrainingsController::getPageCovers");
