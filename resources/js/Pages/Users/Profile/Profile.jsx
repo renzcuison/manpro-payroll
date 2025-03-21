@@ -193,8 +193,8 @@ const EmployeeView = () => {
                         </Grid>
 
                         <Grid item xs={8}>
-                            {employee.user_type == "Employee"
-                                ? <Box sx={{ mb: 3, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            {employee.user_type == "Employee" ?
+                                <Box sx={{ mb: 3, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
                                     <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
 
@@ -232,20 +232,21 @@ const EmployeeView = () => {
                                             </Box>
                                         </Grid>
                                     </Grid>
-                                </Box> : null}
+                                </Box> : null
+                            }
 
                             <Box sx={{ py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employment Details </Typography>
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Role </Typography>
+                                        <Typography variant="h6"> Role </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.role || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Job Title </Typography>
+                                        <Typography variant="h6"> Job Title </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.jobTitle || '-'} </Typography>
@@ -254,14 +255,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Department </Typography>
+                                        <Typography variant="h6"> Department </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.department || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Branch </Typography>
+                                        <Typography variant="h6"> Branch </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.branch || '-'} </Typography>
@@ -270,14 +271,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Type </Typography>
+                                        <Typography variant="h6"> Type </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.employment_type || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Status </Typography>
+                                        <Typography variant="h6"> Status </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.employment_status || '-'} </Typography>
@@ -286,14 +287,14 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item xs={2}>
-                                        <Typography> Work Group </Typography>
+                                        <Typography variant="h6"> Work Group </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.work_group || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item xs={2}>
-                                        <Typography> Employment Date </Typography>
+                                        <Typography variant="h6"> Employment Date </Typography>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>

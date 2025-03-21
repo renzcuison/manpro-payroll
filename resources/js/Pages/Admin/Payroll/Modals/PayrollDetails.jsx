@@ -1,34 +1,5 @@
-import {
-    Box,
-    Button,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Grid,
-    TextField,
-    Typography,
-    CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
-    MenuItem,
-    Checkbox,
-    istItemText,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    List,
-    ListItem,
-} from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, istItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, List, ListItem } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react'
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -42,6 +13,7 @@ import 'react-quill/dist/quill.snow.css';
 import HomeLogo from '../../../../../images/ManPro.png'
 
 const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, currentEndDate }) => {
+    const contentToPrint = useRef()
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -132,8 +104,6 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
             currentEndDate: currentEndDate,
         };
     
-        console.log(data);
-    
         axiosInstance.post('/payroll/savePayroll', data, { headers })
             .then(response => {
                 console.log("Payroll saved successfully!", response.data);
@@ -168,242 +138,241 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                             <Typography sx={{ marginTop: '5px' }}> Pay Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)}</Typography>
                         </Box>
 
-                        <Grid container spacing={4} sx={{ px: 8 }}>
-                            <Grid item xs={6}>
-                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employee Name</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
-                                            </TableRow>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Role</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.role} </TableCell>
-                                            </TableRow>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Department</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.department} </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                    </Table>
-                                </TableContainer>
+                        <Grid container spacing={4} sx={{ px: 8, mt: 4 }}>
+                            <Grid item xs={12}>
+                                <div className='row'>
+                                    <div className='col-6'>
+                                        <FormControl sx={{
+                                            marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                        }}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Employee Name</InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={`${employee.first_name} ${employee.middle_name || ''} ${employee.last_name} ${employee.suffix || ''}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                        </FormControl>
+
+                                        <FormControl sx={{
+                                            marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                        }}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Role</InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={`${employee.role || '-'}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                        </FormControl>
+                                        <FormControl sx={{
+                                            marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                        }}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Department</InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={`${employee.department || '-'}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                        </FormControl>
+                                    </div>
+
+                                    <div className='col-6'>
+                                        <div className='d-flex justify-content-end'>
+                                            <FormControl sx={{
+                                                marginBottom: 2, width: '100%', '& label.Mui-focused': {color: '#97a5ba'},
+                                                '& .MuiOutlinedInput-root': {'&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                            }}>
+                                                <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Employment Type</InputLabel>
+                                                <input id="demo-simple-select" className='form-control' type="text" value={`${employee.employment_type || '-'}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                            </FormControl>
+                                        </div>
+                                        <div className='d-flex justify-content-end'>
+                                            <FormControl sx={{
+                                                marginBottom: 2, width: '100%', '& label.Mui-focused': {color: '#97a5ba'},
+                                                '& .MuiOutlinedInput-root': {'&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                            }}>
+                                                <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Title</InputLabel>
+                                                <input id="demo-simple-select" className='form-control' type="text" value={`${employee.jobTitle || '-'}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                            </FormControl>
+                                        </div>
+                                        <div className='d-flex justify-content-end'>
+                                            <FormControl sx={{
+                                                marginBottom: 2, width: '100%', '& label.Mui-focused': {color: '#97a5ba'},
+                                                '& .MuiOutlinedInput-root': {'&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                            }}>
+                                                <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: 'white', paddingLeft: 1, paddingRight: 1, borderColor: '#97a5ba' }}>Branch</InputLabel>
+                                                <input id="demo-simple-select" className='form-control' type="text" value={`${employee.branch || '-'}`.trim()} style={{ height: 40, backgroundColor: '#fff' }} readOnly />
+                                            </FormControl>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="row" style={{ marginTop: "10px" }}>
+                                    <div className="col-4 d-flex justify-content-center">
+                                        <FormControl sx={{ marginBottom: 2, width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} > Daily Rate </InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perDay) : "0"} style={{ height: 40, backgroundColor: '#fff', textAlign: 'right' }} readOnly />
+                                        </FormControl>
+                                    </div>
+                                    <div className="col-4 d-flex justify-content-center">
+                                        <FormControl sx={{ marginBottom: 2, width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }} > Monthly Rate </InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perMonth) : "0"} style={{ height: 40, backgroundColor: '#fff', textAlign: 'right' }} readOnly />
+                                        </FormControl>
+                                    </div>
+                                    <div className="col-4 d-flex justify-content-center">
+                                        <FormControl sx={{ marginBottom: 2, width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}}>
+                                            <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }}> Hourly Rate </InputLabel>
+                                            <input id="demo-simple-select" className='form-control' type="text" value={payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perHour) : "0"} style={{ height: 40, backgroundColor: '#fff', textAlign: 'right' }} readOnly />
+                                        </FormControl>
+                                    </div>
+                                </div>
+
+                                <div className="row">
+                                    <div className="col-4">
+                                        <TableContainer sx={{ my: 2 }}>
+                                            <Table className="table table-md table-vcenter table-bordered">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2} className="text-center" > Earnings </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {earnings.map((earning) => (
+                                                        <TableRow key={earning.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{earning.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+
+                                                    {paidLeaves.map((paidLeave) => (
+                                                        <TableRow key={paidLeave.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{paidLeave.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(paidLeave.amount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+
+                                                    {unpaidLeaves.map((unpaidLeave) => (
+                                                        <TableRow key={unpaidLeave.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{unpaidLeave.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(unpaidLeave.amount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+
+                                                    {deductions.map((deduction) => (
+                                                        <TableRow key={deduction.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{deduction.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={deductions ? deduction.amount === 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount) : `-${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(Math.abs(deduction.amount))}` : "Loading..." } />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </div>
+
+                                    <div className="col-4">
+                                        <TableContainer sx={{ my: 2 }}>
+                                            <Table className="table table-md table-vcenter table-bordered">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2} className="text-center" > Employer Share </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {benefits.map((benefit) => (
+                                                        <TableRow key={benefit.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{benefit.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employerAmount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                                        <TableContainer sx={{ my: 2 }}>
+                                            <Table className="table table-md table-vcenter table-bordered">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2} className="text-center" > Loans </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    <TableRow>
+                                                        <TableCell className="text-center bg-light" sx={{ border: '1px solid #ccc' }}>Balance</TableCell>
+                                                        <TableCell className="text-center bg-light">
+                                                            <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    <TableRow>
+                                                        <TableCell className="text-center bg-light" sx={{ border: '1px solid #ccc' }}>Payment</TableCell>
+                                                        <TableCell className="text-center bg-light">
+                                                            <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    <TableRow>
+                                                        <TableCell className="text-center bg-light" sx={{ border: '1px solid #ccc' }}>Remaining</TableCell>
+                                                        <TableCell className="text-center bg-light">
+                                                            <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </div>
+
+                                    <div className="col-4">
+                                        <TableContainer sx={{ my: 2 }}>
+                                            <Table className="table table-md table-vcenter table-bordered">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2} className="text-center" > Employer Share </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {benefits.map((benefit) => (
+                                                        <TableRow key={benefit.name}>
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{benefit.name}</TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                                        <TableContainer sx={{ my: 2 }}>
+                                            <Table className="table table-md table-vcenter table-bordered">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2} className="text-center" > Tax </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    <TableRow>
+                                                        <TableCell className="text-center bg-light" sx={{ border: '1px solid #ccc' }}>Tax</TableCell>
+                                                        <TableCell className="text-center bg-light">
+                                                            <input id="demo-simple-select" style={{backgroundColor: "white", height: 30, textAlign: 'right'}} readOnly className="form-control" type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </div>
+                                </div>
+
+                                <div className="row" style={{ marginTop: "10px" }}>
+                                    {summaries.map((summary) => (
+                                        <div key={summary.name} className="col-4 d-flex justify-content-center">
+                                            <FormControl sx={{ marginBottom: 2, width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}}>
+                                                <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }}> {summary.name} </InputLabel>
+                                                <input id="demo-simple-select" className='form-control' type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(summary.amount)} style={{ height: 40, backgroundColor: '#fff', textAlign: 'right' }} readOnly />
+                                            </FormControl>
+                                        </div>
+                                    ))}
+                                </div>
+
                             </Grid>
-
-                            <Grid item xs={6}>
-                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Employment Type</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.employment_type} </TableCell>
-                                            </TableRow>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Title</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.jobTitle} </TableCell>
-                                            </TableRow>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="left">Branch</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="left"> {employee.branch} </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
-
-                        <Grid container spacing={4} sx={{ px: 8 }}>
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Monthly Rate</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perMonth) : "0"} </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Daily Rate</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perDay) : "0"} </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ mt: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">Hourly Rate</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {payroll ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(payroll.perHour) : "0"} </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
-
-                        <Grid container spacing={4} sx={{ px: 8 }}>
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Earnings</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {earnings.map((earning) => (
-                                                <TableRow key={earning.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{earning.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {earnings ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(earning.amount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-
-                                            {paidLeaves.map((paidLeave) => (
-                                                <TableRow key={paidLeave.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{paidLeave.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {paidLeaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(paidLeave.amount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-
-                                            {unpaidLeaves.map((unpaidLeave) => (
-                                                <TableRow key={unpaidLeave.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{unpaidLeave.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> -{unpaidLeaves ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(unpaidLeave.amount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-
-                                            {deductions.map((deduction) => (
-                                                <TableRow key={deduction.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{deduction.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right">
-                                                        {deductions
-                                                            ? deduction.amount === 0
-                                                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(deduction.amount)
-                                                                : `-${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(Math.abs(deduction.amount))}`
-                                                            : "Loading..."
-                                                        }
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-
-
-                                            {/* <TableRow> */}
-                                                {/* <TableCell sx={{ border: '1px solid #ccc' }}>Dispute</TableCell> */}
-                                                {/* <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell> */}
-                                            {/* </TableRow> */}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employer Share</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {benefits.map((benefit) => (
-                                                <TableRow key={benefit.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{benefit.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employerAmount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Loans</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell sx={{ border: '1px solid #ccc' }}>Balance</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{ border: '1px solid #ccc' }}>Payment</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{ border: '1px solid #ccc' }}>Remaining</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Employee Contribution</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {benefits.map((benefit) => (
-                                                <TableRow key={benefit.name}>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }}>{benefit.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {benefits ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(benefit.employeeAmount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-
-                                <TableContainer sx={{ my: 4, border: '1px solid #ccc' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center" colSpan={2}>Tax</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell sx={{ border: '1px solid #ccc' }}>Tax</TableCell>
-                                                <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(0)} </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
-
-                        <Grid container spacing={4} sx={{ px: 8 }}>
-                            {summaries.map((summary) => (
-                                <Grid item xs={4} key={summary.name}>
-                                    <TableContainer sx={{ mb: 4, border: '1px solid #ccc' }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow sx={{ borderBottom: '2px solid #ccc' }}>
-                                                    <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold' }} align="center">{summary.name}</TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc' }} align="right"> {summaries ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(summary.amount) : "Loading..."}</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                        </Table>
-                                    </TableContainer>
-                                </Grid>
-                            ))}
                         </Grid>
                     </Box>
 
