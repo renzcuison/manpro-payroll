@@ -265,7 +265,7 @@ const AnnouncementView = () => {
             });
             setBlobMap({});
         };
-    }, []);
+    }, [imagePath]);
 
     return (
         <Layout title={"AnnouncementView"}>

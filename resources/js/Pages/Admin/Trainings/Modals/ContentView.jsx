@@ -156,7 +156,8 @@ const ContentView = ({ open, close, contentId }) => {
                     resContent?.content?.type === 'Image' &&
                     resContent?.image
                 ) {
-                    if (image) {
+                    if (image && image.startsWith('blob:')) {
+                        console.log("removing image");
                         URL.revokeObjectURL(image);
                     }
                     const byteCharacters = atob(resContent.image);
@@ -167,9 +168,6 @@ const ContentView = ({ open, close, contentId }) => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.image_mime });
 
-                    if (image && image.startsWith('blob:')) {
-                        URL.revokeObjectURL(image);
-                    }
                     setImage(URL.createObjectURL(blob));
                 } else {
                     setImage(null);
@@ -231,6 +229,7 @@ const ContentView = ({ open, close, contentId }) => {
     useEffect(() => {
         return () => {
             if (image && image.startsWith('blob:')) {
+                console.log("removing image");
                 URL.revokeObjectURL(image);
             }
         };
