@@ -46,6 +46,11 @@ export function useAuth() {
     }
 
     async function logout() {
+        const storedAvatar = sessionStorage.getItem('avatar');
+            if (storedAvatar && storedAvatar.startsWith('blob:')) {
+                URL.revokeObjectURL(storedAvatar);
+            }
+        sessionStorage.removeItem('avatar');
         try {
             // clear user from stored user data
             const storedUser = localStorage.getItem("nasya_user");

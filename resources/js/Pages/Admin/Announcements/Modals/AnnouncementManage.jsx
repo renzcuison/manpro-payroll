@@ -210,9 +210,14 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     }
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: 'image/png' });
-
+                    if (imagePath && imagePath.startsWith('blob:')) {
+                        URL.revokeObjectURL(imagePath);
+                    }
                     setImagePath(URL.createObjectURL(blob));
                 } else {
+                    if (imagePath && imagePath.startsWith('blob:')) {
+                        URL.revokeObjectURL(imagePath);
+                    }
                     setImagePath("../../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
@@ -220,6 +225,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             })
             .catch((error) => {
                 console.error('Error fetching thumbnail:', error);
+                if (imagePath && imagePath.startsWith('blob:')) {
+                    URL.revokeObjectURL(imagePath);
+                }
                 setImagePath("../../../../../images/ManProTab.png");
                 setImageLoading(false);
             });

@@ -167,6 +167,9 @@ const ContentView = ({ open, close, contentId }) => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.image_mime });
 
+                    if (image && image.startsWith('blob:')) {
+                        URL.revokeObjectURL(image);
+                    }
                     setImage(URL.createObjectURL(blob));
                 } else {
                     setImage(null);
@@ -226,15 +229,7 @@ const ContentView = ({ open, close, contentId }) => {
 
     // Image Cleanup
     useEffect(() => {
-        const handleBeforeUnload = () => {
-            if (image && image.startsWith('blob:')) {
-                URL.revokeObjectURL(image);
-            }
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
             if (image && image.startsWith('blob:')) {
                 URL.revokeObjectURL(image);
             }
