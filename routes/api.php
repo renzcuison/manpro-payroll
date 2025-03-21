@@ -117,9 +117,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('employee')->group(function () {
+
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
+        Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);

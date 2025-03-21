@@ -113,7 +113,7 @@ const TrainingView = () => {
                 URL.revokeObjectURL(imagePath);
             }
         };
-    }, []);
+    }, [imagePath]);
 
     // Training Content
     const getTrainingContent = () => {

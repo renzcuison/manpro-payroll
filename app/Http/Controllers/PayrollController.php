@@ -383,7 +383,7 @@ class PayrollController extends Controller
                         Log::info("Same Day Leave");
                         Log::info("Current Date   :" . $currentDate);
                         $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
-                            $appEnd = Carbon::parse($app->duration_end)->setDateFrom(now());
+                        $appEnd = Carbon::parse($app->duration_end)->setDateFrom(now());
                         $skipDay = true;
                         if (!$skipDay) {
                             $totalHours = 0;
@@ -568,14 +568,14 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        $payrollRequest = new Request([ 'selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate ]);
-    
+        $payrollRequest = new Request(['selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate]);
+
         // Call payrollDetails() and get response
         $payrollResponse = $this->payrollDetails($payrollRequest);
-    
+
         // Decode JSON response to access data
         $payrollData = json_decode($payrollResponse->getContent(), true);
-    
+
         if (!$payrollData) {
             Log::error("Failed to decode payroll data.");
             return response()->json(['error' => 'Invalid payroll data'], 500);
@@ -603,50 +603,49 @@ class PayrollController extends Controller
                 "employee_id" => $request->selectedPayroll,
                 "period_start" => $request->currentStartDate,
                 "period_end" => $request->currentEndDate,
-    
+
                 "total_earnings" => $totalEarning,
                 "total_deductions" => $totalDeduction,
-    
+
                 "rate_monthly" => $payroll['grossPay'],
                 "rate_daily" => $payroll['perDay'],
                 "rate_hourly" => $payroll['perHour'],
-    
+
                 "user_id" => $user->id,
             ]);
-    
+
             foreach ($payrollData['earnings'] as $earning) {
-                $newEarning = PayslipEarningsModel::create([ "payslip_id" => $payslip->id, "earning_id" => $earning['earning'], "amount" => $earning['amount'] ]);
+                $newEarning = PayslipEarningsModel::create(["payslip_id" => $payslip->id, "earning_id" => $earning['earning'], "amount" => $earning['amount']]);
             }
-    
+
             foreach ($payrollData['deductions'] as $deduction) {
-                $newDeduction = PayslipDeductionsModel::create([ "payslip_id" => $payslip->id, "deduction_id" => $deduction['deduction'], "amount" => $deduction['amount'] ]);
+                $newDeduction = PayslipDeductionsModel::create(["payslip_id" => $payslip->id, "deduction_id" => $deduction['deduction'], "amount" => $deduction['amount']]);
             }
-    
+
             foreach ($payrollData['paid_leaves'] as $paidLeave) {
-                $newPaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => decrypt($paidLeave['application']), "amount" => $paidLeave['amount'], "is_paid" => true ]);
-    
+                $newPaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($paidLeave['application']), "amount" => $paidLeave['amount'], "is_paid" => true]);
+
                 log::info($newPaidLeave);
             }
-    
+
             foreach ($payrollData['unpaid_leaves'] as $unpaidLeave) {
-                $newUnpaidLeave = PayslipLeavesModel::create([ "payslip_id" => $payslip->id, "application_type_id" => decrypt($unpaidLeave['application']), "amount" => $unpaidLeave['amount'], "is_paid" => false ]);
-    
+                $newUnpaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($unpaidLeave['application']), "amount" => $unpaidLeave['amount'], "is_paid" => false]);
+
                 log::info($newUnpaidLeave);
             }
-    
+
             foreach ($payrollData['benefits'] as $benefit) {
                 if ($benefit['name'] != "Total Benefits") {
                     log::info($benefit);
-                    $newBenefit = PayslipBenefitsModel::create([ "payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount'] ]);
-        
+                    $newBenefit = PayslipBenefitsModel::create(["payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount']]);
+
                     log::info($newBenefit);
                 }
             }
 
             DB::commit();
-        
-            return response()->json([ 'status' => 200 ]);
 
+            return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -656,7 +655,6 @@ class PayrollController extends Controller
         }
 
 
-        return response()->json([ 'status' => 200 ]);
-    }    
-    
+        return response()->json(['status' => 200]);
+    }
 }

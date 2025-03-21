@@ -239,6 +239,16 @@ class EmployeesController extends Controller
 
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
             $employee = $this->enrichEmployeeDetails($employee);
+
+            // RANDOM GENERATED SUMMARY FOR AD DEMO
+            $payrolls = rand(10, 20);
+            $reduction = mt_rand(5, 10);
+
+            $employee->total_payroll = $payrolls;
+            $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
+            $employee->total_applications = rand(0, $payrolls * 2);
+
+
             return response()->json(['status' => 200, 'employee' => $employee]);
         }
 
@@ -253,7 +263,34 @@ class EmployeesController extends Controller
         $employee = UsersModel::find($user->id);
 
         $employee = $this->enrichEmployeeDetails($employee);
+
+        // RANDOM GENERATED SUMMARY FOR AD DEMO
+        $payrolls = rand(10, 20);
+        $reduction = mt_rand(5, 10);
+
+        $employee->total_payroll = $payrolls;
+        $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
+        $employee->total_applications = rand(0, $payrolls * 2);
+
         return response()->json(['status' => 200, 'employee' => $employee]);
+    }
+
+    public function getMyAvatar()
+    {
+        //log::info("EmployeesController::getMyAvatar");
+        $user = Auth::user();
+
+        $avatar = [
+            'image' => null,
+            'mime' => null
+        ];
+
+        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
+            $avatar['image'] = base64_encode(Storage::disk('public')->get($user->profile_pic));
+            $avatar['mime'] = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+        }
+
+        return response()->json(['status' => 200, 'avatar' => $avatar]);
     }
 
     public function editMyProfile(Request $request)

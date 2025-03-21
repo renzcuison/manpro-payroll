@@ -255,7 +255,7 @@ const GeneralSettings = () => {
                                 </Box>
                             ) : (
                                 <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 3, mb: 1, height: "560px" }}>
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>
@@ -301,7 +301,7 @@ const GeneralSettings = () => {
                                 </Box>
                             ) : (
                                 <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 3, mb: 1, height: "560px" }}>
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>
@@ -350,7 +350,7 @@ const GeneralSettings = () => {
                                 </Box>
                             ) : (
                                 <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 3, mb: 1, height: "560px" }}>
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>
@@ -395,7 +395,7 @@ const GeneralSettings = () => {
                                 </Box>
                             ) : (
                                 <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 3, mb: 1, height: "560px" }}>
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>
@@ -444,7 +444,7 @@ const GeneralSettings = () => {
                                 </Box>
                             ) : (
                                 <>
-                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 3, mb: 1, height: "560px" }}>
                                         <Table aria-label="simple table">
                                             <TableHead>
                                                 <TableRow>

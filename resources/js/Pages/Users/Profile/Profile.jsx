@@ -45,7 +45,9 @@ const EmployeeView = () => {
                         const byteArray = new Uint8Array(byteNumbers);
                         const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
 
-                        setImagePath(URL.createObjectURL(blob));
+                        const newBlob = URL.createObjectURL(blob);
+                        setImagePath(newBlob);
+                        sessionStorage.setItem('avatar', newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -54,14 +56,6 @@ const EmployeeView = () => {
                 console.error('Error fetching details:', error);
             });
     };
-    // Image Cleanup
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePath);
-            }
-        };
-    }, []);
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
@@ -202,7 +196,9 @@ const EmployeeView = () => {
                                         <Grid item xs={4}>
                                             <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                                 <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>
+                                                        {employee.total_payroll || "-"}
+                                                    </Avatar>
                                                 </Grid>
                                                 <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                     <Typography variant="h6"> Signed Payroll </Typography>
@@ -213,7 +209,9 @@ const EmployeeView = () => {
                                         <Grid item xs={4}>
                                             <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                                 <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>
+                                                        {employee.total_attendance || "-"}
+                                                    </Avatar>
                                                 </Grid>
                                                 <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                     <Typography variant="h6"> Attendance </Typography>
@@ -224,7 +222,9 @@ const EmployeeView = () => {
                                         <Grid item xs={4}>
                                             <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                                 <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
+                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>
+                                                        {employee.total_applications || "-"}
+                                                    </Avatar>
                                                 </Grid>
                                                 <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                     <Typography variant="h6"> Applications </Typography>

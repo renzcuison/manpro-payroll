@@ -156,7 +156,8 @@ const ContentView = ({ open, close, contentId }) => {
                     resContent?.content?.type === 'Image' &&
                     resContent?.image
                 ) {
-                    if (image) {
+                    if (image && image.startsWith('blob:')) {
+                        console.log("removing image");
                         URL.revokeObjectURL(image);
                     }
                     const byteCharacters = atob(resContent.image);
@@ -224,9 +225,11 @@ const ContentView = ({ open, close, contentId }) => {
         });
     };
 
+    // Image Cleanup
     useEffect(() => {
         return () => {
-            if (image) {
+            if (image && image.startsWith('blob:')) {
+                console.log("removing image");
                 URL.revokeObjectURL(image);
             }
         };

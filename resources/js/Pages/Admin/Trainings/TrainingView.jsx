@@ -102,14 +102,23 @@ const TrainingView = () => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: 'image/png' });
 
+                    if (imagePath && imagePath.startsWith('blob:')) {
+                        URL.revokeObjectURL(imagePath);
+                    }
                     setImagePath(URL.createObjectURL(blob));
                 } else {
+                    if (imagePath && imagePath.startsWith('blob:')) {
+                        URL.revokeObjectURL(imagePath);
+                    }
                     setImagePath("../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching training details', error);
+                if (imagePath && imagePath.startsWith('blob:')) {
+                    URL.revokeObjectURL(imagePath);
+                }
                 setImagePath("../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
@@ -121,7 +130,7 @@ const TrainingView = () => {
                 URL.revokeObjectURL(imagePath);
             }
         };
-    }, []);
+    }, [imagePath]);
 
     // Training Content
     const getTrainingContent = () => {
