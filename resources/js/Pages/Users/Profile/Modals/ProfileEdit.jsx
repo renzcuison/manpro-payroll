@@ -10,7 +10,7 @@ import moment from 'moment';
 import dayjs from 'dayjs';
 import { Edit } from '@mui/icons-material';
 
-const ProfileEdit = ({ open, close, employee }) => {
+const ProfileEdit = ({ open, close, employee, avatar }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -27,7 +27,7 @@ const ProfileEdit = ({ open, close, employee }) => {
 
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
-    const [profilePic, setProfilePic] = useState(`../../../../../../../storage/${employee.profile_pic}` || "../../../../../images/avatarpic.jpg");
+    const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
     const [newProfilePic, setNewProfilePic] = useState('');
 
     // Form Errors

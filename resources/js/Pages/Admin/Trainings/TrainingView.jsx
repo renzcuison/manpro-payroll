@@ -114,6 +114,14 @@ const TrainingView = () => {
                 setImageLoading(false);
             });
     }
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, []);
 
     // Training Content
     const getTrainingContent = () => {

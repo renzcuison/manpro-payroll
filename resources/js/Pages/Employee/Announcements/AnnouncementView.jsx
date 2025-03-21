@@ -248,6 +248,9 @@ const AnnouncementView = () => {
 
     useEffect(() => {
         return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
             blobURLs.forEach((url) => {
                 if (url.startsWith('blob:')) {
                     URL.revokeObjectURL(url);

@@ -57,6 +57,8 @@ class EmployeesController extends Controller
         $employee->branch = "";
         $employee->department = "";
         $employee->work_group = "";
+        $employee->avatar = null;
+        $employee->avatar_mime = null;
 
         if ($employee->role_id) {
             $role = EmployeeRolesModel::find($employee->role_id);
@@ -81,6 +83,11 @@ class EmployeesController extends Controller
         if ($employee->work_group_id) {
             $work_group = WorkGroupsModel::find($employee->work_group_id);
             $employee->work_group = $work_group ? $work_group->name : "";
+        }
+
+        if ($employee->profile_pic) {
+            $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
+            $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
         }
 
         return $employee;

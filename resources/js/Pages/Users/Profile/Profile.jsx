@@ -20,6 +20,7 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState('');
+    const [imagePath, setImagePath] = useState('');
 
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
 
@@ -33,12 +34,34 @@ const EmployeeView = () => {
         axiosInstance.get(`/employee/getMyDetails`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
-                    setEmployee(response.data.employee);
+                    const empDetails = response.data.employee;
+                    setEmployee(empDetails);
+                    if (empDetails.avatar && empDetails.avatar_mime) {
+                        const byteCharacters = window.atob(empDetails.avatar);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
+
+                        setImagePath(URL.createObjectURL(blob));
+                    } else {
+                        setImagePath(null);
+                    }
                 }
             }).catch((error) => {
                 console.error('Error fetching details:', error);
             });
     };
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, []);
 
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
@@ -102,7 +125,7 @@ const EmployeeView = () => {
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                     <Avatar
                                         alt={`${employee.user_name} Profile Pic`}
-                                        src={employee.profile_pic ? `${location.origin}/storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
+                                        src={imagePath}
                                         sx={{
                                             width: '50%',
                                             height: 'auto',
@@ -286,6 +309,7 @@ const EmployeeView = () => {
                         open={openProfileEditModal}
                         close={handleCloseProfileEditModal}
                         employee={employee}
+                        avatar={imagePath}
                     />}
 
             </Box>
