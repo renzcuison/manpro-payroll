@@ -530,6 +530,16 @@ class TrainingsController extends Controller
                 ->orderBy('order', 'asc')
                 ->get();
 
+            foreach ($content as $cont) {
+                if ($cont->content->type == "Image") {
+                    $cont->image = base64_encode(Storage::disk('public')->get($cont->content->source));
+                    $cont->mime = mime_content_type(storage_path('app/public/' . $cont->content->source));
+                } else {
+                    $cont->image = null;
+                    $cont->mime = null;
+                }
+            }
+
             return response()->json(['status' => 200, 'content' => $content]);
         } else {
             return response()->json(['status' => 200, 'content' => null]);
@@ -594,6 +604,14 @@ class TrainingsController extends Controller
 
             $contentItem->has_viewed = !is_null($view);
             $contentItem->is_finished = $view && $view->status === 'Finished';
+
+            if ($contentItem->content->type == "Image") {
+                $contentItem->image = base64_encode(Storage::disk('public')->get($contentItem->content->source));
+                $contentItem->mime = mime_content_type(storage_path('app/public/' . $contentItem->content->source));
+            } else {
+                $contentItem->image = null;
+                $contentItem->mime = null;
+            }
 
             unset($contentItem->views);
         });
