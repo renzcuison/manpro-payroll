@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending, CheckBox } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -280,54 +280,87 @@ const ContentView = () => {
                                 </Typography>
                                 <Box sx={{ height: "95%" }}>
                                     {contentList.length > 0 && (
-                                        contentList.map((cont) => (
-                                            <Box
-                                                key={cont.id}
-                                                display="flex"
-                                                sx={{
-                                                    mt: 0.5,
-                                                    py: 1.5,
-                                                    borderRadius: "8px",
-                                                    justifyContent: "space-between",
-                                                    transition: "background-color 0.3s ease, padding 0.3s ease",
-                                                    ...(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false
-                                                        ? { backgroundColor: "#777777" }
-                                                        : cont.id == contentId
-                                                            ? {
-                                                                backgroundColor: "#e9ae20",
-                                                                pl: 1,
-                                                            }
-                                                            : {
-                                                                "&:hover": {
-                                                                    backgroundColor: "#e0e0e0",
-                                                                    pl: 1,
-                                                                },
-                                                            }),
-                                                }}
-                                                onClick={() =>
-                                                    handleContentChange(
-                                                        cont.id,
-                                                        !(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false)
-                                                    )
-                                                }
-                                            >
-                                                <Box display="flex">
-                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transiton: "color 0.3s ease", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
-                                                        {cont.title}
-                                                    </Typography>
+                                        contentList.map((cont) => {
+                                            const locked = sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false;
+                                            return (
+                                                <Box
+                                                    key={cont.id}
+                                                    sx={{
+                                                        position: 'relative',
+                                                        borderRadius: "8px",
+                                                    }}
+                                                    onClick={() =>
+                                                        handleContentChange(
+                                                            cont.id,
+                                                            !locked
+                                                        )
+                                                    }
+                                                >
+                                                    <Box
+                                                        display="flex"
+                                                        sx={{
+                                                            pl: 1,
+                                                            mt: 0.5,
+                                                            py: 1.5,
+                                                            borderRadius: "8px",
+                                                            justifyContent: "space-between",
+                                                            transition: "background-color 0.3s ease, padding 0.3s ease",
+                                                            ...(cont.id == contentId
+                                                                ? {
+                                                                    backgroundColor: "#e9ae20",
+                                                                    pl: 1.5,
+                                                                }
+                                                                : {
+                                                                    "&:hover": {
+                                                                        backgroundColor: "#e0e0e0",
+                                                                        pl: 1.5,
+                                                                    },
+                                                                }),
+                                                        }}
+                                                    >
+                                                        <Box display="flex">
+                                                            {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            <Typography
+                                                                sx={{
+                                                                    ml: 1,
+                                                                    color: "text.secondary",
+                                                                    whiteSpace: "nowrap",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                    transition: "color 0.3s ease",
+                                                                    ...(cont.id == contentId && { color: "white", fontWeight: "bold" }),
+                                                                }}
+                                                            >
+                                                                {cont.title}
+                                                            </Typography>
+                                                        </Box>
+                                                        {cont.is_finished ? (
+                                                            <CheckBox sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transition: "color 0.3s ease" }} />
+                                                        ) : cont.has_viewed ? (
+                                                            <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transition: "color 0.3s ease" }} />
+                                                        ) : null}
+                                                    </Box>
+                                                    {/* Locked Overlay */}
+                                                    {locked && (
+                                                        <Box
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                top: 0,
+                                                                left: 0,
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                                borderRadius: "8px",
+                                                                zIndex: 1,
+                                                            }}
+                                                        />
+                                                    )}
                                                 </Box>
-                                                {cont.is_finished ? (
-                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transiton: "color 0.3s ease" }} />
-                                                ) : cont.has_viewed ? (
-                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transiton: "color 0.3s ease" }} />
-                                                )
-                                                    : null}
-                                            </Box>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </Box>
                             </Box>

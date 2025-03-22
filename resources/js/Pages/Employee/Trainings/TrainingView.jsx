@@ -17,6 +17,8 @@ import {
     Grid,
     Chip,
     CircularProgress,
+    LinearProgress,
+    linearProgressClasses,
     FormControl,
     InputLabel,
     Select,
@@ -34,7 +36,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, Lock } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -71,6 +73,7 @@ const TrainingView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [training, setTraining] = useState([]);
     const [content, setContent] = useState([]);
+    const [contentProgress, setContentProgress] = useState(0);
 
     const [imageLoading, setImageLoading] = useState(true);
     const [imagePath, setImagePath] = useState("");
@@ -119,7 +122,9 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getEmployeeTrainingContent/${code}`, { headers })
             .then((response) => {
-                setContent(response.data.content || []);
+                const contentList = response.data.content;
+                setContent(contentList || []);
+                setContentProgress(((contentList.filter(item => item.is_finished).length / contentList.length) * 100) || 0);
             })
             .catch((error) => {
                 console.error('Error fetching training content:', error);
@@ -187,11 +192,23 @@ const TrainingView = () => {
     };
 
     // Content Navigator
-    const handleContentViewer = (cont) => {
-        sessionStorage.setItem('contentId', cont.id);
-        sessionStorage.setItem('trainingTitle', training.title);
-        sessionStorage.setItem('trainingSequence', training.sequential);
-        navigate(`/employee/training-content/${training.unique_code}`);
+    const handleContentViewer = (cont, locked) => {
+        if (locked) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Content Locked!",
+                text: "Finish previous content to unlock",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            sessionStorage.setItem('contentId', cont.id);
+            sessionStorage.setItem('trainingTitle', training.title);
+            sessionStorage.setItem('trainingSequence', training.sequential);
+            navigate(`/employee/training-content/${training.unique_code}`);
+        }
     };
 
     return (
@@ -325,6 +342,45 @@ const TrainingView = () => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
+                                    <Grid container item xs={12} spacing={2}>
+                                        <Grid item xs={2}>
+                                            <Typography>
+                                                Your Progress
+                                            </Typography>
+                                        </Grid>
+                                        <Grid
+                                            item
+                                            xs={10}
+                                            sx={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            <Typography sx={{ fontWeight: "bold" }}>
+                                                {`${content.filter(item => item.is_finished).length} of ${content.length} Completed`}
+                                            </Typography>
+                                            <LinearProgress
+                                                variant="determinate"
+                                                value={contentProgress}
+                                                sx={{
+                                                    ml: 3,
+                                                    width: "100%",
+                                                    height: 12,
+                                                    borderRadius: 5,
+                                                    backgroundColor: "#e0e0e0",
+                                                    [`& .${linearProgressClasses.bar}`]: {
+                                                        borderRadius: 5,
+                                                        backgroundImage: `linear-gradient(90deg, #e9ae20 ${100 - contentProgress}%, #177604 ${200 - contentProgress}%)`,
+                                                        transition: "transform 2s cubic-bezier(0.4, 0, 0.2, 1)",
+                                                    },
+                                                }}
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
                                     {/* Content Header */}
                                     <Grid item xs={12} align="left">
                                         <Typography>
@@ -332,65 +388,128 @@ const TrainingView = () => {
                                         </Typography>
                                     </Grid>
                                     {/* Content List */}
-                                    {content && content.length > 0 && (
-                                        <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
-                                            {content.map((cont) => (
-                                                <Grid item xs={3} key={cont.id}>
-                                                    <CardActionArea title={cont.title || 'Content Item'} component={Link} to={`/employee/training-content/${training.unique_code}`} onClick={() => handleContentViewer(cont)}>
-                                                        <Card sx={{ boxShadow: 3 }}>
-                                                            <CardMedia
-                                                                sx={{
-                                                                    height: '180px',
-                                                                    backgroundColor: 'transparent',
-                                                                    width: '100%',
-                                                                    display: 'flex',
-                                                                    placeSelf: 'center',
-                                                                    ...(["Document", "PowerPoint"].includes(cont.content.type)
-                                                                        ? {
-                                                                            objectFit: "contain",
-                                                                            width: '64%',
-                                                                        }
-                                                                        : {}),
-                                                                }}
-                                                                image={renderImage(cont.content.source, cont.content.type || 'Form')}
-                                                                alt={cont.title || 'Content Item'}
-                                                            />
-                                                            <CardContent sx={{ pb: "5px" }}>
-                                                                <Stack direction="row" alignItems="center" spacing={1}>
-                                                                    <Box sx={{
-                                                                        display: 'inline-flex',
-                                                                        backgroundColor: "#177604",
-                                                                        padding: '2px 6px',
-                                                                        borderRadius: '4px'
-                                                                    }}>
-                                                                        <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                                                                            {cont.order}
-                                                                        </Typography>
-                                                                    </Box>
-                                                                    <Typography variant="body1" noWrap>
-                                                                        {cont.title || 'Content Item'}
+                                    {content.map((cont) => {
+                                        const locked = training.sequential && content.find(item => item.order === cont.order - 1)?.is_finished === false;
+                                        return (
+                                            <Grid item xs={3} key={cont.id}>
+                                                <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleContentViewer(cont, locked)}>
+                                                    <Card sx={{ boxShadow: 3, position: 'relative' }}>
+                                                        {/* Card Content */}
+                                                        <CardMedia
+                                                            sx={{
+                                                                height: '180px',
+                                                                backgroundColor: 'transparent',
+                                                                width: '100%',
+                                                                display: 'flex',
+                                                                placeSelf: 'center',
+                                                                ...(["Document", "PowerPoint"].includes(cont.content.type)
+                                                                    ? {
+                                                                        objectFit: "contain",
+                                                                        width: '64%',
+                                                                    }
+                                                                    : {}),
+                                                            }}
+                                                            image={renderImage(cont.content.source, cont.content.type || 'Form')}
+                                                            alt={cont.title || 'Content Item'}
+                                                        />
+                                                        <CardContent sx={{ pb: "5px" }}>
+                                                            <Stack direction="row" alignItems="center" spacing={1}>
+                                                                <Box sx={{
+                                                                    display: 'inline-flex',
+                                                                    backgroundColor: "#177604",
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px'
+                                                                }}>
+                                                                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                                                                        {cont.order}
                                                                     </Typography>
-                                                                </Stack>
-                                                            </CardContent>
-                                                            <CardActions sx={{ ml: "8px" }}>
-                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
-                                                                    {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
-                                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: 'text.secondary' }} />}
-                                                                    {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
-                                                                    <Box sx={{ ml: 1 }}>
-                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                                            {cont.content.type ? cont.content.type : "Form"}
-                                                                        </Typography>
-                                                                    </Box>
                                                                 </Box>
-                                                            </CardActions>
-                                                        </Card>
-                                                    </CardActionArea>
-                                                </Grid>
-                                            ))}
-                                        </Grid>
-                                    )}
+                                                                <Typography variant="body1" noWrap>
+                                                                    {cont.title || 'Content Item'}
+                                                                </Typography>
+                                                            </Stack>
+                                                        </CardContent>
+                                                        <CardActions sx={{ ml: "8px" }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                {cont.content.type === 'Video' && <OndemandVideo sx={{ color: 'text.secondary' }} />}
+                                                                {cont.content.type === 'Image' && <Image sx={{ color: 'text.secondary' }} />}
+                                                                {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: 'text.secondary' }} />}
+                                                                {!cont.content.type && <Quiz sx={{ color: 'text.secondary' }} />}
+                                                                <Box sx={{ ml: 1 }}>
+                                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                        {cont.content.type ? cont.content.type : "Form"}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+                                                        </CardActions>
+                                                        {/* Status Chips */}
+                                                        {cont.is_finished ? (
+                                                            <Chip
+                                                                label="COMPLETED"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    left: 8,
+                                                                    backgroundColor: "#177604",
+                                                                    color: "white",
+                                                                    fontWeight: "bold",
+                                                                    boxShadow: 2,
+                                                                }}
+                                                            />
+                                                        ) : cont.has_viewed ? (
+                                                            <Chip
+                                                                label="PENDING"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    left: 8,
+                                                                    backgroundColor: "#f57c00",
+                                                                    color: "white",
+                                                                    fontWeight: "bold",
+                                                                    boxShadow: 2,
+                                                                }}
+                                                            />
+                                                        ) : null}
+                                                        {/* Lock Overlays */}
+                                                        {locked && (
+                                                            <Box
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                                                    zIndex: 1,
+                                                                }}
+                                                            />
+                                                        )}
+                                                        {locked && (
+                                                            <Box
+                                                                display="flex"
+                                                                flexDirection="column"
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    zIndex: 2,
+                                                                    placeContent: "center",
+                                                                    placeItems: "center",
+                                                                }}
+                                                            >
+                                                                <Lock sx={{ height: "36px", width: "36px", color: "white" }} />
+                                                                <Typography variant="body2" sx={{ mt: 1, color: "white", fontWeight: "bold" }}>
+                                                                    Content Locked
+                                                                </Typography>
+                                                            </Box>
+                                                        )}
+                                                    </Card>
+                                                </CardActionArea>
+                                            </Grid>
+                                        );
+                                    })}
                                 </Grid>
                             </>
                         )}
