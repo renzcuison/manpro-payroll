@@ -657,32 +657,36 @@ const TrainingView = () => {
                                                     </Typography>
                                                 )
                                                 }
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={handleOpenContentAddModal}
-                                                    sx={{ ml: 3 }}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add Content{" "}
-                                                    </p>
-                                                </Button>
+                                                {training.status == "Pending" && (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleOpenContentAddModal}
+                                                        sx={{ ml: 3 }}
+                                                    >
+                                                        <p className="m-0">
+                                                            <i className="fa fa-plus"></i> Add Content{" "}
+                                                        </p>
+                                                    </Button>
+                                                )}
                                             </Box>
                                             {content.length > 0 && (
                                                 <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         {inOrder == null ? "-" : `Contents ${inOrder ? 'have to be completed in order.' : 'can be completed in any order.'}`}
                                                     </Typography>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        onClick={handleOpenContentSettingsModal}
-                                                        sx={{ ml: 1 }}
-                                                    >
-                                                        <p className="m-0">
-                                                            Manage
-                                                        </p>
-                                                    </Button>
+                                                    {training.status == "Pending" && (
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={handleOpenContentSettingsModal}
+                                                            sx={{ ml: 1 }}
+                                                        >
+                                                            <p className="m-0">
+                                                                Manage
+                                                            </p>
+                                                        </Button>
+                                                    )}
                                                 </Box>
                                             )}
                                         </Box>
@@ -773,6 +777,7 @@ const TrainingView = () => {
                     open={openContentViewModal}
                     close={handleCloseContentViewModal}
                     contentId={loadContent}
+                    status={training.status}
                 />
             )}
             {openContentSettingsModal && (

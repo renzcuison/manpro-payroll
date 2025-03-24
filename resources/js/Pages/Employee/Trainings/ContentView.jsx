@@ -269,8 +269,8 @@ const ContentView = () => {
                                         }
                                     });
 
-                                    // Seek Event Listener
-                                    iframe.contentWindow.addEventListener('seeked', restrictSeeking);
+                                    // Seek Event Listener (blocked by YT, alternative needed)
+                                    // iframe.contentWindow.addEventListener('seeked', restrictSeeking);
                                 },
                             },
                         });

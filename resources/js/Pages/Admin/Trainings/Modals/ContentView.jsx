@@ -51,7 +51,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ContentView = ({ open, close, contentId }) => {
+const ContentView = ({ open, close, contentId, status }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -312,44 +312,48 @@ const ContentView = ({ open, close, contentId }) => {
                                                 {content.title}
                                             </Typography>
                                             {/* Options */}
-                                            <IconButton
-                                                id="basic-button"
-                                                size="small"
-                                                aria-controls={open ? 'basic-menu' : undefined}
-                                                aria-haspopup="true"
-                                                aria-expanded={open ? 'true' : undefined}
-                                                onClick={handleMenuClick}
-                                            >
-                                                <MoreVert />
-                                            </IconButton>
-                                            <Menu
-                                                id="basic-menu"
-                                                anchorEl={anchorEl}
-                                                open={menuOpen}
-                                                onClose={handleMenuClose}
-                                                MenuListProps={{
-                                                    'aria-labelledby': 'basic-button',
-                                                }}
-                                            >
-                                                {/* Edit Content */}
-                                                <MenuItem
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleOpenContentEditModal();
-                                                        handleMenuClose();
-                                                    }}>
-                                                    Edit
-                                                </MenuItem>
-                                                {/* Remove Content */}
-                                                <MenuItem
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleRemoveContent();
-                                                        handleMenuClose();
-                                                    }}>
-                                                    Remove
-                                                </MenuItem>
-                                            </Menu>
+                                            {status == "Pending" ? (
+                                                <>
+                                                    <IconButton
+                                                        id="basic-button"
+                                                        size="small"
+                                                        aria-controls={open ? 'basic-menu' : undefined}
+                                                        aria-haspopup="true"
+                                                        aria-expanded={open ? 'true' : undefined}
+                                                        onClick={handleMenuClick}
+                                                    >
+                                                        <MoreVert />
+                                                    </IconButton>
+                                                    <Menu
+                                                        id="basic-menu"
+                                                        anchorEl={anchorEl}
+                                                        open={menuOpen}
+                                                        onClose={handleMenuClose}
+                                                        MenuListProps={{
+                                                            'aria-labelledby': 'basic-button',
+                                                        }}
+                                                    >
+                                                        {/* Edit Content */}
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleOpenContentEditModal();
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Edit
+                                                        </MenuItem>
+                                                        {/* Remove Content */}
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleRemoveContent();
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Remove
+                                                        </MenuItem>
+                                                    </Menu>
+                                                </>
+                                            ) : null}
                                         </Stack>
                                     </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
