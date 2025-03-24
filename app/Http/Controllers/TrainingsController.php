@@ -451,6 +451,9 @@ class TrainingsController extends Controller
                     ->with('contents')
                     ->firstOrFail();
 
+                $training->sequential = $request->input('in_order');
+                $training->save();
+
                 $orderMap = [];
                 foreach ($order as $ord) {
                     $orderMap[$ord['id']] = $ord['order'];
@@ -621,7 +624,7 @@ class TrainingsController extends Controller
 
     public function getContentDetails($id)
     {
-        // Log::info("TrainingsController::getContentDetails");
+        // /Log::info("TrainingsController::getContentDetails");
 
         $user = Auth::user();
 
@@ -641,12 +644,12 @@ class TrainingsController extends Controller
         unset($content->views);
 
         // Image -> Blob Conversion
-        if ($content->content instanceof TrainingMediaModel && $content->content->type === 'Image') {
+        if ($content->content instanceof TrainingMediaModel) {
             try {
-                $content->image = base64_encode(Storage::disk('public')->get($content->content->source));
-                $content->image_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
+                $content->file = base64_encode(Storage::disk('public')->get($content->content->source));
+                $content->file_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
             } catch (\Exception $e) {
-                Log::error("Failed to convert image to blob: " . $e->getMessage());
+                Log::error("Failed to convert file to blob: " . $e->getMessage());
             }
         }
 

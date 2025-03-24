@@ -60,6 +60,7 @@ import { first } from "lodash";
 import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import PPTImage from "../../../../../public/media/assets/PowerPoint_file_icon.png";
+import DocumentView from "./Modals/DocumentView";
 
 
 const ContentView = () => {
@@ -91,8 +92,8 @@ const ContentView = () => {
             setTitle(storedTrainingTitle);
         }
         const storedSequence = sessionStorage.getItem('trainingSequence');
-        if (storedSequence) {
-            setSequential(storedSequence);
+        if (storedSequence && storedSequence == 1) {
+            setSequential(true);
         }
         getContentDetails(storedContentId);
         getTrainingContent();
@@ -107,18 +108,18 @@ const ContentView = () => {
                 setContent(resContent);
                 if (
                     resContent?.content?.type === 'Image' &&
-                    resContent?.image
+                    resContent?.file
                 ) {
                     if (image && image.startsWith('blob:')) {
                         URL.revokeObjectURL(image);
                     }
-                    const byteCharacters = atob(resContent.image);
+                    const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: resContent.image_mime });
+                    const blob = new Blob([byteArray], { type: resContent.file_mime });
 
                     setImage(URL.createObjectURL(blob));
                     if (!resContent.is_finished) {
@@ -232,6 +233,18 @@ const ContentView = () => {
         return null;
     };
 
+    // Document Viewers
+    const [openViewDocumentModal, setOpenViewDocumentModal] = useState(false);
+    const [loadDocument, setLoadDocument] = useState(null);
+    const handleOpenViewDocument = (source) => {
+        setLoadDocument(source);
+        setOpenViewDocumentModal(true);
+    }
+    const handleCloseViewDocument = () => {
+        setOpenViewDocumentModal(false);
+        setLoadDocument(null);
+    }
+
     // Content Viewed
     const handleTrainingViews = (id, finished) => {
         const data = {
@@ -344,7 +357,7 @@ const ContentView = () => {
                                                         ) : null}
                                                     </Box>
                                                     {/* Locked Overlay */}
-                                                    {locked && (
+                                                    {locked ? (
                                                         <Box
                                                             sx={{
                                                                 position: 'absolute',
@@ -357,7 +370,7 @@ const ContentView = () => {
                                                                 zIndex: 1,
                                                             }}
                                                         />
-                                                    )}
+                                                    ) : null}
                                                 </Box>
                                             );
                                         })
@@ -414,7 +427,7 @@ const ContentView = () => {
                                                             alt={content.title || "Content Item"}
                                                             onClick={
                                                                 ["Document", "PowerPoint"].includes(content.content.type)
-                                                                    ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                                    ? () => handleOpenViewDocument(content)
                                                                     : undefined
                                                             }
                                                         />
@@ -444,6 +457,14 @@ const ContentView = () => {
                     </Box>
                 </Box>
             </Box>
+            {openViewDocumentModal && (
+                <DocumentView
+                    open={openViewDocumentModal}
+                    close={handleCloseViewDocument}
+                    content={loadDocument}
+                    onFinished={handleTrainingViews}
+                />
+            )}
         </Layout>
     );
 };

@@ -154,19 +154,19 @@ const ContentView = ({ open, close, contentId }) => {
                 setContent(resContent);
                 if (
                     resContent?.content?.type === 'Image' &&
-                    resContent?.image
+                    resContent?.file
                 ) {
                     if (image && image.startsWith('blob:')) {
                         console.log("removing image");
                         URL.revokeObjectURL(image);
                     }
-                    const byteCharacters = atob(resContent.image);
+                    const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: resContent.image_mime });
+                    const blob = new Blob([byteArray], { type: resContent.file_mime });
 
                     setImage(URL.createObjectURL(blob));
                 } else {

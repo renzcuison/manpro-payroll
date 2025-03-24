@@ -389,9 +389,10 @@ const TrainingView = () => {
                                                 sx={{
                                                     ml: 3,
                                                     width: "100%",
-                                                    height: 12,
+                                                    height: 15,
                                                     borderRadius: 5,
                                                     backgroundColor: "#e0e0e0",
+                                                    boxShadow: 2,
                                                     [`& .${linearProgressClasses.bar}`]: {
                                                         borderRadius: 5,
                                                         backgroundImage: `linear-gradient(90deg, #e9ae20 ${100 - contentProgress}%, #177604 ${200 - contentProgress}%)`,
@@ -494,7 +495,7 @@ const TrainingView = () => {
                                                             />
                                                         ) : null}
                                                         {/* Lock Overlays */}
-                                                        {locked && (
+                                                        {locked ? (
                                                             <Box
                                                                 sx={{
                                                                     position: 'absolute',
@@ -506,8 +507,8 @@ const TrainingView = () => {
                                                                     zIndex: 1,
                                                                 }}
                                                             />
-                                                        )}
-                                                        {locked && (
+                                                        ) : null}
+                                                        {locked ? (
                                                             <Box
                                                                 display="flex"
                                                                 flexDirection="column"
@@ -527,7 +528,7 @@ const TrainingView = () => {
                                                                     Content Locked
                                                                 </Typography>
                                                             </Box>
-                                                        )}
+                                                        ) : null}
                                                     </Card>
                                                 </CardActionArea>
                                             </Grid>
