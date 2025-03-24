@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, Avatar, Stack, Grid, CircularProgress } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -74,7 +74,7 @@ const EmployeesList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="left"></TableCell>
                                                 <TableCell align="center">Name</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
@@ -92,7 +92,13 @@ const EmployeesList = () => {
                                                     to={`/admin/employee/${employee.user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
-                                                    <TableCell align="center"></TableCell>
+                                                    <TableCell align="center">
+                                                        <Avatar
+                                                            alt={`${employee.user_name} Profile Pic`}
+                                                            src={null}
+                                                            sx={{ height: '5%', height: 'width', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
+                                                        />
+                                                    </TableCell>
                                                     <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
                                                     <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                     <TableCell align="center">{employee.department || '-'}</TableCell>

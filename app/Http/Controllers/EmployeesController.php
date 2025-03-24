@@ -85,9 +85,12 @@ class EmployeesController extends Controller
             $employee->work_group = $work_group ? $work_group->name : "";
         }
 
-        if ($employee->profile_pic) {
+        if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
             $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
             $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
+        } else {
+            $employee->avatar = null;
+            $employee->avatar_mime = null;
         }
 
         return $employee;
