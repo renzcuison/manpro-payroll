@@ -102,7 +102,7 @@ class ApplicationsController extends Controller
         $user = Auth::user();
 
         $clientId = $user->client_id;
-        $apps = ApplicationsModel::where('client_id', $clientId)
+        $apps = ApplicationsModel::where('user_id', $user->id)
             ->take(10)
             ->get();
 

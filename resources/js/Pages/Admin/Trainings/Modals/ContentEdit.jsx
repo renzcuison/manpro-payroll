@@ -570,7 +570,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                             : contentType === "Document"
                                                                 ? ".doc, .docx, .pdf"
                                                                 : contentType === "PowerPoint"
-                                                                    ? ".ppt, .pptx, .pptm, .potx, .potm, .ppsx, .ppsm"
+                                                                    ? ".ppt, .pptx"
                                                                     : ""
                                                     }
                                                     id="file-upload"
@@ -611,7 +611,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                     : contentType === "Document"
                                                         ? ".doc, .docx, .pdf"
                                                         : contentType === "PowerPoint"
-                                                            ? ".ppt, .pptx, .pptm, .potx, .potm, .ppsx, .ppsm"
+                                                            ? ".ppt, .pptx"
                                                             : ""
                                             }
                                             id="file-upload"

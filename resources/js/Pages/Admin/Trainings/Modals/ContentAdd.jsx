@@ -581,7 +581,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                     : contentType === "Document"
                                                         ? ".doc, .docx, .pdf"
                                                         : contentType === "PowerPoint"
-                                                            ? ".ppt, .pptx, .pptm, .potx, .potm, .ppsx, .ppsm"
+                                                            ? ".ppt, .pptx"
                                                             : ""
                                             }
                                             id="file-upload"

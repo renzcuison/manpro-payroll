@@ -24,6 +24,8 @@ const EmployeeView = () => {
     const [employee, setEmployee] = useState('');
     const [benefits, setBenefits] = useState([]);
 
+    const [imagePath, setImagePath] = useState('');
+
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
     const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
     const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
@@ -44,12 +46,36 @@ const EmployeeView = () => {
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {
-                    setEmployee(response.data.employee);
+                    const empDetails = response.data.employee;
+                    setEmployee(empDetails);
+                    if (empDetails.avatar && empDetails.avatar_mime) {
+                        const byteCharacters = window.atob(empDetails.avatar);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
+
+                        const newBlob = URL.createObjectURL(blob);
+                        setImagePath(newBlob);
+                        sessionStorage.setItem('avatar', newBlob);
+                    } else {
+                        setImagePath(null);
+                    }
                 }
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
             });
     };
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        }
+    }, []);
 
     const getEmployeeBenefits = () => {
         const data = { username: user };
@@ -170,8 +196,14 @@ const EmployeeView = () => {
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                     <Avatar
                                         alt={`${employee.user_name} Profile Pic`}
-                                        src={employee.profile_pic ? `../../../../../../storage/${employee.profile_pic}` : "../../../../../images/admin.jpg"}
-                                        sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
+                                        src={imagePath || null}
+                                        sx={{
+                                            width: '50%',
+                                            height: 'auto',
+                                            aspectRatio: '1 / 1',
+                                            objectFit: 'cover',
+                                            boxShadow: 3,
+                                        }}
                                     />
                                 </Grid>
 

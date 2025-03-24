@@ -123,14 +123,6 @@ const TrainingView = () => {
                 setImageLoading(false);
             });
     }
-    // Image Cleanup
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePath);
-            }
-        };
-    }, [imagePath]);
 
     // Training Content
     const getTrainingContent = () => {
@@ -159,13 +151,29 @@ const TrainingView = () => {
         }
     }
 
-    // Content Image
-    const renderImage = (source, type) => {
+    // Content Images
+    const [blobMap, setBlobMap] = useState({});
+    const renderImage = (id, source, type, mime, data) => {
         let src = "../../../images/ManProTab.png";
 
         switch (type) {
             case "Image":
-                return `${location.origin}/storage/${source}`;
+                if (!blobMap[id]) {
+                    const byteCharacters = atob(data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mime });
+                    const newBlob = URL.createObjectURL(blob);
+
+                    setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+
+                    return newBlob;
+                } else {
+                    return blobMap[id];
+                }
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -202,6 +210,20 @@ const TrainingView = () => {
         const id = match ? match[1] : null;
         return id && id.length === 11 ? id : null;
     };
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+            Object.values(blobMap).forEach((url) => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            setBlobMap({});
+        };
+    }, [imagePath]);
 
     // Training Visibility
     const renderVisibility = () => {
@@ -635,32 +657,36 @@ const TrainingView = () => {
                                                     </Typography>
                                                 )
                                                 }
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={handleOpenContentAddModal}
-                                                    sx={{ ml: 3 }}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add Content{" "}
-                                                    </p>
-                                                </Button>
+                                                {training.status == "Pending" && (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleOpenContentAddModal}
+                                                        sx={{ ml: 3 }}
+                                                    >
+                                                        <p className="m-0">
+                                                            <i className="fa fa-plus"></i> Add Content{" "}
+                                                        </p>
+                                                    </Button>
+                                                )}
                                             </Box>
                                             {content.length > 0 && (
                                                 <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         {inOrder == null ? "-" : `Contents ${inOrder ? 'have to be completed in order.' : 'can be completed in any order.'}`}
                                                     </Typography>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        onClick={handleOpenContentSettingsModal}
-                                                        sx={{ ml: 1 }}
-                                                    >
-                                                        <p className="m-0">
-                                                            Manage
-                                                        </p>
-                                                    </Button>
+                                                    {training.status == "Pending" && (
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={handleOpenContentSettingsModal}
+                                                            sx={{ ml: 1 }}
+                                                        >
+                                                            <p className="m-0">
+                                                                Manage
+                                                            </p>
+                                                        </Button>
+                                                    )}
                                                 </Box>
                                             )}
                                         </Box>
@@ -686,7 +712,7 @@ const TrainingView = () => {
                                                                         }
                                                                         : {}),
                                                                 }}
-                                                                image={renderImage(cont.content.source, cont.content.type || 'Form')}
+                                                                image={renderImage(cont.id, cont.content.source, cont.content.type || 'Form', cont.mime, cont.image)}
                                                                 alt={cont.title || 'Content Item'}
                                                             />
                                                             <CardContent sx={{ pb: "5px" }}>
@@ -751,6 +777,7 @@ const TrainingView = () => {
                     open={openContentViewModal}
                     close={handleCloseContentViewModal}
                     contentId={loadContent}
+                    status={training.status}
                 />
             )}
             {openContentSettingsModal && (

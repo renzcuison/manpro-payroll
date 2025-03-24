@@ -451,6 +451,9 @@ class TrainingsController extends Controller
                     ->with('contents')
                     ->firstOrFail();
 
+                $training->sequential = $request->input('in_order');
+                $training->save();
+
                 $orderMap = [];
                 foreach ($order as $ord) {
                     $orderMap[$ord['id']] = $ord['order'];
@@ -530,6 +533,16 @@ class TrainingsController extends Controller
                 ->orderBy('order', 'asc')
                 ->get();
 
+            foreach ($content as $cont) {
+                if ($cont->content->type == "Image") {
+                    $cont->image = base64_encode(Storage::disk('public')->get($cont->content->source));
+                    $cont->mime = mime_content_type(storage_path('app/public/' . $cont->content->source));
+                } else {
+                    $cont->image = null;
+                    $cont->mime = null;
+                }
+            }
+
             return response()->json(['status' => 200, 'content' => $content]);
         } else {
             return response()->json(['status' => 200, 'content' => null]);
@@ -595,6 +608,14 @@ class TrainingsController extends Controller
             $contentItem->has_viewed = !is_null($view);
             $contentItem->is_finished = $view && $view->status === 'Finished';
 
+            if ($contentItem->content->type == "Image") {
+                $contentItem->image = base64_encode(Storage::disk('public')->get($contentItem->content->source));
+                $contentItem->mime = mime_content_type(storage_path('app/public/' . $contentItem->content->source));
+            } else {
+                $contentItem->image = null;
+                $contentItem->mime = null;
+            }
+
             unset($contentItem->views);
         });
 
@@ -623,12 +644,12 @@ class TrainingsController extends Controller
         unset($content->views);
 
         // Image -> Blob Conversion
-        if ($content->content instanceof TrainingMediaModel && $content->content->type === 'Image') {
+        if ($content->content instanceof TrainingMediaModel && $content->content->type != 'Video') {
             try {
-                $content->image = base64_encode(Storage::disk('public')->get($content->content->source));
-                $content->image_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
+                $content->file = base64_encode(Storage::disk('public')->get($content->content->source));
+                $content->file_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
             } catch (\Exception $e) {
-                Log::error("Failed to convert image to blob: " . $e->getMessage());
+                Log::error("Failed to convert file to blob: " . $e->getMessage());
             }
         }
 
@@ -713,10 +734,11 @@ class TrainingsController extends Controller
                         'completed_at' => Carbon::now(),
                     ]);
                 } else {
-                    $view = TrainingViewsModel::where('content_id', $content->id)
+                    $view = TrainingViewsModel::where('training_content_id', $content->id)
                         ->where('user_id', $user->id)
                         ->firstOrFail();
                     $view->status = "Finished";
+                    $view->completed_at = Carbon::now();
                     $view->save();
                 }
             } else {

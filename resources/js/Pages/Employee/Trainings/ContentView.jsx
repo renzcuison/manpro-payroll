@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending, CheckBox } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -60,6 +60,7 @@ import { first } from "lodash";
 import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import PPTImage from "../../../../../public/media/assets/PowerPoint_file_icon.png";
+import DocumentView from "./Modals/DocumentView";
 
 
 const ContentView = () => {
@@ -91,8 +92,8 @@ const ContentView = () => {
             setTitle(storedTrainingTitle);
         }
         const storedSequence = sessionStorage.getItem('trainingSequence');
-        if (storedSequence) {
-            setSequential(storedSequence);
+        if (storedSequence && storedSequence == 1) {
+            setSequential(true);
         }
         getContentDetails(storedContentId);
         getTrainingContent();
@@ -107,18 +108,18 @@ const ContentView = () => {
                 setContent(resContent);
                 if (
                     resContent?.content?.type === 'Image' &&
-                    resContent?.image
+                    resContent?.file
                 ) {
                     if (image && image.startsWith('blob:')) {
                         URL.revokeObjectURL(image);
                     }
-                    const byteCharacters = atob(resContent.image);
+                    const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: resContent.image_mime });
+                    const blob = new Blob([byteArray], { type: resContent.file_mime });
 
                     setImage(URL.createObjectURL(blob));
                     if (!resContent.is_finished) {
@@ -202,27 +203,108 @@ const ContentView = () => {
     };
 
     // Content Video
+    const [furthestPoint, setFurthestPoint] = useState(0);
     const renderVideo = (source) => {
         const youtubeMatch = source.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+
+        // Video Clear
+        let hasTriggered = content.is_finished;
+
+        const onVideoClear = () => {
+            if (!hasTriggered) {
+                handleTrainingViews(content.id, true);
+                hasTriggered = true;
+            }
+        };
+
+        // Progress Tracker
+        const updateFurthestPoint = (currentTime) => {
+            if (currentTime > furthestPoint) {
+                setFurthestPoint(currentTime);
+            }
+        };
+
+        // YouTube Video
         if (youtubeMatch && youtubeMatch[1]) {
             const videoId = youtubeMatch[1];
             return (
                 <iframe
                     width="100%"
                     height="100%"
-                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1`}
                     title={content.title || "Youtube Video Player"}
                     style={{ border: '0' }}
                     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen></iframe>
+                    allowFullScreen
+                    onLoad={(e) => {
+                        const iframe = e.target;
+                        const player = new window.YT.Player(iframe, {
+                            events: {
+                                onReady: (event) => {
+                                    const duration = event.target.getDuration();
+                                    let intervalId = null;
+
+                                    // Seeking Restrictions for unfinished videos
+                                    const restrictSeeking = () => {
+                                        const currentTime = event.target.getCurrentTime();
+                                        if (!content.is_finished && currentTime > furthestPoint) {
+                                            event.target.seekTo(furthestPoint, true);
+                                        }
+                                        updateFurthestPoint(currentTime);
+                                    };
+
+                                    event.target.addEventListener('onStateChange', (state) => {
+                                        if (state.data === window.YT.PlayerState.PLAYING) {
+                                            if (intervalId) clearInterval(intervalId);
+                                            intervalId = setInterval(() => {
+                                                const currentTime = event.target.getCurrentTime();
+                                                updateFurthestPoint(currentTime);
+                                                if (currentTime >= duration - 5) {
+                                                    onVideoClear();
+                                                }
+                                            }, 1000);
+                                        } else if (state.data === window.YT.PlayerState.PAUSED || state.data === window.YT.PlayerState.ENDED) {
+                                            if (intervalId) clearInterval(intervalId);
+                                        }
+                                    });
+
+                                    // Seek Event Listener (blocked by YT, alternative needed)
+                                    // iframe.contentWindow.addEventListener('seeked', restrictSeeking);
+                                },
+                            },
+                        });
+                    }}
+                ></iframe>
             );
         }
 
+        // Direct URLs
         const isDirectURL = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
         if (isDirectURL) {
             return (
-                <video width="100%" height="100%" controls>
+                <video
+                    width="100%"
+                    height="100%"
+                    controls
+                    onTimeUpdate={(e) => {
+                        const video = e.target;
+                        const currentTime = video.currentTime;
+                        const duration = video.duration;
+                        updateFurthestPoint(currentTime);
+                        if (duration - currentTime <= 5 && !hasTriggered) {
+                            onVideoClear();
+                        }
+                    }}
+                    // Seeking Restrictions for unfinished videos
+                    onSeeking={(e) => {
+                        const video = e.target;
+                        const currentTime = video.currentTime;
+                        if (!content.is_finished && currentTime > furthestPoint) {
+                            video.currentTime = furthestPoint;
+                        }
+                    }}
+                >
                     <source src={source} type={`video/${source.split('.').pop().toLowerCase()}`} />
                     Your browser does not support the video tag.
                 </video>
@@ -231,6 +313,18 @@ const ContentView = () => {
 
         return null;
     };
+
+    // Document Viewers
+    const [openViewDocumentModal, setOpenViewDocumentModal] = useState(false);
+    const [loadDocument, setLoadDocument] = useState(null);
+    const handleOpenViewDocument = (source) => {
+        setLoadDocument(source);
+        setOpenViewDocumentModal(true);
+    }
+    const handleCloseViewDocument = () => {
+        setOpenViewDocumentModal(false);
+        setLoadDocument(null);
+    }
 
     // Content Viewed
     const handleTrainingViews = (id, finished) => {
@@ -280,54 +374,87 @@ const ContentView = () => {
                                 </Typography>
                                 <Box sx={{ height: "95%" }}>
                                     {contentList.length > 0 && (
-                                        contentList.map((cont) => (
-                                            <Box
-                                                key={cont.id}
-                                                display="flex"
-                                                sx={{
-                                                    mt: 0.5,
-                                                    py: 1.5,
-                                                    borderRadius: "8px",
-                                                    justifyContent: "space-between",
-                                                    transition: "background-color 0.3s ease, padding 0.3s ease",
-                                                    ...(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false
-                                                        ? { backgroundColor: "#777777" }
-                                                        : cont.id == contentId
-                                                            ? {
-                                                                backgroundColor: "#e9ae20",
-                                                                pl: 1,
-                                                            }
-                                                            : {
-                                                                "&:hover": {
-                                                                    backgroundColor: "#e0e0e0",
-                                                                    pl: 1,
-                                                                },
-                                                            }),
-                                                }}
-                                                onClick={() =>
-                                                    handleContentChange(
-                                                        cont.id,
-                                                        !(sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false)
-                                                    )
-                                                }
-                                            >
-                                                <Box display="flex">
-                                                    {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                    <Typography sx={{ ml: 1, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transiton: "color 0.3s ease", ...(cont.id == contentId && { color: "white", fontWeight: "bold" }), }}>
-                                                        {cont.title}
-                                                    </Typography>
+                                        contentList.map((cont) => {
+                                            const locked = sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false;
+                                            return (
+                                                <Box
+                                                    key={cont.id}
+                                                    sx={{
+                                                        position: 'relative',
+                                                        borderRadius: "8px",
+                                                    }}
+                                                    onClick={() =>
+                                                        handleContentChange(
+                                                            cont.id,
+                                                            !locked
+                                                        )
+                                                    }
+                                                >
+                                                    <Box
+                                                        display="flex"
+                                                        sx={{
+                                                            pl: 1,
+                                                            mt: 0.5,
+                                                            py: 1.5,
+                                                            borderRadius: "8px",
+                                                            justifyContent: "space-between",
+                                                            transition: "background-color 0.3s ease, padding 0.3s ease",
+                                                            ...(cont.id == contentId
+                                                                ? {
+                                                                    backgroundColor: "#e9ae20",
+                                                                    pl: 1.5,
+                                                                }
+                                                                : {
+                                                                    "&:hover": {
+                                                                        backgroundColor: "#e0e0e0",
+                                                                        pl: 1.5,
+                                                                    },
+                                                                }),
+                                                        }}
+                                                    >
+                                                        <Box display="flex">
+                                                            {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
+                                                            <Typography
+                                                                sx={{
+                                                                    ml: 1,
+                                                                    color: "text.secondary",
+                                                                    whiteSpace: "nowrap",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                    transition: "color 0.3s ease",
+                                                                    ...(cont.id == contentId && { color: "white", fontWeight: "bold" }),
+                                                                }}
+                                                            >
+                                                                {cont.title}
+                                                            </Typography>
+                                                        </Box>
+                                                        {cont.is_finished ? (
+                                                            <CheckBox sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transition: "color 0.3s ease" }} />
+                                                        ) : cont.has_viewed ? (
+                                                            <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transition: "color 0.3s ease" }} />
+                                                        ) : null}
+                                                    </Box>
+                                                    {/* Locked Overlay */}
+                                                    {locked ? (
+                                                        <Box
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                top: 0,
+                                                                left: 0,
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                                borderRadius: "8px",
+                                                                zIndex: 1,
+                                                            }}
+                                                        />
+                                                    ) : null}
                                                 </Box>
-                                                {cont.is_finished ? (
-                                                    <CheckCircle sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transiton: "color 0.3s ease" }} />
-                                                ) : cont.has_viewed ? (
-                                                    <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transiton: "color 0.3s ease" }} />
-                                                )
-                                                    : null}
-                                            </Box>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </Box>
                             </Box>
@@ -381,7 +508,7 @@ const ContentView = () => {
                                                             alt={content.title || "Content Item"}
                                                             onClick={
                                                                 ["Document", "PowerPoint"].includes(content.content.type)
-                                                                    ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                                    ? () => handleOpenViewDocument(content)
                                                                     : undefined
                                                             }
                                                         />
@@ -411,6 +538,14 @@ const ContentView = () => {
                     </Box>
                 </Box>
             </Box>
+            {openViewDocumentModal && (
+                <DocumentView
+                    open={openViewDocumentModal}
+                    close={handleCloseViewDocument}
+                    content={loadDocument}
+                    onFinished={handleTrainingViews}
+                />
+            )}
         </Layout>
     );
 };
