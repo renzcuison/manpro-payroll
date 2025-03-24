@@ -220,12 +220,13 @@ class PayrollController extends Controller
 
     public function payrollDetails(Request $request)
     {
-        // log::info("PayrollController::payrollDetails");
+        log::info("PayrollController::payrollDetails");
+        log::info($request);
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
 
-        $employee = UsersModel::find($request->selectedPayroll);
+        $employee = UsersModel::with('workHours')->find($request->selectedPayroll);
         $employeeBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->get();
         $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
 

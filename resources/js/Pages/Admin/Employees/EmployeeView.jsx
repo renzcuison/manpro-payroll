@@ -57,7 +57,6 @@ const EmployeeView = () => {
 
                         const newBlob = URL.createObjectURL(blob);
                         setImagePath(newBlob);
-                        sessionStorage.setItem('avatar', newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -379,9 +378,9 @@ const EmployeeView = () => {
 
                     </Grid>
 
+                    {/*
                     <Grid container spacing={4} sx={{ mt: 1, mb: 12 }}>
                         <Grid item xs={12}>
-                            {/* Put Tabs in Here */}
                             <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Tabs value={activeTab} onChange={handleTabChange}>
                                     <Tab label="Attendance" value="1" />
@@ -394,6 +393,7 @@ const EmployeeView = () => {
                             </Box>
                         </Grid>
                     </Grid>
+                    */}
                 </Box>
 
                 {openEmployeeDetailsEditModal &&

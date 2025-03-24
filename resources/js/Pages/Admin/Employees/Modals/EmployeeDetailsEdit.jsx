@@ -48,18 +48,14 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     useEffect(() => {
-        console.log("Employee:");
-        console.log(employee);
-
         setFirstName(employee.first_name);
         setMiddleName(employee.middle_name);
         setLastName(employee.last_name);
         setSuffix(employee.suffix);
-
         setEmailAddress(employee.email);
         setPhoneNumber(employee.contact_number);
         setAddress(employee.address);
-        setBirthdate(employee.birth_date);
+        setBirthdate(employee.birth_date ? dayjs(employee.birth_date) : null);
 
         populateDropdown();
     }, []);
@@ -217,7 +213,24 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            }}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DatePicker
+                                        id="birthdate"
+                                        label="Birth Date"
+                                        variant="outlined"
+                                        value={birthdate}
+                                        onChange={(newValue) => setBirthdate(newValue)}
+                                        slotProps={{
+                                            textField: { required: true, error: birthdateError }
+                                        }}
+                                    />
+                                </LocalizationProvider>
+                            </FormControl>
+                            
+                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -231,7 +244,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField

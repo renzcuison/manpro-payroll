@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, Avatar, Stack, Grid, CircularProgress } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, Avatar } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
@@ -39,6 +39,40 @@ const EmployeesList = () => {
     const handleMenuClose = () => {
         setAnchorEl(null);
     };
+
+    // ---------------- Image Renders
+    const [blobMap, setBlobMap] = useState({});
+
+    const renderImage = (id, data, mime) => {
+        if (!blobMap[id]) {
+            const byteCharacters = atob(data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mime });
+            const newBlob = URL.createObjectURL(blob);
+
+            setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+
+            return newBlob;
+        } else {
+            return blobMap[id];
+        }
+    }
+
+    // Image Cleanup
+    useEffect(() => {
+        return () => {
+            Object.values(blobMap).forEach((url) => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            setBlobMap({});
+        };
+    }, []);
 
     return (
         <Layout title={"EmployeesList"}>
@@ -92,14 +126,12 @@ const EmployeesList = () => {
                                                     to={`/admin/employee/${employee.user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
-                                                    <TableCell align="center">
-                                                        <Avatar
-                                                            alt={`${employee.user_name} Profile Pic`}
-                                                            src={null}
-                                                            sx={{ height: '5%', height: 'width', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
-                                                        />
+                                                    <TableCell align="left">
+                                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                                            <Avatar src={renderImage(employee.id, employee.avatar, employee.avatar_mime)} sx={{ mr: 2 }} />
+                                                            {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
+                                                        </Box>
                                                     </TableCell>
-                                                    <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
                                                     <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                     <TableCell align="center">{employee.department || '-'}</TableCell>
                                                     <TableCell align="center">{employee.role || '-'}</TableCell>
