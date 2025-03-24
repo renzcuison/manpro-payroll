@@ -203,17 +203,24 @@ const ContentView = () => {
     };
 
     // Content Video
+    const [furthestPoint, setFurthestPoint] = useState(0);
     const renderVideo = (source) => {
         const youtubeMatch = source.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
 
-        // Final Triggers
+        // Video Clear
         let hasTriggered = content.is_finished;
-        console.log(hasTriggered);
+
         const onVideoClear = () => {
             if (!hasTriggered) {
-                console.log("Video Clear!");
                 handleTrainingViews(content.id, true);
                 hasTriggered = true;
+            }
+        };
+
+        // Progress Tracker
+        const updateFurthestPoint = (currentTime) => {
+            if (currentTime > furthestPoint) {
+                setFurthestPoint(currentTime);
             }
         };
 
@@ -236,17 +243,34 @@ const ContentView = () => {
                             events: {
                                 onReady: (event) => {
                                     const duration = event.target.getDuration();
+                                    let intervalId = null;
+
+                                    // Seeking Restrictions for unfinished videos
+                                    const restrictSeeking = () => {
+                                        const currentTime = event.target.getCurrentTime();
+                                        if (!content.is_finished && currentTime > furthestPoint) {
+                                            event.target.seekTo(furthestPoint, true);
+                                        }
+                                        updateFurthestPoint(currentTime);
+                                    };
+
                                     event.target.addEventListener('onStateChange', (state) => {
                                         if (state.data === window.YT.PlayerState.PLAYING) {
-                                            const checkTime = () => {
+                                            if (intervalId) clearInterval(intervalId);
+                                            intervalId = setInterval(() => {
                                                 const currentTime = event.target.getCurrentTime();
+                                                updateFurthestPoint(currentTime);
                                                 if (currentTime >= duration - 5) {
                                                     onVideoClear();
                                                 }
-                                            };
-                                            setInterval(checkTime, 1000);
+                                            }, 1000);
+                                        } else if (state.data === window.YT.PlayerState.PAUSED || state.data === window.YT.PlayerState.ENDED) {
+                                            if (intervalId) clearInterval(intervalId);
                                         }
                                     });
+
+                                    // Seek Event Listener
+                                    iframe.contentWindow.addEventListener('seeked', restrictSeeking);
                                 },
                             },
                         });
@@ -255,7 +279,7 @@ const ContentView = () => {
             );
         }
 
-        // Direct Video URL
+        // Direct URLs
         const isDirectURL = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
         if (isDirectURL) {
             return (
@@ -267,8 +291,17 @@ const ContentView = () => {
                         const video = e.target;
                         const currentTime = video.currentTime;
                         const duration = video.duration;
+                        updateFurthestPoint(currentTime);
                         if (duration - currentTime <= 5 && !hasTriggered) {
                             onVideoClear();
+                        }
+                    }}
+                    // Seeking Restrictions for unfinished videos
+                    onSeeking={(e) => {
+                        const video = e.target;
+                        const currentTime = video.currentTime;
+                        if (!content.is_finished && currentTime > furthestPoint) {
+                            video.currentTime = furthestPoint;
                         }
                     }}
                 >
