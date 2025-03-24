@@ -9,7 +9,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
-import EmploymentDetailsEdit from '../Employees/Modals/EmploymentDetailsEdit';
+import EmployeeDetailsEdit from '../Employees/Modals/EmployeeDetailsEdit';
 import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
 
 const EmployeeView = () => {
@@ -27,9 +27,7 @@ const EmployeeView = () => {
     const [imagePath, setImagePath] = useState('');
 
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
-    const [openEmploymentDetailsEditModal, setOpenEmploymentDetailsEditModal] = useState(false);
-    const [openEmploymentBenefitsEditModal, setOpenEmploymentBenefitsEditModal] = useState(false);
-
+    const [openEmployeeDetailsEditModal, setOpenEmployeeDetailsEditModal] = useState(false);
     const [openEmployeeLeaveCreditsModal, setOpenEmployeeLeaveCreditsModal] = useState(false);
 
     useEffect(() => {
@@ -40,7 +38,7 @@ const EmployeeView = () => {
     const getEmployeeDetails = () => {
         const data = { username: user };
 
-        setOpenEmploymentDetailsEditModal(false);
+        setOpenEmployeeDetailsEditModal(false);
         setAnchorEl(null);
 
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
@@ -122,11 +120,11 @@ const EmployeeView = () => {
     };
 
     // Employment Details
-    const handleOpenEmploymentDetailsEditModal = () => {
-        setOpenEmploymentDetailsEditModal(true);
+    const handleOpenEmployeeDetailsEditModal = () => {
+        setOpenEmployeeDetailsEditModal(true);
     }
-    const handleCloseEmploymentDetailsEditModal = (reload) => {
-        setOpenEmploymentDetailsEditModal(false);
+    const handleCloseEmployeeDetailsEditModal = (reload) => {
+        setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
         }
@@ -180,8 +178,7 @@ const EmployeeView = () => {
                         </Button>
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
-                            {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
-                            <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem>
+                            <MenuItem onClick={handleOpenEmployeeDetailsEditModal}>Edit Employee Details</MenuItem>
                             <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
                         </Menu>
@@ -399,8 +396,8 @@ const EmployeeView = () => {
                     </Grid>
                 </Box>
 
-                {openEmploymentDetailsEditModal &&
-                    <EmploymentDetailsEdit open={openEmploymentDetailsEditModal} close={handleCloseEmploymentDetailsEditModal} employee={employee} />
+                {openEmployeeDetailsEditModal &&
+                    <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} />
                 }
 
                 {openEmployeeBenefitsModal &&
