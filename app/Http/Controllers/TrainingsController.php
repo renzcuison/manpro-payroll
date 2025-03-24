@@ -624,7 +624,7 @@ class TrainingsController extends Controller
 
     public function getContentDetails($id)
     {
-        // /Log::info("TrainingsController::getContentDetails");
+        // Log::info("TrainingsController::getContentDetails");
 
         $user = Auth::user();
 
@@ -644,7 +644,7 @@ class TrainingsController extends Controller
         unset($content->views);
 
         // Image -> Blob Conversion
-        if ($content->content instanceof TrainingMediaModel) {
+        if ($content->content instanceof TrainingMediaModel && $content->content->type != 'Video') {
             try {
                 $content->file = base64_encode(Storage::disk('public')->get($content->content->source));
                 $content->file_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
@@ -734,10 +734,11 @@ class TrainingsController extends Controller
                         'completed_at' => Carbon::now(),
                     ]);
                 } else {
-                    $view = TrainingViewsModel::where('content_id', $content->id)
+                    $view = TrainingViewsModel::where('training_content_id', $content->id)
                         ->where('user_id', $user->id)
                         ->firstOrFail();
                     $view->status = "Finished";
+                    $view->completed_at = Carbon::now();
                     $view->save();
                 }
             } else {

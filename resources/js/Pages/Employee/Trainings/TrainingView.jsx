@@ -114,7 +114,6 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getEmployeeTrainingContent/${code}`, { headers })
             .then((response) => {
-                console.log(response.data.content);
                 const contentList = response.data.content;
                 setContent(contentList || []);
                 setContentProgress(((contentList.filter(item => item.is_finished).length / contentList.length) * 100) || 0);

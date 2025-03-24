@@ -205,25 +205,73 @@ const ContentView = () => {
     // Content Video
     const renderVideo = (source) => {
         const youtubeMatch = source.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+
+        // Final Triggers
+        let hasTriggered = content.is_finished;
+        console.log(hasTriggered);
+        const onVideoClear = () => {
+            if (!hasTriggered) {
+                console.log("Video Clear!");
+                handleTrainingViews(content.id, true);
+                hasTriggered = true;
+            }
+        };
+
+        // YouTube Video
         if (youtubeMatch && youtubeMatch[1]) {
             const videoId = youtubeMatch[1];
             return (
                 <iframe
                     width="100%"
                     height="100%"
-                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1`}
                     title={content.title || "Youtube Video Player"}
                     style={{ border: '0' }}
                     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen></iframe>
+                    allowFullScreen
+                    onLoad={(e) => {
+                        const iframe = e.target;
+                        const player = new window.YT.Player(iframe, {
+                            events: {
+                                onReady: (event) => {
+                                    const duration = event.target.getDuration();
+                                    event.target.addEventListener('onStateChange', (state) => {
+                                        if (state.data === window.YT.PlayerState.PLAYING) {
+                                            const checkTime = () => {
+                                                const currentTime = event.target.getCurrentTime();
+                                                if (currentTime >= duration - 5) {
+                                                    onVideoClear();
+                                                }
+                                            };
+                                            setInterval(checkTime, 1000);
+                                        }
+                                    });
+                                },
+                            },
+                        });
+                    }}
+                ></iframe>
             );
         }
 
+        // Direct Video URL
         const isDirectURL = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(source.toLowerCase());
         if (isDirectURL) {
             return (
-                <video width="100%" height="100%" controls>
+                <video
+                    width="100%"
+                    height="100%"
+                    controls
+                    onTimeUpdate={(e) => {
+                        const video = e.target;
+                        const currentTime = video.currentTime;
+                        const duration = video.duration;
+                        if (duration - currentTime <= 5 && !hasTriggered) {
+                            onVideoClear();
+                        }
+                    }}
+                >
                     <source src={source} type={`video/${source.split('.').pop().toLowerCase()}`} />
                     Your browser does not support the video tag.
                 </video>

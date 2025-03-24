@@ -51,28 +51,37 @@ const DocumentView = ({ open, close, content, onFinished }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [isLoading, setIsLoading] = useState(false);
-
+    const [isLoading, setIsLoading] = useState(true);
     const [file, setFile] = useState(null);
-    const [wordContent, setWordContent] = useState(null);
 
-    const getFileExtension = (source) => {
-        const parts = source.split(".");
-        return parts[parts.length - 1].toLowerCase();
-    };
-
-    const fileExtension = getFileExtension(content.content.source);
-    const isWord = ["doc", "docx"].includes(fileExtension);
-    const isPDF = fileExtension === "pdf";
-    const isPPT = ["ppt", "pptx", "pptm", "potx", "potm", "ppsx", "ppsm"].includes(fileExtension);
-
+    // File Decoder
     useEffect(() => {
-        if (isWord) {
-            const arrayBuffer = blob.arrayBuffer();
-            const result = mammoth.convertToHtml({ arrayBuffer });
-            setWordContent(result.value);
+        if (!content.file || !content.file_mime) {
+            setIsLoading(false);
+            return;
         }
+
+        const byteCharacters = atob(content.file);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: content.file_mime });
+
+        const localUrl = URL.createObjectURL(blob);
+        setFile(localUrl);
+        setIsLoading(false);
     }, []);
+
+    // File Cleanup
+    useEffect(() => {
+        return () => {
+            if (file && file.startsWith('blob:')) {
+                URL.revokeObjectURL(file);
+            }
+        };
+    }, [file]);
 
     return (
         <>
@@ -91,12 +100,12 @@ const DocumentView = ({ open, close, content, onFinished }) => {
                         </Box>
                     ) : (
                         <Box>
-                            <Typography>
-                                {content.title}
-                            </Typography>
-                            <Typography>
-                                {content.file}
-                            </Typography>
+                            {/* Only works for PDF files */}
+                            <iframe
+                                src={file}
+                                style={{ width: "100%", height: "500px", border: "none" }}
+                                title="Document Viewer"
+                            />
                         </Box>
                     )}
 
