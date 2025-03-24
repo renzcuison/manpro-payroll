@@ -22,18 +22,17 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     
     const [firstNameError, setFirstNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
-    const [userNameError, setUserNameError] = useState(false);
     const [emailAddressError, setEmailAddressError] = useState(false);
     const [birthdateError, setBirthdateError] = useState(false);
 
-    const [firstName, setFirstName] = useState('');
-    const [middleName, setMiddleName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [suffix, setSuffix] = useState('');
-    const [emailAddress, setEmailAddress] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [address, setAddress] = useState('');
-    const [birthdate, setBirthdate] = useState('');
+    const [firstName, setFirstName] = useState(employee.first_name);
+    const [middleName, setMiddleName] = useState(employee.middle_name);
+    const [lastName, setLastName] = useState(employee.last_name);
+    const [suffix, setSuffix] = useState(employee.suffix);
+    const [emailAddress, setEmailAddress] = useState(employee.email);
+    const [phoneNumber, setPhoneNumber] = useState(employee.contact_number);
+    const [address, setAddress] = useState(employee.address);
+    const [birthdate, setBirthdate] = React.useState(dayjs(employee.birth_date));
 
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -48,15 +47,6 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     useEffect(() => {
-        setFirstName(employee.first_name);
-        setMiddleName(employee.middle_name);
-        setLastName(employee.last_name);
-        setSuffix(employee.suffix);
-        setEmailAddress(employee.email);
-        setPhoneNumber(employee.contact_number);
-        setAddress(employee.address);
-        setBirthdate(employee.birth_date ? dayjs(employee.birth_date) : null);
-
         populateDropdown();
     }, []);
 
@@ -107,6 +97,16 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
 
         const data = {
             id: employee.id,
+
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            suffix: suffix,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            address: address,
+            birthdate: birthdate,
+
             selectedRole: selectedRole,
             selectedBranch: selectedBranch,
             selectedJobTitle: selectedJobTitle,
@@ -220,7 +220,6 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                     <DatePicker
                                         id="birthdate"
                                         label="Birth Date"
-                                        variant="outlined"
                                         value={birthdate}
                                         onChange={(newValue) => setBirthdate(newValue)}
                                         slotProps={{
@@ -370,8 +369,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{
-                                marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>

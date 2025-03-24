@@ -358,8 +358,8 @@ class EmployeesController extends Controller
 
     public function editEmployeeDetails(Request $request)
     {
-        //log::info("EmployeesController::editEmployeeDetails");
-        //log::info($request);
+        log::info("EmployeesController::editEmployeeDetails");
+        log::info($request);
 
         $user = Auth::user();
         $employee = UsersModel::find($request->id);
@@ -368,6 +368,15 @@ class EmployeesController extends Controller
 
             try {
                 DB::beginTransaction();
+
+                $employee->first_name = $request->firstName;
+                $employee->middle_name = $request->middleName;
+                $employee->last_name = $request->lastName;
+                $employee->suffix = $request->suffix;
+                $employee->birth_date = $request->birthdate;
+                $employee->email = $request->emailAddress;
+                $employee->contact_number = $request->phoneNumber;
+                $employee->address = $request->address;
 
                 $employee->role_id = $request->selectedRole;
                 $employee->branch_id = $request->selectedBranch;
