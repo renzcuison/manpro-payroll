@@ -43,7 +43,10 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->get();
+            $apps = ApplicationsModel::where('client_id', $clientId)
+                ->where('status', 'Pending')
+                ->orderBy('created_at', 'asc')
+                ->get();
 
             $applications = [];
 

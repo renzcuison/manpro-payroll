@@ -216,7 +216,7 @@ const AttendanceLogs = () => {
                         ) : (
                             <>
                                 <Grid container direction="row" columnGap={1} justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                                    <Grid item xs={2}>
+                                    <Grid item xs={3}>
                                         <FormControl sx={{ mr: 2, width: "80%" }} >
                                             <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
                                             <Select
@@ -235,7 +235,7 @@ const AttendanceLogs = () => {
                                         </FormControl>
                                     </Grid>
 
-                                    <Grid container item xs={8} direction="row" justifyContent="flex-end" >
+                                    <Grid container item xs={7} direction="row" justifyContent="flex-end" >
                                         <Grid item xs={3} sx={{ mr: 2 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="date-range-select-label"> Date Range </InputLabel>
@@ -258,38 +258,32 @@ const AttendanceLogs = () => {
                                             </FormControl>
                                         </Grid>
 
-                                        <Grid item xs={8}>
+                                        <Grid item xs={7} sx={{ mr: 2 }}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                                <Grid container spacing={2}>
-                                                    <Grid item xs={6}>
-                                                        <DatePicker
-                                                            label="From Date"
-                                                            value={fromDate}
-                                                            onChange={(newValue) => {
-                                                                setSelectedRange("custom");
-                                                                handleFilterChange("from", newValue);
-                                                            }}
-                                                            renderInput={(params) => (
-                                                                <TextField {...params} />
-                                                            )}
-                                                        />
-                                                    </Grid>
-
-                                                    <Grid item xs={6}>
-                                                        <DatePicker
-                                                            label="To Date"
-                                                            value={toDate}
-                                                            onChange={(newValue) => {
-                                                                setSelectedRange("custom");
-                                                                handleFilterChange("to", newValue);
-                                                            }}
-                                                            minDate={fromDate}
-                                                            renderInput={(params) => (
-                                                                <TextField {...params} />
-                                                            )}
-                                                        />
-                                                    </Grid>
-                                                </Grid>
+                                                <DatePicker
+                                                    label="From Date"
+                                                    value={fromDate}
+                                                    onChange={(newValue) => {
+                                                        setSelectedRange("custom");
+                                                        handleFilterChange("from", newValue);
+                                                    }}
+                                                    renderInput={(params) => (
+                                                        <TextField {...params} />
+                                                    )}
+                                                    sx={{ mr: 2 }}
+                                                />
+                                                <DatePicker
+                                                    label="To Date"
+                                                    value={toDate}
+                                                    onChange={(newValue) => {
+                                                        setSelectedRange("custom");
+                                                        handleFilterChange("to", newValue);
+                                                    }}
+                                                    minDate={fromDate}
+                                                    renderInput={(params) => (
+                                                        <TextField {...params} />
+                                                    )}
+                                                />
                                             </LocalizationProvider>
                                         </Grid>
                                     </Grid>

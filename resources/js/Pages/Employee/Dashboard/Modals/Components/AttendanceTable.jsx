@@ -17,10 +17,10 @@ const AttendanceTable = ({ title, logs }) => {
                     <TableBody>
                         {logs.map((log, index) => (
                             <TableRow key={index}>
-                                <TableCell align="left" sx={{ pl: 0 }}>
+                                <TableCell align="left" sx={{ pl: 0, width: "40%" }} >
                                     {log.action}
                                 </TableCell>
-                                <TableCell align="left" sx={{ pl: 0 }}>
+                                <TableCell align="left" sx={{ pl: 0, width: "60%" }}>
                                     {log.timestamp}
                                 </TableCell>
                             </TableRow>

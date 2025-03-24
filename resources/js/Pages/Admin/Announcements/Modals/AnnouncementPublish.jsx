@@ -232,18 +232,6 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                                     <Typography gutterBottom variant="h6" component="div">
                                         {announceInfo.title}
                                     </Typography>
-                                    <div
-                                        id="description"
-                                        style={{
-                                            maxHeight: '100px',
-                                            overflow: 'hidden',
-                                            wordWrap: 'break-word',
-                                            wordBreak: 'break-word',
-                                            overflowWrap: 'break-word',
-                                            whiteSpace: 'pre-wrap',
-                                        }}
-                                        dangerouslySetInnerHTML={{ __html: announceInfo.description }}
-                                    />
                                 </CardContent>
                             </Card>
                         </Box>
