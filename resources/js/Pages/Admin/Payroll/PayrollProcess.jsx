@@ -13,6 +13,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
+
 import PayrollDetails from './Modals/PayrollDetails';
 import PayrollProcessFilter from './Modals/PayrollProcessFilter';
 
@@ -130,9 +132,7 @@ const PayrollProcess = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
+                            <LoadingSpinner />
                         ) : (
                             <>
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>

@@ -7,6 +7,8 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
+
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -65,15 +67,14 @@ const EmployeesList = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
+                            <LoadingSpinner />
                         ) : (
                             <>
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
+                                                <TableCell align="center"></TableCell>
                                                 <TableCell align="center">Name</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>
@@ -91,6 +92,7 @@ const EmployeesList = () => {
                                                     to={`/admin/employee/${employee.user_name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
+                                                    <TableCell align="center"></TableCell>
                                                     <TableCell align="left"> {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''} </TableCell>
                                                     <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                     <TableCell align="center">{employee.department || '-'}</TableCell>
