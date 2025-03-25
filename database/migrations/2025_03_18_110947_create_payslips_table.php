@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('employee_id');
             $table->dateTime('period_start');
             $table->dateTime('period_end');
+            $table->integer('working_days');
 
             $table->decimal('total_earnings', 10, 2);
             $table->decimal('total_deductions', 10, 2);
@@ -27,11 +28,13 @@ return new class extends Migration
             $table->boolean('is_received')->default(false);
             $table->string('signature', 256)->nullable();
 
+            $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('user_id');
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('employee_id')->references('id')->on('users');
+            $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('user_id')->references('id')->on('users');
         });
     }

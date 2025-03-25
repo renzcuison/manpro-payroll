@@ -358,8 +358,8 @@ class EmployeesController extends Controller
 
     public function editEmployeeDetails(Request $request)
     {
-        log::info("EmployeesController::editEmployeeDetails");
-        log::info($request);
+        // log::info("EmployeesController::editEmployeeDetails");
+        // log::info($request);
 
         $user = Auth::user();
         $employee = UsersModel::find($request->id);

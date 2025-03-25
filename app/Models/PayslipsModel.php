@@ -18,6 +18,7 @@ class PayslipsModel extends Model
 
         'period_start',
         'period_end',
+        'working_days',
 
         'total_earnings',
         'total_deductions',
@@ -27,6 +28,7 @@ class PayslipsModel extends Model
         'rate_hourly',
 
         'is_received',
+        'client_id',
         'user_id',
     ];
 }

@@ -604,14 +604,16 @@ class PayrollController extends Controller
                 "employee_id" => $request->selectedPayroll,
                 "period_start" => $request->currentStartDate,
                 "period_end" => $request->currentEndDate,
+                "working_days" => $payroll['numberOfWorkingDays'],
 
                 "total_earnings" => $totalEarning,
                 "total_deductions" => $totalDeduction,
 
-                "rate_monthly" => $payroll['grossPay'],
+                "rate_monthly" => $payroll['perMonth'],
                 "rate_daily" => $payroll['perDay'],
                 "rate_hourly" => $payroll['perHour'],
 
+                "client_id" => $user->client_id,
                 "user_id" => $user->id,
             ]);
 
@@ -657,5 +659,39 @@ class PayrollController extends Controller
 
 
         return response()->json(['status' => 200]);
+    }
+
+    public function getPayrollRecords(Request $request)
+    {
+        log::info("PayrollController::getPayrollRecords");
+
+        if ($this->checkUser()) {
+            $user = Auth::user();
+
+            $rawRecords = PayslipsModel::where('client_id', $user->client_id)->get();
+
+            $records = [];
+
+            foreach ($rawRecords as $rawRecord) {
+                $employee = UsersModel::find($rawRecord->employee_id);
+
+                $records[] = [
+                    'record' => encrypt($rawRecord->id),
+                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeBranch' => $employee->branch->name ?? '-',
+                    'employeeDepartment' => $employee->department->name ?? '-',
+                    'employeeRole' => $employee->role->name ?? '-',
+                    'payrollStartDate' => $rawRecord->period_start ?? '-',
+                    'payrollEndDate' => $rawRecord->period_end ?? '-',
+                    'payrollWorkingDays' => $rawRecord->working_days ?? '-',
+                    'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                ];
+            }
+
+
+            return response()->json(['status' => 200, 'records' => $records]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
     }
 }
