@@ -74,6 +74,7 @@ const TrainingView = () => {
     const [training, setTraining] = useState([]);
     const [content, setContent] = useState([]);
     const [contentProgress, setContentProgress] = useState(0);
+    const [trainingComplete, setTrainingComplete] = useState(null);
 
     const [imageLoading, setImageLoading] = useState(true);
     const [imagePath, setImagePath] = useState("");
@@ -114,9 +115,26 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getEmployeeTrainingContent/${code}`, { headers })
             .then((response) => {
-                const contentList = response.data.content;
-                setContent(contentList || []);
-                setContentProgress(((contentList.filter(item => item.is_finished).length / contentList.length) * 100) || 0);
+                const contentList = response.data.content || [];
+                setContent(contentList);
+
+                // Progress
+                const totalItems = contentList.length;
+                const completedItems = contentList.filter(item => item.is_finished).length;
+                const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+                setContentProgress(progress);
+
+                // Completion date (Completed Trainings Only)
+                if (progress === 100 && contentList.length > 0) {
+                    const latestCompletedAt = contentList
+                        .filter(item => item.completed_at)
+                        .map(item => dayjs(item.completed_at))
+                        .sort((a, b) => b.unix() - a.unix())[0];
+
+                    setTrainingComplete(latestCompletedAt ? latestCompletedAt.toISOString() : null);
+                } else {
+                    setTrainingComplete(null);
+                }
             })
             .catch((error) => {
                 console.error('Error fetching training content:', error);
@@ -316,6 +334,19 @@ const TrainingView = () => {
                                                     {formatTime(training.duration)}
                                                 </Typography>
                                             </Grid>
+                                            {/* Completion Date */}
+                                            {trainingComplete != null ? (
+                                                <>
+                                                    <Grid item xs={5} align="left">
+                                                        Completed At
+                                                    </Grid>
+                                                    <Grid item xs={7} align="left">
+                                                        <Typography sx={{ fontWeight: "bold", }}>
+                                                            {dayjs(trainingComplete).format("MMM D, YYYY    h:mm A")}
+                                                        </Typography>
+                                                    </Grid>
+                                                </>
+                                            ) : null}
                                         </Grid>
                                     </Grid>
                                     {/* Thumbnail */}

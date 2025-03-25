@@ -60,8 +60,6 @@ import { first } from "lodash";
 import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import PPTImage from "../../../../../public/media/assets/PowerPoint_file_icon.png";
-import DocumentView from "./Modals/DocumentView";
-
 
 const ContentView = () => {
     const { code } = useParams();
@@ -79,7 +77,7 @@ const ContentView = () => {
     const [contentList, setContentList] = useState([]);
     const [sequential, setSequential] = useState(false);
 
-    const [image, setImage] = useState(null);
+    const [file, setFile] = useState(null);
 
     // Load Session Data
     useEffect(() => {
@@ -106,12 +104,10 @@ const ContentView = () => {
             .then((response) => {
                 const resContent = (response.data.content);
                 setContent(resContent);
-                if (
-                    resContent?.content?.type === 'Image' &&
-                    resContent?.file
-                ) {
-                    if (image && image.startsWith('blob:')) {
-                        URL.revokeObjectURL(image);
+                // File Decoder
+                if (resContent?.content?.type != "Video" && resContent?.file) {
+                    if (file && file.url.startsWith('blob:')) {
+                        URL.revokeObjectURL(file);
                     }
                     const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -121,12 +117,21 @@ const ContentView = () => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.file_mime });
 
-                    setImage(URL.createObjectURL(blob));
+                    const filePath = resContent.content.source;
+                    const fileName = filePath.split('/').pop() ||
+                        (resContent.title || `content_${id}.${resContent.file_mime.split('/')[1] || 'file'}`);
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    setFile({ url: blobUrl, name: fileName });
+                } else {
+                    setFile(null);
+                }
+                // Training View Tracker
+                if (resContent?.content?.type == "Image") {
                     if (!resContent.is_finished) {
                         handleTrainingViews(resContent.id, true);
                     }
                 } else {
-                    setImage(null);
                     if (!resContent.has_viewed && !resContent.is_finished) {
                         handleTrainingViews(resContent.id, false);
                     }
@@ -138,14 +143,14 @@ const ContentView = () => {
                 setIsLoading(false);
             });
     }
-    // Image Cleanup
+    // File Cleanup
     useEffect(() => {
         return () => {
-            if (image && image.startsWith('blob:')) {
-                URL.revokeObjectURL(image);
+            if (file && file.url.startsWith('blob:')) {
+                URL.revokeObjectURL(file.url);
             }
         };
-    }, [image]);
+    }, [file]);
 
     // Content List
     const getTrainingContent = () => {
@@ -181,7 +186,7 @@ const ContentView = () => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return image;
+                return file.url;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -314,17 +319,14 @@ const ContentView = () => {
         return null;
     };
 
-    // Document Viewers
-    const [openViewDocumentModal, setOpenViewDocumentModal] = useState(false);
-    const [loadDocument, setLoadDocument] = useState(null);
-    const handleOpenViewDocument = (source) => {
-        setLoadDocument(source);
-        setOpenViewDocumentModal(true);
-    }
-    const handleCloseViewDocument = () => {
-        setOpenViewDocumentModal(false);
-        setLoadDocument(null);
-    }
+    // Document File Size
+    const getFileSize = (bytes) => {
+        if (!bytes) return "Size not available";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+        return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    };
 
     // Content Viewed
     const handleTrainingViews = (id, finished) => {
@@ -484,7 +486,7 @@ const ContentView = () => {
                                                         >
                                                             {renderVideo(content.content.source)}
                                                         </Box>
-                                                    ) : (
+                                                    ) : content.content.type == "Image" ? (
                                                         <CardMedia
                                                             component="img"
                                                             sx={{
@@ -495,23 +497,55 @@ const ContentView = () => {
                                                                 backgroundColor: "transparent",
                                                                 placeSelf: "center",
                                                                 mb: 1,
-                                                                ...(["Document", "PowerPoint"].includes(content.content.type) && {
-                                                                    p: 1,
-                                                                    "&:hover": {
-                                                                        backgroundColor: "#e0e0e0",
-                                                                        transition: "background-color 0.3s ease",
-                                                                    },
-                                                                }),
                                                             }}
                                                             image={renderImage(content.content.source, content.content.type)}
                                                             title={content.title || "Content Item"}
                                                             alt={content.title || "Content Item"}
-                                                            onClick={
-                                                                ["Document", "PowerPoint"].includes(content.content.type)
-                                                                    ? () => handleOpenViewDocument(content)
-                                                                    : undefined
-                                                            }
                                                         />
+                                                    ) : (
+                                                        <Box display="flex"
+                                                            sx={{
+                                                                p: 2, width: "50%",
+                                                                border: "solid 1px #e0e0e0", borderRadius: "4px",
+                                                                alignItems: "center",
+                                                                "&:hover": {
+                                                                    backgroundColor: "#e0e0e0",
+                                                                    transition: "background-color 0.3s ease",
+                                                                },
+
+                                                            }}
+                                                            onClick={() => {
+                                                                window.open(file.url, "_blank");
+                                                                handleTrainingViews(content.id, true);
+                                                            }}
+                                                        >
+                                                            <CardMedia
+                                                                component="img"
+                                                                sx={{
+                                                                    width: "25%",
+                                                                    aspectRatio: "4 / 3",
+                                                                    objectFit: "contain",
+                                                                    borderRadius: "4px",
+                                                                    backgroundColor: "transparent",
+                                                                    placeSelf: "center",
+                                                                    mb: 1,
+                                                                }}
+                                                                image={renderImage(content.content.source, content.content.type)}
+                                                                title={content.title || "Content Item"}
+                                                                alt={content.title || "Content Item"}
+                                                            />
+                                                            <Stack sx={{ ml: 1.5 }}>
+                                                                <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                                                                    {file.name}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 2 }}>
+                                                                    {getFileSize(content.file_size)}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                    Click to Open Document
+                                                                </Typography>
+                                                            </Stack>
+                                                        </Box>
                                                     )}
                                                 </>
                                             )}
@@ -538,14 +572,6 @@ const ContentView = () => {
                     </Box>
                 </Box>
             </Box>
-            {openViewDocumentModal && (
-                <DocumentView
-                    open={openViewDocumentModal}
-                    close={handleCloseViewDocument}
-                    content={loadDocument}
-                    onFinished={handleTrainingViews}
-                />
-            )}
         </Layout>
     );
 };

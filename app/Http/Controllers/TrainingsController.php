@@ -606,7 +606,13 @@ class TrainingsController extends Controller
             $view = $contentItem->views->first();
 
             $contentItem->has_viewed = !is_null($view);
-            $contentItem->is_finished = $view && $view->status === 'Finished';
+
+            $contentItem->is_finished = false;
+            $contentItem->completed_at = null;
+            if ($view && $view->status === 'Finished') {
+                $contentItem->is_finished = true;
+                $contentItem->completed_at = $view->completed_at;
+            }
 
             if ($contentItem->content->type == "Image") {
                 $contentItem->image = base64_encode(Storage::disk('public')->get($contentItem->content->source));
@@ -643,11 +649,16 @@ class TrainingsController extends Controller
 
         unset($content->views);
 
-        // Image -> Blob Conversion
+        $content->file = null;
+        $content->file_mime = null;
+        $content->file_size = null;
+
+        // File -> Blob Conversion
         if ($content->content instanceof TrainingMediaModel && $content->content->type != 'Video') {
             try {
                 $content->file = base64_encode(Storage::disk('public')->get($content->content->source));
                 $content->file_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
+                $content->file_size = filesize(storage_path('app/public/' . $content->content->source));
             } catch (\Exception $e) {
                 Log::error("Failed to convert file to blob: " . $e->getMessage());
             }
@@ -724,15 +735,21 @@ class TrainingsController extends Controller
             $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id')->firstOrFail();
             $content = TrainingContentModel::find($request->input('id'));
 
+            $existing = TrainingViewsModel::where('training_content_id', $content->id)
+                ->where('user_id', $user->id)
+                ->exists();
+
             if ($request->input("finished")) {
                 if ($content->content->type == "Image") {
-                    TrainingViewsModel::create([
-                        'user_id' => $user->id,
-                        'training_id' => $training->id,
-                        'training_content_id' => $content->id,
-                        'status' => "Finished",
-                        'completed_at' => Carbon::now(),
-                    ]);
+                    if (!$existing) {
+                        TrainingViewsModel::create([
+                            'user_id' => $user->id,
+                            'training_id' => $training->id,
+                            'training_content_id' => $content->id,
+                            'status' => "Finished",
+                            'completed_at' => Carbon::now(),
+                        ]);
+                    }
                 } else {
                     $view = TrainingViewsModel::where('training_content_id', $content->id)
                         ->where('user_id', $user->id)
@@ -742,11 +759,13 @@ class TrainingsController extends Controller
                     $view->save();
                 }
             } else {
-                TrainingViewsModel::create([
-                    'user_id' => $user->id,
-                    'training_id' => $training->id,
-                    'training_content_id' => $content->id,
-                ]);
+                if (!$existing) {
+                    TrainingViewsModel::create([
+                        'user_id' => $user->id,
+                        'training_id' => $training->id,
+                        'training_content_id' => $content->id,
+                    ]);
+                }
             }
 
             DB::commit();
