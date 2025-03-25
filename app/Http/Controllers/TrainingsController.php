@@ -564,6 +564,45 @@ class TrainingsController extends Controller
         }
     }
 
+    public function getContentDetails($id)
+    {
+        // Log::info("TrainingsController::getContentDetails");
+
+        $user = Auth::user();
+
+        $content = TrainingContentModel::with(['content', 'views' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->find($id);
+
+        if (!$content) {
+            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        }
+
+        // View Check
+        $view = $content->views->first();
+        $content->has_viewed = !is_null($view);
+        $content->is_finished = $view && $view->status === 'Finished';
+
+        unset($content->views);
+
+        $content->file = null;
+        $content->file_mime = null;
+        $content->file_size = null;
+
+        // File -> Blob Conversion
+        if ($content->content instanceof TrainingMediaModel && $content->content->type != 'Video') {
+            try {
+                $content->file = base64_encode(Storage::disk('public')->get($content->content->source));
+                $content->file_mime = mime_content_type(storage_path('app/public/' . $content->content->source));
+                $content->file_size = filesize(storage_path('app/public/' . $content->content->source));
+            } catch (\Exception $e) {
+                Log::error("Failed to convert file to blob: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['status' => 200, 'content' => $content]);
+    }
+
     public function getEmployeeTrainingDetails($code)
     {
         //Log::info("TrainingsController::getEmployeeTrainingDetails");
@@ -643,9 +682,9 @@ class TrainingsController extends Controller
         return response()->json(['status' => 200, 'content' => $content]);
     }
 
-    public function getContentDetails($id)
+    public function getEmployeeContentDetails($id)
     {
-        // Log::info("TrainingsController::getContentDetails");
+        // Log::info("TrainingsController::getEmployeeContentDetails");
 
         $user = Auth::user();
 

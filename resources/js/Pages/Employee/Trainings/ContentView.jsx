@@ -100,7 +100,7 @@ const ContentView = () => {
     // Content Details
     const getContentDetails = (id) => {
         setIsLoading(true);
-        axiosInstance.get(`/trainings/getContentDetails/${id}`, { headers })
+        axiosInstance.get(`/trainings/getEmployeeContentDetails/${id}`, { headers })
             .then((response) => {
                 const resContent = (response.data.content);
                 setContent(resContent);

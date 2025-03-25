@@ -338,7 +338,7 @@ const TrainingView = () => {
                                             {trainingComplete != null ? (
                                                 <>
                                                     <Grid item xs={5} align="left">
-                                                        Completed At
+                                                        Completed On
                                                     </Grid>
                                                     <Grid item xs={7} align="left">
                                                         <Typography sx={{ fontWeight: "bold", }}>

@@ -249,13 +249,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
         Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
         Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
+        Route::get('/getContentDetails/{id}', [TrainingsController::class, 'getContentDetails']);
 
         Route::get('/getEmployeeTrainings', [TrainingsController::class, 'getEmployeeTrainings']);
         Route::get('/getEmployeeTrainingDetails/{code}', [TrainingsController::class, 'getEmployeeTrainingDetails']);
         Route::get('/getEmployeeTrainingContent/{code}', [TrainingsController::class, 'getEmployeeTrainingContent']);
+        Route::get('/getEmployeeContentDetails/{id}', [TrainingsController::class, 'getEmployeeContentDetails']);
 
         Route::get('/getSource/{id}', [TrainingsController::class, 'getSource']);
-        Route::get('/getContentDetails/{id}', [TrainingsController::class, 'getContentDetails']);
         Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);

@@ -315,7 +315,7 @@ const TrainingList = () => {
                                                                         backgroundColor: "#177604",
                                                                         color: "white",
                                                                         fontWeight: "bold",
-                                                                        boxShadow: "0 0 4px 2px #e9ae20",
+                                                                        boxShadow: 3,
                                                                     }}
                                                                 />
                                                             ) : null}
