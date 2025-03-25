@@ -446,7 +446,14 @@ const TrainingView = () => {
                                         const locked = training.sequential && content.find(item => item.order === cont.order - 1)?.is_finished === false;
                                         return (
                                             <Grid item xs={3} key={cont.id}>
-                                                <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleContentViewer(cont, locked)}>
+                                                <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleContentViewer(cont, locked)}
+                                                    sx={{
+                                                        "&:hover": {
+                                                            transform: "scale(0.97)",
+                                                            transition: "transform 0.2s ease-in-out",
+                                                        },
+                                                    }}
+                                                >
                                                     <Card sx={{ boxShadow: 3, position: 'relative' }}>
                                                         {/* Card Content */}
                                                         <CardMedia

@@ -81,8 +81,11 @@ class TrainingsController extends Controller
                 ->where('status', 'Active')
                 ->where('start_date', "<=", now())
                 ->where('end_date', ">=", now())
-                ->with(['contents' => function ($query) {
-                    $query->with('content');
+                ->with(['contents' => function ($query) use ($user) {
+                    $query->with('content')
+                        ->with(['views' => function ($viewQuery) use ($user) {
+                            $viewQuery->where('user_id', $user->id);
+                        }]);
                 }])
                 ->get();
 
@@ -96,6 +99,18 @@ class TrainingsController extends Controller
                 $training->form = $contentModels->contains(function ($content) {
                     return $content instanceof \App\Models\TrainingFormsModel;
                 });
+
+                $completed = $training->contents->every(function ($content) {
+                    $views = $content->views;
+                    if ($views->isEmpty()) {
+                        return false;
+                    }
+                    return $views->every(function ($view) {
+                        return $view->status === 'Finished';
+                    });
+                });
+
+                $training->completed = $completed;
             });
 
             return response()->json(['status' => 200, 'trainings' => $trainings]);
