@@ -15,6 +15,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 
+import PayslipView from '../../../Modals/Payroll/PayslipView';
+
 const PayrollRecords = () => {
     const { user } = useUser();
     const navigate = useNavigate();
@@ -38,21 +40,21 @@ const PayrollRecords = () => {
     useEffect(() => {
         axiosInstance.get('/payroll/getPayrollRecords', { headers })
             .then((response) => {
-                console.log(response);
                 setRecords(response.data.records);
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching payroll calculations:', error);
-            });
+            }); 
     }, []);
     
     const handleOpenViewPayrollModal = (id) => {
+        console.log("handleOpenViewPayrollModal: " + id);
         setSelectedPayroll(id);
         setOpenViewPayrollModal(true);
     }
 
-    const handleClosePayrollDetailsModal = () => {
+    const handleCloseViewPayrollModal = () => {
         setOpenViewPayrollModal(false);
     }
 
@@ -62,7 +64,7 @@ const PayrollRecords = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'left' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Payslip Records </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Payroll Records </Typography>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -107,6 +109,10 @@ const PayrollRecords = () => {
                     </Box>
 
                 </Box>
+
+                {openViewPayrollModal &&
+                    <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
+                }
 
             </Box>
         </Layout >

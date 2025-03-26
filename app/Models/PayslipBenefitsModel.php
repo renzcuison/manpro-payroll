@@ -19,4 +19,9 @@ class PayslipBenefitsModel extends Model
         'employee_amount',
         'employer_amount',
     ];
+
+    public function benefit()
+    {
+        return $this->belongsTo(BenefitsModel::class, 'benefit_id');
+    }
 }

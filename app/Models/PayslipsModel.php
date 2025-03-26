@@ -31,4 +31,24 @@ class PayslipsModel extends Model
         'client_id',
         'user_id',
     ];
+
+    public function benefits()
+    {
+        return $this->hasMany(PayslipBenefitsModel::class, 'payslip_id');
+    }
+
+    public function deductions()
+    {
+        return $this->hasMany(PayslipDeductionsModel::class, 'payslip_id');
+    }
+
+    public function earnings()
+    {
+        return $this->hasMany(PayslipEarningsModel::class, 'payslip_id');
+    }
+
+    public function leaves()
+    {
+        return $this->hasMany(PayslipLeavesModel::class, 'payslip_id');
+    }
 }

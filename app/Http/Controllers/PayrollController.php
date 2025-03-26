@@ -565,7 +565,7 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        Log::info("PayrollController::savePayroll");
+        // Log::info("PayrollController::savePayroll");
 
         $user = Auth::user();
 
@@ -661,7 +661,7 @@ class PayrollController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    public function getPayrollRecords(Request $request)
+    public function getPayrollRecords()
     {
         log::info("PayrollController::getPayrollRecords");
 
@@ -693,5 +693,97 @@ class PayrollController extends Controller
         }
 
         return response()->json(['status' => 200, 'employees' => null]);
+    }
+
+    public function getPayrollRecord(Request $request)
+    {
+        log::info("PayrollController::getPayrollRecord");
+
+        if ($this->checkUser()) {
+            $record = PayslipsModel::find(decrypt($request->selectedPayroll));
+            $employee = UsersModel::select('id', 'user_name')->find($record->employee_id);
+
+            $payslip = [
+                'benefit' => "",
+                'employee' => $employee->user_name,
+                'period_start' => $record->period_start,
+                'period_end' => $record->period_end,
+                'working_days' => $record->period_start,
+
+                'total_earnings' => $record->total_earnings,
+                'total_deductions' => $record->total_deductions,
+
+                'rate_monthly' => $record->rate_monthly,
+                'rate_daily' => $record->rate_daily,
+                'rate_hourly' => $record->rate_hourly,
+            ];
+            
+            $benefits = [];
+            $deductions = [];
+            $earnings = [];
+            $leaves = [];
+
+            foreach ( $record->benefits as $benefit ) {
+                $benefits[] = [
+                    'name' => $benefit->benefit->name,
+                    'employee_amount' => $benefit->employee_amount,
+                    'employer_amount' => $benefit->employer_amount,
+                ];
+            }
+
+            foreach ( $record->deductions as $deduction ) {
+
+                $name = "";
+
+                switch ($deduction->deduction_id) {
+                    case 1:
+                        $name = 'Absents';
+                        break;
+                    case 2:
+                        $name = 'Tardiness';
+                        break;
+                    case 3:
+                        $name = 'Cash Advance';
+                        break;
+                    default:
+                        $name = '-';
+                        break;
+                }
+
+                $deductions[] = [
+                    'name' => $name,
+                    'amount' => $deduction->amount,
+                ];
+            }
+
+            foreach ( $record->earnings as $earning ) {
+
+                $name = "";
+
+                switch ($earning->deduction_id) {
+                    case 1:
+                        $name = 'Basic Pay';
+                        break;
+                    case 2:
+                        $name = 'Over Time Pay';
+                        break;
+                    case 3:
+                        $name = 'Holiday Pay';
+                        break;
+                    default:
+                        $name = '-';
+                        break;
+                }
+
+                $earnings[] = [
+                    'name' => $name,
+                    'amount' => $earning->amount,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'leaves' => $leaves]);
+        }
+
+        
     }
 }
