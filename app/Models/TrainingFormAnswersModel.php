@@ -15,7 +15,10 @@ class TrainingFormAnswersModel extends Model
 
     protected $fillable = [
         'form_response_id',
+        'form_item_id',
         'form_choice_id',
+        'description',
+        'score',
     ];
 
     public function response()
@@ -25,6 +28,6 @@ class TrainingFormAnswersModel extends Model
 
     public function choice()
     {
-        return $this->belongsTo(TrainingItemChoicesModel::class, 'form_choice_id');
+        return $this->belongsTo(TrainingFormChoicesModel::class, 'form_choice_id');
     }
 }

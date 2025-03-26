@@ -14,14 +14,10 @@ class TrainingFormsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'require_pass',
         'passing_score',
-        'duration'
+        'attempts_allowed'
     ];
-
-    public function trainingContent()
-    {
-        return $this->morphOne(TrainingContentModel::class, 'content');
-    }
 
     public function items()
     {
