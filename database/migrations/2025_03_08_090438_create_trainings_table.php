@@ -17,7 +17,7 @@ class CreateTrainingsTable extends Migration
             $table->id();
             $table->string('unique_code', 16)->unique();
             $table->string('title', 128);
-            $table->string('description', 1024)->nullable();
+            $table->string('description', 1024);
             $table->string('cover_photo', 256)->nullable();
             $table->enum('status', ['Pending', 'Active', 'Hidden', 'Cancelled'])->default('Pending');
             $table->dateTime('start_date');

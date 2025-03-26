@@ -16,10 +16,13 @@ class CreateTrainingFormAnswersTable extends Migration
         Schema::create('training_form_answers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('form_response_id');
-            $table->unsignedBigInteger('form_choice_id');
+            $table->unsignedBigInteger('form_item_id');
+            $table->unsignedBigInteger('form_choice_id')->nullable();
+            $table->unsignedInteger('score')->nullable();
 
             $table->foreign('form_response_id')->references('id')->on('training_form_responses')->onDelete('cascade');
-            $table->foreign('form_choice_id')->references('id')->on('training_item_choices')->onDelete('cascade');
+            $table->foreign('form_item_id')->references('id')->on('training_form_items')->onDelete('cascade');
+            $table->foreign('form_choice_id')->references('id')->on('training_form_choices')->onDelete('cascade');
             $table->unique(['form_response_id', 'form_choice_id']);
         });
     }

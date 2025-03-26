@@ -16,7 +16,7 @@ class CreateTrainingFormResponsesTable extends Migration
         Schema::create('training_form_responses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('training_view_id');
-            $table->unsignedInteger('score')->nullable()->comment('Total score for the form submission');
+            $table->unsignedInteger('score')->default(0);
             $table->timestamps();
 
             $table->foreign('training_view_id')->references('id')->on('training_views')->onDelete('cascade');
