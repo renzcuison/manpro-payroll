@@ -20,8 +20,8 @@ class CreateTrainingContentTable extends Migration
             $table->string('title', 128)->nullable();
             $table->string('description', 1024)->nullable();
             $table->unsignedInteger('duration')->default(0);
-            $table->unsignedBigInteger('training_media_id')->nullable(0);
-            $table->unsignedBigInteger('training_form_id')->nullable(0);
+            $table->unsignedBigInteger('training_media_id')->nullable();
+            $table->unsignedBigInteger('training_form_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
