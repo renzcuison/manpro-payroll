@@ -27,7 +27,7 @@ const EmployeeBenefits = () => {
     const [openAddBenefitModal, setOpenAddBenefitModal] = useState(false);
 
     const [benefits, setBenefits] = useState([]);
-    
+
     useEffect(() => {
         axiosInstance.get('/benefits/getBenefits', { headers })
             .then((response) => {
@@ -54,19 +54,19 @@ const EmployeeBenefits = () => {
 
     return (
         <Layout title={"PayrollProcess"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Benefits </Typography>
-                        
+
                         <Button variant="contained" color="primary" onClick={handleOpenAddBenefitModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        
+
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
