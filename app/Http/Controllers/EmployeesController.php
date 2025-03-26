@@ -237,26 +237,31 @@ class EmployeesController extends Controller
     {
         // log::info("EmployeesController::getEmployeeDetails");
 
-        $user = Auth::user();
-        $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+        $validated = $request->validate([
+            'username' => 'required|string'
+        ]);
 
-        if ($this->checkUser() && $user->client_id == $employee->client_id) {
-            $employee = $this->enrichEmployeeDetails($employee);
-
-            // RANDOM GENERATED SUMMARY FOR AD DEMO
-            $payrolls = rand(10, 20);
-            $reduction = mt_rand(5, 10);
-
-            $employee->total_payroll = $payrolls;
-            $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
-            $employee->total_applications = rand(0, $payrolls * 2);
-
-
-            return response()->json(['status' => 200, 'employee' => $employee]);
+        if ( $this->checkUser() && $validated ) {
+            $user = Auth::user();
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+    
+            if ($this->checkUser() && $user->client_id == $employee->client_id) {
+                $employee = $this->enrichEmployeeDetails($employee);
+        
+                // RANDOM GENERATED SUMMARY FOR AD DEMO
+                $payrolls = rand(10, 20);
+                $reduction = mt_rand(5, 10);
+        
+                $employee->total_payroll = $payrolls;
+                $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
+                $employee->total_applications = rand(0, $payrolls * 2);
+        
+                return response()->json(['status' => 200, 'employee' => $employee]);
+            }
+        
+            return response()->json(['status' => 200, 'employee' => null]);
         }
-
-        return response()->json(['status' => 200, 'employee' => null]);
-    }
+    }    
 
     public function getMyDetails(Request $request)
     {
