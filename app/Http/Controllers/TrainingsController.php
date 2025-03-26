@@ -912,7 +912,7 @@ class TrainingsController extends Controller
             $fileContents = Storage::disk('public')->get($filePath);
             $base64 = base64_encode($fileContents);
 
-            $mimeType = Storage::disk('public')->mimeType($filePath);
+            $mimeType = mime_content_type(storage_path('app/public/' . $filePath));
             $fileName = basename($filePath);
 
             return response()->json([
