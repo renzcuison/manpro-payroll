@@ -49,7 +49,6 @@ const PayrollRecords = () => {
     }, []);
     
     const handleOpenViewPayrollModal = (id) => {
-        console.log("handleOpenViewPayrollModal: " + id);
         setSelectedPayroll(id);
         setOpenViewPayrollModal(true);
     }

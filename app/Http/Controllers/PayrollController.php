@@ -580,7 +580,11 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        // Log::info("PayrollController::savePayroll");
+        Log::info("PayrollController::savePayroll");
+        Log::info($request);
+        
+        Log::info("Stopper");
+        dd("Stopper");
 
         $user = Auth::user();
 

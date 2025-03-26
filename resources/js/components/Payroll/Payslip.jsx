@@ -58,9 +58,7 @@ const Payslip = ({selectedPayroll }) => {
     }, []);
 
     const getEmployeeData = (employee) => {
-
-        console.log(employee);
-
+        
         const data = { username: employee };
 
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
