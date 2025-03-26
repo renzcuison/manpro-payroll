@@ -302,9 +302,9 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-pencil-square-o" style={{ color: "#2a800f" }}></i> <span id="navName" className="sidebar-mini-hide" > Applications </span>
                             </StyledNav>
 
-                            {/* <StyledNav to={`/member/member-payroll-details`}>
+                            <StyledNav to={`/employee/payroll`}>
                                 <i className="fa fa-money" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide"> Payroll Details </span>
-                            </StyledNav> */}
+                            </StyledNav>
 
                             <StyledNav to={`/employee/announcements`}>
                                 <i className="fa fa-file-text-o" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide" > Announcements </span>

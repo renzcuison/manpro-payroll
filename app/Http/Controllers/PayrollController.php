@@ -26,14 +26,29 @@ use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
-    public function checkUser()
+    public function checkUserAdmin()
     {
-        // Log::info("PayrollController::checkUser");
+        // Log::info("PayrollController::checkUserAdmin");
 
         if (Auth::check()) {
             $user = Auth::user();
 
             if ($user->user_type == 'Admin') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function checkUserEmployee()
+    {
+        // Log::info("PayrollController::checkUserEmployee");
+
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user->user_type == 'Employee') {
                 return true;
             }
         }
@@ -158,7 +173,7 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
 
             $request->validate([
                 'startDate' => 'required|date',
@@ -661,11 +676,11 @@ class PayrollController extends Controller
         return response()->json(['status' => 200]);
     }
 
-    public function getPayrollRecords()
+    public function getEmployeesPayrollRecords()
     {
-        log::info("PayrollController::getPayrollRecords");
+        // log::info("PayrollController::getEmployeesPayrollRecords");
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
             $user = Auth::user();
 
             $rawRecords = PayslipsModel::where('client_id', $user->client_id)->get();
@@ -695,14 +710,47 @@ class PayrollController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
+    public function getEmployeePayrollRecords()
+    {
+        // log::info("PayrollController::getEmployeePayrollRecords");
+
+        if ($this->checkUserEmployee()) {
+            $user = Auth::user();
+
+            $rawRecords = PayslipsModel::where('employee_id', $user->id)->where('client_id', $user->client_id)->get();
+
+            $records = [];
+
+            foreach ($rawRecords as $rawRecord) {
+                $employee = UsersModel::find($rawRecord->employee_id);
+
+                $records[] = [
+                    'record' => encrypt($rawRecord->id),
+                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeBranch' => $employee->branch->name ?? '-',
+                    'employeeDepartment' => $employee->department->name ?? '-',
+                    'employeeRole' => $employee->role->name ?? '-',
+                    'payrollStartDate' => $rawRecord->period_start ?? '-',
+                    'payrollEndDate' => $rawRecord->period_end ?? '-',
+                    'payrollWorkingDays' => $rawRecord->working_days ?? '-',
+                    'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                ];
+            }
+
+            return response()->json(['status' => 200, 'records' => $records]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
+
     public function getPayrollRecord(Request $request)
     {
-        // log::info("PayrollController::getPayrollRecord");
+        log::info("PayrollController::getPayrollRecord");
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
             $record = PayslipsModel::find(decrypt($request->selectedPayroll));
             $employee = UsersModel::select('id', 'user_name')->find($record->employee_id);
-
+            log::info($record);
             $payslip = [
                 'benefit' => "",
                 'employee' => $employee->user_name,

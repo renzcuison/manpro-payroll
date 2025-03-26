@@ -26,14 +26,29 @@ use Illuminate\Support\Facades\Storage;
 
 class EmployeesController extends Controller
 {
-    public function checkUser()
+    public function checkUserAdmin()
     {
-        // Log::info("EmployeesController::checkUser");
+        // Log::info("EmployeesController::checkUserAdmin");
 
         if (Auth::check()) {
             $user = Auth::user();
 
             if ($user->user_type == 'Admin') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function checkUserEmployee()
+    {
+        // Log::info("PayrollController::checkUserEmployee");
+
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user->user_type == 'Employee') {
                 return true;
             }
         }
@@ -100,7 +115,7 @@ class EmployeesController extends Controller
     {
         // log::info("EmployeesController::getEmployees");
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
             $employees = $client->employees;
@@ -128,7 +143,7 @@ class EmployeesController extends Controller
             'password' => 'required',
         ]);
 
-        if ($this->checkUser() && $validated) {
+        if ($this->checkUserAdmin() && $validated) {
 
             log::info($request);
 
@@ -241,26 +256,24 @@ class EmployeesController extends Controller
             'username' => 'required|string'
         ]);
 
-        if ( $this->checkUser() && $validated ) {
+        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated ) {
             $user = Auth::user();
             $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
     
-            if ($this->checkUser() && $user->client_id == $employee->client_id) {
-                $employee = $this->enrichEmployeeDetails($employee);
-        
-                // RANDOM GENERATED SUMMARY FOR AD DEMO
-                $payrolls = rand(10, 20);
-                $reduction = mt_rand(5, 10);
-        
-                $employee->total_payroll = $payrolls;
-                $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
-                $employee->total_applications = rand(0, $payrolls * 2);
-        
-                return response()->json(['status' => 200, 'employee' => $employee]);
-            }
-        
-            return response()->json(['status' => 200, 'employee' => null]);
+            $employee = $this->enrichEmployeeDetails($employee);
+    
+            // RANDOM GENERATED SUMMARY FOR AD DEMO
+            $payrolls = rand(10, 20);
+            $reduction = mt_rand(5, 10);
+    
+            $employee->total_payroll = $payrolls;
+            $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
+            $employee->total_applications = rand(0, $payrolls * 2);
+    
+            return response()->json(['status' => 200, 'employee' => $employee]);
         }
+
+
     }    
 
     public function getMyDetails(Request $request)
@@ -369,7 +382,7 @@ class EmployeesController extends Controller
         $user = Auth::user();
         $employee = UsersModel::find($request->id);
 
-        if ($this->checkUser() && $user->client_id == $employee->client_id) {
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
 
             try {
                 DB::beginTransaction();
@@ -413,7 +426,7 @@ class EmployeesController extends Controller
         // log::info("EmployeesController::getFormLinks");
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
 
             $formLinks = UserFormsModel::where('client_id', $user->client_id)->get();
 
@@ -426,7 +439,7 @@ class EmployeesController extends Controller
         // log::info("EmployeesController::saveFormLink");
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
 
             try {
                 DB::beginTransaction();
@@ -466,7 +479,7 @@ class EmployeesController extends Controller
         $user = Auth::user();
         Log::info($request);
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
 
             try {
                 DB::beginTransaction();

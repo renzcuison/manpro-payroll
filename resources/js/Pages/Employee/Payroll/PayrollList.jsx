@@ -38,7 +38,7 @@ const PayrollRecords = () => {
     const [cutOff, setCutOff] = useState('');
 
     useEffect(() => {
-        axiosInstance.get('/payroll/getEmployeesPayrollRecords', { headers })
+        axiosInstance.get('/payroll/getEmployeePayrollRecords', { headers })
             .then((response) => {
                 setRecords(response.data.records);
                 setIsLoading(false);
