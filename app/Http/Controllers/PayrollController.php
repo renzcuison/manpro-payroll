@@ -697,7 +697,7 @@ class PayrollController extends Controller
 
     public function getPayrollRecord(Request $request)
     {
-        log::info("PayrollController::getPayrollRecord");
+        // log::info("PayrollController::getPayrollRecord");
 
         if ($this->checkUser()) {
             $record = PayslipsModel::find(decrypt($request->selectedPayroll));
@@ -709,9 +709,6 @@ class PayrollController extends Controller
                 'period_start' => $record->period_start,
                 'period_end' => $record->period_end,
                 'working_days' => $record->period_start,
-
-                'total_earnings' => $record->total_earnings,
-                'total_deductions' => $record->total_deductions,
 
                 'rate_monthly' => $record->rate_monthly,
                 'rate_daily' => $record->rate_daily,
@@ -781,7 +778,13 @@ class PayrollController extends Controller
                 ];
             }
 
-            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'leaves' => $leaves]);
+            $summaries = [
+                ['name' => 'Total Earnings', 'amount' => $record->total_earnings],
+                ['name' => 'Total Deductions', 'amount' => $record->total_deductions],
+                ['name' => 'Net Pay', 'amount' =>  $record->total_earnings - $record->total_deductions],
+            ];
+
+            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'leaves' => $leaves, 'summaries' => $summaries]);
         }
 
         

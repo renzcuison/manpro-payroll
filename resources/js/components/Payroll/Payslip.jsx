@@ -35,16 +35,15 @@ const Payslip = ({selectedPayroll }) => {
 
         axiosInstance.get(`/payroll/getPayrollRecord`, { params: data, headers })
             .then((response) => {
-                console.log(response.data.payslip);
                 setPayroll(response.data.payslip);
-                // setBenefits(response.data.benefits);
-                // setSummaries(response.data.summaries);
+                setBenefits(response.data.benefits);
+                setSummaries(response.data.summaries);
 
-                // setPaidLeaves(response.data.paid_leaves);
-                // setUnpaidLeaves(response.data.unpaid_leaves);
+                setPaidLeaves(response.data.paid_leaves);
+                setUnpaidLeaves(response.data.unpaid_leaves);
 
-                // setEarnings(response.data.earnings);
-                // setDeductions(response.data.deductions);
+                setEarnings(response.data.earnings);
+                setDeductions(response.data.deductions);
 
                 getEmployeeData(response.data.payslip.employee);
             })
