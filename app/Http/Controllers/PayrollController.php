@@ -718,7 +718,8 @@ class PayrollController extends Controller
             $benefits = [];
             $deductions = [];
             $earnings = [];
-            $leaves = [];
+            $paid_leaves = [];
+            $unpaid_leaves = [];
 
             foreach ( $record->benefits as $benefit ) {
                 $benefits[] = [
@@ -757,7 +758,7 @@ class PayrollController extends Controller
 
                 $name = "";
 
-                switch ($earning->deduction_id) {
+                switch ($earning->earning_id) {
                     case 1:
                         $name = 'Basic Pay';
                         break;
@@ -784,7 +785,7 @@ class PayrollController extends Controller
                 ['name' => 'Net Pay', 'amount' =>  $record->total_earnings - $record->total_deductions],
             ];
 
-            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'leaves' => $leaves, 'summaries' => $summaries]);
+            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'paid_leaves' => $paid_leaves, 'unpaid_leaves' => $unpaid_leaves, 'summaries' => $summaries]);
         }
 
         
