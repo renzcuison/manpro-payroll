@@ -510,7 +510,8 @@ const ContentView = () => {
                                                                 alignItems: "center",
                                                                 "&:hover": {
                                                                     backgroundColor: "#e0e0e0",
-                                                                    transition: "background-color 0.3s ease",
+                                                                    transform: "scale(0.97)",
+                                                                    transition: "background-color 0.3s ease, transform 0.2s ease-in-out",
                                                                 },
 
                                                             }}

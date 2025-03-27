@@ -29,6 +29,10 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
+import PDFImage from '../../../../../../public/media/assets/PDF_file_icon.png';
+import DocImage from '../../../../../../public/media/assets/Docx_file_icon.png';
+import PPTImage from '../../../../../../public/media/assets/PowerPoint_file_icon.png';
+
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -166,7 +170,16 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                     return "../../../../images/ManProTab.png";
                 }
             case "Document":
+                const docExtension = source.split('.').pop().toLowerCase();
+                if (docExtension === 'pdf') {
+                    return PDFImage;
+                }
+                if (['doc', 'docx'].includes(docExtension)) {
+                    return DocImage;
+                }
+                return "../../../../images/ManProTab.png";
             case "PowerPoint":
+                return PPTImage;
             case "Form":
                 return "../../../../images/ManProTab.png";
             default:
@@ -481,7 +494,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                                         <Box>
                                                             {cont.content.type === "Video" && <OndemandVideo sx={{ color: "text.secondary" }} />}
                                                             {cont.content.type === "Image" && <Image sx={{ color: "text.secondary" }} />}
-                                                            {cont.content.type === "Document" && <Description sx={{ color: "text.secondary" }} />}
+                                                            {["Document", "PowerPoint"].includes(cont.content.type) && <Description sx={{ color: "text.secondary" }} />}
                                                             {!cont.content.type && <Quiz sx={{ color: "text.secondary" }} />}
                                                         </Box>
                                                     </Box>
