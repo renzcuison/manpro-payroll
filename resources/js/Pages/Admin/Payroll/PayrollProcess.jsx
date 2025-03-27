@@ -161,12 +161,7 @@ const PayrollProcess = () => {
                                                     <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.payrollDates}</TableCell>
                                                     <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.grossPay}</TableCell>
                                                 </TableRow>
-                                            ))) :
-                                                (
-                                                    <TableRow>
-                                                        <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }}>No Payroll to Process</TableCell>
-                                                    </TableRow>
-                                                )}
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
