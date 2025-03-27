@@ -26,7 +26,8 @@ import {
     CardActions,
     Pagination,
     IconButton,
-    CardActionArea
+    CardActionArea,
+    Chip
 } from "@mui/material";
 import { OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
 import moment from "moment";
@@ -217,6 +218,7 @@ const TrainingList = () => {
                                                 <Grid item key={index} xs={12} sm={6} lg={4}>
                                                     <CardActionArea component={Link} to={`/employee/training/${training.unique_code}`}>
                                                         <Card sx={{
+                                                            position: "relative",
                                                             borderRadius: 2,
                                                             boxShadow: 3,
                                                             height: "300px",
@@ -302,6 +304,21 @@ const TrainingList = () => {
                                                                     </Box>
                                                                 </Box>
                                                             </CardActions>
+                                                            {/* Training Completed Indicator */}
+                                                            {training.completed ? (
+                                                                <Chip
+                                                                    label="COMPLETED"
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: "#177604",
+                                                                        color: "white",
+                                                                        fontWeight: "bold",
+                                                                        boxShadow: 3,
+                                                                    }}
+                                                                />
+                                                            ) : null}
                                                         </Card>
                                                     </CardActionArea>
                                                 </Grid>

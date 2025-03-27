@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTrainingItemChoicesTable extends Migration
+class CreateTrainingFormChoicesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,13 @@ class CreateTrainingItemChoicesTable extends Migration
      */
     public function up()
     {
-        Schema::create('training_item_choices', function (Blueprint $table) {
+        Schema::create('training_form_choices', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('training_item_id');
+            $table->unsignedBigInteger('form_item_id');
             $table->string('description', 256);
             $table->boolean('is_correct')->default(false);
 
-            $table->foreign('training_item_id')->references('id')->on('training_form_items')->onDelete('cascade');
+            $table->foreign('form_item_id')->references('id')->on('training_form_items')->onDelete('cascade');
         });
     }
 
@@ -30,6 +30,6 @@ class CreateTrainingItemChoicesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('training_item_choices');
+        Schema::dropIfExists('training_form_choices');
     }
 }

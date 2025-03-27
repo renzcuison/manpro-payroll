@@ -15,12 +15,13 @@ class CreateTrainingFormItemsTable extends Migration
     {
         Schema::create('training_form_items', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('training_form_id');
+            $table->unsignedBigInteger('form_id');
+            $table->enum('type', ['Choice', 'MultiSelect', 'FillInTheBlank']);
             $table->string('description', 256);
-            $table->unsignedInteger('points')->default(0);
+            $table->unsignedInteger('value')->default(1);
             $table->timestamps();
 
-            $table->foreign('training_form_id')->references('id')->on('training_forms')->onDelete('cascade');
+            $table->foreign('form_id')->references('id')->on('training_forms')->onDelete('cascade');
         });
     }
 

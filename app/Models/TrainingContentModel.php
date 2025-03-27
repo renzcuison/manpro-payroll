@@ -20,7 +20,9 @@ class TrainingContentModel extends Model
         'order',
         'title',
         'description',
-        'content'
+        'duration',
+        'training_media_id',
+        'training_form_id'
     ];
 
     public function training()
@@ -28,9 +30,14 @@ class TrainingContentModel extends Model
         return $this->belongsTo(TrainingsModel::class, 'training_id');
     }
 
-    public function content()
+    public function media()
     {
-        return $this->morphTo();
+        return $this->belongsTo(TrainingMediaModel::class, 'training_media_id');
+    }
+
+    public function form()
+    {
+        return $this->belongsTo(TrainingFormsModel::class, 'training_form_id');
     }
 
     public function views()

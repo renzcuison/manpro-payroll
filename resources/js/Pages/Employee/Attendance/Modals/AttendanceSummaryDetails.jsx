@@ -130,7 +130,7 @@ const AttendanceSummaryDetails = ({ open, close, date }) => {
                                                 {log.action}
                                             </TableCell>
                                             <TableCell align="left" sx={{ pl: 0 }}>
-                                                {dayjs(log.timestamp).format("HH:mm:ss")}
+                                                {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                             </TableCell>
                                         </TableRow>
                                     ))}

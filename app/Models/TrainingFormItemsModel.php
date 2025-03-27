@@ -14,9 +14,10 @@ class TrainingFormItemsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'training_form_id',
+        'form_id',
+        'type',
         'description',
-        'points'
+        'value'
     ];
 
     public function form()
@@ -26,6 +27,6 @@ class TrainingFormItemsModel extends Model
 
     public function choices()
     {
-        return $this->hasMany(TrainingItemChoicesModel::class, 'training_item_id');
+        return $this->hasMany(TrainingFormChoicesModel::class, 'training_item_id');
     }
 }

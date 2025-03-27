@@ -19,11 +19,15 @@ class CreateTrainingContentTable extends Migration
             $table->unsignedInteger('order')->default(0)->nullable();
             $table->string('title', 128)->nullable();
             $table->string('description', 1024)->nullable();
-            $table->morphs('content'); // content_type, content_id (e.g., 'App\Models\TrainingMedia', 1)
+            $table->unsignedInteger('duration')->default(0);
+            $table->unsignedBigInteger('training_media_id')->nullable();
+            $table->unsignedBigInteger('training_form_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('training_id')->references('id')->on('trainings')->onDelete('cascade');
+            $table->foreign('training_media_id')->references('id')->on('training_media');
+            $table->foreign('training_form_id')->references('id')->on('training_forms');
         });
     }
 

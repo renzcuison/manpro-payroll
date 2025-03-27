@@ -208,7 +208,7 @@ const PayrollProcessFilter = ({ open, close, passFilter, currentStartDate, curre
                                             key={branch.id}
                                             value={branch.id}
                                             onClick={() => {
-                                                setSelectedDepartments((prevSelected) =>
+                                                setSelectedBranches((prevSelected) =>
                                                     prevSelected.includes(branch.id)
                                                         ? prevSelected.filter((id) => id !== branch.id)
                                                         : [...prevSelected, branch.id]

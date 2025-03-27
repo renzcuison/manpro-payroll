@@ -1,4 +1,4 @@
-import React, {  useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Button, Typography, FormGroup, TextField, FormControl } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -84,7 +84,7 @@ const EmployeesAdd = () => {
             setConfirmError(false);
         }
 
-        if ( !firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
+        if (!firstName || !lastName || !userName || !emailAddress || !birthdate || !password || !confirm) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -93,7 +93,7 @@ const EmployeesAdd = () => {
                 confirmButtonColor: '#177604',
             });
         } else {
-            if ( confirm != password ){
+            if (confirm != password) {
                 setConfirmError(true);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
@@ -143,7 +143,7 @@ const EmployeesAdd = () => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Evaluation form saved successfully!",
+                        text: "Employee saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
@@ -168,11 +168,12 @@ const EmployeesAdd = () => {
                         <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }} > Add Employee </Typography>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -185,8 +186,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="middleName"
@@ -197,8 +199,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="lastName"
@@ -210,8 +213,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '10%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '10%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -222,15 +226,16 @@ const EmployeesAdd = () => {
                                     onChange={(e) => setSuffix(e.target.value)}
                                 />
                             </FormControl>
-                           
+
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -243,8 +248,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -257,8 +263,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="phoneNumber"
@@ -271,11 +278,12 @@ const EmployeesAdd = () => {
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '70%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '70%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     id="address"
@@ -286,8 +294,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
@@ -304,11 +313,12 @@ const EmployeesAdd = () => {
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -322,8 +332,9 @@ const EmployeesAdd = () => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{
+                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
@@ -343,9 +354,9 @@ const EmployeesAdd = () => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Employee </p>
                             </Button>
                         </Box>
-                        
+
                     </Box>
-                </div> 
+                </div>
 
             </Box>
         </Layout >

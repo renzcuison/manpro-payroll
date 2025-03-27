@@ -73,7 +73,7 @@ const PayrollProcess = () => {
         console.log("Selected Branches:", branches);
         console.log("Selected Departments:", departments);
         console.log("Selected Cut-Off:", cutOff);
-        
+
         setIsLoading(true);
 
         const data = {
@@ -94,7 +94,7 @@ const PayrollProcess = () => {
                 console.error('Error fetching payroll calculations:', error);
             });
     };
-    
+
     const handleOpenPayrollDetailsModal = (id) => {
         console.log("Payroll ID:", id)
         console.log("Start Date:", startDate)
@@ -119,19 +119,19 @@ const PayrollProcess = () => {
 
     return (
         <Layout title={"PayrollProcess"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Process Payroll </Typography>
-                        
+
                         <Button variant="contained" color="primary" onClick={handleOpenPayrollProcessFilterModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Process </p>
                         </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        
+
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
@@ -161,7 +161,12 @@ const PayrollProcess = () => {
                                                     <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.payrollDates}</TableCell>
                                                     <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.grossPay}</TableCell>
                                                 </TableRow>
-                                            ))}
+                                            ))) :
+                                                (
+                                                    <TableRow>
+                                                        <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }}>No Payroll to Process</TableCell>
+                                                    </TableRow>
+                                                )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -172,7 +177,7 @@ const PayrollProcess = () => {
                 </Box>
 
                 {openPayrollProcessFilterModal &&
-                    <PayrollProcessFilter 
+                    <PayrollProcessFilter
                         open={openPayrollProcessFilterModal}
                         close={handleClosePayrollProcessFilterModal}
                         passFilter={getFilter}

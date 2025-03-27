@@ -258,7 +258,7 @@ const AttendanceLogs = () => {
                                             </FormControl>
                                         </Grid>
 
-                                        <Grid item xs={7} sx={{ mr: 2 }}>
+                                        <Grid item xs={7} sx={{ mr: 4 }}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} >
                                                 <DatePicker
                                                     label="From Date"
