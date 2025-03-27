@@ -299,12 +299,13 @@ class TrainingsController extends Controller
         //Log::info($request);
 
         $user = Auth::user();
+        $training = TrainingsModel::where('unique_code', $request->input('code'))->firstOrFail();
 
-        if ($this->checkUser()) {
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
             try {
                 DB::beginTransaction();
 
-                $training = TrainingsModel::where('unique_code', $request->input('code'))->firstOrFail();
+
                 $training->status = $request->input('status');
                 $training->save();
 
@@ -318,6 +319,8 @@ class TrainingsController extends Controller
 
                 throw $e;
             }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -328,9 +331,9 @@ class TrainingsController extends Controller
         //Log::info($request);
 
         $user = Auth::user();
+        $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
 
-        if ($this->checkUser()) {
-            $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
             $contentCount = TrainingContentModel::where('training_id', $training->id)->count();
             $nextOrder = $contentCount + 1;
 
@@ -592,11 +595,11 @@ class TrainingsController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()) {
-            $training = TrainingsModel::where('unique_code', $code)
-                ->with('user')
-                ->firstOrFail();
+        $training = TrainingsModel::where('unique_code', $code)
+            ->with('user')
+            ->firstOrFail();
 
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
             $author = $training->user;
 
             $training->author_name = implode(' ', array_filter([
@@ -628,11 +631,11 @@ class TrainingsController extends Controller
     {
         //Log::info("TrainingsController::getTrainingContent");
         $user = Auth::user();
+        $training = TrainingsModel::where('unique_code', $code)
+            ->select('id')
+            ->firstOrFail();
 
-        if ($this->checkUser()) {
-            $training = TrainingsModel::where('unique_code', $code)
-                ->select('id')
-                ->firstOrFail();
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
 
             $content = TrainingContentModel::with(['form', 'media'])
                 ->where('training_id', $training->id)
@@ -678,52 +681,56 @@ class TrainingsController extends Controller
 
         $user = Auth::user();
 
-        $content = TrainingContentModel::with(['form', 'media', 'views' => function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }])->find($id);
+        if ($this->checkUser()) {
+            $content = TrainingContentModel::with(['form', 'media', 'views' => function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }])->find($id);
 
-        if (!$content) {
-            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
-        }
-
-        // View Check
-        $view = $content->views->first();
-        $content->has_viewed = !is_null($view);
-        $content->is_finished = $view && $view->status === 'Finished';
-
-        unset($content->views);
-
-        // Content Constructor
-        if ($content->training_media_id) {
-            $content->content = $content->media;
-        } elseif ($content->training_form_id) {
-            $content->content = $content->form;
-        } else {
-            $content->content = null;
-        }
-
-        $content->file = null;
-        $content->file_mime = null;
-        $content->file_size = null;
-
-        // File -> Blob Conversion
-        if ($content->training_media_id && $content->media && $content->media->type !== 'Video') {
-            try {
-                $filePath = $content->media->source;
-                $fullPath = storage_path('app/public/' . $filePath);
-                if (Storage::disk('public')->exists($filePath)) {
-                    $content->file = base64_encode(Storage::disk('public')->get($filePath));
-                    $content->file_mime = mime_content_type($fullPath);
-                    $content->file_size = filesize($fullPath);
-                }
-            } catch (\Exception $e) {
-                Log::error("Failed to convert file to blob: " . $e->getMessage());
+            if (!$content) {
+                return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
             }
+
+            // View Check
+            $view = $content->views->first();
+            $content->has_viewed = !is_null($view);
+            $content->is_finished = $view && $view->status === 'Finished';
+
+            unset($content->views);
+
+            // Content Constructor
+            if ($content->training_media_id) {
+                $content->content = $content->media;
+            } elseif ($content->training_form_id) {
+                $content->content = $content->form;
+            } else {
+                $content->content = null;
+            }
+
+            $content->file = null;
+            $content->file_mime = null;
+            $content->file_size = null;
+
+            // File -> Blob Conversion
+            if ($content->training_media_id && $content->media && $content->media->type !== 'Video') {
+                try {
+                    $filePath = $content->media->source;
+                    $fullPath = storage_path('app/public/' . $filePath);
+                    if (Storage::disk('public')->exists($filePath)) {
+                        $content->file = base64_encode(Storage::disk('public')->get($filePath));
+                        $content->file_mime = mime_content_type($fullPath);
+                        $content->file_size = filesize($fullPath);
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to convert file to blob: " . $e->getMessage());
+                }
+            }
+
+            unset($content->form, $content->media);
+
+            return response()->json(['status' => 200, 'content' => $content]);
+        } else {
+            return response()->json(['status' => 403, 'message' => "Unauthorized"]);
         }
-
-        unset($content->form, $content->media);
-
-        return response()->json(['status' => 200, 'content' => $content]);
     }
 
     public function getEmployeeTrainingDetails($code)
@@ -734,6 +741,7 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         $training = TrainingsModel::where('unique_code', $code)
+            ->where('client_id', $user->client_id)
             ->with('user')
             ->firstOrFail();
 
@@ -769,6 +777,7 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         $training = TrainingsModel::where('unique_code', $code)
+            ->where('client_id', $user->client_id)
             ->select('id')
             ->firstOrFail();
 
@@ -887,6 +896,7 @@ class TrainingsController extends Controller
         $covers = array_fill_keys($trainingIds, null);
 
         $coverFiles = TrainingsModel::whereIn('id', $trainingIds)
+            ->where('client_id', $user->client_id)
             ->select('id', 'cover_photo')
             ->get();
 
