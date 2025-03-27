@@ -134,7 +134,7 @@ class PayrollController extends Controller
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
     {
-        log::info("PayrollController::getGoogleCalendarHolidays");
+        // log::info("PayrollController::getGoogleCalendarHolidays");
 
         $apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
         $calendarId = 'en.philippines#holiday@group.v.calendar.google.com';
@@ -235,8 +235,7 @@ class PayrollController extends Controller
 
     public function payrollDetails(Request $request)
     {
-        log::info("PayrollController::payrollDetails");
-        log::info($request);
+        // log::info("PayrollController::payrollDetails");
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
@@ -252,7 +251,6 @@ class PayrollController extends Controller
 
         foreach ($employeeBenefits as $employeeBenefit) {
 
-            // log::info("================================");
             // ============== BENEFITS ==============
             $benefit = $employeeBenefit->benefit;
 
@@ -266,11 +264,6 @@ class PayrollController extends Controller
                 $employerAmount = $benefit->employer_amount * 1;
             }
 
-            // log::info("Type                     :" . $benefit->type);
-            // log::info("Name                     :" . $benefit->name);
-            // log::info("employeeShare            :" . $employeeAmount);
-            // log::info("employerShare            :" . $employerAmount);
-
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
 
@@ -283,10 +276,6 @@ class PayrollController extends Controller
             'employeeAmount' => $employeeShare,
             'employerAmount' => $employerShare
         ];
-
-        // log::info("================================");
-        // log::info("Total Employee Share     :" . $employeeShare);
-        // log::info("Total Employer Share     :" . $employerShare);
 
         // ============== WORK DAYS ==============
         $distinctDays = $logs->groupBy(function ($log) {
@@ -372,10 +361,9 @@ class PayrollController extends Controller
             ->groupBy('type_id');
 
         foreach ($applicationTypes as $applicationType) {
-            // log::info($applicationType);
 
             $apps = $applications->get($applicationType->id, collect());
-            // log::info($apps);
+
             $days = 0;
             $totalHours = 0;
 
@@ -541,8 +529,6 @@ class PayrollController extends Controller
 
         $absents = $absents - $leaveEarnings;
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings;
-
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
@@ -554,17 +540,16 @@ class PayrollController extends Controller
         $loans = 0;
         $tax = 0;
 
-        $tardiness = $perMin * ($this->getTardiness($startDate, $endDate, $employee->id));
-        //Log::info("Pay Per Hour:                  " . $perHour);
-        //Log::info("Pay Per Minute:                " . $perMin);
-        //Log::info("Total Tardiness Deduction:     " . $tardiness);
+        $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
+        $tardiness = $perMin * $tardinessTime;
 
-        $totalDeductions =  $employeeShare + $tardiness + $cashAdvance + $loans + $tax;
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness;
+        $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $deductions = [
-            ['deduction' => '1', 'name' => 'Absents', 'amount' => $absents],
-            ['deduction' => '2', 'name' => 'Tardiness', 'amount' => $tardiness],
-            ['deduction' => '3', 'name' => 'Cash Advance', 'amount' => $cashAdvance],
+            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} min)", 'amount' => $absents],
+            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} min)", 'amount' => $tardiness],
+            ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
 
         $summaries = [
@@ -587,11 +572,7 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        Log::info("PayrollController::savePayroll");
-        Log::info($request);
-
-        Log::info("Stopper");
-        dd("Stopper");
+        // Log::info("PayrollController::savePayroll");
 
         $user = Auth::user();
 
@@ -653,22 +634,15 @@ class PayrollController extends Controller
 
             foreach ($payrollData['paid_leaves'] as $paidLeave) {
                 $newPaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($paidLeave['application']), "amount" => $paidLeave['amount'], "is_paid" => true]);
-
-                log::info($newPaidLeave);
             }
 
             foreach ($payrollData['unpaid_leaves'] as $unpaidLeave) {
                 $newUnpaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($unpaidLeave['application']), "amount" => $unpaidLeave['amount'], "is_paid" => false]);
-
-                log::info($newUnpaidLeave);
             }
 
             foreach ($payrollData['benefits'] as $benefit) {
                 if ($benefit['name'] != "Total Benefits") {
-                    log::info($benefit);
                     $newBenefit = PayslipBenefitsModel::create(["payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount']]);
-
-                    log::info($newBenefit);
                 }
             }
 
@@ -756,12 +730,12 @@ class PayrollController extends Controller
 
     public function getPayrollRecord(Request $request)
     {
-        log::info("PayrollController::getPayrollRecord");
+        // log::info("PayrollController::getPayrollRecord");
 
         if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
             $record = PayslipsModel::find(decrypt($request->selectedPayroll));
             $employee = UsersModel::select('id', 'user_name')->find($record->employee_id);
-            log::info($record);
+
             $payslip = [
                 'benefit' => "",
                 'employee' => $employee->user_name,
