@@ -46,48 +46,30 @@ class TrainingsController extends Controller
                 $trainings = TrainingsModel::where('client_id', $user->client_id)
                     ->select('trainings.*')
                     ->addSelect([
-                        // Video Check
-                        'has_video' => function ($query) {
-                            $query->selectRaw('COUNT(*)')
+                        // Combined Content Type Check
+                        'content_types' => function ($query) {
+                            $query->selectRaw('JSON_OBJECT(
+                            "has_video", SUM(CASE WHEN training_media.type = "Video" THEN 1 ELSE 0 END),
+                            "has_image", SUM(CASE WHEN training_media.type = "Image" THEN 1 ELSE 0 END),
+                            "has_attachment", SUM(CASE WHEN training_media.type IN ("Document", "PowerPoint") THEN 1 ELSE 0 END),
+                            "has_form", SUM(CASE WHEN training_content.training_form_id IS NOT NULL THEN 1 ELSE 0 END)
+                        )')
                                 ->from('training_content')
-                                ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                                ->whereColumn('training_content.training_id', 'trainings.id')
-                                ->where('training_media.type', 'Video');
-                        },
-                        // Image Check
-                        'has_image' => function ($query) {
-                            $query->selectRaw('COUNT(*)')
-                                ->from('training_content')
-                                ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                                ->whereColumn('training_content.training_id', 'trainings.id')
-                                ->where('training_media.type', 'Image');
-                        },
-                        // Document, PowerPoint Check
-                        'has_attachment' => function ($query) {
-                            $query->selectRaw('COUNT(*)')
-                                ->from('training_content')
-                                ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                                ->whereColumn('training_content.training_id', 'trainings.id')
-                                ->whereIn('training_media.type', ['Document', 'Powerpoint']);
-                        },
-                        // Form Check
-                        'has_form' => function ($query) {
-                            $query->selectRaw('COUNT(*)')
-                                ->from('training_content')
-                                ->whereColumn('training_content.training_id', 'trainings.id')
-                                ->whereNotNull('training_content.training_form_id');
+                                ->leftJoin('training_media', 'training_content.training_media_id', '=', 'training_media.id')
+                                ->whereColumn('training_content.training_id', 'trainings.id');
                         },
                     ])
                     ->get()
                     ->map(function ($training) {
-                        // Final Content Checks
-                        $training->video = (bool) $training->has_video;
-                        $training->image = (bool) $training->has_image;
-                        $training->attachment = (bool) $training->has_attachment;
-                        $training->form = (bool) $training->has_form;
+                        // Parse content types
+                        $contentTypes = json_decode($training->content_types, true);
+                        $training->video = (bool) ($contentTypes['has_video'] ?? 0);
+                        $training->image = (bool) ($contentTypes['has_image'] ?? 0);
+                        $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
+                        $training->form = (bool) ($contentTypes['has_form'] ?? 0);
 
                         // Response Cleanup
-                        unset($training->has_video, $training->has_image, $training->has_attachment, $training->has_form);
+                        unset($training->content_types);
 
                         return $training;
                     });
@@ -101,7 +83,6 @@ class TrainingsController extends Controller
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
-
     public function getEmployeeTrainings()
     {
         //Log::info("TrainingsController::getEmployeeTrainings");
@@ -114,69 +95,37 @@ class TrainingsController extends Controller
                 ->where('end_date', ">=", now())
                 ->select('trainings.*')
                 ->addSelect([
-                    // Video Check
-                    'has_video' => function ($query) {
-                        $query->selectRaw('COUNT(*)')
+                    // Content Type Checks
+                    'content_types' => function ($query) {
+                        $query->selectRaw('JSON_OBJECT(
+                        "has_video", SUM(CASE WHEN training_media.type = "Video" THEN 1 ELSE 0 END),
+                        "has_image", SUM(CASE WHEN training_media.type = "Image" THEN 1 ELSE 0 END),
+                        "has_attachment", SUM(CASE WHEN training_media.type IN ("Document", "PowerPoint") THEN 1 ELSE 0 END),
+                        "has_form", SUM(CASE WHEN training_content.training_form_id IS NOT NULL THEN 1 ELSE 0 END)
+                    )')
                             ->from('training_content')
-                            ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                            ->whereColumn('training_content.training_id', 'trainings.id')
-                            ->where('training_media.type', 'Video');
-                    },
-                    // Image Check
-                    'has_image' => function ($query) {
-                        $query->selectRaw('COUNT(*)')
-                            ->from('training_content')
-                            ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                            ->whereColumn('training_content.training_id', 'trainings.id')
-                            ->where('training_media.type', 'Image');
-                    },
-                    // Document, PowerPoint Check
-                    'has_attachment' => function ($query) {
-                        $query->selectRaw('COUNT(*)')
-                            ->from('training_content')
-                            ->join('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                            ->whereColumn('training_content.training_id', 'trainings.id')
-                            ->whereIn('training_media.type', ['Document', 'PowerPoint']);
-                    },
-                    // Form Check
-                    'has_form' => function ($query) {
-                        $query->selectRaw('COUNT(*)')
-                            ->from('training_content')
-                            ->whereColumn('training_content.training_id', 'trainings.id')
-                            ->whereNotNull('training_content.training_form_id');
-                    },
-                    // Training Completion Check
-                    'is_completed' => function ($query) use ($user) {
-                        $query->selectRaw('CASE
-                        WHEN COUNT(*) = 0 THEN 0
-                        WHEN SUM(CASE
-                            WHEN EXISTS (
-                                SELECT 1
-                                FROM training_views
-                                WHERE training_views.training_content_id = training_content.id
-                                AND training_views.user_id = ?
-                                AND training_views.status = "Finished"
-                            ) THEN 1
-                            ELSE 0
-                        END) = COUNT(*) THEN 1
-                        ELSE 0
-                    END')
-                            ->from('training_content')
-                            ->whereColumn('training_content.training_id', 'trainings.id')
-                            ->setBindings([$user->id]);
-                    },
+                            ->leftJoin('training_media', 'training_content.training_media_id', '=', 'training_media.id')
+                            ->whereColumn('training_content.training_id', 'trainings.id');
+                    }
                 ])
                 ->get()
-                ->map(function ($training) {
-                    // Final Content Checks
-                    $training->video = (bool) $training->has_video;
-                    $training->image = (bool) $training->has_image;
-                    $training->attachment = (bool) $training->has_attachment;
-                    $training->form = (bool) $training->has_form;
-                    $training->completed = (bool) $training->is_completed;
+                ->map(function ($training) use ($user) {
+                    // Debug logging for is_completed
+                    $totalContents = TrainingContentModel::where('training_id', $training->id)->count();
+                    $completedContents = TrainingContentModel::where('training_id', $training->id)
+                        ->whereHas('views', function ($query) use ($user) {
+                            $query->where('user_id', $user->id)->where('status', 'Finished');
+                        })
+                        ->count();
 
-                    // Response Cleanup
-                    unset($training->has_video, $training->has_image, $training->has_attachment, $training->has_form, $training->is_completed);
+                    $contentTypes = json_decode($training->content_types, true);
+                    $training->video = (bool) ($contentTypes['has_video'] ?? 0);
+                    $training->image = (bool) ($contentTypes['has_image'] ?? 0);
+                    $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
+                    $training->form = (bool) ($contentTypes['has_form'] ?? 0);
+                    $training->completed = $totalContents == $completedContents;
+
+                    unset($training->content_types);
 
                     return $training;
                 });
@@ -331,7 +280,9 @@ class TrainingsController extends Controller
         //Log::info($request);
 
         $user = Auth::user();
-        $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
+        $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
+            ->select('id', 'client_id')
+            ->firstOrFail();
 
         if ($this->checkUser() && $training->client_id == $user->client_id) {
             $contentCount = TrainingContentModel::where('training_id', $training->id)->count();
@@ -549,16 +500,16 @@ class TrainingsController extends Controller
         //Log::info("TrainingsController::saveContentSettings");
         //Log::info($request);
 
-        $order = $request->input('new_order');
         $user = Auth::user();
+        $order = $request->input('new_order');
 
-        if ($this->checkUser()) {
+        $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
+            ->with('contents')
+            ->firstOrFail();
+
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
             try {
                 DB::beginTransaction();
-
-                $training = TrainingsModel::where('unique_code', $request->input('unique_code'))
-                    ->with('contents')
-                    ->firstOrFail();
 
                 $training->sequential = $request->input('in_order');
                 $training->save();
@@ -631,8 +582,9 @@ class TrainingsController extends Controller
     {
         //Log::info("TrainingsController::getTrainingContent");
         $user = Auth::user();
+
         $training = TrainingsModel::where('unique_code', $code)
-            ->select('id')
+            ->select('id', 'client_id')
             ->firstOrFail();
 
         if ($this->checkUser() && $training->client_id == $user->client_id) {
@@ -729,7 +681,7 @@ class TrainingsController extends Controller
 
             return response()->json(['status' => 200, 'content' => $content]);
         } else {
-            return response()->json(['status' => 403, 'message' => "Unauthorized"]);
+            return response()->json(['status' => 403, 'content' => null]);
         }
     }
 
