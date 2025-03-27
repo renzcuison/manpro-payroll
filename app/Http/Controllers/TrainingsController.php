@@ -303,7 +303,10 @@ class TrainingsController extends Controller
                         if (!$source) {
                             return response()->json(['status' => 400, 'message' => 'Video link is required'], 400);
                         }
-                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        $contentData = TrainingMediaModel::create([
+                            'type' => $contentType,
+                            'source' => $source
+                        ]);
                         $trainingMediaId = $contentData->id;
                         break;
 
@@ -317,13 +320,19 @@ class TrainingsController extends Controller
                         $location = 'trainings/' . strtolower($contentType) . 's';
                         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $source = $file->storeAs($location, $fileName, 'public');
-                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        $contentData = TrainingMediaModel::create([
+                            'type' => $contentType,
+                            'source' => $source
+                        ]);
                         $trainingMediaId = $contentData->id;
                         break;
 
                     case 'Form':
-                        // FEATURE COMING SOON
-                        $contentData = TrainingFormsModel::create([]);
+                        $contentData = TrainingFormsModel::create([
+                            'require_pass' => $request->input('attempt_policy') == "passing-required",
+                            'passing_score' => $request->input('passing_score'),
+                            'attempts_allowed' => $request->input('attempt_policy') == "limited-attempts" ? $request->input('attempts') : null,
+                        ]);
                         $trainingFormId = $contentData->id;
                         break;
 
@@ -331,15 +340,15 @@ class TrainingsController extends Controller
                         return response()->json(['status' => 400, 'message' => 'Invalid content type'], 400);
                 }
 
-                $trainingContent = new TrainingContentModel([
+                TrainingContentModel::create([
                     'training_id' => $training->id,
                     'training_media_id' => $trainingMediaId,
                     'training_form_id' => $trainingFormId,
                     'order' => $nextOrder,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
+                    'duration' => $request->input('duration'),
                 ]);
-                $trainingContent->save();
 
                 DB::commit();
 

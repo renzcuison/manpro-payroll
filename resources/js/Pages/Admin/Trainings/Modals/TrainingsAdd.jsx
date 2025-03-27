@@ -194,8 +194,8 @@ const TrainingsAdd = ({ open, close }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
-                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
+                <DialogContent sx={{ padding: 5, mt: 1, mb: 3 }}>
+                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" sx={{ mt: 1 }} >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Title Field */}
                             <Grid item xs={6}>

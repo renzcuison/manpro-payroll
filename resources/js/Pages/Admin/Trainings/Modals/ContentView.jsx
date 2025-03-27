@@ -157,7 +157,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                     resContent?.file
                 ) {
                     if (image && image.startsWith('blob:')) {
-                        console.log("removing image");
                         URL.revokeObjectURL(image);
                     }
                     const byteCharacters = atob(resContent.file);
