@@ -572,7 +572,8 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        // Log::info("PayrollController::savePayroll");
+        Log::info("PayrollController::savePayroll");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -658,6 +659,23 @@ class PayrollController extends Controller
         }
 
 
+        return response()->json(['status' => 200]);
+    }
+
+    public function savePayrolls(Request $request)
+    {
+        Log::info("PayrollController::savePayrolls");
+        Log::info($request);
+    
+        $currentStartDate = $request->currentStartDate;
+        $currentEndDate = $request->currentEndDate;
+    
+        foreach ($request->selectedPayrolls as $selectedPayroll) {
+            $payrollRequest = new Request([ 'selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate ]);
+
+            $this->savePayroll($payrollRequest);
+        }
+    
         return response()->json(['status' => 200]);
     }
 
@@ -901,7 +919,7 @@ class PayrollController extends Controller
                 return ['late_time' => max($totalShiftDuration - $totalRendered, 0)];
             })
             ->values();
-        Log::info("Total Late Minutes:            " . $logs->sum('late_time'));
+
         return $logs->sum('late_time');
     }
 }

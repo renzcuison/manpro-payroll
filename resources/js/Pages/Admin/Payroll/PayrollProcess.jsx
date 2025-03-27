@@ -95,11 +95,84 @@ const PayrollProcess = () => {
             });
     };
 
+    
+    const checkInput = (event) => {
+        event.preventDefault();
+
+        console.log("selectedPayrolls");
+        console.log(selectedPayrolls);
+
+        console.log("formattedStartDate");
+        console.log(formattedStartDate);
+
+        console.log("formattedEndDate");
+        console.log(formattedEndDate);
+    
+        new Swal({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "You want to save this payrolls?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: 'Save',
+            confirmButtonColor: '#177604',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                saveInput(event); 
+            }
+        });
+    };
+
+    const saveInput = (event) => {
+        event.preventDefault();
+    
+        const data = { selectedPayrolls: selectedPayrolls, currentStartDate: formattedStartDate, currentEndDate: formattedEndDate };
+    
+        Swal.fire({
+            customClass: { container: 'my-swal' },
+            text: "Saving Payslips...",
+            icon: "info",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    
+        axiosInstance.post('/payroll/savePayrolls', data, { headers })
+            .then(response => {
+                console.log("Payrolls saved successfully!");
+    
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Payrolls saved successfully!",
+                    icon: "success",
+                    timer: 1000,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+    
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Failed to save payrolls. Please try again.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK',
+                });
+            });
+    };
+    
+
     const handleOpenPayrollDetailsModal = (id) => {
-        console.log("Payroll ID:", id)
-        console.log("Start Date:", startDate)
-        console.log("End Date:", endDate)
-        console.log("Cut Off:", cutOff)
+        // console.log("Payroll ID:", id)
+        // console.log("Start Date:", startDate)
+        // console.log("End Date:", endDate)
+        // console.log("Cut Off:", cutOff)
 
         setSelectedPayroll(id);
         setOpenPayrollDetailsModal(true);
@@ -152,17 +225,32 @@ const PayrollProcess = () => {
 
                                         <TableBody>
                                             {payrolls.length > 0 ? (
-                                                payrolls.map((payroll) => (
-                                                    <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} >
-                                                        <TableCell align="center"><Checkbox /></TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="left">{payroll.employeeName}</TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeBranch}</TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeDepartment}</TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.role}</TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.payrollDates}</TableCell>
-                                                        <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.grossPay}</TableCell>
-                                                    </TableRow>
-                                                ))
+                                                payrolls.map((payroll) => {
+                                                    const isSelected = selectedPayrolls.includes(payroll.id);
+
+                                                    return (
+                                                        <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} >
+                                                            <TableCell align="center">
+                                                                <Checkbox 
+                                                                    checked={isSelected}
+                                                                    onChange={(event) => {
+                                                                        if (event.target.checked) {
+                                                                            setSelectedPayrolls((prev) => [...prev, payroll.id]);
+                                                                        } else {
+                                                                            setSelectedPayrolls((prev) => prev.filter(id => id !== payroll.id));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="left">{payroll.employeeName}</TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeBranch}</TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeDepartment}</TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.role}</TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.payrollDates}</TableCell>
+                                                            <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.grossPay}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })
                                             ) : (
                                                 <TableRow>
                                                     <TableCell align="center" colSpan={7} sx={{ color: "text.secondary", p: 1 }}>No Payroll to Process</TableCell>
@@ -173,8 +261,14 @@ const PayrollProcess = () => {
                                 </TableContainer>
                             </>
                         )}
-                    </Box>
+                    
+                        <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
+                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={checkInput}>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
+                            </Button>
+                        </Box>
 
+                    </Box>
                 </Box>
 
                 {openPayrollProcessFilterModal &&
@@ -191,7 +285,13 @@ const PayrollProcess = () => {
                 }
 
                 {openPayrollDetailsModal &&
-                    <PayrollDetails open={openPayrollDetailsModal} close={handleClosePayrollDetailsModal} selectedPayroll={selectedPayroll} currentStartDate={formattedStartDate} currentEndDate={formattedEndDate} />
+                    <PayrollDetails
+                        open={openPayrollDetailsModal}
+                        close={handleClosePayrollDetailsModal}
+                        selectedPayroll={selectedPayroll}
+                        currentStartDate={formattedStartDate}
+                        currentEndDate={formattedEndDate}
+                    />
                 }
 
             </Box>
