@@ -108,7 +108,6 @@ const EmployeesList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left"></TableCell>
                                                 <TableCell align="center">Name</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
                                                 <TableCell align="center">Department</TableCell>

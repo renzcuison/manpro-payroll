@@ -269,7 +269,7 @@ const EmployeeView = () => {
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>
-                                                    {employee.total_payroll || "-"}
+                                                    {employee.total_payroll || "0"}
                                                 </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -282,7 +282,7 @@ const EmployeeView = () => {
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>
-                                                    {employee.total_attendance || "-"}
+                                                    {employee.total_attendance || "0"}
                                                 </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -295,7 +295,7 @@ const EmployeeView = () => {
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>
-                                                    {employee.total_applications || "-"}
+                                                    {employee.total_applications || "0"}
                                                 </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
