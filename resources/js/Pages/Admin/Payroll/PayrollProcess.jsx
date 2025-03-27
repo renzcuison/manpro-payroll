@@ -31,6 +31,7 @@ const PayrollProcess = () => {
     const [openPayrollProcessFilterModal, setOpenPayrollProcessFilterModal] = useState(false);
 
     const [payrolls, setPayrolls] = useState([]);
+    const [selectedPayrolls, setSelectedPayrolls] = useState([]);
     const [selectedPayroll, setSelectedPayroll] = useState('');
 
     const [branches, setBranches] = useState([]);
@@ -151,14 +152,14 @@ const PayrollProcess = () => {
 
                                         <TableBody>
                                             {payrolls.map((payroll) => (
-                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenPayrollDetailsModal(payroll.id)} >
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="left">{payroll.employeeName}</TableCell>
-                                                    <TableCell align="center">{payroll.employeeBranch}</TableCell>
-                                                    <TableCell align="center">{payroll.employeeDepartment}</TableCell>
-                                                    <TableCell align="center">{payroll.role}</TableCell>
-                                                    <TableCell align="center">{payroll.payrollDates}</TableCell>
-                                                    <TableCell align="center">{payroll.grossPay}</TableCell>
+                                                <TableRow key={payroll.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} >
+                                                    <TableCell align="center"><Checkbox /></TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="left">{payroll.employeeName}</TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeBranch}</TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.employeeDepartment}</TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.role}</TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.payrollDates}</TableCell>
+                                                    <TableCell onClick={() => handleOpenPayrollDetailsModal(payroll.id)} align="center">{payroll.grossPay}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
