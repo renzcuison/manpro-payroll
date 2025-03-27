@@ -165,7 +165,7 @@ const PayrollProcess = () => {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={7} sx={{ color: "text.secondary", p: 1 }}>No Payroll to Process</TableCell>
+                                                    <TableCell align="center" colSpan={7} sx={{ color: "text.secondary", p: 1 }}>No Payroll to Process</TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>

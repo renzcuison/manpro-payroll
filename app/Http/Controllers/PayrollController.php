@@ -309,6 +309,8 @@ class PayrollController extends Controller
         $end = Carbon::parse($endDate)->endOfDay();
 
         $workHours = $employee->workHours;
+        Log::info($employee);
+        Log::info($workHours);
         try {
             $firstIn = Carbon::createFromFormat('H:i:s', $workHours->first_time_in);
             $firstOut = Carbon::createFromFormat('H:i:s', $workHours->first_time_out);
@@ -350,6 +352,8 @@ class PayrollController extends Controller
         $perMin = $perHour / 60;
 
         $absents = $perDay * $numberOfAbsentDays;
+
+
 
         // ============== LEAVES ==============
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $employee->client_id)->get();
@@ -552,6 +556,9 @@ class PayrollController extends Controller
         $loans = 0;
         $tax = 0;
 
+        $tardiness = $this->getTardiness($startDate, $endDate);
+        Log::info("Total Tardiness:     " . $tardiness);
+
         $totalDeductions =  $employeeShare + $tardiness + $cashAdvance + $loans + $tax;
 
         $deductions = [
@@ -582,7 +589,7 @@ class PayrollController extends Controller
     {
         Log::info("PayrollController::savePayroll");
         Log::info($request);
-        
+
         Log::info("Stopper");
         dd("Stopper");
 
@@ -766,14 +773,14 @@ class PayrollController extends Controller
                 'rate_daily' => $record->rate_daily,
                 'rate_hourly' => $record->rate_hourly,
             ];
-            
+
             $benefits = [];
             $deductions = [];
             $earnings = [];
             $paid_leaves = [];
             $unpaid_leaves = [];
 
-            foreach ( $record->benefits as $benefit ) {
+            foreach ($record->benefits as $benefit) {
                 $benefits[] = [
                     'name' => $benefit->benefit->name,
                     'employee_amount' => $benefit->employee_amount,
@@ -781,7 +788,7 @@ class PayrollController extends Controller
                 ];
             }
 
-            foreach ( $record->deductions as $deduction ) {
+            foreach ($record->deductions as $deduction) {
 
                 $name = "";
 
@@ -806,7 +813,7 @@ class PayrollController extends Controller
                 ];
             }
 
-            foreach ( $record->earnings as $earning ) {
+            foreach ($record->earnings as $earning) {
 
                 $name = "";
 
@@ -839,7 +846,90 @@ class PayrollController extends Controller
 
             return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'paid_leaves' => $paid_leaves, 'unpaid_leaves' => $unpaid_leaves, 'summaries' => $summaries]);
         }
+    }
 
-        
+    public function getTardiness($start_date, $end_date)
+    {
+        $user = Auth::user();
+        $employeeId = $this->checkUserAdmin() && request()->input('employee') ? request()->input('employee') : $user->id;
+
+        $logs = DB::table('attendance_logs as al')
+            ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
+            ->where('al.user_id', $employeeId)
+            ->whereBetween('al.timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
+            ->orderBy('al.timestamp', 'asc')
+            ->get()
+            ->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'))
+            ->sortKeysDesc()
+            ->map(function ($logs) {
+                $shift = $logs->first();
+                $totalShiftDuration = 0;
+                $totalRendered = 0;
+
+                // Calculate total shift duration
+                if ($shift->shift_type == "Regular") {
+                    $shiftStart = Carbon::parse($shift->first_time_in);
+                    $shiftEnd = Carbon::parse($shift->first_time_out);
+                    $gapStart = Carbon::parse($shift->break_start);
+                    $gapEnd = Carbon::parse($shift->break_end);
+                    $totalShiftDuration = max($shiftStart->diffInMinutes($shiftEnd) - $gapStart->diffInMinutes($gapEnd), 0);
+                } elseif ($shift->shift_type == "Split") {
+                    $firstStart = Carbon::parse($shift->first_time_in);
+                    $firstEnd = Carbon::parse($shift->first_time_out);
+                    $secondStart = Carbon::parse($shift->second_time_in);
+                    $secondEnd = Carbon::parse($shift->second_time_out);
+                    $totalShiftDuration = $firstStart->diffInMinutes($firstEnd) + $secondStart->diffInMinutes($secondEnd);
+                }
+
+                // Calculate rendered time
+                $start = null;
+                foreach ($logs as $log) {
+                    if (in_array($log->action, ["Duty In", "Overtime In"])) {
+                        $start = Carbon::parse($log->timestamp);
+                    } elseif ($start && in_array($log->action, ["Duty Out", "Overtime Out"])) {
+                        $end = Carbon::parse($log->timestamp);
+                        $isDuty = $log->action == "Duty Out";
+
+                        // Determine shift boundaries
+                        $shiftStart = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_in) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_in) : ($isDuty ? Carbon::parse($shift->second_time_in) : Carbon::parse($shift->over_time_in)));
+                        $shiftEnd = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_out) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_out) : ($isDuty ? Carbon::parse($shift->second_time_out) : Carbon::parse($shift->over_time_out)));
+
+                        // Normalize dates for time comparison
+                        $today = Carbon::today();
+                        $fixedStart = $start->setDate($today->year, $today->month, $today->day);
+                        $fixedEnd = $end->setDate($today->year, $today->month, $today->day);
+                        $fixedShiftStart = $shiftStart->setDate($today->year, $today->month, $today->day);
+                        $fixedShiftEnd = $shiftEnd->setDate($today->year, $today->month, $today->day);
+
+                        if ($fixedStart->format('H:i:s') < $fixedShiftEnd->format('H:i:s') && $fixedEnd->format('H:i:s') > $fixedShiftStart->format('H:i:s')) {
+                            $renderedStart = max($fixedStart, $fixedShiftStart);
+                            $renderedEnd = min($fixedEnd, $fixedShiftEnd);
+                            $minutes = $renderedEnd->diffInMinutes($renderedStart);
+
+                            // Adjust for break in Regular shift
+                            if ($isDuty && $shift->shift_type == 'Regular') {
+                                $gapStart = Carbon::parse($shift->break_start)->setDate($today->year, $today->month, $today->day);
+                                $gapEnd = Carbon::parse($shift->break_end)->setDate($today->year, $today->month, $today->day);
+                                $breakStart = max($renderedStart, $gapStart);
+                                $breakEnd = min($renderedEnd, $gapEnd);
+                                if ($breakStart->format('H:i:s') < $breakEnd->format('H:i:s')) {
+                                    $minutes -= $breakStart->diffInMinutes($breakEnd);
+                                }
+                                $minutes = max($minutes, 0);
+                            }
+
+                            if ($isDuty) $totalRendered += $minutes;
+                        }
+                        $start = null;
+                    }
+                }
+
+                return ['late_time' => max($totalShiftDuration - $totalRendered, 0)];
+            })
+            ->values();
+
+        Log::info($logs->sum('late_time'));
+        return $logs->sum('late_time');
     }
 }
