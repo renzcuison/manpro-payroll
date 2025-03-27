@@ -309,8 +309,6 @@ class PayrollController extends Controller
         $end = Carbon::parse($endDate)->endOfDay();
 
         $workHours = $employee->workHours;
-        Log::info($employee);
-        Log::info($workHours);
         try {
             $firstIn = Carbon::createFromFormat('H:i:s', $workHours->first_time_in);
             $firstOut = Carbon::createFromFormat('H:i:s', $workHours->first_time_out);
@@ -556,8 +554,10 @@ class PayrollController extends Controller
         $loans = 0;
         $tax = 0;
 
-        $tardiness = $this->getTardiness($startDate, $endDate);
-        Log::info("Total Tardiness:     " . $tardiness);
+        $tardiness = $perMin * ($this->getTardiness($startDate, $endDate, $employee->id));
+        //Log::info("Pay Per Hour:                  " . $perHour);
+        //Log::info("Pay Per Minute:                " . $perMin);
+        //Log::info("Total Tardiness Deduction:     " . $tardiness);
 
         $totalDeductions =  $employeeShare + $tardiness + $cashAdvance + $loans + $tax;
 
@@ -848,10 +848,9 @@ class PayrollController extends Controller
         }
     }
 
-    public function getTardiness($start_date, $end_date)
+    public function getTardiness($start_date, $end_date, $employeeId)
     {
         $user = Auth::user();
-        $employeeId = $this->checkUserAdmin() && request()->input('employee') ? request()->input('employee') : $user->id;
 
         $logs = DB::table('attendance_logs as al')
             ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
@@ -928,8 +927,7 @@ class PayrollController extends Controller
                 return ['late_time' => max($totalShiftDuration - $totalRendered, 0)];
             })
             ->values();
-
-        Log::info($logs->sum('late_time'));
+        Log::info("Total Late Minutes:            " . $logs->sum('late_time'));
         return $logs->sum('late_time');
     }
 }
