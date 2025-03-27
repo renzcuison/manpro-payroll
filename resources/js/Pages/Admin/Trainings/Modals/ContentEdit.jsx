@@ -50,7 +50,7 @@ const ContentEdit = ({ open, close, content }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Universal Fields
-    const contentType = (content.content.type || "Form");
+    const contentType = (content.content.type);
     const [title, setTitle] = useState(content.title || "");
     const [description, setDescription] = useState(content.description || "");
 

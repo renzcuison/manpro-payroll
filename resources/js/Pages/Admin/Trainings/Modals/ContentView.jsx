@@ -253,7 +253,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                         <Box>
                             <Grid container spacing={2} sx={{ mt: 2 }}>
                                 {/* Media Display for Non-Forms */}
-                                {content.content.type && (
+                                {content.content.type != "Form" && (
                                     <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
                                         {content.content.type === "Video" ? (
                                             <Box
@@ -304,7 +304,9 @@ const ContentView = ({ open, close, contentId, status }) => {
                                 )}
                                 {/* Content Information */}
                                 <Grid container item spacing={2} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
-                                    {content.content.type && !["Document", "PowerPoint"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
+                                    {/* Divider for Image, Videos */}
+                                    {content.content.type && !["Document", "PowerPoint", "Form"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
+                                    {/* Content Title and Options */}
                                     <Grid item xs={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                             <Typography variant="h5">
@@ -350,6 +352,10 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                             }}>
                                                             Remove
                                                         </MenuItem>
+                                                        {content.content.type == "Form" && (
+                                                            <>
+                                                            </>
+                                                        )}
                                                     </Menu>
                                                 </>
                                             ) : null}
@@ -358,6 +364,47 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
+                                    {/* Additional Form Information */}
+                                    {content?.content?.type == "Form" && (
+                                        <Grid container item xs={12} spacing={2}>
+                                            <Grid item xs={4}>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        {content.content.require_pass ? "Availability" : "Attempt Limit"}
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {content.content.require_pass ? "Until Passed" : content.content.attempts_allowed ?? "N/A"}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Passing Score
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {`${content.content.passing_score ?? "N/A"} %`}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Duration Per Attempt
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {`${content.duration ?? "N/A"} min`}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                        </Grid>
+                                    )}
+                                    {/* Description */}
                                     <Grid item xs={12} >
                                         <div
                                             id="description"

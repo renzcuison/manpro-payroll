@@ -667,6 +667,7 @@ class TrainingsController extends Controller
                 $content->content = $content->media;
             } elseif ($content->training_form_id) {
                 $content->content = $content->form;
+                $content->content->type = "Form";
             } else {
                 $content->content = null;
             }
@@ -822,6 +823,7 @@ class TrainingsController extends Controller
             $content->content = $content->media;
         } elseif ($content->training_form_id) {
             $content->content = $content->form;
+            $content->content->type = "Form";
         } else {
             $content->content = null;
         }
