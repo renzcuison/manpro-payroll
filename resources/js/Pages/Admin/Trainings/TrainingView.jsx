@@ -696,7 +696,14 @@ const TrainingView = () => {
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
                                                 <Grid item xs={3} key={cont.id}>
-                                                    <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleOpenContentViewModal(cont)}>
+                                                    <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleOpenContentViewModal(cont)}
+                                                        sx={{
+                                                            "&:hover": {
+                                                                transform: "scale(0.97)",
+                                                                transition: "transform 0.2s ease-in-out",
+                                                            },
+                                                        }}
+                                                    >
                                                         <Card sx={{ boxShadow: 3 }}>
                                                             <CardMedia
                                                                 sx={{

@@ -152,10 +152,10 @@ class TrainingsController extends Controller
                         WHEN SUM(CASE
                             WHEN EXISTS (
                                 SELECT 1
-                                FROM training_view
-                                WHERE training_view.training_content_id = training_content.id
-                                AND training_view.user_id = ?
-                                AND training_view.status = "Finished"
+                                FROM training_views
+                                WHERE training_views.training_content_id = training_content.id
+                                AND training_views.user_id = ?
+                                AND training_views.status = "Finished"
                             ) THEN 1
                             ELSE 0
                         END) = COUNT(*) THEN 1
@@ -247,9 +247,9 @@ class TrainingsController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
 
-            $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
+        if ($this->checkUser() && $training->client_id == $user->client_id) {
 
             try {
                 DB::beginTransaction();
@@ -944,12 +944,13 @@ class TrainingsController extends Controller
             $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id')->firstOrFail();
             $content = TrainingContentModel::find($request->input('id'));
 
-            $existing = TrainingViewsModel::where('training_content_id', $content->id)
+            $existing = TrainingViewsModel::with(['form', 'media'])
+                ->where('training_content_id', $content->id)
                 ->where('user_id', $user->id)
                 ->exists();
 
             if ($request->input("finished")) {
-                if ($content->content->type == "Image") {
+                if ($content->media->type == "Image") {
                     if (!$existing) {
                         TrainingViewsModel::create([
                             'user_id' => $user->id,
