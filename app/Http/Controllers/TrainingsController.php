@@ -374,8 +374,8 @@ class TrainingsController extends Controller
 
     public function editContent(Request $request)
     {
-        // Log::info("TrainingsController::editContent");
-        // Log::info($request);
+        Log::info("TrainingsController::editContent");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -392,6 +392,7 @@ class TrainingsController extends Controller
                 $content->title = $request->input('title', $content->title);
                 $content->description = $request->input('description', $content->description);
                 $content->order = $request->input('order', $content->order);
+                $content->duration = $request->input('duration');
 
                 $relatedContent = null;
                 $contentType = null;
@@ -440,7 +441,10 @@ class TrainingsController extends Controller
                         break;
 
                     case 'Form':
-                        Log::info("Content is of type Form. Editor Function to be added soon");
+                        $relatedContent->require_pass = $request->input('attempt_policy') == 'passing-required';
+                        $relatedContent->attempts_allowed = $request->input('attempts');
+                        $relatedContent->passing_score = $request->input('passing_score');
+                        $relatedContent->save();
                         break;
 
                     default:

@@ -252,59 +252,59 @@ const ContentView = ({ open, close, contentId, status }) => {
                     ) : (
                         <Box>
                             <Grid container spacing={2} sx={{ mt: 2 }}>
-                                <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
-                                    {content.content.type !== "Form" && (
-                                        <>
-                                            {content.content.type === "Video" ? (
-                                                <Box
-                                                    sx={{
-                                                        width: "90%",
-                                                        aspectRatio: "16 / 9",
-                                                        placeSelf: "center",
-                                                        mb: 1,
-                                                    }}
-                                                >
-                                                    {renderVideo(content.content.source)}
-                                                </Box>
-                                            ) : (
-                                                <CardMedia
-                                                    component="img"
-                                                    sx={{
-                                                        width: "80%",
-                                                        aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
-                                                        objectFit: "contain",
-                                                        borderRadius: "4px",
-                                                        backgroundColor: "transparent",
-                                                        placeSelf: "center",
-                                                        mb: 1,
-                                                        ...(["Document", "PowerPoint"].includes(content.content.type) && {
-                                                            p: 1,
-                                                            "&:hover": {
-                                                                backgroundColor: "#e0e0e0",
-                                                                transition: "background-color 0.3s ease",
-                                                            },
-                                                        }),
-                                                    }}
-                                                    image={renderImage(content.content.source, content.content.type)}
-                                                    title={content.title || "Content Item"}
-                                                    alt={content.title || "Content Item"}
-                                                    onClick={
-                                                        ["Document", "PowerPoint"].includes(content.content.type)
-                                                            ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
-                                                            : undefined
-                                                    }
-                                                />
-                                            )}
-                                            {["Document", "PowerPoint"].includes(content.content.type) ? (
-                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>Click to open file</Typography>
-                                            ) : (
-                                                <Divider />
-                                            )}
-                                        </>
-                                    )}
-                                </Grid>
+                                {/* Media Display for Non-Forms */}
+                                {content.content.type && (
+                                    <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
+                                        {content.content.type === "Video" ? (
+                                            <Box
+                                                sx={{
+                                                    width: "90%",
+                                                    aspectRatio: "16 / 9",
+                                                    placeSelf: "center",
+                                                    mb: 1,
+                                                }}
+                                            >
+                                                {renderVideo(content.content.source)}
+                                            </Box>
+                                        ) : (
+                                            <CardMedia
+                                                component="img"
+                                                sx={{
+                                                    width: "80%",
+                                                    aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
+                                                    objectFit: "contain",
+                                                    borderRadius: "4px",
+                                                    backgroundColor: "transparent",
+                                                    placeSelf: "center",
+                                                    mb: 1,
+                                                    ...(["Document", "PowerPoint"].includes(content.content.type) && {
+                                                        p: 1,
+                                                        "&:hover": {
+                                                            backgroundColor: "#e0e0e0",
+                                                            transition: "background-color 0.3s ease",
+                                                        },
+                                                    }),
+                                                }}
+                                                image={renderImage(content.content.source, content.content.type)}
+                                                title={content.title || "Content Item"}
+                                                alt={content.title || "Content Item"}
+                                                onClick={
+                                                    ["Document", "PowerPoint"].includes(content.content.type)
+                                                        ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                        : undefined
+                                                }
+                                            />
+                                        )}
+                                        {["Document", "PowerPoint"].includes(content.content.type) ? (
+                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>Click to open file</Typography>
+                                        ) : (
+                                            <Divider />
+                                        )}
+                                    </Grid>
+                                )}
+                                {/* Content Information */}
                                 <Grid container item spacing={2} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
-                                    {!["Document", "PowerPoint"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
+                                    {content.content.type && !["Document", "PowerPoint"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
                                     <Grid item xs={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                             <Typography variant="h5">
