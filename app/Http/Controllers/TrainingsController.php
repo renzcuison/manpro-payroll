@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UsersModel;
 use App\Models\TrainingContentModel;
 use App\Models\TrainingFormsModel;
 use App\Models\TrainingsModel;
@@ -647,18 +648,21 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $content = TrainingContentModel::with(['form', 'media', 'views' => function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            }])->find($id);
+            $content = TrainingContentModel::with(['form', 'media', 'views'])->find($id);
 
             if (!$content) {
                 return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
             }
 
             // View Check
-            $view = $content->views->first();
-            $content->has_viewed = !is_null($view);
-            $content->is_finished = $view && $view->status === 'Finished';
+            $content->view_count = $content->views->where('status', 'Viewed')->count();
+            $content->finished_count = $content->views->where('status', 'Finished')->count();
+
+            $viewedUserIds = $content->views->pluck('user_id')->toArray();
+            $content->no_view_count = UsersModel::where('client_id', $user->client_id)
+                ->where('user_type', 'Employee')
+                ->whereNotIn('id', $viewedUserIds)
+                ->count();
 
             unset($content->views);
 

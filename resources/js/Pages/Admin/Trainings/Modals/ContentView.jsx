@@ -171,12 +171,20 @@ const ContentView = ({ open, close, contentId, status }) => {
                 } else {
                     setImage(null);
                 }
+                if (resContent?.content?.type === 'Form') {
+                    getFormItems();
+                }
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching content details', error);
                 setIsLoading(false);
             });
+    }
+
+    // Form Items
+    const getFormItems = () => {
+        console.log("Hello World");
     }
 
     // Remove Content
@@ -313,59 +321,87 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 {content.title}
                                             </Typography>
                                             {/* Options */}
-                                            {status == "Pending" ? (
-                                                <>
-                                                    <IconButton
-                                                        id="basic-button"
-                                                        size="small"
-                                                        aria-controls={open ? 'basic-menu' : undefined}
-                                                        aria-haspopup="true"
-                                                        aria-expanded={open ? 'true' : undefined}
-                                                        onClick={handleMenuClick}
-                                                    >
-                                                        <MoreVert />
-                                                    </IconButton>
-                                                    <Menu
-                                                        id="basic-menu"
-                                                        anchorEl={anchorEl}
-                                                        open={menuOpen}
-                                                        onClose={handleMenuClose}
-                                                        MenuListProps={{
-                                                            'aria-labelledby': 'basic-button',
-                                                        }}
-                                                    >
-                                                        {/* Edit Content */}
-                                                        <MenuItem
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleOpenContentEditModal();
-                                                                handleMenuClose();
-                                                            }}>
-                                                            Edit
-                                                        </MenuItem>
-                                                        {/* Remove Content */}
-                                                        <MenuItem
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleRemoveContent();
-                                                                handleMenuClose();
-                                                            }}>
-                                                            Remove
-                                                        </MenuItem>
-                                                        {content.content.type == "Form" && (
-                                                            <>
-                                                            </>
-                                                        )}
-                                                    </Menu>
-                                                </>
-                                            ) : null}
+                                            <IconButton
+                                                id="basic-button"
+                                                size="small"
+                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                aria-haspopup="true"
+                                                aria-expanded={open ? 'true' : undefined}
+                                                onClick={handleMenuClick}
+                                            >
+                                                <MoreVert />
+                                            </IconButton>
+                                            <Menu
+                                                id="basic-menu"
+                                                anchorEl={anchorEl}
+                                                open={menuOpen}
+                                                onClose={handleMenuClose}
+                                                MenuListProps={{
+                                                    'aria-labelledby': 'basic-button',
+                                                }}
+                                            >
+                                                {/* Edit Content */}
+                                                {status == "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenContentEditModal();
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Edit
+                                                    </MenuItem>
+                                                )}
+                                                {/* Remove Content */}
+                                                {status == "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleRemoveContent();
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Remove
+                                                    </MenuItem>
+                                                )}
+                                                {/* Progress Monitoring */}
+                                                {status != "Pending" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            console.log("Viewing Employee Progress");
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Remove
+                                                    </MenuItem>
+                                                )}
+                                                {/* Form Options */}
+                                                {status == "Pending" && content.content.type == "Form" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            console.log("Viewing Form Items");
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Add Item
+                                                    </MenuItem>
+                                                )}
+                                                {status == "Pending" && content.content.type == "Form" && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            console.log("Viewing Form Items");
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Item Settings
+                                                    </MenuItem>
+                                                )}
+                                            </Menu>
                                         </Stack>
                                     </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Additional Form Information */}
-                                    {content?.content?.type == "Form" ? (
+                                    {content.content.type == "Form" && (
                                         <Grid container item xs={12} spacing={2}>
                                             <Grid item xs={4}>
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
@@ -405,7 +441,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography>
-                                                        Number of Items
+                                                        Item Count
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
                                                         {43}
@@ -416,42 +452,57 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography>
-                                                        Passers
+                                                        Total Points
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
-                                                        {15}
+                                                        {`${64} pts`}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
                                         </Grid>
-                                    ) : (
+                                    )}
+                                    {status != "Pending" && (
                                         <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Not Yet Viewed
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {content.no_view_count ?? 0}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography>
                                                         Viewers
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
-                                                        {15}
+                                                        {content.view_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography>
                                                         Completers
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
-                                                        {5}
+                                                        {content.finished_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
                                         </Grid>
                                     )}
-                                    <Grid item xs={12} sx={{ my: 0 }} >
-                                        <Divider />
-                                    </Grid>
                                     {/* Description */}
                                     <Grid item xs={12} >
                                         <div
@@ -465,6 +516,22 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             dangerouslySetInnerHTML={{ __html: content.description }}
                                         />
                                     </Grid>
+                                    {/* Form Items */}
+                                    {content.content.type == "Form" && (
+                                        <Grid container item xs={12} spacing={2}>
+                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <Typography>
+                                                    Items
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                {`[insert full item list]`}
+                                            </Grid>
+                                        </Grid>
+                                    )}
                                 </Grid>
                             </Grid>
                         </Box>
