@@ -572,8 +572,7 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        Log::info("PayrollController::savePayroll");
-        Log::info($request);
+        // Log::info("PayrollController::savePayroll");
 
         $user = Auth::user();
 
@@ -664,8 +663,7 @@ class PayrollController extends Controller
 
     public function savePayrolls(Request $request)
     {
-        Log::info("PayrollController::savePayrolls");
-        Log::info($request);
+        // Log::info("PayrollController::savePayrolls");
     
         $currentStartDate = $request->currentStartDate;
         $currentEndDate = $request->currentEndDate;

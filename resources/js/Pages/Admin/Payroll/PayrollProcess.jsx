@@ -65,15 +65,6 @@ const PayrollProcess = () => {
     const formattedEndDate = dayjs(endDate).endOf("day").format("YYYY-MM-DD HH:mm:ss");
 
     const getProcessedPayroll = () => {
-        console.log("\n");
-        console.log("getProcessedPayroll()");
-
-        console.log("Start Date:", formattedStartDate);
-        console.log("End Date:", formattedEndDate);
-        console.log("Selected Branches:", branches);
-        console.log("Selected Departments:", departments);
-        console.log("Selected Cut-Off:", cutOff);
-
         setIsLoading(true);
 
         const data = {
@@ -98,15 +89,6 @@ const PayrollProcess = () => {
     
     const checkInput = (event) => {
         event.preventDefault();
-
-        console.log("selectedPayrolls");
-        console.log(selectedPayrolls);
-
-        console.log("formattedStartDate");
-        console.log(formattedStartDate);
-
-        console.log("formattedEndDate");
-        console.log(formattedEndDate);
     
         new Swal({
             customClass: { container: "my-swal" },
