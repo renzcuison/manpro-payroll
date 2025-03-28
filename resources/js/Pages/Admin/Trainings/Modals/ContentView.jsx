@@ -173,7 +173,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                     setImage(null);
                 }
                 if (resContent?.content?.type === 'Form') {
-                    getFormItems();
+                    getFormItems(resContent.training_form_id);
                 }
                 setIsLoading(false);
             })
@@ -184,8 +184,14 @@ const ContentView = ({ open, close, contentId, status }) => {
     }
 
     // Form Items
-    const getFormItems = () => {
-        console.log("Hello World");
+    const getFormItems = (formId) => {
+        axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
+            .then((response) => {
+                // to add later
+            })
+            .catch((error) => {
+                console.error('Error fetching form items', error);
+            });
     }
 
     // Add Form Item

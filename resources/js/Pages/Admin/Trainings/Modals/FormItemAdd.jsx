@@ -86,7 +86,7 @@ const FormItemAdd = ({ open, close, formId }) => {
         setPointsError(noPoints);
 
         const noChoices = itemType != "FillInTheBlank" && choices.length == 0;
-        console.log(choices);
+        const noCorrects = itemType != "FillInTheBlank" && correctIndices.length == 0;
 
         if (!itemType || !description || noPoints) {
             document.activeElement.blur();
@@ -102,6 +102,15 @@ const FormItemAdd = ({ open, close, formId }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "Choice item has no options!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (noCorrects) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "No correct choices provided.",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -130,10 +139,29 @@ const FormItemAdd = ({ open, close, formId }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
+        const choiceType = ["Choice"].includes(itemType); // placed in this format for future types
+
         const formData = new FormData();
         formData.append("form_id", formId);
+        formData.append("item_type", itemType)
+        formData.append("description", description);
+        formData.append("points", points);
+        if (choiceType && choices.length > 0) {
+            choices.forEach(choice => {
+                formData.append('choices[]', choice.text);
+            });
+        } else {
+            formData.append('choices[]', null);
+        }
+        if (choiceType && correctIndices.length > 0) {
+            correctIndices.forEach(correct => {
+                formData.append('correctItems[]', correct);
+            });
+        } else {
+            formData.append('correctItems[]', null);
+        }
 
-        axiosInstance.post("/trainings/saveContent", formData, { headers })
+        axiosInstance.post("/trainings/saveFormItem", formData, { headers })
             .then((response) => {
                 if (response.data.status == 200) {
                     document.activeElement.blur();
@@ -141,7 +169,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Your content has been saved!`,
+                        text: `Form item saved!`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",

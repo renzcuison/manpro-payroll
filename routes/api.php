@@ -184,7 +184,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('payroll')->group(function () {
         Route::get('/payrollDetails', [PayrollController::class, 'payrollDetails']);
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
-        
+
         Route::get('/getPayrollRecord', [PayrollController::class, 'getPayrollRecord']);
         Route::get('/getEmployeePayrollRecords', [PayrollController::class, 'getEmployeePayrollRecords']);
         Route::get('/getEmployeesPayrollRecords', [PayrollController::class, 'getEmployeesPayrollRecords']);
@@ -274,6 +274,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
+
+        Route::get('/getFormItems', [TrainingsController::class, 'getFormItems']);
+        Route::post('/saveFormItem', [TrainingsController::class, 'saveFormItem']);
     });
 
 

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
-use App\Models\TrainingContentModel;
-use App\Models\TrainingFormsModel;
 use App\Models\TrainingsModel;
-use App\Models\TrainingMediaModel;
+use App\Models\TrainingContentModel;
 use App\Models\TrainingViewsModel;
+use App\Models\TrainingMediaModel;
+use App\Models\TrainingFormsModel;
+use App\Models\TrainingFormItemsModel;
+use App\Models\TrainingFormChoicesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -967,6 +969,62 @@ class TrainingsController extends Controller
 
             return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
         }
+    }
+
+    // Training Forms
+    public function saveFormItem(Request $request)
+    {
+        //Log::info("TrainingsController:saveFormItem");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $form = TrainingFormsModel::find($request->input('form_id'));
+
+            try {
+                DB::beginTransaction();
+
+                $itemCount = TrainingFormItemsModel::where('form_id', $form->id)->count();
+                $nextOrder = $itemCount + 1;
+
+                $item = TrainingFormItemsModel::create([
+                    'form_id' => $form->id,
+                    'type' => $request->input('item_type'),
+                    'description' => $request->input('description'),
+                    'order' => $nextOrder,
+                    'value' => $request->input('points')
+                ]);
+
+                $choices = $request->input('choices', []);
+                if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                    foreach ($choices as $index => $choice) {
+                        TrainingFormChoicesModel::create([
+                            'form_item_id' => $item->id,
+                            'description' => $choice,
+                            'is_correct' => in_array($index, $request->input('correctItems', []))
+                        ]);
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item saved successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error saving item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function getFormItems($id)
+    {
+        Log::info("TrainingsController:getFormItems");
+        Log::info($id);
     }
 
     function generateRandomCode($length)

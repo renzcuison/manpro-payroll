@@ -19,6 +19,8 @@ class TrainingFormChoicesModel extends Model
         'is_correct'
     ];
 
+    public $timestamps = false;
+
     public function item()
     {
         return $this->belongsTo(TrainingFormItemsModel::class, 'training_item_id');

@@ -17,6 +17,7 @@ class TrainingFormItemsModel extends Model
         'form_id',
         'type',
         'description',
+        'order',
         'value'
     ];
 
