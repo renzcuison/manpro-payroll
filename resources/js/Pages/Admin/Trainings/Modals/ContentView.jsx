@@ -24,7 +24,7 @@ import {
     Divider,
     Menu
 } from "@mui/material";
-import { Cancel, MoreVert } from "@mui/icons-material";
+import { Cancel, Expand, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -184,10 +184,12 @@ const ContentView = ({ open, close, contentId, status }) => {
     }
 
     // Form Items
+    const [formItems, setFormItems] = useState([]);
+    const [expanded, setExpanded] = useState([]);
     const getFormItems = (formId) => {
         axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
             .then((response) => {
-                // to add later
+                setFormItems(response.data.items)
             })
             .catch((error) => {
                 console.error('Error fetching form items', error);
@@ -202,7 +204,7 @@ const ContentView = ({ open, close, contentId, status }) => {
     const handleCloseFormItemAddModal = (reload) => {
         setOpenFormItemAddModal(false);
         if (reload) {
-            getContentDetails();
+            getFormItems(content.training_form_id);
         }
     };
 
@@ -546,7 +548,41 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Typography>
                                             </Grid>
                                             <Grid item xs={12}>
-                                                {`[insert full item list]`}
+                                                {formItems.length > 0 ? (
+                                                    formItems.map((item, index) => (
+                                                        <Box
+                                                            display="flex"
+                                                            key={index}
+                                                            sx={{
+                                                                mb: 1,
+                                                                p: "4px 8px",
+                                                                justifyContent: "space-between",
+                                                                alignItems: "center",
+                                                                border: "1px solid #e0e0e0",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{
+                                                                    width: "80%",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                                dangerouslySetInnerHTML={{ __html: item.description }}
+                                                            />
+                                                            <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
+                                                                <Typography variant="body2" sx={{ mr: 2, fontWeight: "bold" }}>
+                                                                    {`${item.value} pts`}
+                                                                </Typography>
+                                                                <IconButton title="Expand Content" onClick={() => console.log("Expanding Item")}>
+                                                                    <Expand sx={{ color: "text.secondary" }} />
+                                                                </IconButton>
+                                                            </Box>
+                                                        </Box>
+                                                    ))
+                                                ) : null}
                                             </Grid>
                                         </Grid>
                                     )}

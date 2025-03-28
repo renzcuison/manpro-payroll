@@ -346,6 +346,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                     {choices.map((choice, index) => (
                                                         <Box
                                                             key={index}
+                                                            spacing={2}
                                                             sx={{
                                                                 display: "flex",
                                                                 justifyContent: "space-between",

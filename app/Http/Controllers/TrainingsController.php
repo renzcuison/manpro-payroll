@@ -1026,14 +1026,15 @@ class TrainingsController extends Controller
 
     public function getFormItems($id)
     {
-        Log::info("TrainingsController:getFormItems");
-        Log::info($id);
+        //Log::info("TrainingsController:getFormItems");
+        //Log::info($id);
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $itemData = TrainingFormItemsModel::with('choices')
                 ->where('form_id', $id)
+                ->orderBy('order', 'asc')
                 ->get();
 
             return response()->json(['status' => 403, 'items' => $itemData]);
