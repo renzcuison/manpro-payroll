@@ -47,6 +47,7 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
 import ContentEdit from "./ContentEdit";
+import FormItemAdd from "./FormItemAdd";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -187,6 +188,18 @@ const ContentView = ({ open, close, contentId, status }) => {
         console.log("Hello World");
     }
 
+    // Add Form Item
+    const [openFormItemAddModal, setOpenFormItemAddModal] = useState(false);
+    const handleOpenFormItemAddModal = () => {
+        setOpenFormItemAddModal(true);
+    };
+    const handleCloseFormItemAddModal = (reload) => {
+        setOpenFormItemAddModal(false);
+        if (reload) {
+            getContentDetails();
+        }
+    };
+
     // Remove Content
     const handleRemoveContent = () => {
         document.activeElement.blur();
@@ -236,7 +249,6 @@ const ContentView = ({ open, close, contentId, status }) => {
     useEffect(() => {
         return () => {
             if (image && image.startsWith('blob:')) {
-                console.log("removing image");
                 URL.revokeObjectURL(image);
             }
         };
@@ -378,7 +390,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Form Items");
+                                                            handleOpenFormItemAddModal();
                                                             handleMenuClose();
                                                         }}>
                                                         Add Item
@@ -543,6 +555,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openContentEditModal}
                         close={handleCloseContentEditModal}
                         content={content}
+                    />
+                )}
+                {openFormItemAddModal && (
+                    <FormItemAdd
+                        open={openFormItemAddModal}
+                        close={handleCloseFormItemAddModal}
+                        formId={content.content.id}
                     />
                 )}
             </Dialog>

@@ -19,7 +19,8 @@ import {
     Select,
     MenuItem,
     Stack,
-    Radio
+    Radio,
+    Checkbox
 } from "@mui/material";
 import { Cancel, FolderOff, InfoOutlined, VideocamOff } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -53,290 +54,41 @@ const FormItemAdd = ({ open, close, formId }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Universal Fields
-    const [contentType, setContentType] = useState("Video");
-    const [title, setTitle] = useState("");
+    const [itemType, setItemType] = useState("Choice");
+    const [points, setPoints] = useState(1);
     const [description, setDescription] = useState("");
 
-    const [contentTypeError, setContentTypeError] = useState(false);
-    const [titleError, setTitleError] = useState(false);
+    const [choices, setChoices] = useState([]);
+    const [correctIndices, setCorrectIndices] = useState([]);
+
+    const [itemTypeError, setItemTypeError] = useState(false);
+    const [pointsError, setPointsError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
 
-    // Video Fields
-    const [link, setLink] = useState('');
-    const [isVideo, setIsVideo] = useState(false);
-    const [thumbnailUrl, setThumbnailUrl] = useState(null);
-
-    const [linkError, setLinkError] = useState(false);
-    const [videoError, setVideoError] = useState(false);
-    const [isVideoLoading, setIsVideoLoading] = useState(false);
-
-    // File Fields
-    const [file, setFile] = useState(null);
-    const [fileError, setFileError] = useState(false);
-
-    // Form Fields
-    const [duration, setDuration] = useState(10);
-    const [attempts, setAttempts] = useState(1);
-    const [attemptPolicy, setAttemptPolicy] = useState('passing-required');
-    const [passingScore, setPassingScore] = useState(50);
-
-    const [durationError, setDurationError] = useState(false);
-    const [attemptError, setAttemptError] = useState(false);
-    const [attemptPolicyError, setAttemptPolicyError] = useState(false);
-    const [passingScoreError, setPassingScoreError] = useState(false);
-
-    // Content Type
-    const handleTypeChange = (event) => {
-        event.preventDefault;
-        setLink('');
-        setLinkError(false);
-        setVideoError(false);
-        setIsVideo(false);
-        setThumbnailUrl(null);
-
-        setFile(null);
-        setFileError(false)
-
-        setContentType(event.target.value);
+    const handleAddChoice = () => {
+        setChoices(prev => [...prev, { text: "" }]);
     };
 
-    // File Size
-    const getFileSize = (size) => {
-        if (size === 0) return "0 Bytes";
-        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-        const k = 1024;
-        const i = Math.floor(Math.log(size) / Math.log(k));
-        return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-
-    const handleFileUpload = (input) => {
-        const media = input.target.files[0];
-        const sizeLimit = contentType == "Image" ? 5 : contentType == "Document" ? 10 : 20;
-        if (media && media.size > (sizeLimit * 1024 * 1024)) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "File Too Large!",
-                text: `The file size limit is ${sizeLimit} MB!`,
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else {
-            setFile(media);
-        }
-    };
-
-    const getFilePreview = () => {
-        if (!file) {
-            return <FolderOff sx={{ color: "text.secondary", fontSize: "32px" }} />;
-        }
-
-        if (contentType === "Image") {
-            return (
-                <img
-                    src={URL.createObjectURL(file)}
-                    alt={`${contentType} Preview`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                    onError={() => setFile(null)}
-                />
-            );
-        }
-
-        if (contentType === "Document") {
-            const fileExtension = file.name.toLowerCase();
-            if (fileExtension.endsWith('.pdf')) {
-                return (
-                    <img
-                        src={PDFImage}
-                        alt="PDF Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                    />
-                );
-            } else if (fileExtension.match(/\.docx?$/)) {
-                return (
-                    <img
-                        src={DocImage}
-                        alt="Document Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                    />
-                );
-            }
-            return (
-                <img
-                    src={DocImage}
-                    alt="Document Icon"
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                />
-            );
-        }
-
-        if (contentType === "PowerPoint") {
-            return (
-                <img
-                    src={PPTImage}
-                    alt={`${contentType} Icon`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                />
-            );
-        }
-
-        return null;
-    };
-    const filePreview = getFilePreview();
-
-    // Video Link Handlers
-    const verifyLink = (value) => {
-        setLink(value);
-
-        // Basic URL format validation
-        const isValidUrl = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)$/.test(value);
-        setLinkError(!isValidUrl);
-
-        setVideoError(false);
-        setIsVideo(false);
-        setIsVideoLoading(false);
-        setThumbnailUrl(null);
-
-        if (isValidUrl) {
-            // YouTube Link
-            const youtubeId = getYouTubeId(value);
-            if (youtubeId) {
-                const youtubeThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-                setIsVideoLoading(true);
-                try {
-                    fetch(youtubeThumbnail)
-                        .then((response) => {
-                            if (response.status === 200) {
-                                // Valid Image
-                                const img = new Image();
-                                img.src = youtubeThumbnail;
-
-                                img.onload = () => {
-                                    setThumbnailUrl(youtubeThumbnail);
-                                    setIsVideo(true);
-                                    setVideoError(false);
-                                    setIsVideoLoading(false);
-                                };
-
-                                img.onerror = () => {
-                                    setThumbnailUrl(null);
-                                    setIsVideo(false);
-                                    setVideoError(true);
-                                    setIsVideoLoading(false);
-                                };
-                            } else {
-                                setThumbnailUrl(null);
-                                setIsVideo(false);
-                                setVideoError(true);
-                                setIsVideoLoading(false);
-                            }
-                        })
-                        .catch((error) => {
-                            // Network/Other Errors
-                            setThumbnailUrl(null);
-                            setIsVideo(false);
-                            setVideoError(true);
-                            setIsVideoLoading(false);
-                        });
-                } catch (error) {
-                    // Unexpected Errors
-                    setThumbnailUrl(null);
-                    setIsVideo(false);
-                    setVideoError(true);
-                    setIsVideoLoading(false);
-                }
-
-                return;
-            }
-
-            // Direct Video URL with file extension
-            const hasVideoExtension = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?.*)?$/.test(value.toLowerCase());
-            if (hasVideoExtension) {
-                setIsVideoLoading(true);
-                (async () => {
-                    try {
-                        const response = await fetch(value, { method: "HEAD" });
-                        const contentType = response.headers.get("Content-Type") || "";
-                        const isVideo = contentType.toLowerCase().startsWith("video/");
-                        setVideoError(!isVideo);
-                        setIsVideo(isVideo);
-                        setIsVideoLoading(false);
-
-                        if (isVideo) {
-                            generateThumbnailFromVideo(value);
-                        }
-                    } catch (error) {
-                        setVideoError(true);
-                        setIsVideo(false);
-                        setIsVideoLoading(false);
-                        setThumbnailUrl(null);
-                    }
-                })();
-            } else {
-                setVideoError(true);
-            }
-        }
-    };
-    // YouTube ID Validation
-    const getYouTubeId = (url) => {
-        const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
-        const match = url.match(regex);
-        const id = match ? match[1] : null;
-        return id && id.length === 11 ? id : null;
-    };
-    // Direct URL Thumbnail
-    const generateThumbnailFromVideo = (videoUrl) => {
-        const video = document.createElement("video");
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        video.src = videoUrl;
-        video.crossOrigin = "anonymous";
-        video.preload = "metadata";
-
-        video.addEventListener("loadedmetadata", () => {
-            video.currentTime = Math.min(10, video.duration / 2);
-        });
-
-        video.addEventListener("seeked", () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
-            setThumbnailUrl(thumbnail);
-            video.remove();
-            canvas.remove();
-        });
-
-        video.addEventListener("error", () => {
-            setThumbnailUrl(null);
-        });
+    const handleDeleteChoice = (index) => {
+        // Adjust Correct Indexes
+        setCorrectIndices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
+        // Remove Choice
+        setChoices(prev => prev.filter((_, i) => i !== index));
     };
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        setContentTypeError(!contentType);
-        setTitleError(!title);
+        setItemTypeError(!itemType);
         setDescriptionError(!description);
 
-        const linkFail = contentType == "Video" && !/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/.test(link);
-        setLinkError(linkFail);
+        const noPoints = points === '';
+        setPointsError(noPoints);
 
-        const fileFail = ["Image", "Document", "PowerPoint"].includes(contentType) && !file;
-        setFileError(fileFail)
+        const noChoices = itemType != "FillInTheBlank" && choices.length == 0;
+        console.log(choices);
 
-        const attemptFail = contentType == "Form" && attemptPolicy == "limited-attempts" && !attempts;
-        setAttemptError(attemptFail);
-
-        const durationFail = contentType == "Form" && !duration;
-        setDurationError(durationFail);
-
-        const passingFail = contentType == "Form" && passingScore === '';
-        setPassingScoreError(passingFail);
-
-        if (!contentType || !title || !description || linkFail || fileFail || attemptFail || durationFail || passingFail) {
+        if (!itemType || !description || noPoints) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -345,11 +97,11 @@ const FormItemAdd = ({ open, close, formId }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (videoError) {
+        } else if (noChoices) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "URL does not link to a video!",
+                text: "Choice item has no options!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -379,16 +131,7 @@ const FormItemAdd = ({ open, close, formId }) => {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("unique_code", trainingCode);
-        formData.append("content_type", contentType);
-        formData.append("title", title);
-        formData.append("description", description);
-        formData.append("link", link);
-        formData.append("file", file);
-        formData.append("attempt_policy", attemptPolicy);
-        formData.append("duration", duration);
-        formData.append("attempts", attempts);
-        formData.append("passing_score", passingScore);
+        formData.append("form_id", formId);
 
         axiosInstance.post("/trainings/saveContent", formData, { headers })
             .then((response) => {
@@ -424,7 +167,7 @@ const FormItemAdd = ({ open, close, formId }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Training Content </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Form Item </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
@@ -432,320 +175,54 @@ const FormItemAdd = ({ open, close, formId }) => {
                 <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
-                            {/* Content Type */}
+                            {/* Item Type */}
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="content-type-select-label"> Content Type </InputLabel>
+                                    <InputLabel id="item-type-select-label"> Type </InputLabel>
                                     <Select
-                                        labelId="content-type-select-label"
-                                        id="content-type-select"
-                                        value={contentType}
-                                        label="Content Type"
-                                        onChange={(event) => handleTypeChange(event)}
+                                        labelId="item-type-select-label"
+                                        id="item-type-select"
+                                        value={itemType}
+                                        label="Type"
+                                        onChange={(event) => setItemType(event.target.value)}
                                     >
-                                        <MenuItem value="Video"> Video </MenuItem>
-                                        <MenuItem value="Image"> Image </MenuItem>
-                                        <MenuItem value="Document"> Document </MenuItem>
-                                        <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
-                                        <MenuItem value="Form"> Form </MenuItem>
+                                        <MenuItem value="Choice"> Multiple Choice </MenuItem>
+                                        <MenuItem value="FillInTheBlank"> Fill In The Blank </MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            {/* Title Field */}
+                            {/* Item Value */}
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
                                         fullWidth
-                                        label="Title"
+                                        label="Value"
                                         variant="outlined"
-                                        value={title}
-                                        error={titleError}
+                                        type="number"
+                                        value={points}
+                                        error={pointsError}
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        pts
+                                                    </Typography>
+                                                </InputAdornment>
+                                            ),
+                                            inputProps: {
+                                                min: 0,
+                                                step: 1,
+                                            },
+                                        }}
                                         onChange={(event) => {
-                                            if (event.target.value.length <= 128) {
-                                                setTitle(event.target.value);
+                                            const value = event.target.value;
+                                            if (value === "" || (Number(value) >= 0 && Number.isInteger(Number(value)))) {
+                                                setPoints(value === "" ? "" : Number(value));
                                             }
                                         }}
-                                        inputProps={{ maxLength: 128 }}
                                     />
-                                    <FormHelperText>
-                                        {title.length}/{128}
-                                    </FormHelperText>
                                 </FormControl>
-                            </Grid>
-                            {/* Type-Specific Fields */}
-                            <Grid item xs={12}>
-                                {contentType === "Video" ? (
-                                    <Grid container direction="row" alignItems="center" spacing={2}>
-                                        {/* Upload Field */}
-                                        <Grid item sm={9}>
-                                            <FormControl fullWidth sx={{ display: "flex" }}>
-                                                <TextField
-                                                    fullWidth
-                                                    required
-                                                    label="Video Link"
-                                                    variant="outlined"
-                                                    type="url"
-                                                    value={link}
-                                                    error={linkError || videoError}
-                                                    onChange={(event) => verifyLink(event.target.value)}
-                                                    inputProps={{ maxLength: 512 }}
-                                                    helperText={
-                                                        linkError
-                                                            ? "Please enter a valid URL"
-                                                            : videoError
-                                                                ? "URL does not point to a video"
-                                                                : isVideoLoading
-                                                                    ? "Checking URL..."
-                                                                    : "Enter a video URL (e.g., https://youtube.com/watch?v=xyz)"
-                                                    }
-                                                />
-                                            </FormControl>
-                                        </Grid>
-                                        {/* Video Thumbnail */}
-                                        <Grid item sm={3}>
-                                            <Stack sx={{ placeContent: "center", placeItems: "center" }}>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                        padding: thumbnailUrl ? 0 : 2,
-                                                        border: "2px solid #e0e0e0",
-                                                        borderRadius: thumbnailUrl ? 0 : "4px",
-                                                        width: thumbnailUrl ? "auto" : "80%",
-                                                        height: "90px",
-                                                        overflow: "hidden",
-                                                    }}
-                                                >
-                                                    {thumbnailUrl ? (
-                                                        <img
-                                                            src={thumbnailUrl}
-                                                            alt="Video Thumbnail"
-                                                            style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
-                                                            onError={() => setThumbnailUrl(null)}
-                                                        />
-                                                    ) : (
-                                                        <VideocamOff sx={{ color: "text.secondary", fontSize: "32px" }} />
-                                                    )}
-                                                </Box>
-                                                <Typography variant="caption" sx={{ color: "text.secondary", mt: 1 }}>
-                                                    {thumbnailUrl ? "Video Thumbnail" : "No Video Selected"}
-                                                </Typography>
-                                            </Stack>
-                                        </Grid>
-                                    </Grid>
-                                ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
-                                    <Grid container direction="row" alignItems="center" spacing={2}>
-                                        {/* Upload Field */}
-                                        <Grid item xs={9}>
-                                            <FormControl fullWidth sx={{ display: "flex" }}>
-                                                <TextField
-                                                    fullWidth
-                                                    label={`Upload ${contentType}`}
-                                                    variant="outlined"
-                                                    value={file ? `${file.name}, ${getFileSize(file.size)}` : ""}
-                                                    error={fileError}
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        document.getElementById('file-upload').click();
-                                                    }}
-                                                    InputProps={{
-                                                        readOnly: true,
-                                                        endAdornment: (
-                                                            <InputAdornment position="end">
-                                                                {file && (
-                                                                    <IconButton
-                                                                        onClick={(event) => {
-                                                                            event.stopPropagation();
-                                                                            setFile(null);
-                                                                        }}
-                                                                        size="small"
-                                                                        sx={{ marginLeft: '8px' }}
-                                                                    >
-                                                                        <Cancel />
-                                                                    </IconButton>
-                                                                )}
-                                                            </InputAdornment>
-                                                        ),
-                                                    }}
-                                                    helperText={
-                                                        contentType === "Image"
-                                                            ? "Upload an image (.png, .jpg, .jpeg), 5 MB size limit"
-                                                            : contentType === "Document"
-                                                                ? "Upload a document (.doc, .docx, .pdf), 10 MB size limit"
-                                                                : contentType === "PowerPoint"
-                                                                    ? "Upload a PowerPoint (.ppt, .pptx, etc.), 20 MB size limit"
-                                                                    : ""
-                                                    }
-                                                />
-                                            </FormControl>
-                                        </Grid>
-                                        {/* File Preview */}
-                                        <Grid item xs={3}>
-                                            <Stack sx={{ placeContent: "center", placeItems: "center" }}>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                        padding: file ? 0 : 2,
-                                                        border: "2px solid #e0e0e0",
-                                                        borderRadius: file ? 0 : "4px",
-                                                        width: file ? "auto" : "80%",
-                                                        height: "90px",
-                                                        overflow: "hidden",
-                                                    }}
-                                                >
-                                                    {filePreview}
-                                                </Box>
-                                                <Typography variant="caption" sx={{ color: "text.secondary", mt: 1 }}>
-                                                    {file ? `${contentType} Preview` : "No File Selected"}
-                                                </Typography>
-                                            </Stack>
-                                        </Grid>
-                                        {/* Upload Field - Uploader */}
-                                        <input
-                                            accept={
-                                                contentType === "Image"
-                                                    ? ".png, .jpg, .jpeg"
-                                                    : contentType === "Document"
-                                                        ? ".doc, .docx, .pdf"
-                                                        : contentType === "PowerPoint"
-                                                            ? ".ppt, .pptx"
-                                                            : ""
-                                            }
-                                            id="file-upload"
-                                            type="file"
-                                            name="file"
-                                            style={{ display: "none" }}
-                                            aria-label={`Upload ${contentType}`}
-                                            onChange={handleFileUpload}
-                                        />
-                                    </Grid>
-                                ) : contentType === "Form" ? (
-                                    <Grid container direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
-                                        <Grid item xs={4}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="attempt-policy-select-label">Attempt Policy</InputLabel>
-                                                <Select
-                                                    labelId="attempt-policy-select-label"
-                                                    id="attempt-policy-select"
-                                                    value={attemptPolicy}
-                                                    error={attemptPolicyError}
-                                                    label="Attempt Policy"
-                                                    onChange={(event) => setAttemptPolicy(event.target.value)}
-                                                >
-                                                    <MenuItem value="passing-required">Passing Required</MenuItem>
-                                                    <MenuItem value="limited-attempts">Limited Attempts</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={4}>
-                                            <FormControl fullWidth>
-                                                <TextField
-                                                    required
-                                                    fullWidth
-                                                    label="Attempts Allowed"
-                                                    variant="outlined"
-                                                    type="text"
-                                                    value={attemptPolicy === "passing-required" ? "Unlimited" : attempts}
-                                                    error={attemptError}
-                                                    InputProps={{
-                                                        readOnly: attemptPolicy === "passing-required",
-                                                        inputProps: {
-                                                            type: attemptPolicy === "limited-attempts" ? "number" : "text",
-                                                            min: 1,
-                                                        },
-                                                    }}
-                                                    onChange={(event) => {
-                                                        if (attemptPolicy === "limited-attempts") {
-                                                            const value = event.target.value;
-                                                            if (value === "" || (Number(value) > 0 && Number.isInteger(Number(value)))) {
-                                                                setAttempts(value === "" ? "" : Number(value));
-                                                            }
-                                                        }
-                                                    }}
-                                                />
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item container xs={4} spacing={1}>
-                                            <Grid item xs={6}>
-                                                <FormControl fullWidth>
-                                                    <TextField
-                                                        required
-                                                        fullWidth
-                                                        label="Passing Score"
-                                                        variant="outlined"
-                                                        type="number"
-                                                        value={passingScore}
-                                                        error={passingScoreError}
-                                                        InputProps={{
-                                                            endAdornment: (
-                                                                <InputAdornment position="end">
-                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                        %
-                                                                    </Typography>
-                                                                </InputAdornment>
-                                                            ),
-                                                            inputProps: {
-                                                                max: 100,
-                                                                min: 0,
-                                                                step: 1,
-                                                            },
-                                                        }}
-                                                        onChange={(event) => {
-                                                            const value = event.target.value;
-                                                            if (value === "" || (Number(value) >= 0 && Number.isInteger(Number(value)))) {
-                                                                setPassingScore(value === "" ? "" : Number(value));
-                                                            }
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item xs={6}>
-                                                <FormControl fullWidth>
-                                                    <TextField
-                                                        required
-                                                        fullWidth
-                                                        label="Duration"
-                                                        variant="outlined"
-                                                        type="number"
-                                                        value={duration}
-                                                        error={durationError}
-                                                        InputProps={{
-                                                            endAdornment: (
-                                                                <InputAdornment position="end">
-                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                        Min
-                                                                    </Typography>
-                                                                </InputAdornment>
-                                                            ),
-                                                            inputProps: {
-                                                                min: 1,
-                                                                step: 1,
-                                                            },
-                                                        }}
-                                                        onChange={(event) => {
-                                                            const value = event.target.value;
-                                                            if (value === "" || (Number(value) > 0 && Number.isInteger(Number(value)))) {
-                                                                setDuration(value === "" ? "" : Number(value));
-                                                            }
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                            </Grid>
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                <InfoOutlined sx={{ color: "text.secondary" }} />
-                                                <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
-                                                    Items/Questions can be added later
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-                                ) : null}
                             </Grid>
                             {/* Description Field */}
                             <Grid item xs={12}>
@@ -756,11 +233,11 @@ const FormItemAdd = ({ open, close, formId }) => {
                                             name='description'
                                             value={description}
                                             onChange={(value) => {
-                                                if (value.length <= 512) {
+                                                if (value.length <= 256) {
                                                     setDescription(value);
                                                 }
                                             }}
-                                            placeholder="Enter content description here *"
+                                            placeholder="Enter item text here *"
                                             modules={{
                                                 toolbar: [
                                                     [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -782,12 +259,114 @@ const FormItemAdd = ({ open, close, formId }) => {
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
                                         <FormHelperText>
-                                            {description.length}/{512}
+                                            {description.length}/{256}
                                         </FormHelperText>
                                     </div>
                                 </FormControl>
 
                             </Grid>
+                            {/* Item Choices */}
+                            {itemType !== "FillInTheBlank" && (
+                                <Grid item xs={12}>
+                                    <FormControl fullWidth>
+                                        <Box sx={{ width: "100%" }}>
+                                            <Stack direction="row" spacing={1}
+                                                sx={{
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    width: "100%",
+                                                }}
+                                            >
+                                                <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, width: "30%" }}>
+                                                    <Typography noWrap>
+                                                        Choices
+                                                    </Typography>
+                                                    <Button
+                                                        variant="contained"
+                                                        size="small"
+                                                        sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: "auto" }}
+                                                        onClick={handleAddChoice}
+                                                    >
+                                                        <p className="m-0">
+                                                            <i className="fa fa-plus"></i> Add Choice
+                                                        </p>
+                                                    </Button>
+                                                </Box>
+                                                <Stack direction="row" spacing={1}
+                                                    sx={{
+                                                        justifyContent: "flex-end",
+                                                        alignItems: "center",
+                                                        width: "70%",
+                                                        mt: 1
+                                                    }}
+                                                >
+                                                    {choices.length > 0 && (
+                                                        <Stack direction="row" spacing={1}>
+                                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                Correct Answer
+                                                            </Typography>
+                                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                Remove
+                                                            </Typography>
+                                                        </Stack>
+                                                    )}
+                                                </Stack>
+                                            </Stack>
+                                            {/* Added Choices */}
+                                            {choices.length > 0 && (
+                                                <Stack direction="column" spacing={1} sx={{ mt: 1, width: "100%" }}>
+                                                    {choices.map((choice, index) => (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                display: "flex",
+                                                                justifyContent: "space-between",
+                                                                alignItems: "center",
+                                                                border: "1px solid #e0e0e0",
+                                                                borderRadius: "4px",
+                                                                padding: "4px 8px",
+                                                            }}
+                                                        >
+                                                            <TextField
+                                                                fullWidth
+                                                                variant="outlined"
+                                                                size="small"
+                                                                value={choice.text}
+                                                                onChange={(e) => {
+                                                                    const newText = e.target.value;
+                                                                    setChoices(prev =>
+                                                                        prev.map((c, i) =>
+                                                                            i === index ? { ...c, text: newText } : c
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                placeholder={`Option ${index + 1}`}
+                                                                sx={{ mr: 2 }}
+                                                            />
+                                                            <Stack direction="row" spacing={3}>
+                                                                <Checkbox
+                                                                    checked={correctIndices.includes(index)}
+                                                                    onChange={(e) => {
+                                                                        if (e.target.checked) {
+                                                                            setCorrectIndices(prev => [...prev, index]);
+                                                                        } else {
+                                                                            setCorrectIndices(prev => prev.filter(i => i !== index));
+                                                                        }
+                                                                    }}
+                                                                    inputProps={{ "aria-label": `Set as correct choice` }}
+                                                                />
+                                                                <IconButton onClick={() => handleDeleteChoice(index)} size="small">
+                                                                    <Cancel />
+                                                                </IconButton>
+                                                            </Stack>
+                                                        </Box>
+                                                    ))}
+                                                </Stack>
+                                            )}
+                                        </Box>
+                                    </FormControl>
+                                </Grid>
+                            )}
                             {/* Submit Button */}
                             <Grid
                                 item
@@ -812,7 +391,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                         </Grid>
                     </Box>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
         </>
     );
 };

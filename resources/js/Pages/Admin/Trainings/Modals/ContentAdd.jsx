@@ -661,7 +661,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                     onChange={(event) => {
                                                         if (attemptPolicy === "limited-attempts") {
                                                             const value = event.target.value;
-                                                            if (value === "" || (Number(value) > 0 && Number.isInteger(Number(value)))) {
+                                                            if (value === "" || (Number(value) <= 100 && Number(value) >= 0 && Number.isInteger(Number(value)))) {
                                                                 setAttempts(value === "" ? "" : Number(value));
                                                             }
                                                         }
@@ -756,7 +756,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                             name='description'
                                             value={description}
                                             onChange={(value) => {
-                                                if (value.length <= 512) {
+                                                if (value.length <= 1024) {
                                                     setDescription(value);
                                                 }
                                             }}
@@ -782,7 +782,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
                                         <FormHelperText>
-                                            {description.length}/{512}
+                                            {description.length}/{1024}
                                         </FormHelperText>
                                     </div>
                                 </FormControl>
