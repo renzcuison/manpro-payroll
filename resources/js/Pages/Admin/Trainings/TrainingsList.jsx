@@ -371,6 +371,7 @@ const TrainingsList = () => {
                                                                     {training.video && <OndemandVideo sx={{ color: 'text.secondary' }} />}
                                                                     {training.image && <Image sx={{ color: 'text.secondary' }} />}
                                                                     {training.attachment && <Description sx={{ color: 'text.secondary' }} />}
+                                                                    {training.form && <Quiz sx={{ color: 'text.secondary' }} />}
                                                                     {/* Media Text */}
                                                                     <Box sx={{ ml: (training.video || training.image || training.attachment) ? 1 : 0 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -383,7 +384,7 @@ const TrainingsList = () => {
                                                                                     training.form && 'Form',
                                                                                 ].filter(Boolean);
                                                                                 return available.length > 0
-                                                                                    ? `Includes ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                    ? `Includes ${available.join(', ').replace(/, ([^,]+)$/, ', and $1')}`
                                                                                     : 'No Content';
                                                                             })()}
                                                                         </Typography>
