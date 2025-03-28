@@ -148,12 +148,10 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 href: `/admin/payroll/process?`,
                 text: 'Process',
-                icon: 'fa fa-cogs',
             },
             {
                 href: `/admin/payroll/records?`,
                 text: 'Records',
-                icon: 'fa fa-cogs',
             },
         ]
     }]
@@ -164,9 +162,12 @@ const Sidebar = ({ children, closeMini }) => {
         icon: 'fa fa-pencil-square-o',
         children: [
             {
+                href: `/admin/application/types?`,
+                text: 'Application Types',
+            },
+            {
                 href: `/admin/applications?`,
                 text: 'Application Request',
-                icon: 'fa fa-cogs',
             }
         ]
     }];

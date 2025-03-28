@@ -81,6 +81,45 @@ class ApplicationsController extends Controller
         }
     }
 
+    public function getApplicationTypes()
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+
+        $types = ApplicationTypesModel::where('client_id', $clientId)->where('deleted_at', NULL)->get();
+
+        return response()->json(['status' => 200, 'types' => $types]);
+    }
+
+    public function editApplicationType(Request $request)
+    {
+        // Log::info("ApplicationsController::editApplicationType");
+
+        try {
+            DB::beginTransaction();
+
+            $applicationType = ApplicationTypesModel::find($request->applicationType);
+
+            $applicationType->name = $request->name;
+            $applicationType->is_paid_leave = $request->paidLeave;
+            $applicationType->percentage = $request->percentage;
+            $applicationType->require_files = $request->requireFiles;
+            $applicationType->tenureship_required = $request->tenureship;
+            $applicationType->save();
+
+            DB::commit();
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
     public function getMyApplications()
     {
         //Log::info("ApplicationsController::getMyApplications");
@@ -120,21 +159,6 @@ class ApplicationsController extends Controller
         }
 
         return response()->json(['status' => 200, 'applications' => $applications]);
-    }
-
-    public function getApplicationTypes()
-    {
-        //Log::info("ApplicationsController::getApplicationTypes");
-
-        $user = Auth::user();
-        $clientId = $user->client_id;
-
-        $types = ApplicationTypesModel::where('client_id', $clientId)
-            ->select('id', 'name', 'require_files', 'tenureship_required')
-            ->where('deleted_at', NULL)
-            ->get();
-
-        return response()->json(['status' => 200, 'types' => $types]);
     }
 
     public function getTenureship()
