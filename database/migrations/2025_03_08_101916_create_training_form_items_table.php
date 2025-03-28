@@ -16,6 +16,7 @@ class CreateTrainingFormItemsTable extends Migration
         Schema::create('training_form_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('form_id');
+            $table->unsignedInteger('order')->default(0)->nullable();
             $table->enum('type', ['Choice', 'MultiSelect', 'FillInTheBlank']);
             $table->string('description', 256);
             $table->unsignedInteger('value')->default(1);
