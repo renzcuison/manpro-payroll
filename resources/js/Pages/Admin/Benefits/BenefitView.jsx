@@ -8,7 +8,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-import EmploymentDetailsEdit from '../Employees/Modals/EmployeeDetailsEdit';
+import EmploymentDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 
 const BenefitView = () => {
     const { benefitName } = useParams();

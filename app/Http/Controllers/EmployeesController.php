@@ -14,6 +14,7 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
+use App\Models\LoanLimitHistoryModel;
 
 // use App\Models\NewModel;
 
@@ -261,9 +262,13 @@ class EmployeesController extends Controller
         if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated ) {
             $user = Auth::user();
             $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+
+            $latestLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
     
             $employee = $this->enrichEmployeeDetails($employee);
  
+            $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
+            $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;
             $employee->total_payroll = PayslipsModel::where('employee_id', $employee->id)->count();
             $employee->total_attendance = AttendanceLogsModel::where('user_id', $employee->id)->latest('created_at')->count();
             $employee->total_applications = ApplicationsModel::where('client_id', $employee->id)->where('status', 'Approved')->count();
@@ -368,8 +373,10 @@ class EmployeesController extends Controller
 
     public function editEmployeeDetails(Request $request)
     {
-        // log::info("EmployeesController::editEmployeeDetails");
-        // log::info($request);
+        log::info("EmployeesController::editEmployeeDetails");
+        log::info($request);
+
+        // dd("Stopper");
 
         $user = Auth::user();
         $employee = UsersModel::find($request->id);
@@ -388,6 +395,8 @@ class EmployeesController extends Controller
                 $employee->contact_number = $request->phoneNumber;
                 $employee->address = $request->address;
 
+                $employee->salary = $request->salary;
+
                 $employee->role_id = $request->selectedRole;
                 $employee->branch_id = $request->selectedBranch;
                 $employee->job_title_id = $request->selectedJobTitle;
@@ -399,6 +408,24 @@ class EmployeesController extends Controller
                 $employee->date_start = $request->startDate;
                 $employee->date_end = $request->endDate;
                 $employee->save();
+
+                $existingLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
+
+                if ( $existingLoanLimit ) {
+                    LoanLimitHistoryModel::create([
+                        "employee_id" => $request->id,
+                        "old_limit" => $existingLoanLimit->new_limit,
+                        "new_limit" => $request->creditLimit,
+                        "user_id" => $user->id,
+                    ]);
+                } else {
+                    LoanLimitHistoryModel::create([
+                        "employee_id" => $request->id,
+                        "old_limit" => 0,
+                        "new_limit" => $request->creditLimit,
+                        "user_id" => $user->id,
+                    ]);
+                }
 
                 DB::commit();
 
