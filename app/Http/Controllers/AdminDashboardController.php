@@ -185,7 +185,6 @@ class AdminDashboardController extends Controller
 
     public function getAttendance(Request $request)
     {
-        //Log::info("AdminDashboardController::getAttendance");
         $user = Auth::user();
         $today = Carbon::now()->toDateString();
 
@@ -202,7 +201,7 @@ class AdminDashboardController extends Controller
 
             $result = [];
 
-            if ($type == 1) { // PRESENT
+            if ($type == 1) {
                 $result = $attendances->groupBy('user_id')
                     ->sortKeysDesc()
                     ->map(function ($logs) {
@@ -212,18 +211,8 @@ class AdminDashboardController extends Controller
                         });
                         $user = $logs->first()->user;
 
-                        if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
-                        } else {
-                            $user->avatar = null;
-                            $user->avatar_mime = null;
-                        }
-
                         return [
                             'id' => $user->id,
-                            'avatar' => $user->avatar,
-                            'avatar_mime' => $user->avatar_mime,
                             'first_name' => $user->first_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
@@ -238,7 +227,7 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['time_in'] <=> $a['time_in'] ?: 0;
                 });
-            } elseif ($type == 2) { // LATE
+            } elseif ($type == 2) {
                 $result = $attendances->groupBy('user_id')
                     ->map(function ($logs) {
                         $timeIn = $logs->firstWhere('action', 'Duty In');
@@ -248,20 +237,10 @@ class AdminDashboardController extends Controller
 
                         $lateThreshold = $expectedStart->copy()->addMinute();
 
-                        if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
-                        } else {
-                            $user->avatar = null;
-                            $user->avatar_mime = null;
-                        }
-
                         if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt($lateThreshold)) {
                             $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
                             return [
                                 'id' => $user->id,
-                                'avatar' => $user->avatar,
-                                'avatar_mime' => $user->avatar_mime,
                                 'first_name' => $user->first_name ?? null,
                                 'last_name' => $user->last_name ?? null,
                                 'middle_name' => $user->middle_name ?? null,
@@ -280,7 +259,7 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['time_in'] <=> $a['time_in'] ?: 0;
                 });
-            } elseif ($type == 3) { // ABSENT
+            } elseif ($type == 3) {
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
                 $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
@@ -303,17 +282,8 @@ class AdminDashboardController extends Controller
                 $result = UsersModel::whereIn('id', $allEmployees)
                     ->get()
                     ->map(function ($user) {
-                        if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
-                        } else {
-                            $user->avatar = null;
-                            $user->avatar_mime = null;
-                        }
                         return [
                             'id' => $user->id,
-                            'avatar' => $user->avatar,
-                            'avatar_mime' => $user->avatar_mime,
                             'first_name' => $user->first_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
@@ -322,7 +292,7 @@ class AdminDashboardController extends Controller
                     })
                     ->values()
                     ->all();
-            } elseif ($type == 4) { // ON LEAVE
+            } elseif ($type == 4) {
                 $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
                 })
@@ -338,18 +308,8 @@ class AdminDashboardController extends Controller
                     $startDate = Carbon::parse($application->duration_start);
                     $endDate = Carbon::parse($application->duration_end);
 
-                    if ($user->profile_pic) {
-                        $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                        $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
-                    } else {
-                        $user->avatar = null;
-                        $user->avatar_mime = null;
-                    }
-
                     return [
                         'id' => $user->id,
-                        'avatar' => $user->avatar,
-                        'avatar_mime' => $user->avatar_mime,
                         'first_name' => $user->first_name ?? null,
                         'last_name' => $user->last_name ?? null,
                         'middle_name' => $user->middle_name ?? null,
@@ -367,5 +327,36 @@ class AdminDashboardController extends Controller
         } else {
             return response()->json(['status' => 200, 'attendance' => null]);
         }
+    }
+
+    public function getEmployeeAvatars(Request $request)
+    {
+        $userIds = $request->input('user_ids', []);
+        if (empty($userIds)) {
+            return response()->json(['status' => 400, 'message' => 'No user IDs provided'], 400);
+        }
+
+        $users = UsersModel::whereIn('id', $userIds)->get();
+
+        $avatars = $users->mapWithKeys(function ($user) {
+            if ($user->profile_pic) {
+                $avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                $avatarMime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                return [
+                    $user->id => [
+                        'avatar' => $avatar,
+                        'avatar_mime' => $avatarMime,
+                    ]
+                ];
+            }
+            return [
+                $user->id => [
+                    'avatar' => null,
+                    'avatar_mime' => null,
+                ]
+            ];
+        })->all();
+
+        return response()->json(['status' => 200, 'avatars' => $avatars]);
     }
 }

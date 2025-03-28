@@ -248,6 +248,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('adminDashboard')->group(function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendance', [AdminDashboardController::class, 'getAttendance']);
+        Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
     });
 
     Route::prefix('trainings')->group(function () {
