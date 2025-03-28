@@ -672,8 +672,11 @@ class TrainingsController extends Controller
             if ($content->training_media_id) {
                 $content->content = $content->media;
             } elseif ($content->training_form_id) {
-                $content->content = $content->form;
+                $formData = $content->form;
+                $content->content = $formData;
                 $content->content->type = "Form";
+                $content->item_count = $formData->items->count();
+                $content->total_points = $formData->items->sum('value') ?? 0;
             } else {
                 $content->content = null;
             }
@@ -1025,6 +1028,18 @@ class TrainingsController extends Controller
     {
         Log::info("TrainingsController:getFormItems");
         Log::info($id);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $itemData = TrainingFormItemsModel::with('choices')
+                ->where('form_id', $id)
+                ->get();
+
+            return response()->json(['status' => 403, 'items' => $itemData]);
+        } else {
+            return response()->json(['status' => 403, 'items' => null]);
+        }
     }
 
     function generateRandomCode($length)

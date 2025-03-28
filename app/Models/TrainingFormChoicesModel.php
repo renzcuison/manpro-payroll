@@ -23,6 +23,6 @@ class TrainingFormChoicesModel extends Model
 
     public function item()
     {
-        return $this->belongsTo(TrainingFormItemsModel::class, 'training_item_id');
+        return $this->belongsTo(TrainingFormItemsModel::class, 'form_item_id');
     }
 }

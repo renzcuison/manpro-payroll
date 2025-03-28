@@ -462,7 +462,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Item Count
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
-                                                        {43}
+                                                        {content.item_count}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
@@ -473,7 +473,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Total Points
                                                     </Typography>
                                                     <Typography sx={{ fontWeight: "bold" }}>
-                                                        {`${64} pts`}
+                                                        {`${content.total_points} pts`}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
