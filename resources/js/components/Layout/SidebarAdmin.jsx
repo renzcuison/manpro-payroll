@@ -155,19 +155,6 @@ const Sidebar = ({ children, closeMini }) => {
                 text: 'Records',
                 icon: 'fa fa-cogs',
             },
-            // {
-            //     href: `/hr/payroll-process?`,
-            //     text: 'Process Old',
-            //     icon: 'fa fa-cogs',
-            // }, {
-            //     href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-            //     text: 'Records',
-            //     icon: 'fa fa-cogs',
-            // }, {
-            //     href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-            //     text: 'Summary',
-            //     icon: 'fa fa-cogs',
-            // }
         ]
     }]
 
@@ -180,22 +167,7 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/applications?`,
                 text: 'Application Request',
                 icon: 'fa fa-cogs',
-            },
-            // {
-            //     href: `/hr/applications-list?`,
-            //     text: 'List',
-            //     icon: 'fa fa-cogs',
-            // },
-            // {
-            //     href: `/hr/applications-leave?`,
-            //     text: 'Leave Credit',
-            //     icon: 'fa fa-cogs',
-            // },
-            // {
-            //     href: `/hr/applications-overtime?`,
-            //     text: 'Overtime',
-            //     icon: 'fa fa-cogs',
-            // }
+            }
         ]
     }];
 
@@ -242,8 +214,23 @@ const Sidebar = ({ children, closeMini }) => {
         ]
     }]
 
+    // const loanItems = [{
+    //     id: 8,
+    //     text: 'Performance Evaluation',
+    //     icon: 'fa fa-check',
+    //     children: [
+    //         {
+    //             href: `/member/evaluate`,
+    //             text: 'Evaluate',
+    //         }, {
+    //             href: `/member/evaluation`,
+    //             text: 'My Evaluation',
+    //         }
+    //     ]
+    // }]
+
     const evaluationItems = [{
-        id: 8,
+        id: 9,
         text: 'Performance Evaluation',
         icon: 'fa fa-check',
         children: [
@@ -335,6 +322,10 @@ const Sidebar = ({ children, closeMini }) => {
                                 {applicationsItems.map((items, index) => {
                                     return <SideItem key={index} items={items} />
                                 })}
+
+                                <StyledNav to={`/admin/loan-management`} >
+                                    <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
+                                </StyledNav>
 
                                 <StyledNav to={`/admin/announcements`} >
                                     <i className="fa fa-bullhorn" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Announcements</span>
