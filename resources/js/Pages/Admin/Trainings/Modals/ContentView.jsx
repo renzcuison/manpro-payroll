@@ -365,7 +365,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                         <Divider />
                                     </Grid>
                                     {/* Additional Form Information */}
-                                    {content?.content?.type == "Form" && (
+                                    {content?.content?.type == "Form" ? (
                                         <Grid container item xs={12} spacing={2}>
                                             <Grid item xs={4}>
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
@@ -402,8 +402,56 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             <Grid item xs={12} sx={{ my: 0 }} >
                                                 <Divider />
                                             </Grid>
+                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Number of Items
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {43}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Passers
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {15}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                        </Grid>
+                                    ) : (
+                                        <Grid container item xs={12} spacing={2}>
+                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Viewers
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {15}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Typography>
+                                                        Completers
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {5}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
                                         </Grid>
                                     )}
+                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Divider />
+                                    </Grid>
                                     {/* Description */}
                                     <Grid item xs={12} >
                                         <div
