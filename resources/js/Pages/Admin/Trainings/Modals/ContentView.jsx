@@ -205,6 +205,7 @@ const ContentView = ({ open, close, contentId, status }) => {
     const handleCloseFormItemAddModal = (reload) => {
         setOpenFormItemAddModal(false);
         if (reload) {
+            setExitReload(true);
             getFormItems(content.training_form_id);
         }
     };
@@ -564,13 +565,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                             }}
                                                         >
                                                             {/* Primary Content */}
-                                                            <Box
-                                                                display="flex"
-                                                                sx={{
-                                                                    justifyContent: "space-between",
-                                                                    alignItems: "center",
-                                                                }}
-                                                            >
+                                                            <Box display="flex" sx={{ justifyContent: "space-between", alignItems: "center", }} >
                                                                 {/* Type and Description */}
                                                                 <Box display="flex" alignItems="center" sx={{ width: "56%" }}>
                                                                     {/* Item Type */}
@@ -584,19 +579,23 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                             backgroundColor:
                                                                                 item.type === "Choice"
                                                                                     ? "#e3f2fd"
-                                                                                    : item.type === "Multiple Select"
-                                                                                        ? "#e0f7fa"
-                                                                                        : "#e8f5e9",
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#fff3e0"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#e8f5e9"
+                                                                                            : "#ffebee",
                                                                             color:
                                                                                 item.type === "Choice"
                                                                                     ? "#1976d2"
-                                                                                    : item.type === "Multiple Select"
-                                                                                        ? "#0277bd"
-                                                                                        : "#2e7d32",
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#f57c00"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#2e7d32"
+                                                                                            : "#d32f2f",
                                                                             fontSize: "0.75rem",
                                                                             fontWeight: "bold",
                                                                             textTransform: "uppercase",
-                                                                            textAlign: "center"
+                                                                            textAlign: "center",
                                                                         }}
                                                                     >
                                                                         {item.type == "Choice" ? "Choice" :
@@ -621,7 +620,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                         dangerouslySetInnerHTML={{ __html: item.description }}
                                                                     />
                                                                 </Box>
-
                                                                 {/* Points, Expand/Collapse Buttons */}
                                                                 <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
                                                                     {/* Points */}
@@ -677,13 +675,15 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                     />
                                                                     {item.choices.length > 0 && (
                                                                         <>
-                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
+                                                                            <Typography variant="caption" sx={{ mb: 1, }}>
                                                                                 Choices
                                                                             </Typography>
                                                                             {item.choices.map((choice, index) => (
-                                                                                <Typography key={index} variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
-                                                                                    {`- ${choice.description}`}
-                                                                                </Typography>
+                                                                                <Box key={index} sx={{ mt: 1, p: 1, width: "100%", border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0", borderRadius: "4px" }}>
+                                                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                                        {choice.description}
+                                                                                    </Typography>
+                                                                                </Box>
                                                                             ))}
                                                                         </>
                                                                     )}

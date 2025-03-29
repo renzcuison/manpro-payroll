@@ -63,16 +63,17 @@ const FormItemAdd = ({ open, close, formId }) => {
 
     const [itemTypeError, setItemTypeError] = useState(false);
     const [pointsError, setPointsError] = useState(false);
+    const [correctionError, setCorrectionError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
+    const [emptyChoices, setEmptyChoices] = useState([]);
 
     const handleAddChoice = () => {
         setChoices(prev => [...prev, { text: "" }]);
     };
 
     const handleDeleteChoice = (index) => {
-        // Adjust Correct Indexes
         setCorrectIndices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
-        // Remove Choice
+        setEmptyChoices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
         setChoices(prev => prev.filter((_, i) => i !== index));
     };
 
@@ -87,6 +88,12 @@ const FormItemAdd = ({ open, close, formId }) => {
 
         const noChoices = itemType != "FillInTheBlank" && choices.length == 0;
         const noCorrects = itemType != "FillInTheBlank" && correctIndices.length == 0;
+        setCorrectionError(noCorrects);
+
+        const emptyChoiceIndices = choices
+            .map((choice, index) => (choice.text.trim() === "" ? index : -1))
+            .filter((index) => index !== -1);
+        setEmptyChoices(emptyChoiceIndices);
 
         if (!itemType || !description || noPoints) {
             document.activeElement.blur();
@@ -102,6 +109,15 @@ const FormItemAdd = ({ open, close, formId }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "Choice item has no options!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (emptyChoiceIndices.length > 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "There are empty choices!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -139,13 +155,13 @@ const FormItemAdd = ({ open, close, formId }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        const choiceType = ["Choice"].includes(itemType); // placed in this format for future types
+        const choiceType = ["Choice", "MultiSelect"].includes(itemType);
 
         const formData = new FormData();
         formData.append("form_id", formId);
         formData.append("item_type", itemType)
         formData.append("description", description);
-        formData.append("points", points);
+        formData.append("points", itemType == "MultiSelect" ? correctIndices.length : points);
         if (choiceType && choices.length > 0) {
             choices.forEach(choice => {
                 formData.append('choices[]', choice.text);
@@ -215,6 +231,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                         onChange={(event) => setItemType(event.target.value)}
                                     >
                                         <MenuItem value="Choice"> Multiple Choice </MenuItem>
+                                        <MenuItem value="MultiSelect"> Selection </MenuItem>
                                         <MenuItem value="FillInTheBlank"> Fill In The Blank </MenuItem>
                                     </Select>
                                 </FormControl>
@@ -228,9 +245,10 @@ const FormItemAdd = ({ open, close, formId }) => {
                                         label="Value"
                                         variant="outlined"
                                         type="number"
-                                        value={points}
+                                        value={itemType == "MultiSelect" ? correctIndices.length : points}
                                         error={pointsError}
                                         InputProps={{
+                                            readOnly: itemType == "MultiSelect",
                                             endAdornment: (
                                                 <InputAdornment position="end">
                                                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -250,6 +268,11 @@ const FormItemAdd = ({ open, close, formId }) => {
                                             }
                                         }}
                                     />
+                                    {itemType == "MultiSelect" && (
+                                        <FormHelperText>
+                                            Value automatically adjusted to number of correct answers.
+                                        </FormHelperText>
+                                    )}
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
@@ -351,7 +374,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                                 display: "flex",
                                                                 justifyContent: "space-between",
                                                                 alignItems: "center",
-                                                                border: "1px solid #e0e0e0",
+                                                                border: correctionError ? "1px solid #f44336" : "1px solid #e0e0e0",
                                                                 borderRadius: "4px",
                                                                 padding: "4px 8px",
                                                             }}
@@ -361,6 +384,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                                 variant="outlined"
                                                                 size="small"
                                                                 value={choice.text}
+                                                                error={emptyChoices.includes(index)}
                                                                 onChange={(e) => {
                                                                     const newText = e.target.value;
                                                                     setChoices(prev =>

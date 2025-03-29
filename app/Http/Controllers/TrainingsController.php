@@ -977,8 +977,8 @@ class TrainingsController extends Controller
     // Training Forms
     public function saveFormItem(Request $request)
     {
-        //Log::info("TrainingsController:saveFormItem");
-        //Log::info($request);
+        Log::info("TrainingsController:saveFormItem");
+        Log::info($request);
 
         $user = Auth::user();
 
