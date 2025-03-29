@@ -24,7 +24,7 @@ import {
     Divider,
     Menu
 } from "@mui/material";
-import { Cancel, Expand, MoreVert } from "@mui/icons-material";
+import { Cancel, ExpandMore, ExpandLess, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -189,7 +189,8 @@ const ContentView = ({ open, close, contentId, status }) => {
     const getFormItems = (formId) => {
         axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
             .then((response) => {
-                setFormItems(response.data.items)
+                console.log(response.data.items);
+                setFormItems(response.data.items);
             })
             .catch((error) => {
                 console.error('Error fetching form items', error);
@@ -551,35 +552,144 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 {formItems.length > 0 ? (
                                                     formItems.map((item, index) => (
                                                         <Box
-                                                            display="flex"
                                                             key={index}
                                                             sx={{
                                                                 mb: 1,
-                                                                p: "4px 8px",
-                                                                justifyContent: "space-between",
-                                                                alignItems: "center",
+                                                                p: "8px 12px",
                                                                 border: "1px solid #e0e0e0",
-                                                                borderRadius: "4px",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: expanded.includes(index) ? "#f5f7fa" : "white",
+                                                                transition: "background-color 0.3s ease",
+                                                                boxShadow: expanded.includes(index) ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
                                                             }}
                                                         >
-                                                            <Typography
-                                                                variant="body2"
+                                                            {/* Primary Content */}
+                                                            <Box
+                                                                display="flex"
                                                                 sx={{
-                                                                    width: "80%",
-                                                                    overflow: "hidden",
-                                                                    textOverflow: "ellipsis",
-                                                                    whiteSpace: "nowrap",
+                                                                    justifyContent: "space-between",
+                                                                    alignItems: "center",
                                                                 }}
-                                                                dangerouslySetInnerHTML={{ __html: item.description }}
-                                                            />
-                                                            <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
-                                                                <Typography variant="body2" sx={{ mr: 2, fontWeight: "bold" }}>
-                                                                    {`${item.value} pts`}
-                                                                </Typography>
-                                                                <IconButton title="Expand Content" onClick={() => console.log("Expanding Item")}>
-                                                                    <Expand sx={{ color: "text.secondary" }} />
-                                                                </IconButton>
+                                                            >
+                                                                {/* Type and Description */}
+                                                                <Box display="flex" alignItems="center" sx={{ width: "56%" }}>
+                                                                    {/* Item Type */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            width: "20%",
+                                                                            borderRadius: "4px",
+                                                                            backgroundColor:
+                                                                                item.type === "Choice"
+                                                                                    ? "#e3f2fd"
+                                                                                    : item.type === "Multiple Select"
+                                                                                        ? "#e0f7fa"
+                                                                                        : "#e8f5e9",
+                                                                            color:
+                                                                                item.type === "Choice"
+                                                                                    ? "#1976d2"
+                                                                                    : item.type === "Multiple Select"
+                                                                                        ? "#0277bd"
+                                                                                        : "#2e7d32",
+                                                                            fontSize: "0.75rem",
+                                                                            fontWeight: "bold",
+                                                                            textTransform: "uppercase",
+                                                                            textAlign: "center"
+                                                                        }}
+                                                                    >
+                                                                        {item.type == "Choice" ? "Choice" :
+                                                                            item.type == "MultiSelect" ? "Selection" :
+                                                                                item.type == "FillInTheBlank" ? "Fill" :
+                                                                                    "Unknown"}
+                                                                    </Box>
+
+                                                                    {/* Short Description*/}
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            flex: 1,
+                                                                            overflow: "hidden",
+                                                                            textOverflow: "ellipsis",
+                                                                            whiteSpace: "nowrap",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            lineHeight: 1,
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                </Box>
+
+                                                                {/* Points, Expand/Collapse Buttons */}
+                                                                <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
+                                                                    {/* Points */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            width: "50%",
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            borderRadius: "12px",
+                                                                            backgroundColor: "#e8f5e9",
+                                                                            color: "#2e7d32",
+                                                                            fontSize: "0.875rem",
+                                                                            fontWeight: "bold",
+                                                                            textAlign: "center"
+                                                                        }}
+                                                                    >
+                                                                        {`${item.value} pt${item.value > 1 ? 's' : ''}`}
+                                                                    </Box>
+
+                                                                    {/* Expand/Collapse Button */}
+                                                                    <IconButton
+                                                                        title={expanded.includes(index) ? "Collapse Content" : "Expand Content"}
+                                                                        onClick={() => {
+                                                                            if (expanded.includes(index)) {
+                                                                                setExpanded(expanded.filter((i) => i !== index));
+                                                                            } else {
+                                                                                setExpanded([...expanded, index]);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {expanded.includes(index) ? (
+                                                                            <ExpandLess sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        ) : (
+                                                                            <ExpandMore sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        )}
+                                                                    </IconButton>
+                                                                </Box>
                                                             </Box>
+
+                                                            {/* Expanded Content */}
+                                                            {expanded.includes(index) && (
+                                                                <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        color="text.secondary"
+                                                                        sx={{
+                                                                            mb: 2,
+                                                                            whiteSpace: "pre-wrap",
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                    {item.choices.length > 0 && (
+                                                                        <>
+                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
+                                                                                Choices
+                                                                            </Typography>
+                                                                            {item.choices.map((choice, index) => (
+                                                                                <Typography key={index} variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
+                                                                                    {`- ${choice.description}`}
+                                                                                </Typography>
+                                                                            ))}
+                                                                        </>
+                                                                    )}
+                                                                </Box>
+
+                                                            )}
                                                         </Box>
                                                     ))
                                                 ) : null}
