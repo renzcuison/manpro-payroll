@@ -613,9 +613,12 @@ class TrainingsController extends Controller
                     if ($cont->training_media_id) {
                         $cont->content = $cont->media;
                     } elseif ($cont->training_form_id) {
-                        $cont->content = $cont->form;
+                        $formData = $cont->form;
+                        $cont->content = $formData;
+                        $cont->empty_form = $formData->items->count() == 0;
                     } else {
                         $cont->content = null;
+                        $cont->empty_form = false;
                     }
 
                     if ($cont->training_media_id && $cont->media && $cont->media->type === 'Image') {
