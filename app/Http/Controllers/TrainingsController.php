@@ -1032,7 +1032,70 @@ class TrainingsController extends Controller
     public function editFormItem(Request $request)
     {
         Log::info("TrainingsController:editFormItem");
-        Log::info($request);
+        Log::info($request->all());
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                // Form Item
+                $item = TrainingFormItemsModel::findOrFail($request->input('item_id'));
+                $item->type = $request->input('item_type');
+                $item->description = $request->input('description');
+                $item->value = $request->input('points');
+                $item->save();
+
+                // Choice Handling Prep
+                $choices = $request->input('choices', []);
+                $correctItems = $request->input('correctItems', []);
+                $deletedChoices = $request->input('deletedChoices', []);
+
+                if ($request->input('item_type') == "FillInTheBlank") {
+                    TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+                } else {
+                    // Choice Deletion
+                    if (!empty($deletedChoices)) {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)
+                            ->whereIn('id', $deletedChoices)
+                            ->delete();
+                    }
+                    // Choice Updaters
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            $isCorrect = in_array((string) $index, $correctItems);
+
+                            if ($choice['id'] === 'null') {
+                                // Create New Choice
+                                TrainingFormChoicesModel::create([
+                                    'form_item_id' => $item->id,
+                                    'description' => $choice['text'],
+                                    'is_correct' => $isCorrect,
+                                ]);
+                            } else {
+                                // Update Existing Choice
+                                TrainingFormChoicesModel::where('id', $choice['id'])
+                                    ->where('form_item_id', $item->id)
+                                    ->update([
+                                        'description' => $choice['text'],
+                                        'is_correct' => $isCorrect,
+                                    ]);
+                            }
+                        }
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['status' => 500, 'message' => 'Error updating item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
     }
 
     public function getFormItems($id)

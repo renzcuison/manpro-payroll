@@ -52,12 +52,14 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
 
     const [choices, setChoices] = useState([]);
     const [correctIndices, setCorrectIndices] = useState([]);
+    const [deletedChoices, setDeletedChoices] = useState([]);
 
     const [itemTypeError, setItemTypeError] = useState(false);
     const [pointsError, setPointsError] = useState(false);
     const [correctionError, setCorrectionError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [emptyChoices, setEmptyChoices] = useState([]);
+
 
     useEffect(() => {
         if (open && itemInfo) {
@@ -82,9 +84,29 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
     };
 
     const handleDeleteChoice = (index) => {
-        setCorrectIndices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
-        setEmptyChoices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
-        setChoices(prev => prev.filter((_, i) => i !== index));
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            text: "Remove Choice?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Remove",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                if (res.isConfirmed) {
+                    const choice = choices[index];
+                    if (choice.id && choice.id !== "null") {
+                        setDeletedChoices((prev) => [...prev, choice.id]);
+                    }
+                    setCorrectIndices((prev) => prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)));
+                    setEmptyChoices((prev) => prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)));
+                    setChoices((prev) => prev.filter((_, i) => i !== index));
+                }
+            }
+        });
     };
 
     const checkInput = (event) => {
@@ -186,6 +208,13 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
             });
         } else {
             formData.append('correctItems[]', null);
+        }
+        if (deletedChoices.length > 0) {
+            deletedChoices.forEach(delChoice => {
+                formData.append('deletedChoices[]', delChoice);
+            });
+        } else {
+            formData.append('deletedChoices[]', null);
         }
 
         axiosInstance.post("/trainings/editFormItem", formData, { headers })
