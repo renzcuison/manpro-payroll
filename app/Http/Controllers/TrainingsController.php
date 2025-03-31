@@ -499,6 +499,28 @@ class TrainingsController extends Controller
                     ->where('training_id', $content->training_id)
                     ->decrement('order', 1);
 
+                // Training Media Soft Delete
+                if ($content->training_media_id) {
+                    $media = TrainingMediaModel::find($content->training_media_id);
+                    $media->delete();
+                }
+
+                // Training Form Soft Delete
+                if ($content->training_form_id) {
+                    $formId = $content->training_form_id;
+
+                    //Form Removal, Pending addition of SoftDeletes();
+                    //$form = TrainingFormsModel::find($formId);
+                    //$form->delete();
+
+                    $formItems = TrainingFormItemsModel::where('form_id', $formId)->get();
+                    if ($formItems->isNotEmpty()) {
+                        $formItemIds = $formItems->pluck('id')->toArray();
+                        TrainingFormChoicesModel::whereIn('form_item_id', $formItemIds)->delete();
+                    }
+                    TrainingFormItemsModel::where('form_id', $formId)->delete();
+                }
+
                 DB::commit();
 
                 return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
