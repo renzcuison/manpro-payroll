@@ -213,8 +213,8 @@ class AdminDashboardController extends Controller
                         $user = $logs->first()->user;
 
                         if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                            // $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic)) ?? null;
+                            // $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic)) ?? null;
                         } else {
                             $user->avatar = null;
                             $user->avatar_mime = null;
@@ -249,8 +249,8 @@ class AdminDashboardController extends Controller
                         $lateThreshold = $expectedStart->copy()->addMinute();
 
                         if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                            // $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                            // $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
                         } else {
                             $user->avatar = null;
                             $user->avatar_mime = null;
@@ -304,8 +304,8 @@ class AdminDashboardController extends Controller
                     ->get()
                     ->map(function ($user) {
                         if ($user->profile_pic) {
-                            $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                            $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                            // $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                            // $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
                         } else {
                             $user->avatar = null;
                             $user->avatar_mime = null;
@@ -339,8 +339,8 @@ class AdminDashboardController extends Controller
                     $endDate = Carbon::parse($application->duration_end);
 
                     if ($user->profile_pic) {
-                        $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                        $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+                        // $user->avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                        // $user->avatar_mime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
                     } else {
                         $user->avatar = null;
                         $user->avatar_mime = null;
