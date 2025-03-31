@@ -53,11 +53,7 @@ use App\Http\Controllers\Mobile\UserAuthMobileController;
 
 // Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
-
-
-
-
-
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -93,6 +89,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('clients')->group(function () {
         Route::get('/getClients', [ClientsController::class, 'getClients']);
         Route::post('/saveClient', [ClientsController::class, 'saveClient']);
+    });
+
+    // 
+    Route::prefix('admin')->group(function () {
+        
+        Route::prefix('documents')->group(function () {
+            Route::get('/', [DocumentController::class, 'index']);
+            Route::post('/store', [DocumentController::class, 'store']);
+        });
     });
 
     Route::prefix('settings')->group(function () {
