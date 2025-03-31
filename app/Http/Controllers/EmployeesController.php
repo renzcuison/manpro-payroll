@@ -447,7 +447,25 @@ class EmployeesController extends Controller
 
         if ($this->checkUserAdmin()) {
 
-            $formLinks = UserFormsModel::where('client_id', $user->client_id)->get();
+            $formLinks = [];
+            $rawFormLinks = UserFormsModel::where('client_id', $user->client_id)->orderBy('created_at', 'desc')->get();
+
+            foreach ($rawFormLinks as $rawFormLink) {
+
+                if (now()->greaterThan($rawFormLink->expiration)) {
+                    $rawFormLink->status = 'Expired';
+                }
+
+                $formLinks[] = [
+                    'code' => $rawFormLink->unique_code,
+                    'limit' => $rawFormLink->limit,
+                    'used' => $rawFormLink->used,
+                    'expiration' => $rawFormLink->expiration,
+                    'status' => $rawFormLink->status,
+                    'branch' => $rawFormLink->branch->name,
+                    'department' => $rawFormLink->department->name,
+                ];
+            }
 
             return response()->json(['status' => 200, 'form_links' => $formLinks]);
         }

@@ -27,4 +27,14 @@ class UserFormsModel extends Model
         'created_by',
         'deleted_by',
     ];
+
+    public function branch()
+    {
+        return $this->belongsTo(BranchesModel::class, 'branch_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(DepartmentsModel::class, 'department_id');
+    }
 }

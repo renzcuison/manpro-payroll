@@ -13,6 +13,7 @@ import BenefitView from "../Pages/Admin/Benefits/BenefitView";
 import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
+import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
@@ -69,6 +70,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="attendance/summary" element={<ProtectedRoute element={<AttendanceSummary />} user={user} />} />
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
+            <Route path="application/types" element={<ProtectedRoute element={<ApplicationTypes />} user={user} />} />
 
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
 

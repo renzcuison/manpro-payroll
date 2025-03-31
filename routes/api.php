@@ -197,6 +197,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getApplications', [ApplicationsController::class, 'getApplications']);
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
+        Route::post('/editApplicationType', [ApplicationsController::class, 'editApplicationType']);
+        
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
         Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
