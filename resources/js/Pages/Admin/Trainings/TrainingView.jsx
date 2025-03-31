@@ -356,7 +356,7 @@ const TrainingView = () => {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                title: "Empty Form Detected!",
+                title: "Empty Form Found!",
                 text: "All forms must have at least one item!",
                 icon: "error",
                 showConfirmButton: true,

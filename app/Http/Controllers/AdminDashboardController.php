@@ -339,7 +339,7 @@ class AdminDashboardController extends Controller
         $users = UsersModel::whereIn('id', $userIds)->get();
 
         $avatars = $users->mapWithKeys(function ($user) {
-            if ($user->profile_pic) {
+            if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
                 $avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
                 $avatarMime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
                 return [

@@ -577,7 +577,7 @@ class TrainingsController extends Controller
             ]));
             $training->author_title = $author->jobTitle->name;
 
-            if ($training->cover_photo) {
+            if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
                 $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
                 $training->cover_name = basename($training->cover_photo);
             } else {
@@ -733,7 +733,7 @@ class TrainingsController extends Controller
         ]));
         $training->author_title = $author->jobTitle->name;
 
-        if ($training->cover_photo) {
+        if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
             $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
             $training->cover_name = basename($training->cover_photo);
             $training->cover_mime =  mime_content_type(storage_path('app/public/' . $training->cover_photo));
@@ -880,7 +880,9 @@ class TrainingsController extends Controller
             ->get();
 
         $coverFiles->each(function ($file) use (&$covers) {
-            $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            if (Storage::disk('public')->exists($file->cover_photo)) {
+                $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            }
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
@@ -980,8 +982,8 @@ class TrainingsController extends Controller
     // Training Forms
     public function saveFormItem(Request $request)
     {
-        Log::info("TrainingsController:saveFormItem");
-        Log::info($request);
+        //Log::info("TrainingsController:saveFormItem");
+        //Log::info($request);
 
         $user = Auth::user();
 
