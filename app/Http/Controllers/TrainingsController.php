@@ -1048,6 +1048,44 @@ class TrainingsController extends Controller
         }
     }
 
+    public function saveFormItemSettings(Request $request)
+    {
+        Log::info("TrainingsController:saveFormItemSettings");
+        Log::info($request);
+
+        $user = Auth::user();
+        $order = $request->input('new_order');
+
+        $form = TrainingFormsModel::with('items')->find($request->input('form_id'));
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $orderMap = [];
+                foreach ($order as $ord) {
+                    $orderMap[$ord['id']] = $ord['order'];
+                }
+
+                $form->items()->update([
+                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
+                        return "WHEN $id THEN " . $orderMap[$id];
+                    }, array_keys($orderMap))) . " END")
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item order updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error updating content order: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error updating item order'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
     function generateRandomCode($length)
     {
         // log::info("TrainingsController::generateRandomCode");

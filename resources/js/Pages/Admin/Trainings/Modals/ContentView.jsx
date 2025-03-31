@@ -48,6 +48,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
 import ContentEdit from "./ContentEdit";
 import FormItemAdd from "./FormItemAdd";
+import FormItemSettings from "./FormItemSettings";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -189,7 +190,6 @@ const ContentView = ({ open, close, contentId, status }) => {
     const getFormItems = (formId) => {
         axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
             .then((response) => {
-                console.log(response.data.items);
                 setFormItems(response.data.items);
             })
             .catch((error) => {
@@ -204,6 +204,19 @@ const ContentView = ({ open, close, contentId, status }) => {
     };
     const handleCloseFormItemAddModal = (reload) => {
         setOpenFormItemAddModal(false);
+        if (reload) {
+            setExitReload(true);
+            getFormItems(content.training_form_id);
+        }
+    };
+
+    // Form Item Settings
+    const [openFormItemSettingsModal, setOpenFormItemSettingsModal] = useState(false);
+    const handleOpenFormItemSettingsModal = () => {
+        setOpenFormItemSettingsModal(true);
+    };
+    const handleCloseFormItemSettingsModal = (reload) => {
+        setOpenFormItemSettingsModal(false);
         if (reload) {
             setExitReload(true);
             getFormItems(content.training_form_id);
@@ -424,7 +437,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Form Items");
+                                                            handleOpenFormItemSettingsModal();
                                                             handleMenuClose();
                                                         }}
                                                     >
@@ -747,6 +760,14 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openFormItemAddModal}
                         close={handleCloseFormItemAddModal}
                         formId={content.content.id}
+                    />
+                )}
+                {openFormItemSettingsModal && (
+                    <FormItemSettings
+                        open={openFormItemSettingsModal}
+                        close={handleCloseFormItemSettingsModal}
+                        formId={content.content.id}
+                        formItems={formItems}
                     />
                 )}
             </Dialog>
