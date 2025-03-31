@@ -38,7 +38,7 @@ class TrainingsController extends Controller
         return false;
     }
 
-    // Training List
+    // Training List ---------------------------------------------------------------- /
     public function getTrainings()
     {
         //Log::info("TrainingsController::getTrainings");
@@ -140,7 +140,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training CRUD
+    // Training CRUD ---------------------------------------------------------------- /
     public function saveTraining(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");
@@ -276,7 +276,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Content CRUD
+    // Content CRUD ----------------------------------------------------------------- /
     public function saveContent(Request $request)
     {
         //Log::info("TrainingsController::saveContent");
@@ -496,6 +496,7 @@ class TrainingsController extends Controller
                 $content->delete();
 
                 TrainingContentModel::where('order', '>', $deletedOrder)
+                    ->where('training_id', $content->training_id)
                     ->decrement('order', 1);
 
                 DB::commit();
@@ -554,7 +555,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training/Content Details
+    // Training, Content Details ---------------------------------------------------- /
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
@@ -921,7 +922,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Views
+    // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
         //Log::info("TrainingsController:handleTrainingViews");
@@ -979,7 +980,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Forms
+    // Training Forms --------------------------------------------------------------- /
     public function saveFormItem(Request $request)
     {
         //Log::info("TrainingsController:saveFormItem");
@@ -1092,6 +1093,46 @@ class TrainingsController extends Controller
             } catch (\Exception $e) {
                 DB::rollBack();
                 return response()->json(['status' => 500, 'message' => 'Error updating item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function removeFormItem(Request $request)
+    {
+        // Log::info("TrainingsController::removeFormItem");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $item = TrainingFormItemsModel::find($request->input('id'));
+                if (!$item) {
+                    return response()->json(['status' => 404, 'message' => 'Item not found'], 404);
+                }
+
+                $deletedOrder = $item->order;
+                $item->order = null;
+                $item->save();
+                $item->delete();
+
+                TrainingFormItemsModel::where('order', '>', $deletedOrder)
+                    ->where('form_id', $item->form_id)
+                    ->decrement('order', 1);
+
+                TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error removing content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);

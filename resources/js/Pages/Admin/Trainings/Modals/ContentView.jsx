@@ -310,8 +310,48 @@ const ContentView = ({ open, close, contentId, status }) => {
 
     // Remove Form Item
     const handleDeleteItem = (id) => {
-        console.log(`Deleting Item ${id}`);
         handleItemMenuClose(id);
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Remove Item?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Remove",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    id: id
+                };
+                axiosInstance
+                    .post(`trainings/removeFormItem`, data, {
+                        headers,
+                    })
+                    .then((response) => {
+                        document.activeElement.blur();
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Form item successfully removed`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                getFormItems(content.training_form_id);
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error removing item:", error);
+                    });
+            }
+        });
     }
 
     // File Cleanup
@@ -638,9 +678,15 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             <Divider />
                                         </Grid>
                                         <Grid item xs={12}>
-                                            <Typography>
-                                                Items
-                                            </Typography>
+                                            {formItems.length == 0 ? (
+                                                <Typography sx={{ pb: 1, placeSelf: "center", color: "text.secondary" }}>
+                                                    No Items Found
+                                                </Typography>
+                                            ) : (
+                                                <Typography>
+                                                    Items
+                                                </Typography>
+                                            )}
                                         </Grid>
                                         <Grid item xs={12}>
                                             {formItems.length > 0 ? (
