@@ -721,7 +721,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                         }}
                                                         onChange={(event) => {
                                                             const value = event.target.value;
-                                                            if (value === "" || (Number(value) >= 0 && Number.isInteger(Number(value)))) {
+                                                            if (value === "" || (Number(value) <= 100 && Number(value) >= 0 && Number.isInteger(Number(value)))) {
                                                                 setPassingScore(value === "" ? "" : Number(value));
                                                             }
                                                         }}
@@ -781,7 +781,7 @@ const ContentEdit = ({ open, close, content }) => {
                                             name='description'
                                             value={description}
                                             onChange={(value) => {
-                                                if (value.length <= 512) {
+                                                if (value.length <= 1024) {
                                                     setDescription(value);
                                                 }
                                             }}
@@ -807,7 +807,7 @@ const ContentEdit = ({ open, close, content }) => {
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
                                         <FormHelperText>
-                                            {description.length}/{512}
+                                            {description.length}/{1024}
                                         </FormHelperText>
                                     </div>
                                 </FormControl>

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
-use App\Models\TrainingContentModel;
-use App\Models\TrainingFormsModel;
 use App\Models\TrainingsModel;
-use App\Models\TrainingMediaModel;
+use App\Models\TrainingContentModel;
 use App\Models\TrainingViewsModel;
+use App\Models\TrainingMediaModel;
+use App\Models\TrainingFormsModel;
+use App\Models\TrainingFormItemsModel;
+use App\Models\TrainingFormChoicesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +38,7 @@ class TrainingsController extends Controller
         return false;
     }
 
-    // Training List
+    // Training List ---------------------------------------------------------------- /
     public function getTrainings()
     {
         //Log::info("TrainingsController::getTrainings");
@@ -138,7 +140,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training CRUD
+    // Training CRUD ---------------------------------------------------------------- /
     public function saveTraining(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");
@@ -274,7 +276,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Content CRUD
+    // Content CRUD ----------------------------------------------------------------- /
     public function saveContent(Request $request)
     {
         //Log::info("TrainingsController::saveContent");
@@ -494,6 +496,7 @@ class TrainingsController extends Controller
                 $content->delete();
 
                 TrainingContentModel::where('order', '>', $deletedOrder)
+                    ->where('training_id', $content->training_id)
                     ->decrement('order', 1);
 
                 DB::commit();
@@ -552,7 +555,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training/Content Details
+    // Training, Content Details ---------------------------------------------------- /
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
@@ -575,7 +578,7 @@ class TrainingsController extends Controller
             ]));
             $training->author_title = $author->jobTitle->name;
 
-            if ($training->cover_photo) {
+            if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
                 $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
                 $training->cover_name = basename($training->cover_photo);
             } else {
@@ -611,9 +614,12 @@ class TrainingsController extends Controller
                     if ($cont->training_media_id) {
                         $cont->content = $cont->media;
                     } elseif ($cont->training_form_id) {
-                        $cont->content = $cont->form;
+                        $formData = $cont->form;
+                        $cont->content = $formData;
+                        $cont->empty_form = $formData->items->count() == 0;
                     } else {
                         $cont->content = null;
+                        $cont->empty_form = false;
                     }
 
                     if ($cont->training_media_id && $cont->media && $cont->media->type === 'Image') {
@@ -670,8 +676,11 @@ class TrainingsController extends Controller
             if ($content->training_media_id) {
                 $content->content = $content->media;
             } elseif ($content->training_form_id) {
-                $content->content = $content->form;
+                $formData = $content->form;
+                $content->content = $formData;
                 $content->content->type = "Form";
+                $content->item_count = $formData->items->count();
+                $content->total_points = $formData->items->sum('value') ?? 0;
             } else {
                 $content->content = null;
             }
@@ -725,7 +734,7 @@ class TrainingsController extends Controller
         ]));
         $training->author_title = $author->jobTitle->name;
 
-        if ($training->cover_photo) {
+        if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
             $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
             $training->cover_name = basename($training->cover_photo);
             $training->cover_mime =  mime_content_type(storage_path('app/public/' . $training->cover_photo));
@@ -872,7 +881,9 @@ class TrainingsController extends Controller
             ->get();
 
         $coverFiles->each(function ($file) use (&$covers) {
-            $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            if (Storage::disk('public')->exists($file->cover_photo)) {
+                $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            }
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
@@ -911,7 +922,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Views
+    // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
         //Log::info("TrainingsController:handleTrainingViews");
@@ -968,6 +979,223 @@ class TrainingsController extends Controller
             return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
         }
     }
+
+    // Training Forms --------------------------------------------------------------- /
+    public function saveFormItem(Request $request)
+    {
+        //Log::info("TrainingsController:saveFormItem");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $form = TrainingFormsModel::find($request->input('form_id'));
+
+            try {
+                DB::beginTransaction();
+
+                $itemCount = TrainingFormItemsModel::where('form_id', $form->id)->count();
+                $nextOrder = $itemCount + 1;
+
+                $item = TrainingFormItemsModel::create([
+                    'form_id' => $form->id,
+                    'type' => $request->input('item_type'),
+                    'description' => $request->input('description'),
+                    'order' => $nextOrder,
+                    'value' => $request->input('points')
+                ]);
+
+                $choices = $request->input('choices', []);
+                if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                    foreach ($choices as $index => $choice) {
+                        TrainingFormChoicesModel::create([
+                            'form_item_id' => $item->id,
+                            'description' => $choice,
+                            'is_correct' => in_array($index, $request->input('correctItems', []))
+                        ]);
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item saved successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error saving item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function editFormItem(Request $request)
+    {
+        Log::info("TrainingsController:editFormItem");
+        Log::info($request->all());
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                // Form Item
+                $item = TrainingFormItemsModel::findOrFail($request->input('item_id'));
+                $item->type = $request->input('item_type');
+                $item->description = $request->input('description');
+                $item->value = $request->input('points');
+                $item->save();
+
+                // Choice Handling Prep
+                $choices = $request->input('choices', []);
+                $correctItems = $request->input('correctItems', []);
+                $deletedChoices = $request->input('deletedChoices', []);
+
+                if ($request->input('item_type') == "FillInTheBlank") {
+                    TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+                } else {
+                    // Choice Deletion
+                    if (!empty($deletedChoices)) {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)
+                            ->whereIn('id', $deletedChoices)
+                            ->delete();
+                    }
+                    // Choice Updaters
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            $isCorrect = in_array((string) $index, $correctItems);
+
+                            if ($choice['id'] === 'null') {
+                                // Create New Choice
+                                TrainingFormChoicesModel::create([
+                                    'form_item_id' => $item->id,
+                                    'description' => $choice['text'],
+                                    'is_correct' => $isCorrect,
+                                ]);
+                            } else {
+                                // Update Existing Choice
+                                TrainingFormChoicesModel::where('id', $choice['id'])
+                                    ->where('form_item_id', $item->id)
+                                    ->update([
+                                        'description' => $choice['text'],
+                                        'is_correct' => $isCorrect,
+                                    ]);
+                            }
+                        }
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['status' => 500, 'message' => 'Error updating item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function removeFormItem(Request $request)
+    {
+        // Log::info("TrainingsController::removeFormItem");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $item = TrainingFormItemsModel::find($request->input('id'));
+                if (!$item) {
+                    return response()->json(['status' => 404, 'message' => 'Item not found'], 404);
+                }
+
+                $deletedOrder = $item->order;
+                $item->order = null;
+                $item->save();
+                $item->delete();
+
+                TrainingFormItemsModel::where('order', '>', $deletedOrder)
+                    ->where('form_id', $item->form_id)
+                    ->decrement('order', 1);
+
+                TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error removing content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function getFormItems($id)
+    {
+        //Log::info("TrainingsController:getFormItems");
+        //Log::info($id);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $itemData = TrainingFormItemsModel::with('choices')
+                ->where('form_id', $id)
+                ->orderBy('order', 'asc')
+                ->get();
+
+            return response()->json(['status' => 403, 'items' => $itemData]);
+        } else {
+            return response()->json(['status' => 403, 'items' => null]);
+        }
+    }
+
+    public function saveFormItemSettings(Request $request)
+    {
+        Log::info("TrainingsController:saveFormItemSettings");
+        Log::info($request);
+
+        $user = Auth::user();
+        $order = $request->input('new_order');
+
+        $form = TrainingFormsModel::with('items')->find($request->input('form_id'));
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $orderMap = [];
+                foreach ($order as $ord) {
+                    $orderMap[$ord['id']] = $ord['order'];
+                }
+
+                $form->items()->update([
+                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
+                        return "WHEN $id THEN " . $orderMap[$id];
+                    }, array_keys($orderMap))) . " END")
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item order updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error updating content order: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error updating item order'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
 
     function generateRandomCode($length)
     {

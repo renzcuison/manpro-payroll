@@ -442,7 +442,7 @@ class AnnouncementsController extends Controller
             ->first();
 
         $thumbnail = null;
-        if ($thumbnailFile) {
+        if ($thumbnailFile && Storage::disk('public')->exists($thumbnailFile->path)) {
             $thumbnail = base64_encode(Storage::disk('public')->get($thumbnailFile->path));
         }
 
@@ -464,7 +464,9 @@ class AnnouncementsController extends Controller
             ->get();
 
         $thumbnailFiles->each(function ($file) use (&$thumbnails) {
-            $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+            if (Storage::disk('public')->exists($file->path)) {
+                $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+            }
         });
 
         return response()->json(['status' => 200, 'thumbnails' => array_values($thumbnails)]);
@@ -486,14 +488,18 @@ class AnnouncementsController extends Controller
 
             $imageData = $files->whereIn('type', ['Image', 'Thumbnail'])
                 ->map(function ($file) {
-                    return [
-                        'id' => $file->id,
-                        'filename' => basename($file->path),
-                        'type' => $file->type,
-                        'data' => base64_encode(Storage::disk('public')->get($file->path)),
-                        'mime' => mime_content_type(storage_path('app/public/' . $file->path))
-                    ];
+                    if (Storage::disk('public')->exists($file->path)) {
+                        return [
+                            'id' => $file->id,
+                            'filename' => basename($file->path),
+                            'type' => $file->type,
+                            'data' => base64_encode(Storage::disk('public')->get($file->path)),
+                            'mime' => mime_content_type(storage_path('app/public/' . $file->path))
+                        ];
+                    }
+                    return null;
                 })
+                ->filter()
                 ->values()
                 ->all();
 
@@ -533,14 +539,18 @@ class AnnouncementsController extends Controller
 
         $imageData = $files->whereIn('type', ['Image', 'Thumbnail'])
             ->map(function ($file) {
-                return [
-                    'id' => $file->id,
-                    'filename' => basename($file->path),
-                    'type' => $file->type,
-                    'data' => base64_encode(Storage::disk('public')->get($file->path)),
-                    'mime' => mime_content_type(storage_path('app/public/' . $file->path))
-                ];
+                if (Storage::disk('public')->exists($file->path)) {
+                    return [
+                        'id' => $file->id,
+                        'filename' => basename($file->path),
+                        'type' => $file->type,
+                        'data' => base64_encode(Storage::disk('public')->get($file->path)),
+                        'mime' => mime_content_type(storage_path('app/public/' . $file->path))
+                    ];
+                }
+                return null;
             })
+            ->filter()
             ->values()
             ->all();
 

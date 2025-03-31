@@ -24,7 +24,7 @@ import {
     Divider,
     Menu
 } from "@mui/material";
-import { Cancel, MoreVert } from "@mui/icons-material";
+import { Cancel, ExpandMore, ExpandLess, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -47,6 +47,9 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
 import ContentEdit from "./ContentEdit";
+import FormItemAdd from "./FormItemAdd";
+import FormItemSettings from "./FormItemSettings";
+import FormItemEdit from "./FormItemEdit";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -58,14 +61,13 @@ const ContentView = ({ open, close, contentId, status }) => {
 
     const [content, setContent] = useState(null)
     const [exitReload, setExitReload] = useState(false);
-    const [image, setImage] = useState(null);
+    const [file, setFile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Content Details
+    // CONTENT FUNCTIONS --------------------------------------- /
     useEffect(() => {
         getContentDetails();
     }, []);
-
 
     // Content Menu
     const [anchorEl, setAnchorEl] = useState(null);
@@ -81,7 +83,7 @@ const ContentView = ({ open, close, contentId, status }) => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return image;
+                return file;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -153,11 +155,11 @@ const ContentView = ({ open, close, contentId, status }) => {
                 const resContent = (response.data.content);
                 setContent(resContent);
                 if (
-                    resContent?.content?.type === 'Image' &&
+                    ["Image", "Document", "PowerPoint"].includes(resContent?.content?.type) &&
                     resContent?.file
                 ) {
-                    if (image && image.startsWith('blob:')) {
-                        URL.revokeObjectURL(image);
+                    if (file && file.startsWith('blob:')) {
+                        URL.revokeObjectURL(file);
                     }
                     const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -167,12 +169,12 @@ const ContentView = ({ open, close, contentId, status }) => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.file_mime });
 
-                    setImage(URL.createObjectURL(blob));
+                    setFile(URL.createObjectURL(blob));
                 } else {
-                    setImage(null);
+                    setFile(null);
                 }
                 if (resContent?.content?.type === 'Form') {
-                    getFormItems();
+                    getFormItems(resContent.training_form_id);
                 }
                 setIsLoading(false);
             })
@@ -180,11 +182,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                 console.error('Error fetching content details', error);
                 setIsLoading(false);
             });
-    }
-
-    // Form Items
-    const getFormItems = () => {
-        console.log("Hello World");
     }
 
     // Remove Content
@@ -232,15 +229,139 @@ const ContentView = ({ open, close, contentId, status }) => {
         });
     };
 
-    // Image Cleanup
+    // FORM ITEM FUNCTIONS ------------------------------------- /
+    const [formItems, setFormItems] = useState([]);
+    const [expanded, setExpanded] = useState([]);
+    const getFormItems = (formId) => {
+        axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
+            .then((response) => {
+                setFormItems(response.data.items);
+            })
+            .catch((error) => {
+                console.error('Error fetching form items', error);
+            });
+    }
+
+    // Add Form Item
+    const [openFormItemAddModal, setOpenFormItemAddModal] = useState(false);
+    const handleOpenFormItemAddModal = () => {
+        setOpenFormItemAddModal(true);
+    };
+    const handleCloseFormItemAddModal = (reload) => {
+        setOpenFormItemAddModal(false);
+        if (reload) {
+            setExitReload(true);
+            getFormItems(content.training_form_id);
+        }
+    };
+
+    // Form Item Settings
+    const [openFormItemSettingsModal, setOpenFormItemSettingsModal] = useState(false);
+    const handleOpenFormItemSettingsModal = () => {
+        setOpenFormItemSettingsModal(true);
+    };
+    const handleCloseFormItemSettingsModal = (reload) => {
+        setOpenFormItemSettingsModal(false);
+        if (reload) {
+            setExitReload(true);
+            getFormItems(content.training_form_id);
+        }
+    };
+
+    // ---------------- Item Menu
+    const [itemMenuStates, setItemMenuStates] = useState({});
+    const handleItemMenuOpen = (event, id) => {
+        setItemMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: true,
+                anchorEl: event.currentTarget,
+            },
+        }));
+    };
+
+    const handleItemMenuClose = (id) => {
+        setItemMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: false,
+                anchorEl: null,
+            },
+        }));
+    };
+
+    // Edit Form Item
+    const [openFormItemEditModal, setOpenFormItemEditModal] = useState(false);
+    const [loadItem, setLoadItem] = useState(null);
+    const handleOpenFormItemEditModal = (item) => {
+        setLoadItem(item);
+        setOpenFormItemEditModal(true);
+        handleItemMenuClose(item.id);
+    }
+    const handleCloseFormItemEditModal = (reload) => {
+        setLoadItem(false);
+        setOpenFormItemEditModal(false);
+        if (reload) {
+            getFormItems(content.training_form_id);
+        }
+    }
+
+    // Remove Form Item
+    const handleDeleteItem = (id) => {
+        handleItemMenuClose(id);
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Remove Item?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Remove",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "No",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    id: id
+                };
+                axiosInstance
+                    .post(`trainings/removeFormItem`, data, {
+                        headers,
+                    })
+                    .then((response) => {
+                        document.activeElement.blur();
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Success!",
+                            text: `Form item successfully removed`,
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                getFormItems(content.training_form_id);
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error removing item:", error);
+                    });
+            }
+        });
+    }
+
+    // File Cleanup
     useEffect(() => {
         return () => {
-            if (image && image.startsWith('blob:')) {
-                console.log("removing image");
-                URL.revokeObjectURL(image);
+            if (file && file.startsWith('blob:')) {
+                URL.revokeObjectURL(file);
             }
         };
-    }, [image]);
+    }, [file]);
 
     return (
         <>
@@ -261,15 +382,23 @@ const ContentView = ({ open, close, contentId, status }) => {
                         <Box>
                             <Grid container spacing={2} sx={{ mt: 2 }}>
                                 {/* Media Display for Non-Forms */}
-                                {content.content.type != "Form" && (
-                                    <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ placeContent: "center", placeItems: "center" }}>
+                                {content.content.type !== "Form" && (
+                                    <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                                         {content.content.type === "Video" ? (
                                             <Box
                                                 sx={{
-                                                    width: "90%",
+                                                    mb: 2,
+                                                    width: "100%",
+                                                    maxWidth: "600px",
                                                     aspectRatio: "16 / 9",
-                                                    placeSelf: "center",
-                                                    mb: 1,
+                                                    borderRadius: "8px",
+                                                    overflow: "hidden",
+                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "scale(1.02)",
+                                                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                                                    },
                                                 }}
                                             >
                                                 {renderVideo(content.content.source)}
@@ -278,56 +407,58 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             <CardMedia
                                                 component="img"
                                                 sx={{
-                                                    width: "80%",
-                                                    aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
+                                                    mb: 2,
+                                                    width: "100%",
+                                                    maxWidth: ["Document", "PowerPoint"].includes(content.content.type) ? "200px" : "600px", // Smaller for documents, larger for images
+                                                    aspectRatio: ["Document", "PowerPoint"].includes(content.content.type) ? "4 / 3" : "16 / 9",
                                                     objectFit: "contain",
-                                                    borderRadius: "4px",
+                                                    borderRadius: "8px",
                                                     backgroundColor: "transparent",
-                                                    placeSelf: "center",
-                                                    mb: 1,
-                                                    ...(["Document", "PowerPoint"].includes(content.content.type) && {
-                                                        p: 1,
-                                                        "&:hover": {
-                                                            backgroundColor: "#e0e0e0",
-                                                            transition: "background-color 0.3s ease",
-                                                        },
-                                                    }),
+                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "scale(1.02)",
+                                                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                                                        backgroundColor: ["Document", "PowerPoint"].includes(content.content.type) ? "#e0e0e0" : "transparent",
+                                                    },
                                                 }}
                                                 image={renderImage(content.content.source, content.content.type)}
                                                 title={content.title || "Content Item"}
                                                 alt={content.title || "Content Item"}
                                                 onClick={
                                                     ["Document", "PowerPoint"].includes(content.content.type)
-                                                        ? () => window.open(`${location.origin}/storage/${content.content.source}`, "_blank")
+                                                        ? () => window.open(file, "_blank")
                                                         : undefined
                                                 }
                                             />
                                         )}
-                                        {["Document", "PowerPoint"].includes(content.content.type) ? (
-                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>Click to open file</Typography>
-                                        ) : (
-                                            <Divider />
+                                        {["Document", "PowerPoint"].includes(content.content.type) && (
+                                            <Typography variant="caption" sx={{ mt: 1, color: "text.secondary", fontStyle: "italic" }}>
+                                                Click to open file
+                                            </Typography>
                                         )}
                                     </Grid>
                                 )}
                                 {/* Content Information */}
-                                <Grid container item spacing={2} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
-                                    {/* Divider for Image, Videos */}
-                                    {content.content.type && !["Document", "PowerPoint", "Form"].includes(content.content.type) && <Grid item xs={12}><Divider /></Grid>}
+                                <Grid container item spacing={1} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
                                     {/* Content Title and Options */}
                                     <Grid item xs={12}>
-                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                            <Typography variant="h5">
+                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                 {content.title}
                                             </Typography>
                                             {/* Options */}
                                             <IconButton
                                                 id="basic-button"
                                                 size="small"
-                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                aria-controls={menuOpen ? "basic-menu" : undefined}
                                                 aria-haspopup="true"
-                                                aria-expanded={open ? 'true' : undefined}
+                                                aria-expanded={menuOpen ? "true" : undefined}
                                                 onClick={handleMenuClick}
+                                                sx={{
+                                                    color: "text.secondary",
+                                                    "&:hover": { color: "primary.main" },
+                                                }}
                                             >
                                                 <MoreVert />
                                             </IconButton>
@@ -337,202 +468,423 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 open={menuOpen}
                                                 onClose={handleMenuClose}
                                                 MenuListProps={{
-                                                    'aria-labelledby': 'basic-button',
+                                                    "aria-labelledby": "basic-button",
                                                 }}
                                             >
                                                 {/* Edit Content */}
-                                                {status == "Pending" && (
+                                                {status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleOpenContentEditModal();
                                                             handleMenuClose();
-                                                        }}>
+                                                        }}
+                                                    >
                                                         Edit
                                                     </MenuItem>
                                                 )}
                                                 {/* Remove Content */}
-                                                {status == "Pending" && (
+                                                {status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleRemoveContent();
                                                             handleMenuClose();
-                                                        }}>
+                                                        }}
+                                                    >
                                                         Remove
                                                     </MenuItem>
                                                 )}
                                                 {/* Progress Monitoring */}
-                                                {status != "Pending" && (
+                                                {status !== "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             console.log("Viewing Employee Progress");
                                                             handleMenuClose();
-                                                        }}>
+                                                        }}
+                                                    >
                                                         Remove
                                                     </MenuItem>
                                                 )}
                                                 {/* Form Options */}
-                                                {status == "Pending" && content.content.type == "Form" && (
+                                                {status === "Pending" && content.content.type === "Form" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Form Items");
+                                                            handleOpenFormItemAddModal();
                                                             handleMenuClose();
-                                                        }}>
+                                                        }}
+                                                    >
                                                         Add Item
                                                     </MenuItem>
                                                 )}
-                                                {status == "Pending" && content.content.type == "Form" && (
+                                                {status === "Pending" && content.content.type === "Form" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Form Items");
+                                                            handleOpenFormItemSettingsModal();
                                                             handleMenuClose();
-                                                        }}>
+                                                        }}
+                                                    >
                                                         Item Settings
                                                     </MenuItem>
                                                 )}
                                             </Menu>
                                         </Stack>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid item xs={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
                                     {/* Additional Form Information */}
-                                    {content.content.type == "Form" && (
+                                    {content.content.type === "Form" && (
                                         <Grid container item xs={12} spacing={2}>
+                                            <Grid item xs={12}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                    Form Details
+                                                </Typography>
+                                            </Grid>
                                             <Grid item xs={4}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         {content.content.require_pass ? "Availability" : "Attempt Limit"}
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {content.content.require_pass ? "Until Passed" : content.content.attempts_allowed ?? "N/A"}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Passing Score
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {`${content.content.passing_score ?? "N/A"} %`}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Duration Per Attempt
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {`${content.duration ?? "N/A"} min`}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                            <Grid item xs={12} sx={{ my: 0 }}>
                                                 <Divider />
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Item Count
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
-                                                        {43}
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                        {content.item_count}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Total Points
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
-                                                        {`${64} pts`}
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                        {`${content.total_points} pts`}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
+                                            <Grid item xs={12} sx={{ my: 0 }}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
-                                    {status != "Pending" && (
-                                        <Grid container item xs={12} spacing={2}>
+                                    {/* Progress Viewer */}
+                                    {status !== "Pending" && (
+                                        <Grid container item xs={12} spacing={1}>
+                                            <Grid item xs={12}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                    Progress Statistics
+                                                </Typography>
+                                            </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Not Yet Viewed
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {content.no_view_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Viewers
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {content.view_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography>
+                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Completers
                                                     </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                         {content.finished_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
-                                                <Divider />
+                                            <Grid item xs={12} sx={{ my: 0 }}>
+                                                <Divider sx={{ my: 1 }} />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Description */}
-                                    <Grid item xs={12} >
+                                    <Grid item xs={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                            Description
+                                        </Typography>
                                         <div
                                             id="description"
                                             style={{
-                                                wordWrap: 'break-word',
-                                                wordBreak: 'break-word',
-                                                overflowWrap: 'break-word',
-                                                whiteSpace: 'pre-wrap',
+                                                wordWrap: "break-word",
+                                                wordBreak: "break-word",
+                                                overflowWrap: "break-word",
+                                                whiteSpace: "pre-wrap",
+                                                backgroundColor: "#f5f5f5",
+                                                borderRadius: "4px",
+                                                p: 2,
+                                                minHeight: "60px",
                                             }}
                                             dangerouslySetInnerHTML={{ __html: content.description }}
                                         />
                                     </Grid>
-                                    {/* Form Items */}
-                                    {content.content.type == "Form" && (
-                                        <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
-                                                <Divider />
-                                            </Grid>
-                                            <Grid item xs={12}>
+                                </Grid>
+                                {/* Form Items */}
+                                {content.content.type == "Form" && (
+                                    <Grid container item xs={12} spacing={2}>
+                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                            <Divider />
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            {formItems.length == 0 ? (
+                                                <Typography sx={{ pb: 1, placeSelf: "center", color: "text.secondary" }}>
+                                                    No Items Found
+                                                </Typography>
+                                            ) : (
                                                 <Typography>
                                                     Items
                                                 </Typography>
-                                            </Grid>
-                                            <Grid item xs={12}>
-                                                {`[insert full item list]`}
-                                            </Grid>
+                                            )}
                                         </Grid>
-                                    )}
-                                </Grid>
+                                        <Grid item xs={12}>
+                                            {formItems.length > 0 ? (
+                                                formItems.map((item, index) => {
+
+                                                    if (!itemMenuStates[item.id]) {
+                                                        itemMenuStates[item.id] = { open: false, anchorEl: null, };
+                                                    }
+
+                                                    return (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                mb: 1,
+                                                                p: "8px 12px",
+                                                                border: "1px solid #e0e0e0",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: expanded.includes(index) ? "#f5f7fa" : "white",
+                                                                transition: "background-color 0.3s ease",
+                                                                boxShadow: expanded.includes(index) ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
+                                                            }}
+                                                        >
+                                                            {/* Primary Content */}
+                                                            <Box display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                                {/* Type and Description */}
+                                                                <Box display="flex" alignItems="center" sx={{ width: "56%" }}>
+                                                                    {/* Item Type */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            width: "20%",
+                                                                            borderRadius: "4px",
+                                                                            backgroundColor:
+                                                                                item.type === "Choice"
+                                                                                    ? "#e3f2fd"
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#fff3e0"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#e8f5e9"
+                                                                                            : "#ffebee",
+                                                                            color:
+                                                                                item.type === "Choice"
+                                                                                    ? "#1976d2"
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#f57c00"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#2e7d32"
+                                                                                            : "#d32f2f",
+                                                                            fontSize: "0.75rem",
+                                                                            fontWeight: "bold",
+                                                                            textTransform: "uppercase",
+                                                                            textAlign: "center",
+                                                                        }}
+                                                                    >
+                                                                        {item.type === "Choice"
+                                                                            ? "Choice"
+                                                                            : item.type === "MultiSelect"
+                                                                                ? "Selection"
+                                                                                : item.type === "FillInTheBlank"
+                                                                                    ? "Fill"
+                                                                                    : "Unknown"}
+                                                                    </Box>
+
+                                                                    {/* Short Description */}
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            flex: 1,
+                                                                            overflow: "hidden",
+                                                                            textOverflow: "ellipsis",
+                                                                            whiteSpace: "nowrap",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            lineHeight: 1,
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                </Box>
+                                                                {/* Interactions */}
+                                                                <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
+                                                                    {/* Points */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            width: "50%",
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            borderRadius: "12px",
+                                                                            backgroundColor: "#e8f5e9",
+                                                                            color: "#2e7d32",
+                                                                            fontSize: "0.875rem",
+                                                                            fontWeight: "bold",
+                                                                            textAlign: "center",
+                                                                        }}
+                                                                    >
+                                                                        {`${item.value} pt${item.value > 1 ? "s" : ""}`}
+                                                                    </Box>
+
+                                                                    {/* Dropdown Button */}
+                                                                    {status === "Pending" && (
+                                                                        <>
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                aria-controls={itemMenuStates[item.id]?.open ? `item-menu-${index}` : undefined}
+                                                                                aria-haspopup="true"
+                                                                                onClick={(event) => {
+                                                                                    event.stopPropagation();
+                                                                                    handleItemMenuOpen(event, item.id);
+                                                                                }}
+                                                                                sx={{ ml: 0.5 }}
+                                                                            >
+                                                                                <MoreVert sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                            </IconButton>
+                                                                            <Menu
+                                                                                id={`item-menu-${index}`}
+                                                                                anchorEl={itemMenuStates[item.id]?.anchorEl}
+                                                                                open={itemMenuStates[item.id]?.open || false}
+                                                                                onClose={(event) => {
+                                                                                    handleItemMenuClose(item.id);
+                                                                                }}
+                                                                                MenuListProps={{
+                                                                                    "aria-labelledby": `item-button-${index}`,
+                                                                                }}
+                                                                            >
+                                                                                <MenuItem onClick={() => handleOpenFormItemEditModal(item)}>Edit</MenuItem>
+                                                                                <MenuItem onClick={() => handleDeleteItem(item.id)}>Delete</MenuItem>
+                                                                            </Menu>
+                                                                        </>
+                                                                    )}
+
+                                                                    {/* Expand/Collapse Button */}
+                                                                    <IconButton
+                                                                        title={expanded.includes(index) ? "Collapse Content" : "Expand Content"}
+                                                                        onClick={() => {
+                                                                            if (expanded.includes(index)) {
+                                                                                setExpanded(expanded.filter((i) => i !== index));
+                                                                            } else {
+                                                                                setExpanded([...expanded, index]);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {expanded.includes(index) ? (
+                                                                            <ExpandLess sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        ) : (
+                                                                            <ExpandMore sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        )}
+                                                                    </IconButton>
+                                                                </Box>
+                                                            </Box>
+
+                                                            {/* Expanded Content */}
+                                                            {expanded.includes(index) && (
+                                                                <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        color="text.secondary"
+                                                                        sx={{
+                                                                            mb: 2,
+                                                                            whiteSpace: "pre-wrap",
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                    {item.choices.length > 0 && (
+                                                                        <>
+                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
+                                                                                Choices
+                                                                            </Typography>
+                                                                            {item.choices.map((choice, index) => (
+                                                                                <Box
+                                                                                    key={index}
+                                                                                    sx={{
+                                                                                        mt: 1,
+                                                                                        p: 1,
+                                                                                        width: "100%",
+                                                                                        border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        borderRadius: "4px",
+                                                                                    }}
+                                                                                >
+                                                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                                        {choice.description}
+                                                                                    </Typography>
+                                                                                </Box>
+                                                                            ))}
+                                                                        </>
+                                                                    )}
+                                                                </Box>
+                                                            )}
+                                                        </Box>
+                                                    );
+                                                })
+                                            ) : null}
+                                        </Grid>
+                                    </Grid>
+                                )}
                             </Grid>
                         </Box>
                     )}
@@ -543,6 +895,28 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openContentEditModal}
                         close={handleCloseContentEditModal}
                         content={content}
+                    />
+                )}
+                {openFormItemAddModal && (
+                    <FormItemAdd
+                        open={openFormItemAddModal}
+                        close={handleCloseFormItemAddModal}
+                        formId={content.training_form_id}
+                    />
+                )}
+                {openFormItemSettingsModal && (
+                    <FormItemSettings
+                        open={openFormItemSettingsModal}
+                        close={handleCloseFormItemSettingsModal}
+                        formId={content.training_form_id}
+                        formItems={formItems}
+                    />
+                )}
+                {openFormItemEditModal && (
+                    <FormItemEdit
+                        open={openFormItemEditModal}
+                        close={handleCloseFormItemEditModal}
+                        itemInfo={loadItem}
                     />
                 )}
             </Dialog>

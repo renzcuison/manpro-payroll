@@ -184,7 +184,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('payroll')->group(function () {
         Route::get('/payrollDetails', [PayrollController::class, 'payrollDetails']);
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
-        
+
         Route::get('/getPayrollRecord', [PayrollController::class, 'getPayrollRecord']);
         Route::get('/getEmployeePayrollRecords', [PayrollController::class, 'getEmployeePayrollRecords']);
         Route::get('/getEmployeesPayrollRecords', [PayrollController::class, 'getEmployeesPayrollRecords']);
@@ -248,6 +248,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('adminDashboard')->group(function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendance', [AdminDashboardController::class, 'getAttendance']);
+        Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
     });
 
     Route::prefix('trainings')->group(function () {
@@ -274,6 +275,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
+
+        Route::get('/getFormItems/{id}', [TrainingsController::class, 'getFormItems']);
+        Route::post('/saveFormItem', [TrainingsController::class, 'saveFormItem']);
+        Route::post('/editFormItem', [TrainingsController::class, 'editFormItem']);
+        Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
+        Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
     });
 
 

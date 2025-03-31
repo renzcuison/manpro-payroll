@@ -40,26 +40,19 @@ import PDFImage from "../../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../../public/media/assets/Docx_file_icon.png";
 import PPTImage from "../../../../../../public/media/assets/PowerPoint_file_icon.png";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import duration from "dayjs/plugin/duration";
-dayjs.extend(utc);
-dayjs.extend(localizedFormat);
-dayjs.extend(duration);
-
-const FormItemAdd = ({ open, close, formId }) => {
+const FormItemEdit = ({ open, close, itemInfo }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Universal Fields
-    const [itemType, setItemType] = useState("Choice");
-    const [points, setPoints] = useState(1);
-    const [description, setDescription] = useState("");
+    const [itemType, setItemType] = useState(itemInfo.type);
+    const [points, setPoints] = useState(itemInfo.value);
+    const [description, setDescription] = useState(itemInfo.description);
 
     const [choices, setChoices] = useState([]);
     const [correctIndices, setCorrectIndices] = useState([]);
+    const [deletedChoices, setDeletedChoices] = useState([]);
 
     const [itemTypeError, setItemTypeError] = useState(false);
     const [pointsError, setPointsError] = useState(false);
@@ -67,14 +60,53 @@ const FormItemAdd = ({ open, close, formId }) => {
     const [descriptionError, setDescriptionError] = useState(false);
     const [emptyChoices, setEmptyChoices] = useState([]);
 
+
+    useEffect(() => {
+        if (open && itemInfo) {
+            const transformedChoices = (itemInfo.choices ?? []).map((choice) => ({
+                text: choice.description,
+                id: choice.id,
+            }));
+            setChoices(transformedChoices);
+
+            const indices = (itemInfo.choices ?? []).reduce((acc, choice, index) => {
+                if (choice.is_correct) {
+                    acc.push(index);
+                }
+                return acc;
+            }, []);
+            setCorrectIndices(indices);
+        }
+    }, [open, itemInfo]);
+
     const handleAddChoice = () => {
-        setChoices(prev => [...prev, { text: "" }]);
+        setChoices(prev => [...prev, { text: "", id: null }]);
     };
 
     const handleDeleteChoice = (index) => {
-        setCorrectIndices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
-        setEmptyChoices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
-        setChoices(prev => prev.filter((_, i) => i !== index));
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            text: "Remove Choice?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Remove",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                if (res.isConfirmed) {
+                    const choice = choices[index];
+                    if (choice.id && choice.id !== "null") {
+                        setDeletedChoices((prev) => [...prev, choice.id]);
+                    }
+                    setCorrectIndices((prev) => prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)));
+                    setEmptyChoices((prev) => prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)));
+                    setChoices((prev) => prev.filter((_, i) => i !== index));
+                }
+            }
+        });
     };
 
     const checkInput = (event) => {
@@ -158,13 +190,14 @@ const FormItemAdd = ({ open, close, formId }) => {
         const choiceType = ["Choice", "MultiSelect"].includes(itemType);
 
         const formData = new FormData();
-        formData.append("form_id", formId);
+        formData.append("item_id", itemInfo.id);
         formData.append("item_type", itemType)
         formData.append("description", description);
         formData.append("points", itemType == "MultiSelect" ? correctIndices.length : points);
         if (choiceType && choices.length > 0) {
-            choices.forEach(choice => {
-                formData.append('choices[]', choice.text);
+            choices.forEach((choice, index) => {
+                formData.append(`choices[${index}][text]`, choice.text);
+                formData.append(`choices[${index}][id]`, choice.id);
             });
         } else {
             formData.append('choices[]', null);
@@ -176,8 +209,15 @@ const FormItemAdd = ({ open, close, formId }) => {
         } else {
             formData.append('correctItems[]', null);
         }
+        if (deletedChoices.length > 0) {
+            deletedChoices.forEach(delChoice => {
+                formData.append('deletedChoices[]', delChoice);
+            });
+        } else {
+            formData.append('deletedChoices[]', null);
+        }
 
-        axiosInstance.post("/trainings/saveFormItem", formData, { headers })
+        axiosInstance.post("/trainings/editFormItem", formData, { headers })
             .then((response) => {
                 if (response.data.status == 200) {
                     document.activeElement.blur();
@@ -211,7 +251,7 @@ const FormItemAdd = ({ open, close, formId }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Form Item </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Form Item </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
@@ -374,7 +414,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                                 display: "flex",
                                                                 justifyContent: "space-between",
                                                                 alignItems: "center",
-                                                                border: correctionError ? "1px solid #f44336" : "1px solid #e0e0e0",
+                                                                border: correctionError || choice.deleted ? "1px solid #f44336" : "1px solid #e0e0e0",
                                                                 borderRadius: "4px",
                                                                 padding: "4px 8px",
                                                             }}
@@ -449,4 +489,4 @@ const FormItemAdd = ({ open, close, formId }) => {
     );
 };
 
-export default FormItemAdd;
+export default FormItemEdit;
