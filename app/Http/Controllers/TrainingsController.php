@@ -1029,6 +1029,12 @@ class TrainingsController extends Controller
         }
     }
 
+    public function editFormItem(Request $request)
+    {
+        Log::info("TrainingsController:editFormItem");
+        Log::info($request);
+    }
+
     public function getFormItems($id)
     {
         //Log::info("TrainingsController:getFormItems");
@@ -1085,6 +1091,7 @@ class TrainingsController extends Controller
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
+
 
     function generateRandomCode($length)
     {

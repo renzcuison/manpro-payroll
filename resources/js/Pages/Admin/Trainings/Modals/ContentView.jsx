@@ -49,6 +49,7 @@ import duration from "dayjs/plugin/duration";
 import ContentEdit from "./ContentEdit";
 import FormItemAdd from "./FormItemAdd";
 import FormItemSettings from "./FormItemSettings";
+import FormItemEdit from "./FormItemEdit";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -63,11 +64,10 @@ const ContentView = ({ open, close, contentId, status }) => {
     const [file, setFile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Content Details
+    // CONTENT FUNCTIONS --------------------------------------- /
     useEffect(() => {
         getContentDetails();
     }, []);
-
 
     // Content Menu
     const [anchorEl, setAnchorEl] = useState(null);
@@ -184,45 +184,6 @@ const ContentView = ({ open, close, contentId, status }) => {
             });
     }
 
-    // Form Items
-    const [formItems, setFormItems] = useState([]);
-    const [expanded, setExpanded] = useState([]);
-    const getFormItems = (formId) => {
-        axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
-            .then((response) => {
-                setFormItems(response.data.items);
-            })
-            .catch((error) => {
-                console.error('Error fetching form items', error);
-            });
-    }
-
-    // Add Form Item
-    const [openFormItemAddModal, setOpenFormItemAddModal] = useState(false);
-    const handleOpenFormItemAddModal = () => {
-        setOpenFormItemAddModal(true);
-    };
-    const handleCloseFormItemAddModal = (reload) => {
-        setOpenFormItemAddModal(false);
-        if (reload) {
-            setExitReload(true);
-            getFormItems(content.training_form_id);
-        }
-    };
-
-    // Form Item Settings
-    const [openFormItemSettingsModal, setOpenFormItemSettingsModal] = useState(false);
-    const handleOpenFormItemSettingsModal = () => {
-        setOpenFormItemSettingsModal(true);
-    };
-    const handleCloseFormItemSettingsModal = (reload) => {
-        setOpenFormItemSettingsModal(false);
-        if (reload) {
-            setExitReload(true);
-            getFormItems(content.training_form_id);
-        }
-    };
-
     // Remove Content
     const handleRemoveContent = () => {
         document.activeElement.blur();
@@ -267,6 +228,91 @@ const ContentView = ({ open, close, contentId, status }) => {
             }
         });
     };
+
+    // FORM ITEM FUNCTIONS ------------------------------------- /
+    const [formItems, setFormItems] = useState([]);
+    const [expanded, setExpanded] = useState([]);
+    const getFormItems = (formId) => {
+        axiosInstance.get(`/trainings/getFormItems/${formId}`, { headers })
+            .then((response) => {
+                setFormItems(response.data.items);
+            })
+            .catch((error) => {
+                console.error('Error fetching form items', error);
+            });
+    }
+
+    // Add Form Item
+    const [openFormItemAddModal, setOpenFormItemAddModal] = useState(false);
+    const handleOpenFormItemAddModal = () => {
+        setOpenFormItemAddModal(true);
+    };
+    const handleCloseFormItemAddModal = (reload) => {
+        setOpenFormItemAddModal(false);
+        if (reload) {
+            setExitReload(true);
+            getFormItems(content.training_form_id);
+        }
+    };
+
+    // Form Item Settings
+    const [openFormItemSettingsModal, setOpenFormItemSettingsModal] = useState(false);
+    const handleOpenFormItemSettingsModal = () => {
+        setOpenFormItemSettingsModal(true);
+    };
+    const handleCloseFormItemSettingsModal = (reload) => {
+        setOpenFormItemSettingsModal(false);
+        if (reload) {
+            setExitReload(true);
+            getFormItems(content.training_form_id);
+        }
+    };
+
+    // ---------------- Item Menu
+    const [itemMenuStates, setItemMenuStates] = useState({});
+    const handleItemMenuOpen = (event, id) => {
+        setItemMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: true,
+                anchorEl: event.currentTarget,
+            },
+        }));
+    };
+
+    const handleItemMenuClose = (id) => {
+        setItemMenuStates((prevStates) => ({
+            ...prevStates,
+            [id]: {
+                ...prevStates[id],
+                open: false,
+                anchorEl: null,
+            },
+        }));
+    };
+
+    // Edit Form Item
+    const [openFormItemEditModal, setOpenFormItemEditModal] = useState(false);
+    const [loadItem, setLoadItem] = useState(null);
+    const handleOpenFormItemEditModal = (item) => {
+        setLoadItem(item);
+        setOpenFormItemEditModal(true);
+        handleItemMenuClose(item.id);
+    }
+    const handleCloseFormItemEditModal = (reload) => {
+        setLoadItem(false);
+        setOpenFormItemEditModal(false);
+        if (reload) {
+            getFormItems(content.training_form_id);
+        }
+    }
+
+    // Remove Form Item
+    const handleDeleteItem = (id) => {
+        console.log(`Deleting Item ${id}`);
+        handleItemMenuClose(id);
+    }
 
     // File Cleanup
     useEffect(() => {
@@ -598,147 +644,197 @@ const ContentView = ({ open, close, contentId, status }) => {
                                         </Grid>
                                         <Grid item xs={12}>
                                             {formItems.length > 0 ? (
-                                                formItems.map((item, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            mb: 1,
-                                                            p: "8px 12px",
-                                                            border: "1px solid #e0e0e0",
-                                                            borderRadius: "8px",
-                                                            backgroundColor: expanded.includes(index) ? "#f5f7fa" : "white",
-                                                            transition: "background-color 0.3s ease",
-                                                            boxShadow: expanded.includes(index) ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
-                                                        }}
-                                                    >
-                                                        {/* Primary Content */}
-                                                        <Box display="flex" sx={{ justifyContent: "space-between", alignItems: "center", }} >
-                                                            {/* Type and Description */}
-                                                            <Box display="flex" alignItems="center" sx={{ width: "56%" }}>
-                                                                {/* Item Type */}
-                                                                <Box
-                                                                    sx={{
-                                                                        mr: 1,
-                                                                        px: 1,
-                                                                        py: 0.5,
-                                                                        width: "20%",
-                                                                        borderRadius: "4px",
-                                                                        backgroundColor:
-                                                                            item.type === "Choice"
-                                                                                ? "#e3f2fd"
-                                                                                : item.type === "MultiSelect"
-                                                                                    ? "#fff3e0"
-                                                                                    : item.type === "FillInTheBlank"
-                                                                                        ? "#e8f5e9"
-                                                                                        : "#ffebee",
-                                                                        color:
-                                                                            item.type === "Choice"
-                                                                                ? "#1976d2"
-                                                                                : item.type === "MultiSelect"
-                                                                                    ? "#f57c00"
-                                                                                    : item.type === "FillInTheBlank"
-                                                                                        ? "#2e7d32"
-                                                                                        : "#d32f2f",
-                                                                        fontSize: "0.75rem",
-                                                                        fontWeight: "bold",
-                                                                        textTransform: "uppercase",
-                                                                        textAlign: "center",
-                                                                    }}
-                                                                >
-                                                                    {item.type == "Choice" ? "Choice" :
-                                                                        item.type == "MultiSelect" ? "Selection" :
-                                                                            item.type == "FillInTheBlank" ? "Fill" :
-                                                                                "Unknown"}
-                                                                </Box>
+                                                formItems.map((item, index) => {
 
-                                                                {/* Short Description*/}
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    sx={{
-                                                                        flex: 1,
-                                                                        overflow: "hidden",
-                                                                        textOverflow: "ellipsis",
-                                                                        whiteSpace: "nowrap",
-                                                                        display: "flex",
-                                                                        alignItems: "center",
-                                                                        lineHeight: 1,
-                                                                        "& *": { margin: 0, padding: 0 },
-                                                                    }}
-                                                                    dangerouslySetInnerHTML={{ __html: item.description }}
-                                                                />
-                                                            </Box>
-                                                            {/* Points, Expand/Collapse Buttons */}
-                                                            <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
-                                                                {/* Points */}
-                                                                <Box
-                                                                    sx={{
-                                                                        width: "50%",
-                                                                        mr: 1,
-                                                                        px: 1,
-                                                                        py: 0.5,
-                                                                        borderRadius: "12px",
-                                                                        backgroundColor: "#e8f5e9",
-                                                                        color: "#2e7d32",
-                                                                        fontSize: "0.875rem",
-                                                                        fontWeight: "bold",
-                                                                        textAlign: "center"
-                                                                    }}
-                                                                >
-                                                                    {`${item.value} pt${item.value > 1 ? 's' : ''}`}
-                                                                </Box>
+                                                    if (!itemMenuStates[item.id]) {
+                                                        itemMenuStates[item.id] = { open: false, anchorEl: null, };
+                                                    }
 
-                                                                {/* Expand/Collapse Button */}
-                                                                <IconButton
-                                                                    title={expanded.includes(index) ? "Collapse Content" : "Expand Content"}
-                                                                    onClick={() => {
-                                                                        if (expanded.includes(index)) {
-                                                                            setExpanded(expanded.filter((i) => i !== index));
-                                                                        } else {
-                                                                            setExpanded([...expanded, index]);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {expanded.includes(index) ? (
-                                                                        <ExpandLess sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
-                                                                    ) : (
-                                                                        <ExpandMore sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                    return (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                mb: 1,
+                                                                p: "8px 12px",
+                                                                border: "1px solid #e0e0e0",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: expanded.includes(index) ? "#f5f7fa" : "white",
+                                                                transition: "background-color 0.3s ease",
+                                                                boxShadow: expanded.includes(index) ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
+                                                            }}
+                                                        >
+                                                            {/* Primary Content */}
+                                                            <Box display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                                {/* Type and Description */}
+                                                                <Box display="flex" alignItems="center" sx={{ width: "56%" }}>
+                                                                    {/* Item Type */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            width: "20%",
+                                                                            borderRadius: "4px",
+                                                                            backgroundColor:
+                                                                                item.type === "Choice"
+                                                                                    ? "#e3f2fd"
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#fff3e0"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#e8f5e9"
+                                                                                            : "#ffebee",
+                                                                            color:
+                                                                                item.type === "Choice"
+                                                                                    ? "#1976d2"
+                                                                                    : item.type === "MultiSelect"
+                                                                                        ? "#f57c00"
+                                                                                        : item.type === "FillInTheBlank"
+                                                                                            ? "#2e7d32"
+                                                                                            : "#d32f2f",
+                                                                            fontSize: "0.75rem",
+                                                                            fontWeight: "bold",
+                                                                            textTransform: "uppercase",
+                                                                            textAlign: "center",
+                                                                        }}
+                                                                    >
+                                                                        {item.type === "Choice"
+                                                                            ? "Choice"
+                                                                            : item.type === "MultiSelect"
+                                                                                ? "Selection"
+                                                                                : item.type === "FillInTheBlank"
+                                                                                    ? "Fill"
+                                                                                    : "Unknown"}
+                                                                    </Box>
+
+                                                                    {/* Short Description */}
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            flex: 1,
+                                                                            overflow: "hidden",
+                                                                            textOverflow: "ellipsis",
+                                                                            whiteSpace: "nowrap",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            lineHeight: 1,
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                </Box>
+                                                                {/* Interactions */}
+                                                                <Box display="flex" sx={{ width: "19%", justifyContent: "flex-end", alignItems: "center" }}>
+                                                                    {/* Points */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            width: "50%",
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            borderRadius: "12px",
+                                                                            backgroundColor: "#e8f5e9",
+                                                                            color: "#2e7d32",
+                                                                            fontSize: "0.875rem",
+                                                                            fontWeight: "bold",
+                                                                            textAlign: "center",
+                                                                        }}
+                                                                    >
+                                                                        {`${item.value} pt${item.value > 1 ? "s" : ""}`}
+                                                                    </Box>
+
+                                                                    {/* Dropdown Button */}
+                                                                    {status === "Pending" && (
+                                                                        <>
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                aria-controls={itemMenuStates[item.id]?.open ? `item-menu-${index}` : undefined}
+                                                                                aria-haspopup="true"
+                                                                                onClick={(event) => {
+                                                                                    event.stopPropagation();
+                                                                                    handleItemMenuOpen(event, item.id);
+                                                                                }}
+                                                                                sx={{ ml: 0.5 }}
+                                                                            >
+                                                                                <MoreVert sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                            </IconButton>
+                                                                            <Menu
+                                                                                id={`item-menu-${index}`}
+                                                                                anchorEl={itemMenuStates[item.id]?.anchorEl}
+                                                                                open={itemMenuStates[item.id]?.open || false}
+                                                                                onClose={(event) => {
+                                                                                    handleItemMenuClose(item.id);
+                                                                                }}
+                                                                                MenuListProps={{
+                                                                                    "aria-labelledby": `item-button-${index}`,
+                                                                                }}
+                                                                            >
+                                                                                <MenuItem onClick={() => handleOpenFormItemEditModal(item)}>Edit</MenuItem>
+                                                                                <MenuItem onClick={() => handleDeleteItem(item.id)}>Delete</MenuItem>
+                                                                            </Menu>
+                                                                        </>
                                                                     )}
-                                                                </IconButton>
+
+                                                                    {/* Expand/Collapse Button */}
+                                                                    <IconButton
+                                                                        title={expanded.includes(index) ? "Collapse Content" : "Expand Content"}
+                                                                        onClick={() => {
+                                                                            if (expanded.includes(index)) {
+                                                                                setExpanded(expanded.filter((i) => i !== index));
+                                                                            } else {
+                                                                                setExpanded([...expanded, index]);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {expanded.includes(index) ? (
+                                                                            <ExpandLess sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        ) : (
+                                                                            <ExpandMore sx={{ color: "text.secondary", fontSize: "1.25rem" }} />
+                                                                        )}
+                                                                    </IconButton>
+                                                                </Box>
                                                             </Box>
+
+                                                            {/* Expanded Content */}
+                                                            {expanded.includes(index) && (
+                                                                <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        color="text.secondary"
+                                                                        sx={{
+                                                                            mb: 2,
+                                                                            whiteSpace: "pre-wrap",
+                                                                            "& *": { margin: 0, padding: 0 },
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                    />
+                                                                    {item.choices.length > 0 && (
+                                                                        <>
+                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
+                                                                                Choices
+                                                                            </Typography>
+                                                                            {item.choices.map((choice, index) => (
+                                                                                <Box
+                                                                                    key={index}
+                                                                                    sx={{
+                                                                                        mt: 1,
+                                                                                        p: 1,
+                                                                                        width: "100%",
+                                                                                        border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        borderRadius: "4px",
+                                                                                    }}
+                                                                                >
+                                                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                                        {choice.description}
+                                                                                    </Typography>
+                                                                                </Box>
+                                                                            ))}
+                                                                        </>
+                                                                    )}
+                                                                </Box>
+                                                            )}
                                                         </Box>
-
-                                                        {/* Expanded Content */}
-                                                        {expanded.includes(index) && (
-                                                            <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    color="text.secondary"
-                                                                    sx={{
-                                                                        mb: 2,
-                                                                        whiteSpace: "pre-wrap",
-                                                                        "& *": { margin: 0, padding: 0 },
-                                                                    }}
-                                                                    dangerouslySetInnerHTML={{ __html: item.description }}
-                                                                />
-                                                                {item.choices.length > 0 && (
-                                                                    <>
-                                                                        <Typography variant="caption" sx={{ mb: 1, }}>
-                                                                            Choices
-                                                                        </Typography>
-                                                                        {item.choices.map((choice, index) => (
-                                                                            <Box key={index} sx={{ mt: 1, p: 1, width: "100%", border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0", borderRadius: "4px" }}>
-                                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                                                    {choice.description}
-                                                                                </Typography>
-                                                                            </Box>
-                                                                        ))}
-                                                                    </>
-                                                                )}
-                                                            </Box>
-
-                                                        )}
-                                                    </Box>
-                                                ))
+                                                    );
+                                                })
                                             ) : null}
                                         </Grid>
                                     </Grid>
@@ -759,15 +855,22 @@ const ContentView = ({ open, close, contentId, status }) => {
                     <FormItemAdd
                         open={openFormItemAddModal}
                         close={handleCloseFormItemAddModal}
-                        formId={content.content.id}
+                        formId={content.training_form_id}
                     />
                 )}
                 {openFormItemSettingsModal && (
                     <FormItemSettings
                         open={openFormItemSettingsModal}
                         close={handleCloseFormItemSettingsModal}
-                        formId={content.content.id}
+                        formId={content.training_form_id}
                         formItems={formItems}
+                    />
+                )}
+                {openFormItemEditModal && (
+                    <FormItemEdit
+                        open={openFormItemEditModal}
+                        close={handleCloseFormItemEditModal}
+                        itemInfo={loadItem}
                     />
                 )}
             </Dialog>
