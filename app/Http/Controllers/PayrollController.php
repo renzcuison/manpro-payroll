@@ -134,7 +134,7 @@ class PayrollController extends Controller
 
     public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
     {
-        log::info("PayrollController::getGoogleCalendarHolidays");
+        // log::info("PayrollController::getGoogleCalendarHolidays");
 
         $apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
         $calendarId = 'en.philippines#holiday@group.v.calendar.google.com';
@@ -235,8 +235,7 @@ class PayrollController extends Controller
 
     public function payrollDetails(Request $request)
     {
-        log::info("PayrollController::payrollDetails");
-        log::info($request);
+        // log::info("PayrollController::payrollDetails");
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
@@ -252,7 +251,6 @@ class PayrollController extends Controller
 
         foreach ($employeeBenefits as $employeeBenefit) {
 
-            // log::info("================================");
             // ============== BENEFITS ==============
             $benefit = $employeeBenefit->benefit;
 
@@ -266,11 +264,6 @@ class PayrollController extends Controller
                 $employerAmount = $benefit->employer_amount * 1;
             }
 
-            // log::info("Type                     :" . $benefit->type);
-            // log::info("Name                     :" . $benefit->name);
-            // log::info("employeeShare            :" . $employeeAmount);
-            // log::info("employerShare            :" . $employerAmount);
-
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
 
@@ -283,10 +276,6 @@ class PayrollController extends Controller
             'employeeAmount' => $employeeShare,
             'employerAmount' => $employerShare
         ];
-
-        // log::info("================================");
-        // log::info("Total Employee Share     :" . $employeeShare);
-        // log::info("Total Employer Share     :" . $employerShare);
 
         // ============== WORK DAYS ==============
         $distinctDays = $logs->groupBy(function ($log) {
@@ -351,6 +340,8 @@ class PayrollController extends Controller
 
         $absents = $perDay * $numberOfAbsentDays;
 
+
+
         // ============== LEAVES ==============
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $employee->client_id)->get();
 
@@ -370,10 +361,9 @@ class PayrollController extends Controller
             ->groupBy('type_id');
 
         foreach ($applicationTypes as $applicationType) {
-            // log::info($applicationType);
 
             $apps = $applications->get($applicationType->id, collect());
-            // log::info($apps);
+
             $days = 0;
             $totalHours = 0;
 
@@ -539,8 +529,6 @@ class PayrollController extends Controller
 
         $absents = $absents - $leaveEarnings;
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings;
-
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
@@ -552,12 +540,16 @@ class PayrollController extends Controller
         $loans = 0;
         $tax = 0;
 
-        $totalDeductions =  $employeeShare + $tardiness + $cashAdvance + $loans + $tax;
+        $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
+        $tardiness = $perMin * $tardinessTime;
+
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness;
+        $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $deductions = [
-            ['deduction' => '1', 'name' => 'Absents', 'amount' => $absents],
-            ['deduction' => '2', 'name' => 'Tardiness', 'amount' => $tardiness],
-            ['deduction' => '3', 'name' => 'Cash Advance', 'amount' => $cashAdvance],
+            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} min)", 'amount' => $absents],
+            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} min)", 'amount' => $tardiness],
+            ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
 
         $summaries = [
@@ -582,9 +574,6 @@ class PayrollController extends Controller
     {
         Log::info("PayrollController::savePayroll");
         Log::info($request);
-        
-        Log::info("Stopper");
-        dd("Stopper");
 
         $user = Auth::user();
 
@@ -646,22 +635,15 @@ class PayrollController extends Controller
 
             foreach ($payrollData['paid_leaves'] as $paidLeave) {
                 $newPaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($paidLeave['application']), "amount" => $paidLeave['amount'], "is_paid" => true]);
-
-                log::info($newPaidLeave);
             }
 
             foreach ($payrollData['unpaid_leaves'] as $unpaidLeave) {
                 $newUnpaidLeave = PayslipLeavesModel::create(["payslip_id" => $payslip->id, "application_type_id" => decrypt($unpaidLeave['application']), "amount" => $unpaidLeave['amount'], "is_paid" => false]);
-
-                log::info($newUnpaidLeave);
             }
 
             foreach ($payrollData['benefits'] as $benefit) {
                 if ($benefit['name'] != "Total Benefits") {
-                    log::info($benefit);
                     $newBenefit = PayslipBenefitsModel::create(["payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount']]);
-
-                    log::info($newBenefit);
                 }
             }
 
@@ -677,6 +659,23 @@ class PayrollController extends Controller
         }
 
 
+        return response()->json(['status' => 200]);
+    }
+
+    public function savePayrolls(Request $request)
+    {
+        Log::info("PayrollController::savePayrolls");
+        Log::info($request);
+    
+        $currentStartDate = $request->currentStartDate;
+        $currentEndDate = $request->currentEndDate;
+    
+        foreach ($request->selectedPayrolls as $selectedPayroll) {
+            $payrollRequest = new Request([ 'selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate ]);
+
+            $this->savePayroll($payrollRequest);
+        }
+    
         return response()->json(['status' => 200]);
     }
 
@@ -749,12 +748,12 @@ class PayrollController extends Controller
 
     public function getPayrollRecord(Request $request)
     {
-        log::info("PayrollController::getPayrollRecord");
+        // log::info("PayrollController::getPayrollRecord");
 
         if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
             $record = PayslipsModel::find(decrypt($request->selectedPayroll));
             $employee = UsersModel::select('id', 'user_name')->find($record->employee_id);
-            log::info($record);
+
             $payslip = [
                 'benefit' => "",
                 'employee' => $employee->user_name,
@@ -766,14 +765,14 @@ class PayrollController extends Controller
                 'rate_daily' => $record->rate_daily,
                 'rate_hourly' => $record->rate_hourly,
             ];
-            
+
             $benefits = [];
             $deductions = [];
             $earnings = [];
             $paid_leaves = [];
             $unpaid_leaves = [];
 
-            foreach ( $record->benefits as $benefit ) {
+            foreach ($record->benefits as $benefit) {
                 $benefits[] = [
                     'name' => $benefit->benefit->name,
                     'employee_amount' => $benefit->employee_amount,
@@ -781,7 +780,7 @@ class PayrollController extends Controller
                 ];
             }
 
-            foreach ( $record->deductions as $deduction ) {
+            foreach ($record->deductions as $deduction) {
 
                 $name = "";
 
@@ -806,7 +805,7 @@ class PayrollController extends Controller
                 ];
             }
 
-            foreach ( $record->earnings as $earning ) {
+            foreach ($record->earnings as $earning) {
 
                 $name = "";
 
@@ -839,7 +838,88 @@ class PayrollController extends Controller
 
             return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'paid_leaves' => $paid_leaves, 'unpaid_leaves' => $unpaid_leaves, 'summaries' => $summaries]);
         }
+    }
 
-        
+    public function getTardiness($start_date, $end_date, $employeeId)
+    {
+        $user = Auth::user();
+
+        $logs = DB::table('attendance_logs as al')
+            ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
+            ->where('al.user_id', $employeeId)
+            ->whereBetween('al.timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
+            ->orderBy('al.timestamp', 'asc')
+            ->get()
+            ->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'))
+            ->sortKeysDesc()
+            ->map(function ($logs) {
+                $shift = $logs->first();
+                $totalShiftDuration = 0;
+                $totalRendered = 0;
+
+                // Calculate total shift duration
+                if ($shift->shift_type == "Regular") {
+                    $shiftStart = Carbon::parse($shift->first_time_in);
+                    $shiftEnd = Carbon::parse($shift->first_time_out);
+                    $gapStart = Carbon::parse($shift->break_start);
+                    $gapEnd = Carbon::parse($shift->break_end);
+                    $totalShiftDuration = max($shiftStart->diffInMinutes($shiftEnd) - $gapStart->diffInMinutes($gapEnd), 0);
+                } elseif ($shift->shift_type == "Split") {
+                    $firstStart = Carbon::parse($shift->first_time_in);
+                    $firstEnd = Carbon::parse($shift->first_time_out);
+                    $secondStart = Carbon::parse($shift->second_time_in);
+                    $secondEnd = Carbon::parse($shift->second_time_out);
+                    $totalShiftDuration = $firstStart->diffInMinutes($firstEnd) + $secondStart->diffInMinutes($secondEnd);
+                }
+
+                // Calculate rendered time
+                $start = null;
+                foreach ($logs as $log) {
+                    if (in_array($log->action, ["Duty In", "Overtime In"])) {
+                        $start = Carbon::parse($log->timestamp);
+                    } elseif ($start && in_array($log->action, ["Duty Out", "Overtime Out"])) {
+                        $end = Carbon::parse($log->timestamp);
+                        $isDuty = $log->action == "Duty Out";
+
+                        // Determine shift boundaries
+                        $shiftStart = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_in) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_in) : ($isDuty ? Carbon::parse($shift->second_time_in) : Carbon::parse($shift->over_time_in)));
+                        $shiftEnd = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_out) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_out) : ($isDuty ? Carbon::parse($shift->second_time_out) : Carbon::parse($shift->over_time_out)));
+
+                        // Normalize dates for time comparison
+                        $today = Carbon::today();
+                        $fixedStart = $start->setDate($today->year, $today->month, $today->day);
+                        $fixedEnd = $end->setDate($today->year, $today->month, $today->day);
+                        $fixedShiftStart = $shiftStart->setDate($today->year, $today->month, $today->day);
+                        $fixedShiftEnd = $shiftEnd->setDate($today->year, $today->month, $today->day);
+
+                        if ($fixedStart->format('H:i:s') < $fixedShiftEnd->format('H:i:s') && $fixedEnd->format('H:i:s') > $fixedShiftStart->format('H:i:s')) {
+                            $renderedStart = max($fixedStart, $fixedShiftStart);
+                            $renderedEnd = min($fixedEnd, $fixedShiftEnd);
+                            $minutes = $renderedEnd->diffInMinutes($renderedStart);
+
+                            // Adjust for break in Regular shift
+                            if ($isDuty && $shift->shift_type == 'Regular') {
+                                $gapStart = Carbon::parse($shift->break_start)->setDate($today->year, $today->month, $today->day);
+                                $gapEnd = Carbon::parse($shift->break_end)->setDate($today->year, $today->month, $today->day);
+                                $breakStart = max($renderedStart, $gapStart);
+                                $breakEnd = min($renderedEnd, $gapEnd);
+                                if ($breakStart->format('H:i:s') < $breakEnd->format('H:i:s')) {
+                                    $minutes -= $breakStart->diffInMinutes($breakEnd);
+                                }
+                                $minutes = max($minutes, 0);
+                            }
+
+                            if ($isDuty) $totalRendered += $minutes;
+                        }
+                        $start = null;
+                    }
+                }
+
+                return ['late_time' => max($totalShiftDuration - $totalRendered, 0)];
+            })
+            ->values();
+
+        return $logs->sum('late_time');
     }
 }

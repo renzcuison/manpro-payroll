@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
-use App\Models\BranchesModel;
-use App\Models\JobTitlesModel;
-use App\Models\DepartmentsModel;
-use App\Models\EmployeeRolesModel;
-use App\Models\WorkGroupsModel;
 use App\Models\BenefitsModel;
+use App\Models\PayslipsModel;
+use App\Models\BranchesModel;
 use App\Models\UserFormsModel;
+use App\Models\JobTitlesModel;
+use App\Models\WorkGroupsModel;
+use App\Models\DepartmentsModel;
+use App\Models\ApplicationsModel;
+use App\Models\EmployeeRolesModel;
+use App\Models\AttendanceLogsModel;
+
+// use App\Models\NewModel;
 
 use Carbon\Carbon;
-// use App\Models\NewModel;
-// use App\Models\NewModel;
-// use App\Models\NewModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -261,19 +263,13 @@ class EmployeesController extends Controller
             $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
     
             $employee = $this->enrichEmployeeDetails($employee);
-    
-            // RANDOM GENERATED SUMMARY FOR AD DEMO
-            $payrolls = rand(10, 20);
-            $reduction = mt_rand(5, 10);
-    
-            $employee->total_payroll = $payrolls;
-            $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
-            $employee->total_applications = rand(0, $payrolls * 2);
+ 
+            $employee->total_payroll = PayslipsModel::where('employee_id', $employee->id)->count();
+            $employee->total_attendance = AttendanceLogsModel::where('user_id', $employee->id)->latest('created_at')->count();
+            $employee->total_applications = ApplicationsModel::where('client_id', $employee->id)->where('status', 'Approved')->count();
     
             return response()->json(['status' => 200, 'employee' => $employee]);
         }
-
-
     }    
 
     public function getMyDetails(Request $request)
@@ -285,13 +281,9 @@ class EmployeesController extends Controller
 
         $employee = $this->enrichEmployeeDetails($employee);
 
-        // RANDOM GENERATED SUMMARY FOR AD DEMO
-        $payrolls = rand(10, 20);
-        $reduction = mt_rand(5, 10);
-
-        $employee->total_payroll = $payrolls;
-        $employee->total_attendance = round(max(0, ($payrolls * 10) - $reduction));
-        $employee->total_applications = rand(0, $payrolls * 2);
+        $employee->total_payroll = PayslipsModel::where('employee_id', $employee->id)->count();
+        $employee->total_attendance = AttendanceLogsModel::where('user_id', $employee->id)->latest('created_at')->count();
+        $employee->total_applications = ApplicationsModel::where('client_id', $employee->id)->where('status', 'Approved')->count();
 
         return response()->json(['status' => 200, 'employee' => $employee]);
     }

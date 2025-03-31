@@ -43,10 +43,7 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = ApplicationsModel::where('client_id', $clientId)
-                ->where('status', 'Pending')
-                ->orderBy('created_at', 'asc')
-                ->get();
+            $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->orderBy('created_at', 'asc')->get();
 
             $applications = [];
 
@@ -157,8 +154,8 @@ class ApplicationsController extends Controller
 
     public function saveApplication(Request $request)
     {
-
         //Log::info("ApplicationsController::saveApplication");
+
         $user = Auth::user();
 
         try {
@@ -209,7 +206,7 @@ class ApplicationsController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            //Log::error("Error saving: " . $e->getMessage());
+            Log::error("Error saving: " . $e->getMessage());
 
             throw $e;
         }
@@ -282,12 +279,10 @@ class ApplicationsController extends Controller
         $application = ApplicationsModel::find($id);
 
         if (!$application) {
-            //Log::error('Application not found for ID: ' . $id);
             return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
         }
 
         if ($application->status !== 'Pending') {
-            //Log::warning('Application ' . $id . ' cannot be cancelled.');
             return response()->json(['status' => 400, 'message' => 'Only pending applications can be cancelled'], 400);
         }
 
@@ -307,7 +302,6 @@ class ApplicationsController extends Controller
             $application = ApplicationsModel::find($request->input('app_id'));
 
             if (!$application) {
-                //Log::error('Application not found for ID: ' . $id);
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 

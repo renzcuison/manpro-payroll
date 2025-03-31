@@ -107,6 +107,17 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
         axiosInstance.post('/payroll/savePayroll', data, { headers })
             .then(response => {
                 console.log("Payroll saved successfully!", response.data);
+
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Payroll saved successfully!",
+                    icon: "success",
+                    timer: 1000,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                });
+
             })
             .catch(error => {
                 console.error('Error:', error);
