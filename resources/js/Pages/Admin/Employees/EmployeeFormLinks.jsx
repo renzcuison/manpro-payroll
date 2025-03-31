@@ -143,14 +143,13 @@ const EmployeeFormLinks = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "20%" }}>Code</TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>Limit</TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}>Code</TableCell>
                                                 <TableCell align="center" sx={{ width: "10%" }}>Used</TableCell>
                                                 <TableCell align="center" sx={{ width: "15%" }}>Expiration</TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>Status</TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>Branch</TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}>Department</TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}></TableCell>
+                                                <TableCell align="center" sx={{ width: "14%" }}>Status</TableCell>
+                                                <TableCell align="center" sx={{ width: "13%" }}>Branch</TableCell>
+                                                <TableCell align="center" sx={{ width: "13%" }}>Department</TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }} colSpan={2}>Actions</TableCell>
                                             </TableRow>
                                         </TableHead>
 
@@ -158,46 +157,32 @@ const EmployeeFormLinks = () => {
                                             {
                                                 formLinks.length > 0 ? (
                                                     formLinks.map((formlink) => (
-                                                        <TableRow
-                                                            key={formlink.id}
-                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                        >
-                                                            <TableCell align="left">{formlink.unique_code}</TableCell>
-                                                            <TableCell align="center">{formlink.limit}</TableCell>
-                                                            <TableCell align="center">{formlink.used}</TableCell>
+                                                        <TableRow key={formlink.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
+                                                            <TableCell align="left">{formlink.code}</TableCell>
+                                                            <TableCell align="center">{formlink.used}/{formlink.limit}</TableCell>
                                                             <TableCell align="center">{dayjs(formlink.expiration).format("MMM D, YYYY h:mm A")}</TableCell>
                                                             <TableCell align="center">{formlink.status}</TableCell>
-                                                            <TableCell align="center">{formlink.branch_id || "-"}</TableCell>
-                                                            <TableCell align="center">{formlink.department_id || "-"}</TableCell>
+                                                            <TableCell align="center">{formlink.branch || "-"}</TableCell>
+                                                            <TableCell align="center">{formlink.department || "-"}</TableCell>
                                                             <TableCell align="center">
-                                                                <Box display="flex">
-                                                                    <Tooltip title="Copy Link">
-                                                                        <IconButton onClick={() => handleLinkCopy(formlink.unique_code)}>
-                                                                            <ContentCopy />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                    <Tooltip title="Delete">
-                                                                        <IconButton onClick={() => handleLinkDelete(formlink.id)}>
-                                                                            <Delete />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                </Box>
+                                                                <Tooltip title="Copy Link">
+                                                                    <IconButton onClick={() => handleLinkCopy(formlink.code)}>
+                                                                        <ContentCopy />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip title="Delete">
+                                                                    <IconButton onClick={() => handleLinkDelete(formlink.id)}>
+                                                                        <Delete />
+                                                                    </IconButton>
+                                                                </Tooltip>
                                                             </TableCell>
                                                         </TableRow>
                                                     ))
-                                                ) :
+                                                ) : (
                                                     <TableRow>
-                                                        <TableCell
-                                                            colSpan={8}
-                                                            align="center"
-                                                            sx={{
-                                                                color: "text.secondary",
-                                                                p: 1,
-                                                            }}
-                                                        >
-                                                            No Form Links Found
-                                                        </TableCell>
+                                                        <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }} > No Form Links Found </TableCell>
                                                     </TableRow>
+                                                )
                                             }
                                         </TableBody>
                                     </Table>
