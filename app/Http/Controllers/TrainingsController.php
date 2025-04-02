@@ -169,7 +169,7 @@ class TrainingsController extends Controller
                     'unique_code' => $uniqueCode,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'cover_photo' => $coverPath,
+                    'cover_photo' => $coverPath ?? null,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'duration' => $request->input('duration'),
@@ -498,6 +498,28 @@ class TrainingsController extends Controller
                 TrainingContentModel::where('order', '>', $deletedOrder)
                     ->where('training_id', $content->training_id)
                     ->decrement('order', 1);
+
+                // Training Media Soft Delete
+                if ($content->training_media_id) {
+                    $media = TrainingMediaModel::find($content->training_media_id);
+                    $media->delete();
+                }
+
+                // Training Form Soft Delete
+                if ($content->training_form_id) {
+                    $formId = $content->training_form_id;
+
+                    //Form Removal, Pending addition of SoftDeletes();
+                    //$form = TrainingFormsModel::find($formId);
+                    //$form->delete();
+
+                    $formItems = TrainingFormItemsModel::where('form_id', $formId)->get();
+                    if ($formItems->isNotEmpty()) {
+                        $formItemIds = $formItems->pluck('id')->toArray();
+                        TrainingFormChoicesModel::whereIn('form_item_id', $formItemIds)->delete();
+                    }
+                    TrainingFormItemsModel::where('form_id', $formId)->delete();
+                }
 
                 DB::commit();
 
@@ -980,7 +1002,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Forms --------------------------------------------------------------- /
+    // Training Forms (Admin) ------------------------------------------------------- /
     public function saveFormItem(Request $request)
     {
         //Log::info("TrainingsController:saveFormItem");
@@ -1006,14 +1028,25 @@ class TrainingsController extends Controller
                     'value' => $request->input('points')
                 ]);
 
-                $choices = $request->input('choices', []);
-                if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
-                    foreach ($choices as $index => $choice) {
-                        TrainingFormChoicesModel::create([
-                            'form_item_id' => $item->id,
-                            'description' => $choice,
-                            'is_correct' => in_array($index, $request->input('correctItems', []))
-                        ]);
+                if ($request->input('item_type') === 'FillInTheBlank' && $request->has('answer')) {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
+                } else {
+                    // Choice, Multi Selection
+                    $choices = $request->input('choices', []);
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            TrainingFormChoicesModel::create([
+                                'form_item_id' => $item->id,
+                                'description' => $choice,
+                                'is_correct' => in_array($index, $request->input('correctItems', [])),
+                            ]);
+                        }
                     }
                 }
 
@@ -1032,8 +1065,8 @@ class TrainingsController extends Controller
 
     public function editFormItem(Request $request)
     {
-        Log::info("TrainingsController:editFormItem");
-        Log::info($request->all());
+        //Log::info("TrainingsController:editFormItem");
+        //Log::info($request);
 
         $user = Auth::user();
 
@@ -1043,6 +1076,7 @@ class TrainingsController extends Controller
 
                 // Form Item
                 $item = TrainingFormItemsModel::findOrFail($request->input('item_id'));
+                $oldType = $item->type;
                 $item->type = $request->input('item_type');
                 $item->description = $request->input('description');
                 $item->value = $request->input('points');
@@ -1054,8 +1088,19 @@ class TrainingsController extends Controller
                 $deletedChoices = $request->input('deletedChoices', []);
 
                 if ($request->input('item_type') == "FillInTheBlank") {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
                     TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
                 } else {
+                    if ($oldType == "FillInTheBlank") {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+                    }
                     // Choice Deletion
                     if (!empty($deletedChoices)) {
                         TrainingFormChoicesModel::where('form_item_id', $item->id)
@@ -1160,8 +1205,8 @@ class TrainingsController extends Controller
 
     public function saveFormItemSettings(Request $request)
     {
-        Log::info("TrainingsController:saveFormItemSettings");
-        Log::info($request);
+        // Log::info("TrainingsController:saveFormItemSettings");
+        // Log::info($request);
 
         $user = Auth::user();
         $order = $request->input('new_order');
@@ -1196,6 +1241,49 @@ class TrainingsController extends Controller
         }
     }
 
+    // Training Forms (Employee) ---------------------------------------------------- /
+    public function getEmployeeFormDetails($id)
+    {
+        //Log::info("TrainingsController:getFormDetails");
+        //Log::info($id);
+
+        $content = TrainingContentModel::with([
+            'form.items' => function ($query) {
+                $query->orderBy('order', 'ASC');
+            },
+            'form.items.choices'
+        ])->find($id);
+
+        if (!$content || !$content->form) {
+            Log::warning("Form not found for training content ID: {$id}");
+            return response()->json(['error' => 'Form not found'], 404);
+        }
+
+        // Form Items
+        $items = $content->form->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'type' => $item->type,
+                'order' => $item->order,
+                'value' => $item->value,
+                'form_id' => $item->form_id,
+                'description' => $item->description,
+                'choices' => $item->choices->map(function ($choice) {
+                    return [
+                        'id' => $choice->id,
+                        'item_id' => $choice->form_item_id,
+                        'description' => $choice->description,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+
+        return response()->json([
+            'form' => $content,
+            'items' => $items,
+            'attempt_data' => null,
+        ]);
+    }
 
     function generateRandomCode($length)
     {

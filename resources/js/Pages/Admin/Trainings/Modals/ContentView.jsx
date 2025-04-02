@@ -251,7 +251,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setOpenFormItemAddModal(false);
         if (reload) {
             setExitReload(true);
-            getFormItems(content.training_form_id);
+            getContentDetails();
         }
     };
 
@@ -304,7 +304,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setLoadItem(false);
         setOpenFormItemEditModal(false);
         if (reload) {
-            getFormItems(content.training_form_id);
+            getContentDetails();
         }
     }
 
@@ -555,7 +555,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Passing Score
@@ -566,7 +565,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Duration Per Attempt
@@ -575,9 +573,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         {`${content.duration ?? "N/A"} min`}
                                                     </Typography>
                                                 </Box>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }}>
-                                                <Divider />
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
@@ -590,7 +585,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Total Points
@@ -856,7 +850,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                     {item.choices.length > 0 && (
                                                                         <>
                                                                             <Typography variant="caption" sx={{ mb: 1 }}>
-                                                                                Choices
+                                                                                {item.type == "FillInTheBlank" ? "Answer" : "Choices"}
                                                                             </Typography>
                                                                             {item.choices.map((choice, index) => (
                                                                                 <Box
@@ -865,7 +859,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                                         mt: 1,
                                                                                         p: 1,
                                                                                         width: "100%",
-                                                                                        border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        border: item.type != "FillInTheBlank" && choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
                                                                                         borderRadius: "4px",
                                                                                     }}
                                                                                 >

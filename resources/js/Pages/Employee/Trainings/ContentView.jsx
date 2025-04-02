@@ -60,6 +60,7 @@ import { first } from "lodash";
 import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import PPTImage from "../../../../../public/media/assets/PowerPoint_file_icon.png";
+import FormViews from "./Components/FormViews";
 
 const ContentView = () => {
     const { code } = useParams();
@@ -135,6 +136,10 @@ const ContentView = () => {
                     if (!resContent.has_viewed && !resContent.is_finished) {
                         handleTrainingViews(resContent.id, false);
                     }
+                }
+                // Training Form Details
+                if (resContent?.content?.type == "Form") {
+                    getFormDetails(resContent.id);
                 }
                 setIsLoading(false);
             })
@@ -348,6 +353,22 @@ const ContentView = () => {
             });
     }
 
+    // Form Functions
+    const [viewType, setViewType] = useState('Overview');
+    const [formItems, setFormItems] = useState([]);
+    const [attemptData, setAttemptData] = useState(null);
+
+    const getFormDetails = (id) => {
+        axiosInstance.get(`/trainings/getEmployeeFormDetails/${id}`, { headers })
+            .then((response) => {
+                setFormItems(response.data.items);
+                setAttemptData(response.data.attempt_data);
+            })
+            .catch((error) => {
+                console.error('Error fetching form details:', error);
+            });
+    }
+
     return (
         <Layout title={"ContentView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -368,9 +389,10 @@ const ContentView = () => {
                         </Link>
                     </Box>
 
-                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px" }} >
+                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "hidden" }} >
                         <>
-                            <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0", }}>
+                            {/* Content List */}
+                            <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0" }}>
                                 <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
                                     {title}
                                 </Typography>
@@ -460,6 +482,7 @@ const ContentView = () => {
                                     )}
                                 </Box>
                             </Box>
+                            {/* Content Display */}
                             <Box sx={{ width: "80%", mt: 6, mb: 2, p: 3 }}>
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
@@ -467,14 +490,27 @@ const ContentView = () => {
                                     </Box>
                                 ) : (
                                     <Grid container spacing={2}>
+                                        {/* Title */}
                                         <Grid item xs={12}>
                                             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={12} sx={{ placeContent: "center", placeItems: "center" }}>
-                                            {content.content.type !== "Form" && (
-                                                <>
+                                        {(content.content.type == "Form") ? (
+                                            <>
+                                                <FormViews
+                                                    content={content}
+                                                    viewType={viewType}
+                                                    setViewType={setViewType}
+                                                    updateProgress={handleTrainingViews}
+                                                    formItems={formItems}
+                                                    attemptData={attemptData}
+                                                />
+                                            </>
+                                        ) :
+                                            <>
+                                                {/* Primary Content */}
+                                                <Grid item xs={12} sx={{ placeContent: "center", placeItems: "center" }}>
                                                     {content.content.type === "Video" ? (
                                                         <Box
                                                             sx={{
@@ -548,24 +584,28 @@ const ContentView = () => {
                                                             </Stack>
                                                         </Box>
                                                     )}
-                                                </>
-                                            )}
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <Divider />
-                                        </Grid>
-                                        <Grid item xs={12} >
-                                            <div
-                                                id="description"
-                                                style={{
-                                                    wordWrap: 'break-word',
-                                                    wordBreak: 'break-word',
-                                                    overflowWrap: 'break-word',
-                                                    whiteSpace: 'pre-wrap',
-                                                }}
-                                                dangerouslySetInnerHTML={{ __html: content.description }}
-                                            />
-                                        </Grid>
+                                                </Grid>
+                                                <Grid item xs={12}>
+                                                    <Divider />
+                                                </Grid>
+                                                {/* Description */}
+                                                <Grid item xs={12} >
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                        Description
+                                                    </Typography>
+                                                    <div
+                                                        id="description"
+                                                        style={{
+                                                            wordWrap: 'break-word',
+                                                            wordBreak: 'break-word',
+                                                            overflowWrap: 'break-word',
+                                                            whiteSpace: 'pre-wrap',
+                                                        }}
+                                                        dangerouslySetInnerHTML={{ __html: content.description }}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        }
                                     </Grid>
                                 )}
                             </Box>

@@ -53,29 +53,45 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
     const [choices, setChoices] = useState([]);
     const [correctIndices, setCorrectIndices] = useState([]);
     const [deletedChoices, setDeletedChoices] = useState([]);
+    const [fillAnswer, setFillAnswer] = useState('');
 
     const [itemTypeError, setItemTypeError] = useState(false);
     const [pointsError, setPointsError] = useState(false);
     const [correctionError, setCorrectionError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [emptyChoices, setEmptyChoices] = useState([]);
+    const [fillAnswerError, setFillAnswerError] = useState(false);
 
 
     useEffect(() => {
         if (open && itemInfo) {
-            const transformedChoices = (itemInfo.choices ?? []).map((choice) => ({
-                text: choice.description,
-                id: choice.id,
-            }));
-            setChoices(transformedChoices);
-
-            const indices = (itemInfo.choices ?? []).reduce((acc, choice, index) => {
-                if (choice.is_correct) {
-                    acc.push(index);
+            if (itemInfo.type === 'FillInTheBlank') {
+                const choice = (itemInfo.choices ?? [])[0];
+                if (choice) {
+                    setFillAnswer(choice.description || '');
+                } else {
+                    console.warn('No choice found for FillInTheBlank item:', itemInfo);
+                    setFillAnswer('');
                 }
-                return acc;
-            }, []);
-            setCorrectIndices(indices);
+                setChoices([]);
+                setCorrectIndices([]);
+
+            } else {
+                const transformedChoices = (itemInfo.choices ?? []).map((choice) => ({
+                    text: choice.description,
+                    id: choice.id,
+                }));
+                setChoices(transformedChoices);
+
+                const indices = (itemInfo.choices ?? []).reduce((acc, choice, index) => {
+                    if (choice.is_correct) {
+                        acc.push(index);
+                    }
+                    return acc;
+                }, []);
+                setCorrectIndices(indices);
+                setFillAnswer('');
+            }
         }
     }, [open, itemInfo]);
 
@@ -109,6 +125,17 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
         });
     };
 
+    const formError = (message) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    };
+
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -127,48 +154,25 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
             .filter((index) => index !== -1);
         setEmptyChoices(emptyChoiceIndices);
 
+        const noFill = itemType == "FillInTheBlank" && !fillAnswer;
+        setFillAnswerError(noFill);
+
         if (!itemType || !description || noPoints) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("All Required Fields must be filled!");
         } else if (noChoices) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "Choice item has no options!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("Choice item has no options!");
         } else if (emptyChoiceIndices.length > 0) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "There are empty choices!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("There are empty choices!");
         } else if (noCorrects) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "No correct choices provided.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("No correct choices provided.");
+        } else if (noFill) {
+            formError("Provide an answer!");
         } else {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to save this content?",
+                text: "Do you want to update this item?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -182,7 +186,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
             });
         }
 
-    }
+    };
 
     const saveInput = (event) => {
         event.preventDefault();
@@ -194,6 +198,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
         formData.append("item_type", itemType)
         formData.append("description", description);
         formData.append("points", itemType == "MultiSelect" ? correctIndices.length : points);
+        formData.append("answer", !choiceType ? fillAnswer : null);
         if (choiceType && choices.length > 0) {
             choices.forEach((choice, index) => {
                 formData.append(`choices[${index}][text]`, choice.text);
@@ -225,7 +230,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Form item saved!`,
+                        text: `Form item updated!`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",
@@ -356,8 +361,28 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                 </FormControl>
 
                             </Grid>
-                            {/* Item Choices */}
-                            {itemType !== "FillInTheBlank" && (
+                            {/* Choices/Answers */}
+                            {itemType == "FillInTheBlank" ? (
+                                <Grid item xs={12}>
+                                    <Typography noWrap>
+                                        Answer
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        size="small"
+                                        value={fillAnswer}
+                                        error={fillAnswerError}
+                                        onChange={(event) => setFillAnswer(event.target.value)}
+                                        placeholder={`Enter Answer`}
+                                        sx={{ mr: 2, mt: 1 }}
+                                        inputProps={{
+                                            maxLength: 256,
+                                        }}
+                                        helperText={`${fillAnswer.length}/256`}
+                                    />
+                                </Grid>
+                            ) : (
                                 <Grid item xs={12}>
                                     <FormControl fullWidth>
                                         <Box sx={{ width: "100%" }}>
@@ -435,6 +460,9 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                                                 }}
                                                                 placeholder={`Option ${index + 1}`}
                                                                 sx={{ mr: 2 }}
+                                                                inputProps={{
+                                                                    maxLength: 256,
+                                                                }}
                                                             />
                                                             <Stack direction="row" spacing={3}>
                                                                 <Checkbox
@@ -478,7 +506,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                     }}
                                     className="m-1"
                                 >
-                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Content </p>
+                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Update Item </p>
                                 </Button>
                             </Grid>
                         </Grid>
