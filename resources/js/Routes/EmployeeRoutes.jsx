@@ -12,6 +12,8 @@ import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 
 import PayrollList from "../Pages/Employee/Payroll/PayrollList";
 
+import LoanList from "../Pages/Employee/Loan/LoanList";
+
 import AnnouncementList from "../Pages/Employee/Announcements/AnnouncementList";
 import AnnouncementView from "../Pages/Employee/Announcements/AnnouncementView";
 
@@ -40,6 +42,9 @@ const EmployeeRoutes = ({ user }) => {
 
             {/* Application Routes ----------------------------------------- */}
             <Route path="application-list" element={<ProtectedRoute element={<ApplicationList />} user={user} />} />
+
+            {/* Loan Routes ----------------------------------------- */}
+            <Route path="loans" element={<ProtectedRoute element={<LoanList />} user={user} />} />
 
             {/* Payroll Routes ----------------------------------------- */}
             <Route path="payroll" element={<ProtectedRoute element={<PayrollList />} user={user} />} />
