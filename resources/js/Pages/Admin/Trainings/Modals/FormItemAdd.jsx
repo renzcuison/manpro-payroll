@@ -60,12 +60,14 @@ const FormItemAdd = ({ open, close, formId }) => {
 
     const [choices, setChoices] = useState([]);
     const [correctIndices, setCorrectIndices] = useState([]);
+    const [fillAnswer, setFillAnswer] = useState('');
 
     const [itemTypeError, setItemTypeError] = useState(false);
     const [pointsError, setPointsError] = useState(false);
     const [correctionError, setCorrectionError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [emptyChoices, setEmptyChoices] = useState([]);
+    const [fillAnswerError, setFillAnswerError] = useState(false);
 
     const handleAddChoice = () => {
         setChoices(prev => [...prev, { text: "" }]);
@@ -76,6 +78,17 @@ const FormItemAdd = ({ open, close, formId }) => {
         setEmptyChoices(prev => prev.filter(i => i !== index).map(i => (i > index ? i - 1 : i)));
         setChoices(prev => prev.filter((_, i) => i !== index));
     };
+
+    const formError = (message) => {
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            text: message,
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: "#177604",
+        });
+    }
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -95,42 +108,19 @@ const FormItemAdd = ({ open, close, formId }) => {
             .filter((index) => index !== -1);
         setEmptyChoices(emptyChoiceIndices);
 
+        const noFill = itemType == "FillInTheBlank" && !fillAnswer;
+        setFillAnswerError(noFill);
+
         if (!itemType || !description || noPoints) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("All Required Fields must be filled!");
         } else if (noChoices) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "Choice item has no options!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("Choice item has no options!");
         } else if (emptyChoiceIndices.length > 0) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "There are empty choices!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("There are empty choices!");
         } else if (noCorrects) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "No correct choices provided.",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
+            formError("No correct choices provided.");
+        } else if (noFill) {
+            formError("Provide an answer!");
         } else {
             document.activeElement.blur();
             Swal.fire({
@@ -162,6 +152,7 @@ const FormItemAdd = ({ open, close, formId }) => {
         formData.append("item_type", itemType)
         formData.append("description", description);
         formData.append("points", itemType == "MultiSelect" ? correctIndices.length : points);
+        formData.append("answer", !choiceType ? fillAnswer : null);
         if (choiceType && choices.length > 0) {
             choices.forEach(choice => {
                 formData.append('choices[]', choice.text);
@@ -316,8 +307,37 @@ const FormItemAdd = ({ open, close, formId }) => {
                                 </FormControl>
 
                             </Grid>
-                            {/* Item Choices */}
-                            {itemType !== "FillInTheBlank" && (
+                            {/* Choices/Answers */}
+                            {itemType == "FillInTheBlank" ? (
+                                <Grid item xs={12}>
+                                    <Typography noWrap>
+                                        Answer
+                                    </Typography>
+                                    <Box
+                                        spacing={2}
+                                        sx={{
+                                            border: correctionError ? "1px solid #f44336" : "1px solid #e0e0e0",
+                                            borderRadius: "4px",
+                                            padding: "4px 8px",
+                                        }}
+                                    >
+                                        <TextField
+                                            fullWidth
+                                            variant="outlined"
+                                            size="small"
+                                            value={fillAnswer}
+                                            error={fillAnswerError}
+                                            onChange={(event) => setFillAnswer(event.target.value)}
+                                            placeholder={`Enter Answer`}
+                                            sx={{ mr: 2, mt: 1 }}
+                                            inputProps={{
+                                                maxLength: 256,
+                                            }}
+                                            helperText={`${fillAnswer.length}/256`}
+                                        />
+                                    </Box>
+                                </Grid>
+                            ) : (
                                 <Grid item xs={12}>
                                     <FormControl fullWidth>
                                         <Box sx={{ width: "100%" }}>
@@ -373,7 +393,6 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                             sx={{
                                                                 display: "flex",
                                                                 justifyContent: "space-between",
-                                                                alignItems: "center",
                                                                 border: correctionError ? "1px solid #f44336" : "1px solid #e0e0e0",
                                                                 borderRadius: "4px",
                                                                 padding: "4px 8px",
@@ -395,6 +414,9 @@ const FormItemAdd = ({ open, close, formId }) => {
                                                                 }}
                                                                 placeholder={`Option ${index + 1}`}
                                                                 sx={{ mr: 2 }}
+                                                                inputProps={{
+                                                                    maxLength: 256,
+                                                                }}
                                                             />
                                                             <Stack direction="row" spacing={3}>
                                                                 <Checkbox

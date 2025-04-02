@@ -1005,8 +1005,8 @@ class TrainingsController extends Controller
     // Training Forms (Admin) ------------------------------------------------------- /
     public function saveFormItem(Request $request)
     {
-        //Log::info("TrainingsController:saveFormItem");
-        //Log::info($request);
+        Log::info("TrainingsController:saveFormItem");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -1028,14 +1028,25 @@ class TrainingsController extends Controller
                     'value' => $request->input('points')
                 ]);
 
-                $choices = $request->input('choices', []);
-                if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
-                    foreach ($choices as $index => $choice) {
-                        TrainingFormChoicesModel::create([
-                            'form_item_id' => $item->id,
-                            'description' => $choice,
-                            'is_correct' => in_array($index, $request->input('correctItems', []))
-                        ]);
+                if ($request->input('item_type') === 'FillInTheBlank' && $request->has('answer')) {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
+                } else {
+                    // Choice, Multi Selection
+                    $choices = $request->input('choices', []);
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            TrainingFormChoicesModel::create([
+                                'form_item_id' => $item->id,
+                                'description' => $choice,
+                                'is_correct' => in_array($index, $request->input('correctItems', [])),
+                            ]);
+                        }
                     }
                 }
 
@@ -1065,6 +1076,7 @@ class TrainingsController extends Controller
 
                 // Form Item
                 $item = TrainingFormItemsModel::findOrFail($request->input('item_id'));
+                $oldType = $item->type;
                 $item->type = $request->input('item_type');
                 $item->description = $request->input('description');
                 $item->value = $request->input('points');
@@ -1076,8 +1088,19 @@ class TrainingsController extends Controller
                 $deletedChoices = $request->input('deletedChoices', []);
 
                 if ($request->input('item_type') == "FillInTheBlank") {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
                     TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
                 } else {
+                    if ($oldType == "FillInTheBlank") {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+                    }
                     // Choice Deletion
                     if (!empty($deletedChoices)) {
                         TrainingFormChoicesModel::where('form_item_id', $item->id)

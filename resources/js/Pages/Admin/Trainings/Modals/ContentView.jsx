@@ -850,7 +850,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                     {item.choices.length > 0 && (
                                                                         <>
                                                                             <Typography variant="caption" sx={{ mb: 1 }}>
-                                                                                Choices
+                                                                                {item.type == "FillInTheBlank" ? "Answer" : "Choices"}
                                                                             </Typography>
                                                                             {item.choices.map((choice, index) => (
                                                                                 <Box
@@ -859,7 +859,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                                         mt: 1,
                                                                                         p: 1,
                                                                                         width: "100%",
-                                                                                        border: choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        border: item.type != "FillInTheBlank" && choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
                                                                                         borderRadius: "4px",
                                                                                     }}
                                                                                 >

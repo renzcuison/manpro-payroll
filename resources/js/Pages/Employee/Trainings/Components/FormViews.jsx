@@ -391,7 +391,7 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                     <Grid item xs={12}>
                         <Box
                             sx={{
-                                maxHeight: 'calc(1000px - 300px)',
+                                maxHeight: '690px',
                                 overflowY: 'auto',
                                 pr: 1,
                                 '&::-webkit-scrollbar': {
