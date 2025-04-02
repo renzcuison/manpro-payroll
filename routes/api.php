@@ -12,6 +12,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\LoanApplicationsController;
 
 
 // use App\Http\Controllers\NewControllerName;
@@ -191,6 +192,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/savePayroll', [PayrollController::class, 'savePayroll']);
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
+    });
+
+    Route::prefix('loans')->group(function () {
+        Route::get('/getLoanApplications', [LoanApplicationsController::class, 'getLoanApplications']);
+        Route::post('/saveLoanApplication', [LoanApplicationsController::class, 'saveLoanApplication']);
+        Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
+        Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
+        Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
     });
 
     Route::prefix('applications')->group(function () {
