@@ -175,6 +175,10 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
         localStorage.removeItem('quizAnswerData');
     };
 
+    // ANSWER HANDLING
+    const handleAnswer = (id, answer) => {
+        console.log(`Received Answer for Item ${id}: ${answer}`);
+    }
 
     switch (viewType) {
         case 'Overview':
@@ -413,7 +417,10 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                             <Grid container spacing={2}>
                                 {formItems.map((item, index) => (
                                     <Grid item xs={12} key={index}>
-                                        <FormItem itemData={item} />
+                                        <FormItem
+                                            itemData={item}
+                                            handleAnswer={handleAnswer}
+                                        />
                                     </Grid>
                                 ))}
                             </Grid>
