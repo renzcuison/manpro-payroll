@@ -157,13 +157,11 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
         const remainingSeconds = seconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
-
     const getTimerColor = () => {
         if (formTimer < 60) return '#f44336'; // Red (< 1 min)
         if (formTimer < 300) return '#f57c00'; // Orange (< 5 min)
         return '#177604'; // Green
     };
-
     // Timer Expiry Handler
     const handleTimerEnd = () => {
         console.log('Time is up! Automatically submitting quiz attempt...');
@@ -182,6 +180,9 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
         storedAnswers[id] = answer;
         localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
     };
+
+    // SUBMISSION FUNCTIONS
+    const [submissionView, setSubmissionView] = useState(false);
 
     const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
 
@@ -292,10 +293,10 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                             dangerouslySetInnerHTML={{ __html: content.description }}
                         />
                     </Grid>
-                    {/* Form Start Prompt */}
                     <Grid item xs={12}>
                         <Divider />
                     </Grid>
+                    {/* Form Start Prompt */}
                     <Grid item xs={12}>
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Answer Form
@@ -356,9 +357,25 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                     </Grid>
                     {/* Timer */}
                     <Grid item xs={8} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
-                        <Box display="flex" sx={{ p: 2, bgcolor: getTimerColor(), color: "white", fontWeight: "bold" }}>
+                        <Box
+                            display="flex"
+                            sx={{
+                                py: 1,
+                                pl: 1,
+                                pr: 2,
+                                bgcolor: getTimerColor(),
+                                color: "white",
+                                fontWeight: "bold",
+                                borderRadius: "12px",
+                                boxShadow: formTimer < 60
+                                    ? '0 0 12px 4px rgba(244, 67, 54, 0.8)'
+                                    : formTimer < 300
+                                        ? '0 0 8px 2px rgba(245, 124, 0, 0.5)'
+                                        : 'none'
+                            }}
+                        >
                             <AccessTime />
-                            <Typography sx={{ ml: 1 }}>
+                            <Typography sx={{ ml: 1, fontWeight: "bold" }}>
                                 {formatTimer(formTimer)}
                             </Typography>
                         </Box>
@@ -368,6 +385,7 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                     </Grid>
                     {/* Form Items and Submission */}
                     <Grid item xs={12}>
+
                         <Box
                             sx={{
                                 maxHeight: '690px',
@@ -396,33 +414,63 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                                             itemData={item}
                                             handleAnswer={handleAnswer}
                                             storedAnswer={storedAnswers[item.id]}
+                                            submissionView={submissionView}
                                         />
                                     </Grid>
                                 ))}
                             </Grid>
                             <Divider sx={{ mt: 2 }} />
-                            <Box display="flex" sx={{ p: 3, mb: 5 }}>
-                                {/* Form Exit Button (TEMPORARY, REMOVE LATER) */}
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleTimerEnd()}
-                                    sx={{
-                                        mt: 2,
-                                        backgroundColor: '#177604',
-                                        color: 'white',
-                                        borderRadius: 2,
-                                        boxShadow: 2,
-                                        textTransform: 'none',
-                                        py: 1,
-                                        '&:hover': {
-                                            backgroundColor: '#135f03',
-                                            boxShadow: 3,
-                                        },
-                                    }}
-                                    aria-label="Back to overview"
-                                >
-                                    Back to Overview (Test)
-                                </Button>
+                            <Box sx={{ p: 3, mb: 5 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Submit Answers
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                    {submissionView ? (
+                                        <>
+                                            <Typography sx={{ color: "text.secondary" }}>
+                                                This attempt will be saved and results will be calculated.
+                                            </Typography>
+                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => setSubmissionView(false)}
+                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-floppy-o mr-2 mt-1" /> Return to Attempt
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Typography sx={{ color: "text.secondary" }}>
+                                                This attempt will be saved and results will be calculated.
+                                            </Typography>
+                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                                {/* Form Exit Button (TEMPORARY, REMOVE LATER) */}
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => handleTimerEnd()}
+                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                >
+                                                    <p className="m-0">
+                                                        Force End Attempt (Temporary)
+                                                    </p>
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => setSubmissionView(true)}
+                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-floppy-o mr-2 mt-1" /> Submit Answers
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </>
+                                    )}
+                                </Box>
                             </Box>
                         </Box>
                     </Grid>
