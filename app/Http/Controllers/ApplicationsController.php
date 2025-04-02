@@ -229,13 +229,18 @@ class ApplicationsController extends Controller
             $application->description = $request->input('description');
             $application->leave_used = $request->input('leave_used');
             $application->save();
-
+    
+            // Get files to delete from deleteAttachments[] (array or null)
+            $deleteFiles = $request->input('deleteAttachments', []);
+            if (!is_array($deleteFiles)) {
+                $deleteFiles = []; // Ensure it’s always an array
+            }
+    
             // Remove Files
-            $deleteFiles = array_merge($request->input('deleteImages'), $request->input('deleteAttachments'));
             ApplicationFilesModel::whereIn('id', $deleteFiles)->delete();
-
+    
             $dateTime = now()->format('YmdHis');
-
+    
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
@@ -248,7 +253,7 @@ class ApplicationsController extends Controller
                     ]);
                 }
             }
-
+    
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $index => $file) {
@@ -261,13 +266,11 @@ class ApplicationsController extends Controller
                     ]);
                 }
             }
-
+    
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-
             Log::error("Error saving: " . $e->getMessage());
-
             throw $e;
         }
     }
@@ -302,6 +305,7 @@ class ApplicationsController extends Controller
             $application = ApplicationsModel::find($request->input('app_id'));
 
             if (!$application) {
+                //Log::error('Application not found for ID: ' . $id);
                 return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
             }
 
