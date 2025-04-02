@@ -18,6 +18,8 @@ class AttendanceLogsMobileModel extends Model
         'path',
     ];
 
+    public $timestamps = false;
+
     public function attendance()
     {
         return $this->belongsTo(AttendanceLogsModel::class, 'attendance_id');

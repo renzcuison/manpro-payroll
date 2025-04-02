@@ -58,7 +58,7 @@ const LoanList = () => {
     }
 
     return (
-        <Layout title={"PayrollProcess"}>
+        <Layout title={"LoanManagement"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
 
@@ -72,18 +72,13 @@ const LoanList = () => {
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400}}>
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Branch</TableCell>
-                                                <TableCell align="center">Department</TableCell>
-                                                <TableCell align="center">Role</TableCell>
-                                                <TableCell align="center">Payroll Date</TableCell>
-                                                <TableCell align="center">Cut-Off</TableCell>
-                                                <TableCell align="center">Gross Pay</TableCell>
-                                                <TableCell align="center">Status</TableCell>
+                                                <TableCell align="center">Old Limit</TableCell>
+                                                <TableCell align="center">New Limit</TableCell>
                                             </TableRow>
                                         </TableHead>
 
@@ -91,19 +86,14 @@ const LoanList = () => {
                                             {records.map((record) => (
                                                 <TableRow key={record.record} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenViewPayrollModal(record.record)} >
                                                     <TableCell align="left">{record.employeeName}</TableCell>
-                                                    <TableCell align="center">{record.employeeBranch}</TableCell>
-                                                    <TableCell align="center">{record.employeeDepartment}</TableCell>
-                                                    <TableCell align="center">{record.role}</TableCell>
-                                                    <TableCell align="center">{dayjs(record.payrollStartDate).format("MMM D, YYYY")} - {dayjs(record.payrollEndDate).format("MMM D, YYYY")}</TableCell>
-                                                    <TableCell align="center">{record.payrollWorkingDays}</TableCell>
-                                                    <TableCell align="center">{record.payrollGrossPay}</TableCell>
+                                                    <TableCell align="center"></TableCell>
                                                     <TableCell align="center"></TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                            </>
+                            </>    
                         )}
                     </Box>
 
