@@ -178,7 +178,12 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
     // ANSWER HANDLING
     const handleAnswer = (id, answer) => {
         console.log(`Received Answer for Item ${id}: ${answer}`);
-    }
+        const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
+        storedAnswers[id] = answer;
+        localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
+    };
+
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
 
     switch (viewType) {
         case 'Overview':
@@ -351,47 +356,17 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                     </Grid>
                     {/* Timer */}
                     <Grid item xs={8} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
-                        <Chip
-                            icon={<AccessTime />}
-                            label={formatTimer(formTimer)}
-                            sx={{
-                                bgcolor: getTimerColor(),
-                                color: 'white',
-                                fontWeight: 'bold',
-                                '& .MuiChip-icon': {
-                                    color: 'white',
-                                },
-                            }}
-                            aria-label={`Remaining time: ${formatTimer(formTimer)}`}
-                        />
-                    </Grid>
-                    {/* Form Exit Button (TEMPORARY, REMOVE LATER) */}
-                    <Grid item xs={12}>
-                        <Button
-                            variant="contained"
-                            onClick={() => handleTimerEnd()}
-                            sx={{
-                                mt: 2,
-                                backgroundColor: '#177604',
-                                color: 'white',
-                                borderRadius: 2,
-                                boxShadow: 2,
-                                textTransform: 'none',
-                                py: 1,
-                                '&:hover': {
-                                    backgroundColor: '#135f03',
-                                    boxShadow: 3,
-                                },
-                            }}
-                            aria-label="Back to overview"
-                        >
-                            Back to Overview (Test)
-                        </Button>
+                        <Box display="flex" sx={{ p: 2, bgcolor: getTimerColor(), color: "white", fontWeight: "bold" }}>
+                            <AccessTime />
+                            <Typography sx={{ ml: 1 }}>
+                                {formatTimer(formTimer)}
+                            </Typography>
+                        </Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <Divider sx={{ my: 2 }} />
+                        <Divider sx={{ mt: 1 }} />
                     </Grid>
-                    {/* Form Items */}
+                    {/* Form Items and Submission */}
                     <Grid item xs={12}>
                         <Box
                             sx={{
@@ -420,10 +395,35 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                                         <FormItem
                                             itemData={item}
                                             handleAnswer={handleAnswer}
+                                            storedAnswer={storedAnswers[item.id]}
                                         />
                                     </Grid>
                                 ))}
                             </Grid>
+                            <Divider sx={{ mt: 2 }} />
+                            <Box display="flex" sx={{ p: 3, mb: 5 }}>
+                                {/* Form Exit Button (TEMPORARY, REMOVE LATER) */}
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleTimerEnd()}
+                                    sx={{
+                                        mt: 2,
+                                        backgroundColor: '#177604',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        boxShadow: 2,
+                                        textTransform: 'none',
+                                        py: 1,
+                                        '&:hover': {
+                                            backgroundColor: '#135f03',
+                                            boxShadow: 3,
+                                        },
+                                    }}
+                                    aria-label="Back to overview"
+                                >
+                                    Back to Overview (Test)
+                                </Button>
+                            </Box>
                         </Box>
                     </Grid>
                 </>
