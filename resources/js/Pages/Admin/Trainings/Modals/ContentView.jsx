@@ -555,7 +555,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Passing Score
@@ -566,7 +565,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Duration Per Attempt
@@ -575,9 +573,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         {`${content.duration ?? "N/A"} min`}
                                                     </Typography>
                                                 </Box>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }}>
-                                                <Divider />
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
@@ -590,7 +585,6 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
                                                 <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                                         Total Points

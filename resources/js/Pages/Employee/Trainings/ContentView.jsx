@@ -126,6 +126,11 @@ const ContentView = () => {
                 } else {
                     setFile(null);
                 }
+                // Training Form Data Retriever 
+                if (resContent?.content?.type == "Form") {
+                    console.log(resContent);
+                    getFormDetails(resContent?.id);
+                }
                 // Training View Tracker
                 if (resContent?.content?.type == "Image") {
                     if (!resContent.is_finished) {
@@ -348,6 +353,24 @@ const ContentView = () => {
             });
     }
 
+    // Form Functions
+    const [viewType, setViewType] = useState('Overview');
+    const [analyticView, setAnalyticView] = useState(false);
+
+    const [attemptData, setAttemptData] = useState(null);
+    const [formItems, setFormItems] = useState([]);
+    const getFormDetails = (id) => {
+        // axiosInstance.get(`/trainings/getEmployeeFormDetails/${id}`, { headers })
+        //     .then((response) => {
+        //         setFormItems(response.data.items);
+        //         setAttemptData(response.data.attempt_data);
+        //     })
+        //     .catch((error) => {
+        //         console.error('Error fetching form details:', error);
+        //     });
+    }
+
+
     return (
         <Layout title={"ContentView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -370,6 +393,7 @@ const ContentView = () => {
 
                     <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px" }} >
                         <>
+                            {/* Content List */}
                             <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0", }}>
                                 <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
                                     {title}
@@ -460,6 +484,7 @@ const ContentView = () => {
                                     )}
                                 </Box>
                             </Box>
+                            {/* Content DIsplay */}
                             <Box sx={{ width: "80%", mt: 6, mb: 2, p: 3 }}>
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
@@ -467,13 +492,15 @@ const ContentView = () => {
                                     </Box>
                                 ) : (
                                     <Grid container spacing={2}>
+                                        {/* Title */}
                                         <Grid item xs={12}>
                                             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
                                         </Grid>
+                                        {/* Primary Content */}
                                         <Grid item xs={12} sx={{ placeContent: "center", placeItems: "center" }}>
-                                            {content.content.type !== "Form" && (
+                                            {content.content.type !== "Form" ? (
                                                 <>
                                                     {content.content.type === "Video" ? (
                                                         <Box
@@ -549,12 +576,102 @@ const ContentView = () => {
                                                         </Box>
                                                     )}
                                                 </>
+                                            ) : (
+                                                <>
+                                                    <Grid container spacing={2}>
+                                                        {/* Availability */}
+                                                        <Grid item xs={6}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                    {content.content.require_pass ? "Availability" : "Attempt Limit"}
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                                    {content.content.require_pass ? "Until Passed" : `${content.content.attempts_allowed} attempt/s` ?? "N/A"}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        {/* Duration */}
+                                                        <Grid item xs={6}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                    {"Attempt Duration"}
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                                    {`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        {/* Item Count */}
+                                                        <Grid item xs={3}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                    {"Item Count"}
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                                    {20}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        {/* Total Points */}
+                                                        <Grid item xs={3}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                    {"Total Points"}
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                                    {50}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        {/* Passing Score */}
+                                                        <Grid item xs={3}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
+                                                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                    {"Passing Score"}
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                                    {`${64}%`}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        {/* Button */}
+                                                        <Grid item xs={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                onClick={() => setAnalyticView(!analyticView)}
+                                                                sx={{ ml: 1 }}
+                                                            >
+                                                                <p className="m-0">
+                                                                    {`${analyticView ? "Hide" : "Show"} Analytics`}
+                                                                </p>
+                                                            </Button>
+                                                        </Grid>
+                                                        {/* Analytics */}
+                                                        {analyticView && (
+                                                            <>
+                                                                <Grid item xs={12}>
+                                                                    <Divider />
+                                                                </Grid>
+                                                                <Grid item container xs={12}>
+                                                                    <Grid item xs={12}>
+                                                                        {`[INSERT ATTEMPT ANALYTICS HERE]`}
+                                                                    </Grid>
+                                                                </Grid>
+                                                            </>
+                                                        )}
+                                                    </Grid>
+                                                </>
                                             )}
                                         </Grid>
                                         <Grid item xs={12}>
                                             <Divider />
                                         </Grid>
+                                        {/* Description */}
                                         <Grid item xs={12} >
+                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                Description
+                                            </Typography>
                                             <div
                                                 id="description"
                                                 style={{
@@ -566,6 +683,46 @@ const ContentView = () => {
                                                 dangerouslySetInnerHTML={{ __html: content.description }}
                                             />
                                         </Grid>
+                                        {/* Form Start Prompt */}
+                                        {content.content.type == "Form" && (
+                                            <>
+                                                <Grid item xs={12}>
+                                                    <Divider />
+                                                </Grid>
+                                                <Grid item xs={12}>
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                        Answer Form
+                                                    </Typography>
+                                                    <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                        <Typography sx={{ color: "text.secondary" }}>
+                                                            {content.content.require_pass ? "The timer will start counting down once the attempt starts"
+                                                                : "An attempt will be used, and the timer will start counting down once the attempt starts."}
+                                                        </Typography>
+                                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                                            {!content.content.require_pass ? (
+                                                                <>
+                                                                    <Typography sx={{ color: "text.secondary" }}>
+                                                                        Attempts Remaining:
+                                                                    </Typography>
+                                                                    <Typography sx={{ mx: 1, fontWeight: "bold" }}>
+                                                                        {3}
+                                                                    </Typography>
+                                                                </>
+                                                            ) : null}
+                                                            <Button
+                                                                variant="contained"
+                                                                onClick={() => console.log('Starting Attempt')}
+                                                                sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                            >
+                                                                <p className="m-0">
+                                                                    Start Attempt
+                                                                </p>
+                                                            </Button>
+                                                        </Box>
+                                                    </Box>
+                                                </Grid>
+                                            </>
+                                        )}
                                     </Grid>
                                 )}
                             </Box>

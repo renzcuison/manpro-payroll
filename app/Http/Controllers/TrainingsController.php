@@ -169,7 +169,7 @@ class TrainingsController extends Controller
                     'unique_code' => $uniqueCode,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'cover_photo' => $coverPath,
+                    'cover_photo' => $coverPath ?? null,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'duration' => $request->input('duration'),
@@ -1002,7 +1002,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Forms --------------------------------------------------------------- /
+    // Training Forms (Admin) ------------------------------------------------------- /
     public function saveFormItem(Request $request)
     {
         //Log::info("TrainingsController:saveFormItem");
@@ -1182,8 +1182,8 @@ class TrainingsController extends Controller
 
     public function saveFormItemSettings(Request $request)
     {
-        Log::info("TrainingsController:saveFormItemSettings");
-        Log::info($request);
+        // Log::info("TrainingsController:saveFormItemSettings");
+        // Log::info($request);
 
         $user = Auth::user();
         $order = $request->input('new_order');
@@ -1218,6 +1218,12 @@ class TrainingsController extends Controller
         }
     }
 
+    // Training Forms (Employee) ---------------------------------------------------- /
+    public function getFormDetails($id)
+    {
+        Log::info("TrainingsController:getFormDetails");
+        Log::info($id);
+    }
 
     function generateRandomCode($length)
     {

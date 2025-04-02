@@ -281,6 +281,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editFormItem', [TrainingsController::class, 'editFormItem']);
         Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
         Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
+
+        Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
     });
 
 
