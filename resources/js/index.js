@@ -42,78 +42,97 @@ import ReportEdit from "./Pages/Reports/ReportEdit.jsx";
 
 import HrRoutes from "./Routes/HrRoutes.jsx";
 
-
 import HrEmployeeAddEmp from "./Pages/Hr/HrEmployeeAddEmp";
-
 
 import AdminRoutes from "./Routes/AdminRoutes.jsx";
 import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
 import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
+import { createTheme, ThemeProvider } from "@mui/material";
 
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: "#007bff",
+        },
+        secondary: {
+            main: "#f8312f",
+        },
+        background: {
+            default: "#f5f5f5",
+        },
+    },
+});
 function App() {
     const { user, isFetching } = useUser();
+
     if (isFetching) return null; // or a loading spinner
-  
+
     return (
-      <Routes>
+        <Routes>
+            <Route
+                path="/"
+                element={
+                    user ? (
+                        user.user_type === "SuperAdmin" ? (
+                            <SuperAdminDashboard />
+                        ) : user.user_type === "Admin" ? (
+                            <AdminDashboard />
+                        ) : user.user_type === "Employee" ? (
+                            <EmployeeDashboard />
+                        ) : (
+                            <CheckUser />
+                        )
+                    ) : (
+                        <CheckUser />
+                    )
+                }
+            />
 
-        <Route path="/" element={ user ? (
-              user.user_type === 'SuperAdmin' ? ( <SuperAdminDashboard /> ) : user.user_type === 'Admin' ? ( <AdminDashboard /> ) : user.user_type === 'Employee' ? ( <EmployeeDashboard /> ) : ( <CheckUser /> )
-            ) : (
-              <CheckUser />
-            )
-          }
-        />
+            <Route
+                path="/dashboard"
+                element={
+                    user ? (
+                        user.user_type === "SuperAdmin" ? (
+                            <SuperAdminDashboard />
+                        ) : user.user_type === "Admin" ? (
+                            <AdminDashboard />
+                        ) : user.user_type === "Employee" ? (
+                            <EmployeeDashboard />
+                        ) : (
+                            <CheckUser />
+                        )
+                    ) : (
+                        <CheckUser />
+                    )
+                }
+            />
 
-        <Route path="/dashboard" element={ user ? (
-              user.user_type === 'SuperAdmin' ? ( <SuperAdminDashboard /> ) : user.user_type === 'Admin' ? ( <AdminDashboard /> ) : user.user_type === 'Employee' ? ( <EmployeeDashboard /> ) : ( <CheckUser /> )
-            ) : (
-              <CheckUser />
-            )
-          }
-        />
+            <Route path="/hr/*" element={<HrRoutes user={user} />} />
+            <Route path="/admin/*" element={<AdminRoutes user={user} />} />
+            <Route
+                path="/super-admin/*"
+                element={<SuperAdminRoutes user={user} />}
+            />
+            <Route
+                path="/employee/*"
+                element={<EmployeeRoutes user={user} />}
+            />
 
-        <Route path="/hr/*" element={<HrRoutes user={user} />} />
-        <Route path="/admin/*" element={<AdminRoutes user={user} />} />
-        <Route path="/super-admin/*" element={<SuperAdminRoutes user={user} />} />
-        <Route path="/employee/*" element={<EmployeeRoutes user={user} />} />
+            {/* Unprotected Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register/:code" element={<Register />} />
 
+            {/* User Profile Routes */}
+            <Route
+                path="/profile"
+                element={user ? <Profile /> : <CheckUser />}
+            />
 
-        {/* Unprotected Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register/:code" element={<Register />} />
+            {/* <Route path="/member/*" element={<MemberRoutes user={user} />} /> */}
 
+            {/* <Route path="/" element={user && user.user_type !== 'Member' && user.user_type !== 'Suspended' ? <VerifyLogin /> : user && user.user_type === 'Member' ? <VerifyLogin /> : <Login />} /> */}
 
-       {/* User Profile Routes */}
-       <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        {/* <Route path="/member/*" element={<MemberRoutes user={user} />} /> */}
-
-        {/* <Route path="/" element={user && user.user_type !== 'Member' && user.user_type !== 'Suspended' ? <VerifyLogin /> : user && user.user_type === 'Member' ? <VerifyLogin /> : <Login />} /> */}
-
-        {/* <Route
+            {/* <Route
             path="/"
             element={
                 user ? (
@@ -127,67 +146,117 @@ function App() {
                 )
             }
         /> */}
-  
-        {/* SUPER ADMIN ROUTES */}
-        <Route path="/super/employees" element={user ? <SuperEmployees /> : <CheckUser />} />
-        <Route path="/super/applications" element={user ? <SuperApplications /> : <CheckUser />} />
-        <Route path="/super/attendance" element={user ? <SuperAttendance /> : <CheckUser />} />
-        <Route path="/super/payroll-process" element={user ? <SuperPayroll /> : <CheckUser />} />
-        <Route path="/super/reset-password" element={user ? <SuperResetPassword /> : <CheckUser />} />
-        <Route path="/super/employee-reset-password" element={user ? <SuperEmployeesList /> : <CheckUser />} />
 
-    
-        {/* ----------------------------------------------------------------------------------------------- */}
-        {/* GLOBAL ROUTES */}
-        <Route path="/reports" element={user ? <Reports /> : <CheckUser />} />
-        <Route path="/report-create" element={user ? <ReportCreate /> : <CheckUser />} />
-        <Route path="/report-view/:id" element={user ? <ReportView /> : <CheckUser />} />
-        <Route path="/report-edit/:id" element={user ? <ReportEdit /> : <CheckUser />} />
+            {/* SUPER ADMIN ROUTES */}
+            <Route
+                path="/super/employees"
+                element={user ? <SuperEmployees /> : <CheckUser />}
+            />
+            <Route
+                path="/super/applications"
+                element={user ? <SuperApplications /> : <CheckUser />}
+            />
+            <Route
+                path="/super/attendance"
+                element={user ? <SuperAttendance /> : <CheckUser />}
+            />
+            <Route
+                path="/super/payroll-process"
+                element={user ? <SuperPayroll /> : <CheckUser />}
+            />
+            <Route
+                path="/super/reset-password"
+                element={user ? <SuperResetPassword /> : <CheckUser />}
+            />
+            <Route
+                path="/super/employee-reset-password"
+                element={user ? <SuperEmployeesList /> : <CheckUser />}
+            />
 
-        <Route path="/personal-details" element={user ? <MemberPersonalDetails /> : <CheckUser />} />
-        <Route path="/change-password" element={user ? <MemberChangePassword /> : <CheckUser />} />
+            {/* ----------------------------------------------------------------------------------------------- */}
+            {/* GLOBAL ROUTES */}
+            <Route
+                path="/reports"
+                element={user ? <Reports /> : <CheckUser />}
+            />
+            <Route
+                path="/report-create"
+                element={user ? <ReportCreate /> : <CheckUser />}
+            />
+            <Route
+                path="/report-view/:id"
+                element={user ? <ReportView /> : <CheckUser />}
+            />
+            <Route
+                path="/report-edit/:id"
+                element={user ? <ReportEdit /> : <CheckUser />}
+            />
 
-        {/* OTHER ROUTES */}
-        <Route path="/accounting" element={user ? <AccountingDashboard /> : <CheckUser />} />
-        <Route path="/accounting/dashboard" element={user ? <AccountingDashboard /> : <CheckUser />} />
-        <Route path="/accounting/sales" element={user ? <Sales /> : <CheckUser />} />
-        <Route path="/accounting/invoice" element={user ? <Invoice /> : <CheckUser />} />
-        <Route path="/check-user" element={<CheckUser />} />
-        <Route path="/resetPassword" element={<ResetPassword />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verifyLogin" element={<VerifyLogin />} />
+            <Route
+                path="/personal-details"
+                element={user ? <MemberPersonalDetails /> : <CheckUser />}
+            />
+            <Route
+                path="/change-password"
+                element={user ? <MemberChangePassword /> : <CheckUser />}
+            />
 
-        <Route path="/add-employee" element={<HrEmployeeAddEmp />} />
+            {/* OTHER ROUTES */}
+            <Route
+                path="/accounting"
+                element={user ? <AccountingDashboard /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/dashboard"
+                element={user ? <AccountingDashboard /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/sales"
+                element={user ? <Sales /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/invoice"
+                element={user ? <Invoice /> : <CheckUser />}
+            />
+            <Route path="/check-user" element={<CheckUser />} />
+            <Route path="/resetPassword" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verifyLogin" element={<VerifyLogin />} />
 
-        <Route path="/error-404" element={<Error404 />} />
-      </Routes>
+            <Route path="/add-employee" element={<HrEmployeeAddEmp />} />
+
+            <Route path="/error-404" element={<Error404 />} />
+        </Routes>
     );
-  }
-  
-  export default App;
-  
-  if (document.getElementById("app")) {
+}
+
+export default App;
+
+if (document.getElementById("app")) {
     const container = document.getElementById("app");
     const root = createRoot(container);
     root.render(
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <React.StrictMode>
-            <App />
-          </React.StrictMode>
-        </BrowserRouter>
-      </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={theme}>
+                <BrowserRouter>
+                    <React.StrictMode>
+                        <App />
+                    </React.StrictMode>
+                </BrowserRouter>
+            </ThemeProvider>
+        </QueryClientProvider>
     );
-  }
-  
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('SW registered: ', registration);
-        })
-        .catch(registrationError => {
-          console.log('SW registration failed: ', registrationError);
-        });
+}
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+                console.log("SW registered: ", registration);
+            })
+            .catch((registrationError) => {
+                console.log("SW registration failed: ", registrationError);
+            });
     });
-  }
+}
