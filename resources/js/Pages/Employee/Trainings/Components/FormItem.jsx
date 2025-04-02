@@ -46,7 +46,7 @@ import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 
-const FormItem = ({ itemData, handleAnswer }) => {
+const FormItem = ({ itemData, handleAnswer, storedAnswer }) => {
     // Answer Data
     const [fillAnswer, setFillAnswer] = useState('');
     const [selectedChoices, setSelectedChoices] = useState([]);
@@ -55,7 +55,11 @@ const FormItem = ({ itemData, handleAnswer }) => {
         let updatedChoices;
         let validChoice = true;
         if (itemData.type === 'Choice') {
-            updatedChoices = [choiceId];
+            if (selectedChoices.includes(choiceId)) {
+                validChoice = false;
+            } else {
+                updatedChoices = [choiceId];
+            }
         } else if (itemData.type === 'MultiSelect') {
             if (selectedChoices.includes(choiceId)) {
                 updatedChoices = selectedChoices.filter((id) => id !== choiceId);
@@ -74,6 +78,17 @@ const FormItem = ({ itemData, handleAnswer }) => {
             handleAnswer(itemData.id, updatedChoices);
         }
     };
+
+    // Stored Answers
+    useEffect(() => {
+        if (storedAnswer !== undefined) {
+            if (itemData.type === 'FillInTheBlank') {
+                setFillAnswer(storedAnswer);
+            } else if (['Choice', 'MultiSelect'].includes(itemData.type)) {
+                setSelectedChoices(Array.isArray(storedAnswer) ? storedAnswer : [storedAnswer]);
+            }
+        }
+    }, [itemData.id, itemData.type]);
 
     return (
         <Grid item xs={12}>
@@ -170,6 +185,7 @@ const FormItem = ({ itemData, handleAnswer }) => {
                             id={`item-${itemData.id}-answer-field`}
                             placeholder="Enter Your Answer"
                             variant="outlined"
+                            value={fillAnswer}
                             onChange={(e) => setFillAnswer(e.target.value)}
                             onBlur={() => handleAnswer(itemData.id, fillAnswer)}
                             onKeyDown={(e) => {
@@ -184,7 +200,6 @@ const FormItem = ({ itemData, handleAnswer }) => {
                                 key={choice.id}
                                 display="flex"
                                 alignItems="center"
-                                onClick={() => handleSelectionChange(choice.id)}
                                 sx={{
                                     p: 1,
                                     mb: 1,
@@ -199,13 +214,17 @@ const FormItem = ({ itemData, handleAnswer }) => {
                                 }}
                                 role="option"
                                 aria-selected={selectedChoices.includes(choice.id)}
+                                onClick={() => handleSelectionChange(choice.id)}
                             >
                                 <FormControlLabel
                                     control={
                                         itemData.type === 'Choice' ? (
                                             <Radio
                                                 checked={selectedChoices.includes(choice.id)}
-                                                onChange={() => { }}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSelectionChange(choice.id);
+                                                }}
                                                 value={choice.id}
                                                 name={`item-${itemData.id}-choice`}
                                                 sx={{
@@ -218,7 +237,10 @@ const FormItem = ({ itemData, handleAnswer }) => {
                                         ) : (
                                             <Checkbox
                                                 checked={selectedChoices.includes(choice.id)}
-                                                onChange={() => { }}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSelectionChange(choice.id);
+                                                }}
                                                 value={choice.id}
                                                 sx={{
                                                     color: 'text.secondary',
@@ -230,11 +252,14 @@ const FormItem = ({ itemData, handleAnswer }) => {
                                         )
                                     }
                                     label={
-                                        <Typography sx={{ color: 'text.primary', fontSize: { xs: '0.9rem', sm: '1rem' }, }} >
+                                        <Typography sx={{ color: 'text.primary', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                             {choice.description}
                                         </Typography>
                                     }
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectionChange(choice.id);
+                                    }}
                                 />
                             </Box>
                         ))
