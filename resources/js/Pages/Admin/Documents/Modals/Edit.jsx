@@ -15,10 +15,10 @@ import {
     Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { renderIcon } from "../../../../utils/constants";
 import { Download, EllipsisVertical, Trash, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
 import { useDocuments } from "../hook/useDocuments";
+import { renderIcon } from "../../../../utils/constants";
 
 function EditDocumentDialog({ open, close, document, handleDelete }) {
     const { deleteDoc } = useDocuments();

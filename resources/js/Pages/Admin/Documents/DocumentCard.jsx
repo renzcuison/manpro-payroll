@@ -7,9 +7,6 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
-import { File, FileText, ImageIcon, Table } from "lucide-react";
-import { PiMicrosoftWordLogo, PiMicrosoftExcelLogo } from "react-icons/pi";
-import { FaRegFilePdf } from "react-icons/fa";
 import React from "react";
 import { renderIcon } from "../../../utils/constants";
 
