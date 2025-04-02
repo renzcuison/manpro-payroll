@@ -251,7 +251,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setOpenFormItemAddModal(false);
         if (reload) {
             setExitReload(true);
-            getFormItems(content.training_form_id);
+            getContentDetails();
         }
     };
 
@@ -304,7 +304,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setLoadItem(false);
         setOpenFormItemEditModal(false);
         if (reload) {
-            getFormItems(content.training_form_id);
+            getContentDetails();
         }
     }
 

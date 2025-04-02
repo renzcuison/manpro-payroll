@@ -168,7 +168,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to save this content?",
+                text: "Do you want to update this item?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -225,7 +225,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Form item saved!`,
+                        text: `Form item updated!`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",
@@ -478,7 +478,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                     }}
                                     className="m-1"
                                 >
-                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Content </p>
+                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Update Item </p>
                                 </Button>
                             </Grid>
                         </Grid>

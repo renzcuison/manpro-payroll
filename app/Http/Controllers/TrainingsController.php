@@ -1219,10 +1219,47 @@ class TrainingsController extends Controller
     }
 
     // Training Forms (Employee) ---------------------------------------------------- /
-    public function getFormDetails($id)
+    public function getEmployeeFormDetails($id)
     {
-        Log::info("TrainingsController:getFormDetails");
-        Log::info($id);
+        //Log::info("TrainingsController:getFormDetails");
+        //Log::info($id);
+
+        $content = TrainingContentModel::with([
+            'form.items' => function ($query) {
+                $query->orderBy('order', 'ASC');
+            },
+            'form.items.choices'
+        ])->find($id);
+
+        if (!$content || !$content->form) {
+            Log::warning("Form not found for training content ID: {$id}");
+            return response()->json(['error' => 'Form not found'], 404);
+        }
+
+        // Form Items
+        $items = $content->form->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'type' => $item->type,
+                'order' => $item->order,
+                'value' => $item->value,
+                'form_id' => $item->form_id,
+                'description' => $item->description,
+                'choices' => $item->choices->map(function ($choice) {
+                    return [
+                        'id' => $choice->id,
+                        'item_id' => $choice->form_item_id,
+                        'description' => $choice->description,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+
+        return response()->json([
+            'form' => $content,
+            'items' => $items,
+            'attempt_data' => null,
+        ]);
     }
 
     function generateRandomCode($length)

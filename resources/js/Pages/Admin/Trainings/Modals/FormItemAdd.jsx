@@ -136,7 +136,7 @@ const FormItemAdd = ({ open, close, formId }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to save this content?",
+                text: "Do you want to save this item?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Save",
@@ -438,7 +438,7 @@ const FormItemAdd = ({ open, close, formId }) => {
                                     }}
                                     className="m-1"
                                 >
-                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Content </p>
+                                    <p className="m-0"> <i className="fa fa-floppy-o mr-2 mt-1"></i> Save Item </p>
                                 </Button>
                             </Grid>
                         </Grid>
