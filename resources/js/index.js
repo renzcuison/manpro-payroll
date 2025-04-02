@@ -52,10 +52,10 @@ import { createTheme, ThemeProvider } from "@mui/material";
 const theme = createTheme({
     palette: {
         primary: {
-            main: "#007bff",
+            main: "#2e7d32",
         },
         secondary: {
-            main: "#f8312f",
+            main: "rgb(233, 171, 19,0.7)",
         },
         background: {
             default: "#f5f5f5",

@@ -30,5 +30,18 @@ export function useDocuments() {
         return data;
     }
 
-    return { documents, isLoading, isFetching, store };
+    async function deleteDoc(docID) {
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
+
+        const { data } = await axiosInstance.delete(
+            `/admin/documents/${docID}`,
+            {
+                headers,
+            }
+        );
+        return data;
+    }
+
+    return { documents, isLoading, isFetching, store, deleteDoc };
 }

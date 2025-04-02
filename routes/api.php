@@ -97,6 +97,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::prefix('documents')->group(function () {
             Route::get('/', [DocumentController::class, 'index']);
             Route::post('/store', [DocumentController::class, 'store']);
+            Route::post('/edit', [DocumentController::class, 'edit']);
+            Route::delete('/{id}', [DocumentController::class, 'destroy']);
         });
     });
 
