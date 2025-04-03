@@ -15,12 +15,19 @@ class DocumentController extends Controller
      */
     public function index()
     {
-        $documents = Document::with('media')->get();
+        try {
+            $documents = Document::with('media')->get();
 
-        return response()->json([
-            'data' => $documents,
-            'message' => 'Document list retrieved successfully.',
-        ]);
+            return response()->json([
+                'data' => $documents,
+                'message' => 'Document list retrieved successfully.',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+               'message' => 'An error occurred while retrieving documents.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     /**
