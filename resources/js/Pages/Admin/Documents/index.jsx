@@ -75,13 +75,22 @@ function Documents() {
         });
     };
 
-    useEffect(async () => {
-        const storedUser = localStorage.getItem("nasya_user");
-        const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
-        const { data } = await axiosInstance.get("/admin/documents/", {
-            headers,
-        });
-        return data;
+    useEffect(() => {
+        const fetchDocs = async () => {
+            try {
+                const storedUser = localStorage.getItem("nasya_user");
+                const headers = storedUser
+                    ? getJWTHeader(JSON.parse(storedUser))
+                    : {};
+                const { data } = await axiosInstance.get("/admin/documents/", {
+                    headers,
+                });
+                console.log("📦 Document Data:", data);
+            } catch (error) {
+                console.error("❌ Fetch Error:", error);
+            }
+        };
+        fetchDocs();
     }, []);
 
     console.log(selectedDoc);
