@@ -76,15 +76,24 @@ function Documents() {
     };
 
     useEffect(() => {
-        const fetchDocs = async () => {
+        const fetchDocs = () => {
             try {
                 const storedUser = localStorage.getItem("nasya_user");
                 const headers = storedUser
                     ? getJWTHeader(JSON.parse(storedUser))
                     : {};
-                const { data } = await axiosInstance.get("/admin/documents/", {
-                    headers,
-                });
+                axiosInstance
+                    .get("/admin/documents/", {
+                        headers,
+                    })
+                    .then((response) => {
+                        console.log("response:", response);
+
+                        console.log(response.data);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching employees:", error);
+                    });
                 console.log("📦 Document Data:", data);
             } catch (error) {
                 console.error("❌ Fetch Error:", error);
