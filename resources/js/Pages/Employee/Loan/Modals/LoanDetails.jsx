@@ -234,6 +234,30 @@ const LoanDetails = ({ open, close, loanId }) => {
                     <Grid item xs={12} sx={{ my: 0 }}>
                         <Divider />
                     </Grid>
+                    {/* Paid Amount */}
+                    <Grid item xs={5} align="left">
+                        Paid Amount
+                    </Grid>
+                    <Grid item xs={7} align="left">
+                        <Typography sx={{ fontWeight: "bold" }}>
+                            ₱{parseFloat(loan.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}>
+                        <Divider />
+                    </Grid>
+                    {/* Remaining Amount */}
+                    <Grid item xs={5} align="left">
+                        Remaining Amount
+                    </Grid>
+                    <Grid item xs={7} align="left">
+                        <Typography sx={{ fontWeight: "bold" }}>
+                            ₱{parseFloat((loan.loan_amount - (loan.paid_amount || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}>
+                        <Divider />
+                    </Grid>
                     {/* Status */}
                     <Grid item xs={5} align="left">
                         Status
@@ -253,6 +277,8 @@ const LoanDetails = ({ open, close, loanId }) => {
                                         ? "#42a5f5"
                                         : loan.status === "Paid"
                                         ? "#4caf50"
+                                        : loan.status === "Cancelled"
+                                        ? "#9e9e9e"
                                         : "#000000",
                             }}
                         >
