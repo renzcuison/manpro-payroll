@@ -354,7 +354,6 @@ const ContentView = () => {
     }
 
     // Form Functions
-    const [viewType, setViewType] = useState('Overview');
     const [formItems, setFormItems] = useState([]);
     const [attemptData, setAttemptData] = useState(null);
 
@@ -500,8 +499,6 @@ const ContentView = () => {
                                             <>
                                                 <FormViews
                                                     content={content}
-                                                    viewType={viewType}
-                                                    setViewType={setViewType}
                                                     updateProgress={handleTrainingViews}
                                                     formItems={formItems}
                                                     attemptData={attemptData}

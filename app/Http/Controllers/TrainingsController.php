@@ -1285,6 +1285,13 @@ class TrainingsController extends Controller
         ]);
     }
 
+    public function saveEmployeeFormSubmission(Request $request)
+    {
+        Log::info("TrainingsController:saveEmployeeFormSubmission");
+        Log::info($request);
+    }
+
+    // Others ----------------------------------------------------------------------- /
     function generateRandomCode($length)
     {
         // log::info("TrainingsController::generateRandomCode");

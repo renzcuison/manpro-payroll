@@ -107,8 +107,8 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
             >
                 {/* Question No. */}
                 <Box
+                    display="flex"
                     sx={{
-                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         minWidth: { xs: 28, sm: 32 },
@@ -125,9 +125,17 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
 
                 {/* Main Content */}
                 {submissionView ? (
-                    <Box display="flex" sx={{ py: 1, px: 2, bgcolor: storedAnswer ? "#177604" : "#f44336" }}>
+                    <Box
+                        display="flex"
+                        sx={{
+                            py: 1, px: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '5px',
+                            bgcolor: storedAnswer && storedAnswer.length > 0 ? "#177604" : "#f44336"
+                        }}>
                         <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                            {storedAnswer ? "Answer Saved" : "No Answer"}
+                            {storedAnswer && storedAnswer.length > 0 ? "Answer Saved" : "No Answer"}
                         </Typography>
                     </Box>
                 ) : (

@@ -94,7 +94,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // 
     Route::prefix('admin')->group(function () {
-        
+
         Route::prefix('documents')->group(function () {
             Route::get('/', [DocumentController::class, 'index']);
             Route::post('/store', [DocumentController::class, 'store']);
@@ -212,7 +212,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::post('/editApplicationType', [ApplicationsController::class, 'editApplicationType']);
-        
+
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
         Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
@@ -299,6 +299,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
 
         Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
+        Route::post('/saveEmployeeFormSubmission', [TrainingsController::class, 'saveEmployeeFormSubmission']);
     });
 
 

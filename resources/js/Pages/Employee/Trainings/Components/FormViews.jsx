@@ -34,7 +34,8 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { AccessTime } from "@mui/icons-material";
+import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save } from "@mui/icons-material";
+import { Form, useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -45,23 +46,61 @@ import Swal from "sweetalert2";
 import FormItem from "./FormItem";
 
 
-const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) => {
+const FormViews = ({ content, formItems, attemptData }) => {
+    const navigate = useNavigate();
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
 
     const formData = content.content;
     const [analyticView, setAnalyticView] = useState(false);
+    const [submissionView, setSubmissionView] = useState(false);
+    const durationInSeconds = (content?.duration || 15) * 60;
+    const [formTimer, setFormTimer] = useState(durationInSeconds);
+    const [viewType, setViewType] = useState('Overview');
 
-    // Attempted Form Loaders
+    // Local Storage
     let attemptedQuiz = null;
-    if (localStorage.getItem('quizAttempted')) {
-        attemptedQuiz = localStorage.getItem('quizAttempted');
-        if (attemptedQuiz == content.id) {
-            setViewType('Attempt');
-        } else {
-            setViewType('Overview');
-        }
-    }
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
 
-    // START ATTEMPT
+    // UTILITY
+    const calculateRemainingTime = () => {
+        const storedStartTime = localStorage.getItem('quizStartTime');
+        if (storedStartTime) {
+            const startTime = dayjs(storedStartTime);
+            const currentTime = dayjs();
+            const elapsedSeconds = currentTime.diff(startTime, 'second');
+            const remainingTime = durationInSeconds - elapsedSeconds;
+            return remainingTime >= 0 ? remainingTime : 0;
+        }
+        return durationInSeconds; // If no start time, return full duration
+    };
+
+    const formatTimer = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const getTimerColor = () => {
+        if (formTimer < 60) return '#f44336'; // Red (< 1 min)
+        if (formTimer < 300) return '#f57c00'; // Orange (< 5 min)
+        return '#177604'; // Green
+    };
+
+    // Attempt Initialization
+    useEffect(() => {
+        attemptedQuiz = localStorage.getItem('quizAttempted');
+        if (attemptedQuiz) {
+            if (attemptedQuiz == content.id) {
+                setViewType('Attempt');
+            } else {
+                setViewType('Overview');
+            }
+        }
+    }, [content.id]); // Runs when content.id changes
+
+    // EVENTS
+    // Start Attempt
     const handleAttemptStart = () => {
         const ongoingQuiz = localStorage.getItem('quizAttempted');
         if (ongoingQuiz && ongoingQuiz != content.id) {
@@ -93,25 +132,116 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                 }
             });
         }
-    }
-
-    // TIMER FUNCTIONS
-    const durationInSeconds = (content?.duration || 15) * 60;
-
-    // Remaining Time
-    const calculateRemainingTime = () => {
-        const storedStartTime = localStorage.getItem('quizStartTime');
-        if (storedStartTime) {
-            const startTime = dayjs(storedStartTime);
-            const currentTime = dayjs();
-            const elapsedSeconds = currentTime.diff(startTime, 'second');
-            const remainingTime = durationInSeconds - elapsedSeconds;
-            return remainingTime >= 0 ? remainingTime : 0;
-        }
-        return durationInSeconds; // If no start time, return full duration
     };
 
-    const [formTimer, setFormTimer] = useState(calculateRemainingTime());
+    // Record Answer
+    const handleAnswer = (id, answer) => {
+        console.log(`Received Answer for Item ${id}: ${answer}`);
+        const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
+        storedAnswers[id] = answer;
+        localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
+    };
+
+    // Time Expired
+    const handleTimerEnd = () => {
+        console.log('Time is up! Automatically submitting quiz attempt...');
+        setViewType('Overview');
+        // Clear localStorage to reset the quiz state
+        localStorage.removeItem('quizAttempted');
+        localStorage.removeItem('quizStartTime');
+        localStorage.removeItem('quizViewType');
+        localStorage.removeItem('quizAnswerData');
+    };
+
+    // Final Submissions
+    const handleSubmission = (event) => {
+        event.preventDefault();
+        console.log(storedAnswers);
+
+        const hasUnanswered = formItems.some(item => {
+            const answer = storedAnswers[item.id];
+            return !(item.id in storedAnswers) ||
+                (item.type === 'MultiSelect' && Array.isArray(answer) && answer.length === 0);
+        });
+        const message = hasUnanswered
+            ? "There are unanswered items. Are you sure you want to submit your attempt?"
+            : "Are you sure you want to submit your attempt?";
+
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Confirm Submission?",
+            text: message,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Submit",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Return to Review",
+            cancelButtonColor: "#f57c00",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                saveSubmission(event);
+            }
+        });
+    };
+
+    const saveSubmission = (event) => {
+        event.preventDefault();
+
+        console.log("Submitting Attempt:", storedAnswers);
+
+        const formData = new FormData();
+        // Form Data
+        formData.append("form_id", content.id);
+        formData.append("remaining_time", formTimer);
+        formData.append("duration", content.duration);
+        // Answers
+        formData.append("answers", JSON.stringify(storedAnswers));
+
+        // Start-Submission Time
+        formData.append("attempt_start_time", localStorage.getItem('quizStartTime') || null);
+        formData.append("submission_time", dayjs().toISOString());
+
+        axiosInstance.post("/trainings/saveEmployeeFormSubmission", formData, { headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    document.activeElement.blur();
+                    document.body.removeAttribute("aria-hidden");
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: "Attempt submitted successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close(true);
+                            document.body.setAttribute("aria-hidden", "true");
+                            // Clear localStorage after successful submission
+                            // localStorage.removeItem('quizAttempted');
+                            // localStorage.removeItem('quizStartTime');
+                            // localStorage.removeItem('quizViewType');
+                            // localStorage.removeItem('quizAnswerData');
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    };
+
+    // TIMER FUNCTIONS
+    // Timer Initializer
+    useEffect(() => {
+        setFormTimer(calculateRemainingTime());
+    }, [durationInSeconds]);
 
     // Countdown Logic
     useEffect(() => {
@@ -149,42 +279,7 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
         }, 1000);
 
         return () => clearInterval(timerInterval); // Cleanup (Unmount, View Change)
-    }, [viewType, durationInSeconds, setViewType, formTimer]);
-
-    // Timer Renderers
-    const formatTimer = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
-    const getTimerColor = () => {
-        if (formTimer < 60) return '#f44336'; // Red (< 1 min)
-        if (formTimer < 300) return '#f57c00'; // Orange (< 5 min)
-        return '#177604'; // Green
-    };
-    // Timer Expiry Handler
-    const handleTimerEnd = () => {
-        console.log('Time is up! Automatically submitting quiz attempt...');
-        setViewType('Overview');
-        // Clear localStorage to reset the quiz state
-        localStorage.removeItem('quizAttempted');
-        localStorage.removeItem('quizStartTime');
-        localStorage.removeItem('quizViewType');
-        localStorage.removeItem('quizAnswerData');
-    };
-
-    // ANSWER HANDLING
-    const handleAnswer = (id, answer) => {
-        console.log(`Received Answer for Item ${id}: ${answer}`);
-        const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
-        storedAnswers[id] = answer;
-        localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
-    };
-
-    // SUBMISSION FUNCTIONS
-    const [submissionView, setSubmissionView] = useState(false);
-
-    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
+    }, [viewType, durationInSeconds, formTimer]);
 
     switch (viewType) {
         case 'Overview':
@@ -335,11 +430,11 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
             return (
                 <>
                     {/* Attempt Count */}
-                    <Grid item xs={4}>
+                    <Grid item xs={3}>
                         <Box
                             display="flex"
                             sx={{
-                                width: { xs: '100%', sm: '50%' },
+                                width: "100%",
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 p: 1,
@@ -355,8 +450,50 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                             </Typography>
                         </Box>
                     </Grid>
+                    {/* Item Count */}
+                    <Grid item xs={3}>
+                        <Box
+                            display="flex"
+                            sx={{
+                                width: "100%",
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                p: 1,
+                                borderRadius: '4px',
+                                backgroundColor: '#f5f5f5',
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                No. of Items
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                {formItems.length}
+                            </Typography>
+                        </Box>
+                    </Grid>
+                    {/* Passing Score*/}
+                    <Grid item xs={3}>
+                        <Box
+                            display="flex"
+                            sx={{
+                                width: "100%",
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                p: 1,
+                                borderRadius: '4px',
+                                backgroundColor: '#f5f5f5',
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                Passing Score
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                {`${formData.passing_score}%`}
+                            </Typography>
+                        </Box>
+                    </Grid>
                     {/* Timer */}
-                    <Grid item xs={8} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
+                    <Grid item xs={3} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
                         <Box
                             display="flex"
                             sx={{
@@ -385,7 +522,6 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                     </Grid>
                     {/* Form Items and Submission */}
                     <Grid item xs={12}>
-
                         <Box
                             sx={{
                                 maxHeight: '690px',
@@ -407,6 +543,7 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                                 },
                             }}
                         >
+                            {/* Form Items */}
                             <Grid container spacing={2}>
                                 {formItems.map((item, index) => (
                                     <Grid item xs={12} key={index}>
@@ -420,6 +557,7 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                                 ))}
                             </Grid>
                             <Divider sx={{ mt: 2 }} />
+                            {/* Submission Buttons */}
                             <Box sx={{ p: 3, mb: 5 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Submit Answers
@@ -428,44 +566,49 @@ const FormViews = ({ content, viewType, setViewType, formItems, attemptData }) =
                                     {submissionView ? (
                                         <>
                                             <Typography sx={{ color: "text.secondary" }}>
-                                                This attempt will be saved and results will be calculated.
+                                                Review your answers before submitting. This will finalize your attempt and calculate your results.
                                             </Typography>
-                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                            <Box display="flex" sx={{ alignItems: "center", mt: 1 }}>
                                                 <Button
                                                     variant="contained"
                                                     onClick={() => setSubmissionView(false)}
-                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                    sx={{ ml: 1, backgroundColor: "#f57c00" }}
+                                                    startIcon={<ArrowBack />}
                                                 >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-floppy-o mr-2 mt-1" /> Return to Attempt
-                                                    </p>
+                                                    Return to Attempt
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={handleSubmission}
+                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                    startIcon={<CheckCircle />}
+                                                >
+                                                    Submit Attempt
                                                 </Button>
                                             </Box>
                                         </>
                                     ) : (
                                         <>
                                             <Typography sx={{ color: "text.secondary" }}>
-                                                This attempt will be saved and results will be calculated.
+                                                Save your progress or submit when ready. Results will be calculated upon submission.
                                             </Typography>
-                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                {/* Form Exit Button (TEMPORARY, REMOVE LATER) */}
+                                            <Box display="flex" sx={{ alignItems: "center", mt: 1 }}>
+                                                {/* Force Exit Button (TEMPORARY, REMOVE LATER) */}
                                                 <Button
                                                     variant="contained"
-                                                    onClick={() => handleTimerEnd()}
-                                                    sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                    onClick={handleTimerEnd}
+                                                    sx={{ ml: 1, backgroundColor: "#d32f2f" }}
+                                                    startIcon={<ExitToApp />}
                                                 >
-                                                    <p className="m-0">
-                                                        Force End Attempt (Temporary)
-                                                    </p>
+                                                    End Attempt (Temp)
                                                 </Button>
                                                 <Button
                                                     variant="contained"
                                                     onClick={() => setSubmissionView(true)}
                                                     sx={{ ml: 1, backgroundColor: "#177604" }}
+                                                    startIcon={<Save />}
                                                 >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-floppy-o mr-2 mt-1" /> Submit Answers
-                                                    </p>
+                                                    Review & Submit
                                                 </Button>
                                             </Box>
                                         </>
