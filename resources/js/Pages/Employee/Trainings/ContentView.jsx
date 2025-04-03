@@ -361,6 +361,7 @@ const ContentView = () => {
     const getFormDetails = (id) => {
         axiosInstance.get(`/trainings/getEmployeeFormDetails/${id}`, { headers })
             .then((response) => {
+                console.log(response.data.attempt_data);
                 setFormItems(response.data.items);
                 setAttemptData(response.data.attempt_data);
             })

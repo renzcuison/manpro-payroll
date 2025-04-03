@@ -21,6 +21,8 @@ class TrainingFormAnswersModel extends Model
         'score',
     ];
 
+    public $timestamps = false;
+
     public function response()
     {
         return $this->belongsTo(TrainingFormResponsesModel::class, 'form_response_id');

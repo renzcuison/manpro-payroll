@@ -144,13 +144,18 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
 
     // Time Expired
     const handleTimerEnd = () => {
-        console.log('Time is up! Automatically submitting quiz attempt...');
-        setViewType('Overview');
-        // Clear localStorage to reset the quiz state
-        localStorage.removeItem('quizAttempted');
-        localStorage.removeItem('quizStartTime');
-        localStorage.removeItem('quizViewType');
-        localStorage.removeItem('quizAnswerData');
+        document.activeElement.blur();
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Time's Up!",
+            text: "Your answers will be automatically submitted.",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Continue",
+            confirmButtonColor: "#177604",
+        }).then((res) => {
+            saveSubmission();
+        });
     };
 
     // Final Submissions
@@ -180,13 +185,12 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
             cancelButtonColor: "#f57c00",
         }).then((res) => {
             if (res.isConfirmed) {
-                saveSubmission(event);
+                saveSubmission();
             }
         });
     };
 
-    const saveSubmission = (event) => {
-        event.preventDefault();
+    const saveSubmission = () => {
 
         const formData = new FormData();
         // Form Data
@@ -269,7 +273,6 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
 
             if (remainingTime <= 0) {
                 setFormTimer(0);
-                handleTimerEnd();
                 clearInterval(timerInterval);
             } else {
                 setFormTimer(remainingTime);

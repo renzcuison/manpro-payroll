@@ -1284,11 +1284,28 @@ class TrainingsController extends Controller
             ];
         })->toArray();
 
+        // Form Responses
+        $view = TrainingViewsModel::with('responses')
+            ->where('training_content_id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($view) {
+            $responses = $view->responses;
+            $responseCount = $responses->count();
+
+            $view->average_duration = $responseCount > 0 ? $responses->avg('duration') : 0;
+            $view->average_score = $responseCount > 0 ? $responses->avg('score') : 0;
+            $view->response_count = $responseCount;
+        }
+
+        $attemptData = $view;
+
         return response()->json([
             'status' => 200,
             'form' => $content,
             'items' => $items,
-            'attempt_data' => null,
+            'attempt_data' => $attemptData ? $attemptData->toArray() : null,
         ]);
     }
 
@@ -1309,7 +1326,7 @@ class TrainingsController extends Controller
                 Log::error("Failed to decode answers JSON: " . $answersJson);
                 throw new \Exception("Invalid answers format");
             }
-            Log::info("Decoded Answers: ", $answers);
+            // Log::info("Decoded Answers: ", $answers);
 
             // Attempt Data
             $contentId = $request->input('content_id');
@@ -1322,54 +1339,53 @@ class TrainingsController extends Controller
             $passingScore = $evaluation['passing_score'];
             $totalPoints = $evaluation['total_points'];
 
-            Log::info($totalScore);
-            Log::info($passingScore);
-            Log::info($totalPoints);
+            // Log::info($totalScore);
+            // Log::info($passingScore);
+            // Log::info($totalPoints);
 
             $scorePercentage = ($totalScore / $totalPoints) * 100;
             $passed = $scorePercentage >= $passingScore;
 
-            Log::info("Your Score:      " . $scorePercentage . "%");
-            Log::info("Passing Score:   " . $passingScore . "%");
-            Log::info($passed);
+            // Log::info("Your Score:      " . $scorePercentage . "%");
+            // Log::info("Passing Score:   " . $passingScore . "%");
+            // Log::info($passed);
 
+            // Training View
+            $view = TrainingViewsModel::where('user_id', $user->id)
+                ->where('training_content_id', $contentId)->first();
 
-            // // Training View
-            // $view = TrainingViewsModel::where('user_id', $user->id)
-            //     ->where('training_content_id', $contentId)->first();
+            // Response Data
+            $response = TrainingFormResponsesModel::create([
+                'training_view_id' => $view->id,
+                'score' => $totalScore,
+                'start_time' => Carbon::parse($request->input('attempt_start_time')),
+                'duration' => $duration,
+            ]);
 
-            // // Response Data
-            // $response = TrainingFormResponsesModel::create([
-            //     'training_view_id' => $view->id,
-            //     'score' => $totalScore,
-            //     'start_time' => Carbon::parse($request->input('attempt_start_time')),
-            //     'duration' => $duration,
-            // ]);
-
-            // // Answer Processing
-            // foreach ($answers as $itemId => $answer) {
-            //     if (is_string($answer)) { // Fill In The Blank Items
-            //         TrainingFormAnswersModel::create([
-            //             'form_response_id' => $response->id,
-            //             'form_item_id' => $itemId,
-            //             'form_choice_id' => null,
-            //             'description' => $answer,
-            //             'score' => $$evaluation['scores'][$itemId][null] ?? 0,
-            //         ]);
-            //     } elseif (is_array($answer)) { // Choice, Multiple Select Items
-            //         foreach ($answer as $choiceId) {
-            //             TrainingFormAnswersModel::create([
-            //                 'form_response_id' => $response->id,
-            //                 'form_item_id' => $itemId,
-            //                 'form_choice_id' => $choiceId,
-            //                 'description' => null,
-            //                 'score' => $evaluation['scores'][$itemId][$choiceId] ?? 0,
-            //             ]);
-            //         }
-            //     } else {
-            //         Log::warning("Unexpected answer type for item {$itemId}: " . json_encode($answer));
-            //     }
-            // }
+            // Answer Processing
+            foreach ($answers as $itemId => $answer) {
+                if (is_string($answer)) { // Fill In The Blank Items
+                    TrainingFormAnswersModel::create([
+                        'form_response_id' => $response->id,
+                        'form_item_id' => $itemId,
+                        'form_choice_id' => null,
+                        'description' => $answer,
+                        'score' => $evaluation['scores'][$itemId][null] ?? 0,
+                    ]);
+                } elseif (is_array($answer)) { // Choice, Multiple Select Items
+                    foreach ($answer as $choiceId) {
+                        TrainingFormAnswersModel::create([
+                            'form_response_id' => $response->id,
+                            'form_item_id' => $itemId,
+                            'form_choice_id' => $choiceId,
+                            'description' => null,
+                            'score' => $evaluation['scores'][$itemId][$choiceId] ?? 0,
+                        ]);
+                    }
+                } else {
+                    Log::warning("Unexpected answer type for item {$itemId}: " . json_encode($answer));
+                }
+            }
 
             DB::commit();
             return response()->json(['status' => 200, 'message' => 'Form submitted successfully', 'passed' => $passed]);
