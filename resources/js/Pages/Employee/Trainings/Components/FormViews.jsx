@@ -46,12 +46,12 @@ import Swal from "sweetalert2";
 import FormItem from "./FormItem";
 
 
-const FormViews = ({ content, formItems, attemptData }) => {
+const FormViews = ({ content, formItems, attemptData, handlePass, contentReload }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const formData = content.content;
+    const formInfo = content.content;
     const [analyticView, setAnalyticView] = useState(false);
     const [submissionView, setSubmissionView] = useState(false);
     const durationInSeconds = (content?.duration || 15) * 60;
@@ -156,7 +156,6 @@ const FormViews = ({ content, formItems, attemptData }) => {
     // Final Submissions
     const handleSubmission = (event) => {
         event.preventDefault();
-        console.log(storedAnswers);
 
         const hasUnanswered = formItems.some(item => {
             const answer = storedAnswers[item.id];
@@ -189,11 +188,10 @@ const FormViews = ({ content, formItems, attemptData }) => {
     const saveSubmission = (event) => {
         event.preventDefault();
 
-        console.log("Submitting Attempt:", storedAnswers);
-
         const formData = new FormData();
         // Form Data
-        formData.append("form_id", content.id);
+        formData.append("content_id", content.id);
+        formData.append("form_id", formInfo.id);
         formData.append("remaining_time", formTimer);
         formData.append("duration", content.duration);
         // Answers
@@ -217,17 +215,17 @@ const FormViews = ({ content, formItems, attemptData }) => {
                         confirmButtonText: "Okay",
                         confirmButtonColor: "#177604",
                     }).then((res) => {
-                        if (res.isConfirmed) {
-                            close(true);
-                            document.body.setAttribute("aria-hidden", "true");
-                            // Clear localStorage after successful submission
-                            // localStorage.removeItem('quizAttempted');
-                            // localStorage.removeItem('quizStartTime');
-                            // localStorage.removeItem('quizViewType');
-                            // localStorage.removeItem('quizAnswerData');
-                        } else {
-                            document.body.setAttribute("aria-hidden", "true");
+                        document.body.setAttribute("aria-hidden", "true");
+                        localStorage.removeItem('quizAttempted');
+                        localStorage.removeItem('quizStartTime');
+                        localStorage.removeItem('quizViewType');
+                        localStorage.removeItem('quizAnswerData');
+                        setViewType('Overview');
+                        if (response.data.passed) {
+                            console.log("Hi");
+                            handlePass(content.id, true);
                         }
+                        contentReload(content.id);
                     });
                 }
             })
@@ -291,10 +289,10 @@ const FormViews = ({ content, formItems, attemptData }) => {
                         <Grid item xs={6}>
                             <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
                                 <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {formData.require_pass ? "Availability" : "Attempt Limit"}
+                                    {formInfo.require_pass ? "Availability" : "Attempt Limit"}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {formData.require_pass ? "Until Passed" : `${formData.attempts_allowed} attempt/s` ?? "N/A"}
+                                    {formInfo.require_pass ? "Until Passed" : `${formInfo.attempts_allowed} attempt/s` ?? "N/A"}
                                 </Typography>
                             </Box>
                         </Grid>
@@ -316,7 +314,7 @@ const FormViews = ({ content, formItems, attemptData }) => {
                                     {"Item Count"}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {20}
+                                    {formItems.length}
                                 </Typography>
                             </Box>
                         </Grid>
@@ -327,7 +325,7 @@ const FormViews = ({ content, formItems, attemptData }) => {
                                     {"Total Points"}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {50}
+                                    {formItems.reduce((sum, item) => sum + (item.value || 0), 0)}
                                 </Typography>
                             </Box>
                         </Grid>
@@ -398,11 +396,11 @@ const FormViews = ({ content, formItems, attemptData }) => {
                         </Typography>
                         <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                             <Typography sx={{ color: "text.secondary" }}>
-                                {formData.require_pass ? "The timer will start counting down once the attempt starts"
+                                {formInfo.require_pass ? "The timer will start counting down once the attempt starts"
                                     : "An attempt will be used, and the timer will start counting down once the attempt starts."}
                             </Typography>
                             <Box display="flex" sx={{ alignItems: "center" }}>
-                                {!formData.require_pass ? (
+                                {!formInfo.require_pass ? (
                                     <>
                                         <Typography sx={{ color: "text.secondary" }}>
                                             Attempts Remaining:
@@ -446,7 +444,7 @@ const FormViews = ({ content, formItems, attemptData }) => {
                                 Attempt No.
                             </Typography>
                             <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {`${1}${formData.require_pass ? '' : ` of ${formData.attempts_allowed}`}`}
+                                {`${1}${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                             </Typography>
                         </Box>
                     </Grid>
@@ -488,7 +486,7 @@ const FormViews = ({ content, formItems, attemptData }) => {
                                 Passing Score
                             </Typography>
                             <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {`${formData.passing_score}%`}
+                                {`${formInfo.passing_score}%`}
                             </Typography>
                         </Box>
                     </Grid>

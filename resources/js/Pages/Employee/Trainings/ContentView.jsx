@@ -335,6 +335,7 @@ const ContentView = () => {
 
     // Content Viewed
     const handleTrainingViews = (id, finished) => {
+        console.log("Hello");
         const data = {
             code: code,
             id: id,
@@ -502,6 +503,8 @@ const ContentView = () => {
                                                     updateProgress={handleTrainingViews}
                                                     formItems={formItems}
                                                     attemptData={attemptData}
+                                                    handlePass={handleTrainingViews}
+                                                    contentReload={getContentDetails}
                                                 />
                                             </>
                                         ) :
