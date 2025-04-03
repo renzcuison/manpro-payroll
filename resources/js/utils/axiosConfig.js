@@ -8,7 +8,7 @@ const baseURL = "https://team.manpromanagement.com/api";
 
 // LOCAL MANPRO
 // const baseURL = "http://localhost:8000/api";
-// const baseURL = "http://localhost:8080/api";
+// const baseURL = "http://localhost:8000/api";
 // const baseURL = "http://172.22.24.224:8000/api";
 
 console.log("Base URL: " + baseURL);

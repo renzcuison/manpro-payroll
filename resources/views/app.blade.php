@@ -22,16 +22,15 @@
     {{-- @yield('css_before') --}}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Muli:300,400,400i,600,700">
     <link rel="stylesheet" id="css-main" href="{{ asset('/css/codebase.css') }}">
+    
     {{-- <link rel="stylesheet" id="css-main" href="{{ asset('/css/codebase.min.css') }}"> --}}
     {{-- @yield('css_after') --}}
-
-    <!-- Cache Busting -->
-    <!-- <link rel="stylesheet" href="{{ mix('css/app.css') }}"> -->
+    @viteReactRefresh
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 </head>
 
 <body>
     <div id="app"></div>
-    <script src="{{ mix('js/app.js') }}"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 

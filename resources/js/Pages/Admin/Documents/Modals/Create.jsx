@@ -18,14 +18,12 @@ import Swal from "sweetalert2";
 import moment from "moment";
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FormProvider, useForm } from "react-hook-form";
-import { BorderStyle } from "@mui/icons-material";
 import { useDocuments } from "../hook/useDocuments";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CreateDocumentDialog = ({ open, close }) => {
-    const navigate = useNavigate();
     const { store } = useDocuments();
     const methods = useForm({
         defaultValues: {
@@ -34,6 +32,7 @@ const CreateDocumentDialog = ({ open, close }) => {
             file: null,
         },
     });
+    const queryClient = useQueryClient();
 
     const {
         register,
@@ -43,27 +42,53 @@ const CreateDocumentDialog = ({ open, close }) => {
     } = methods;
 
     const onSubmit = async (data) => {
+        close();
+
+        // Show loading Swal
+        Swal.fire({
+            title: "Please wait...",
+            text: "Uploading your document...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
         const formData = new FormData();
         formData.append("title", data.title);
         formData.append("description", data.description);
 
-        // `data.file` might be a FileList or File[]
         if (data.file && data.file[0]) {
             formData.append("file", data.file[0]);
         }
-        const res = await store(formData);
-        console.log(res);
 
-        // Swal.fire({
-        //     title: "Success",
-        //     text: "Document created successfully!",
-        //     icon: "success",
-        //     confirmButtonText: "Go to Document",
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         navigate(`/documents/${data._id}`);
-        //     }
-        // });
+        try {
+            const res = await store(formData);
+            if (res.success) {
+                Swal.fire({
+                    title: "Success",
+                    text: "Document created successfully!",
+                    icon: "success",
+                }).then(() => {
+                    close(false);
+                    queryClient.invalidateQueries("documents");
+                });
+            } else {
+                // Handle non-successful response
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong. Please try again.",
+                    icon: "error",
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: "Error",
+                text: "Failed to create document. Please try again.",
+                icon: "error",
+            });
+        }
     };
 
     return (
@@ -91,10 +116,7 @@ const CreateDocumentDialog = ({ open, close }) => {
                         alignItems: "center",
                     }}
                 >
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        {" "}
-                        Create Document{" "}
-                    </Typography>
+                    <Typography variant="h5"> Create Document </Typography>
                     <IconButton onClick={() => close(false)}>
                         {" "}
                         <i className="si si-close"></i>{" "}
@@ -112,7 +134,10 @@ const CreateDocumentDialog = ({ open, close }) => {
                                 alignItems: "center",
                             }}
                         >
-                            <Typography variant="body1">
+                            <Typography
+                                variant="h5"
+                                sx={{ fontWeight: "bold" }}
+                            >
                                 {" "}
                                 Document Details{" "}
                             </Typography>
