@@ -335,7 +335,6 @@ const ContentView = () => {
 
     // Content Viewed
     const handleTrainingViews = (id, finished) => {
-        console.log("Hello");
         const data = {
             code: code,
             id: id,
@@ -359,14 +358,16 @@ const ContentView = () => {
     const [attemptData, setAttemptData] = useState(null);
 
     const getFormDetails = (id) => {
+        setIsLoading(true);
         axiosInstance.get(`/trainings/getEmployeeFormDetails/${id}`, { headers })
             .then((response) => {
-                console.log(response.data.attempt_data);
                 setFormItems(response.data.items);
                 setAttemptData(response.data.attempt_data);
+                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching form details:', error);
+                setIsLoading(false);
             });
     }
 
@@ -504,7 +505,7 @@ const ContentView = () => {
                                                     updateProgress={handleTrainingViews}
                                                     formItems={formItems}
                                                     attemptData={attemptData}
-                                                    handlePass={handleTrainingViews}
+                                                    handleFormFinished={handleTrainingViews}
                                                     contentReload={getContentDetails}
                                                 />
                                             </>

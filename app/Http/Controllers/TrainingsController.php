@@ -948,8 +948,8 @@ class TrainingsController extends Controller
     // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
-        Log::info("TrainingsController:handleTrainingViews");
-        Log::info($request);
+        // Log::info("TrainingsController:handleTrainingViews");
+        // Log::info($request);
 
         $user = Auth::user();
 
@@ -965,9 +965,7 @@ class TrainingsController extends Controller
                 ->exists();
 
             if ($request->input("finished")) {
-                Log::info("finished");
                 if ($content->media && $content->media->type == "Image") {
-                    Log::info("2");
                     if (!$existing) {
                         TrainingViewsModel::create([
                             'user_id' => $user->id,
@@ -978,7 +976,6 @@ class TrainingsController extends Controller
                         ]);
                     }
                 } else {
-                    Log::info("1");
                     $view = TrainingViewsModel::where('training_content_id', $content->id)
                         ->where('user_id', $user->id)
                         ->firstOrFail();
@@ -987,7 +984,6 @@ class TrainingsController extends Controller
                     $view->save();
                 }
             } else {
-                Log::info("Hello?");
                 if (!$existing) {
                     TrainingViewsModel::create([
                         'user_id' => $user->id,
@@ -1254,6 +1250,7 @@ class TrainingsController extends Controller
 
         $user = Auth::user();
         $content = TrainingContentModel::with([
+            'form',
             'form.items' => function ($query) {
                 $query->orderBy('order', 'ASC');
             },
@@ -1284,6 +1281,8 @@ class TrainingsController extends Controller
             ];
         })->toArray();
 
+        $totalPoints = array_sum(array_column($items, 'value'));
+
         // Form Responses
         $view = TrainingViewsModel::with('responses')
             ->where('training_content_id', $id)
@@ -1297,13 +1296,17 @@ class TrainingsController extends Controller
             $view->average_duration = $responseCount > 0 ? $responses->avg('duration') : 0;
             $view->average_score = $responseCount > 0 ? $responses->avg('score') : 0;
             $view->response_count = $responseCount;
+
+            foreach ($responses as $response) {
+                $scorePercentage = ($response->score / $totalPoints) * 100;
+                $response->passed = $scorePercentage >= $content->form->passing_score;
+            }
         }
 
         $attemptData = $view;
 
         return response()->json([
             'status' => 200,
-            'form' => $content,
             'items' => $items,
             'attempt_data' => $attemptData ? $attemptData->toArray() : null,
         ]);

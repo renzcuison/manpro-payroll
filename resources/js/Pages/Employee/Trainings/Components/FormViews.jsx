@@ -46,7 +46,7 @@ import Swal from "sweetalert2";
 import FormItem from "./FormItem";
 
 
-const FormViews = ({ content, formItems, attemptData, handlePass, contentReload }) => {
+const FormViews = ({ content, formItems, attemptData, handleFormFinished, contentReload }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -225,9 +225,11 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
                         localStorage.removeItem('quizViewType');
                         localStorage.removeItem('quizAnswerData');
                         setViewType('Overview');
-                        if (response.data.passed) {
-                            console.log("Hi");
-                            handlePass(content.id, true);
+
+                        // Form Clear Conditions
+                        const allAttempts = !formInfo.require_pass && (((attemptData?.response_count ?? 0) + 1) == formInfo.attempts_allowed);
+                        if (response.data.passed || allAttempts) {
+                            handleFormFinished(content.id, true);
                         }
                         contentReload(content.id);
                     });
@@ -392,37 +394,47 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
                     <Grid item xs={12}>
                         <Divider />
                     </Grid>
-                    {/* Form Start Prompt */}
+                    {/* Form Result Summary / Form Start Prompt */}
                     <Grid item xs={12}>
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Answer Form
                         </Typography>
                         <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography sx={{ color: "text.secondary" }}>
-                                {formInfo.require_pass ? "The timer will start counting down once the attempt starts"
-                                    : "An attempt will be used, and the timer will start counting down once the attempt starts."}
-                            </Typography>
-                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                {!formInfo.require_pass ? (
-                                    <>
-                                        <Typography sx={{ color: "text.secondary" }}>
-                                            Attempts Remaining:
-                                        </Typography>
-                                        <Typography sx={{ mx: 1, fontWeight: "bold" }}>
-                                            {3}
-                                        </Typography>
-                                    </>
-                                ) : null}
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleAttemptStart()}
-                                    sx={{ ml: 1, backgroundColor: "#177604" }}
-                                >
-                                    <p className="m-0">
-                                        Start Attempt
-                                    </p>
-                                </Button>
-                            </Box>
+                            {attemptData?.status == "Finished" ? (
+                                <Typography sx={{ color: "text.secondary" }}>
+                                    {attemptData?.responses?.some(response => response.passed)
+                                        ? "You have successfully completed this form."
+                                        : "You have reached the maximum number of attempts for this form."}
+                                </Typography>
+                            ) : (
+                                <>
+                                    <Typography sx={{ color: "text.secondary" }}>
+                                        {formInfo.require_pass ? "The timer will start counting down once the attempt starts"
+                                            : "An attempt will be used, and the timer will start counting down once the attempt starts."}
+                                    </Typography>
+                                    <Box display="flex" sx={{ alignItems: "center" }}>
+                                        {!formInfo.require_pass ? (
+                                            <>
+                                                <Typography sx={{ color: "text.secondary" }}>
+                                                    Attempts Remaining:
+                                                </Typography>
+                                                <Typography sx={{ mx: 1, fontWeight: "bold" }}>
+                                                    {formInfo.attempts_allowed - (attemptData?.response_count ?? 0)}
+                                                </Typography>
+                                            </>
+                                        ) : null}
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleAttemptStart()}
+                                            sx={{ ml: 1, backgroundColor: "#177604" }}
+                                        >
+                                            <p className="m-0">
+                                                Start Attempt
+                                            </p>
+                                        </Button>
+                                    </Box>
+                                </>
+                            )}
                         </Box>
                     </Grid>
                 </>
@@ -447,7 +459,7 @@ const FormViews = ({ content, formItems, attemptData, handlePass, contentReload 
                                 Attempt No.
                             </Typography>
                             <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {`${1}${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
+                                {`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                             </Typography>
                         </Box>
                     </Grid>
