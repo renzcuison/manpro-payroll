@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\UsersModel;
 use App\Models\TrainingsModel;
 use App\Models\TrainingContentModel;
+use App\Models\TrainingFormAnswersModel;
 use App\Models\TrainingViewsModel;
 use App\Models\TrainingMediaModel;
 use App\Models\TrainingFormsModel;
 use App\Models\TrainingFormItemsModel;
 use App\Models\TrainingFormChoicesModel;
-
+use App\Models\TrainingFormResponsesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -1197,7 +1198,7 @@ class TrainingsController extends Controller
                 ->orderBy('order', 'asc')
                 ->get();
 
-            return response()->json(['status' => 403, 'items' => $itemData]);
+            return response()->json(['status' => 200, 'items' => $itemData]);
         } else {
             return response()->json(['status' => 403, 'items' => null]);
         }
@@ -1247,6 +1248,7 @@ class TrainingsController extends Controller
         //Log::info("TrainingsController:getFormDetails");
         //Log::info($id);
 
+        $user = Auth::user();
         $content = TrainingContentModel::with([
             'form.items' => function ($query) {
                 $query->orderBy('order', 'ASC');
@@ -1279,6 +1281,7 @@ class TrainingsController extends Controller
         })->toArray();
 
         return response()->json([
+            'status' => 200,
             'form' => $content,
             'items' => $items,
             'attempt_data' => null,
@@ -1288,7 +1291,59 @@ class TrainingsController extends Controller
     public function saveEmployeeFormSubmission(Request $request)
     {
         Log::info("TrainingsController:saveEmployeeFormSubmission");
-        Log::info($request);
+        Log::info($request->all());
+
+        $user = Auth::user();
+        $answersJson = $request->input('answers');
+        $answers = json_decode($answersJson, true);
+        Log::info($answers);
+
+        $formId = $request->input('form_id');
+        $duration = ($request->input('duration') * 60) - $request->input('remaining_time'); // Duration in seconds
+        //$score = evaluateFormResponse($formId, $answers); // TO ADD LATER
+
+        $view = TrainingViewsModel::where('user_id', $user->id)
+            ->where('training_content_id', $formId)
+            ->first();
+
+        $response = TrainingFormResponsesModel::create([
+            'training_view_id' => $view->id,
+            'score' => 0,
+            'start_time' => Carbon::parse($request->input('attempt_start_time')),
+            'duration' => $duration,
+        ]);
+
+        if (is_array($answers)) {
+            foreach ($answers as $itemId => $answer) {
+                if (is_string($answer)) {
+                    // Fill In The Blanks
+                    TrainingFormAnswersModel::create([
+                        'form_response_id' => $response->id,
+                        'form_item_id' => $itemId,
+                        'form_choice_id' => null,
+                        'description' => $answer,
+                        'score' => null, // Pending
+                    ]);
+                } elseif (is_array($answer)) {
+                    // Choice, MultiSelect
+                    foreach ($answer as $choiceId) {
+                        TrainingFormAnswersModel::create([
+                            'form_response_id' => $response->id,
+                            'form_item_id' => $itemId,
+                            'form_choice_id' => $choiceId,
+                            'description' => null,
+                            'score' => null, // Pending
+                        ]);
+                    }
+                } else {
+                    Log::warning("Unexpected answer type for item {$itemId}: " . json_encode($answer));
+                }
+            }
+        } else {
+            Log::error("Failed to decode answers JSON: " . $answersJson);
+        }
+
+        return response()->json(['status' => 200, 'message' => 'Form submitted successfully']);
     }
 
     // Others ----------------------------------------------------------------------- /
