@@ -75,33 +75,6 @@ function Documents() {
         });
     };
 
-    useEffect(() => {
-        const fetchDocs = () => {
-            try {
-                const storedUser = localStorage.getItem("nasya_user");
-                const headers = storedUser
-                    ? getJWTHeader(JSON.parse(storedUser))
-                    : {};
-                axiosInstance
-                    .get("/admin/documents/", {
-                        headers,
-                    })
-                    .then((response) => {
-                        console.log("response:", response);
-
-                        console.log(response.data);
-                    })
-                    .catch((error) => {
-                        console.error("Error fetching employees:", error);
-                    });
-                console.log("📦 Document Data:", data);
-            } catch (error) {
-                console.error("❌ Fetch Error:", error);
-            }
-        };
-        fetchDocs();
-    }, []);
-
     console.log(selectedDoc);
 
     return (

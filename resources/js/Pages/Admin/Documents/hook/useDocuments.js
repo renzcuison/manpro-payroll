@@ -5,7 +5,7 @@ async function getDocuments() {
     try {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
-        const { data } = await axiosInstance.get("/admin/documents/index", {
+        const { data } = await axiosInstance.get("/admin/documents/", {
             headers,
         });
         return data;

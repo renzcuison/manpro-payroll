@@ -92,16 +92,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     // 
-    Route::prefix('admin')->group(function () {
-        
-        Route::get('/documents/index', [DocumentController::class, 'index']);
-        Route::prefix('documents')->group(function () {
-            Route::get('/', [DocumentController::class, 'index']);
-            Route::post('/store', [DocumentController::class, 'store']);
-            Route::post('/edit', [DocumentController::class, 'edit']);
-            Route::delete('/{id}', [DocumentController::class, 'destroy']);
-        });
+    Route::prefix('admin/documents')->group(function () {
+        Route::get('/', [DocumentController::class, 'index']); // GET /admin/documents
+        Route::post('/store', [DocumentController::class, 'store']);
+        Route::post('/edit', [DocumentController::class, 'edit']);
+        Route::delete('/{id}', [DocumentController::class, 'destroy']);
     });
+    
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
