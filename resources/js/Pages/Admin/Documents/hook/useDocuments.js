@@ -10,7 +10,13 @@ async function getDocuments() {
         });
         return data;
     } catch (error) {
-        console.error(error);
+        if (error.response) {
+            console.error("Server responded with error:", error.response.data);
+        } else if (error.request) {
+            console.error("No response received:", error.request);
+        } else {
+            console.error("Error setting up request:", error.message);
+        }
     }
 }
 export function useDocuments() {
