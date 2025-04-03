@@ -94,28 +94,29 @@ class UserAuthController extends Controller
 
     public function login(Request $request)
     {
-        log::info("UserAuthController::login");
-        //log::info($request);
+        try {
+            $fields = $request->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+                'passcode' => 'required|string'
+            ]);
 
-        $fields = $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-            'passcode' => 'required|string'
-        ]);
+            $user = UsersModel::where(function ($query)
 
-        $user = UsersModel::where(function ($query)
+            use ($fields) {
+                $query->where('user_name', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
+            })->first();
 
-        use ($fields) {
-            $query->where('user_name', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
-        })->first();
+            if ($user && Hash::check($request->input('password'), $user->password) && $user->verify_code === $request->input('passcode')) {
+                $user->token = $user->createToken('userAppToken')->plainTextToken;
+                $user->id    = $user->user_id;
 
-        if ($user && Hash::check($request->input('password'), $user->password) && $user->verify_code === $request->input('passcode')) {
-            $user->token = $user->createToken('userAppToken')->plainTextToken;
-            $user->id    = $user->user_id;
-
-            return response(['success' => 1, 'user' => $user], 200);
-        } else {
-            return response(["error" => "Wrong Username or Password"]);
+                return response(['success' => 1, 'user' => $user], 200);
+            } else {
+                return response(["error" => "Wrong Username or Password"]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json(['success' => 0,'message' => 'Error: '.$th->getMessage()]);
         }
     }
 
