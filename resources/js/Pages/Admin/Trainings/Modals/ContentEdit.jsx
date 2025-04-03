@@ -21,7 +21,7 @@ import {
     Stack,
     Radio
 } from "@mui/material";
-import { Cancel, FolderOff, VideocamOff } from "@mui/icons-material";
+import { Cancel, FolderOff, VideocamOff, InfoOutlined } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -49,27 +49,39 @@ const ContentEdit = ({ open, close, content }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    // Form Fields
-    const [contentType, setContentType] = useState(content.content.type);
+    // Universal Fields
+    const contentType = (content.content.type);
     const [title, setTitle] = useState(content.title || "");
     const [description, setDescription] = useState(content.description || "");
 
-    const [link, setLink] = useState("");
-    const [file, setFile] = useState(null);
-    const [newFile, setNewFile] = useState(false);
-
-    const [videoError, setVideoError] = useState(false);
-    const [isVideo, setIsVideo] = useState(false);
-    const [isVideoLoading, setIsVideoLoading] = useState(false);
-    const [thumbnailUrl, setThumbnailUrl] = useState(null);
-
-    // Form Errors
     const [contentTypeError, setContentTypeError] = useState(false);
     const [titleError, setTitleError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
 
+    // Video Fields
+    const [link, setLink] = useState("");
+    const [isVideo, setIsVideo] = useState(false);
+    const [isVideoLoading, setIsVideoLoading] = useState(false);
+    const [thumbnailUrl, setThumbnailUrl] = useState(null);
+
     const [linkError, setLinkError] = useState(false);
+    const [videoError, setVideoError] = useState(false);
+
+    // File Fields
+    const [file, setFile] = useState(null);
+    const [newFile, setNewFile] = useState(false);
     const [fileError, setFileError] = useState(false);
+
+    // Form Fields
+    const [duration, setDuration] = useState(content.duration || 1);
+    const [attempts, setAttempts] = useState(content.content.attempts_allowed || 1);
+    const [attemptPolicy, setAttemptPolicy] = useState(content.content.require_pass ? "passing-required" : "limited-attempts");
+    const [passingScore, setPassingScore] = useState(content.content.passing_score || 50);
+
+    const [durationError, setDurationError] = useState(false);
+    const [attemptError, setAttemptError] = useState(false);
+    const [attemptPolicyError, setAttemptPolicyError] = useState(false);
+    const [passingScoreError, setPassingScoreError] = useState(false);
 
     useEffect(() => {
         if (content.content.type === "Video") {
@@ -317,7 +329,6 @@ const ContentEdit = ({ open, close, content }) => {
 
     const checkInput = (event) => {
         event.preventDefault();
-        console.log(newFile);
         setContentTypeError(!contentType);
         setTitleError(!title);
         setDescriptionError(!description);
@@ -328,7 +339,16 @@ const ContentEdit = ({ open, close, content }) => {
         const fileFail = ["Image", "Document", "PowerPoint"].includes(contentType) && !file;
         setFileError(fileFail)
 
-        if (!contentType || !title || !description || linkFail || fileFail) {
+        const attemptFail = contentType == "Form" && attemptPolicy == "limited-attempts" && !attempts;
+        setAttemptError(attemptFail);
+
+        const durationFail = contentType == "Form" && !duration;
+        setDurationError(durationFail);
+
+        const passingFail = contentType == "Form" && passingScore === '';
+        setPassingScoreError(passingFail);
+
+        if (!contentType || !title || !description || linkFail || fileFail || attemptFail || durationFail || passingFail) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -376,7 +396,11 @@ const ContentEdit = ({ open, close, content }) => {
         formData.append("description", description);
         formData.append("link", link);
         formData.append("file", file);
-        formData.append("newFile", newFile)
+        formData.append("newFile", newFile);
+        formData.append("attempt_policy", attemptPolicy);
+        formData.append("duration", duration);
+        formData.append("attempts", attempts);
+        formData.append("passing_score", passingScore);
 
         axiosInstance.post("/trainings/editContent", formData, { headers })
             .then((response) => {
@@ -412,7 +436,7 @@ const ContentEdit = ({ open, close, content }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training Content </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> {`Edit Training ${content.content.type ? content.content.type : "Form"}`} </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
@@ -435,6 +459,7 @@ const ContentEdit = ({ open, close, content }) => {
                                         <MenuItem value="Image"> Image </MenuItem>
                                         <MenuItem value="Document"> Document </MenuItem>
                                         <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
+                                        <MenuItem value="Form"> Form </MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -623,6 +648,128 @@ const ContentEdit = ({ open, close, content }) => {
                                         />
                                     </Grid>
 
+                                ) : contentType === "Form" ? (
+                                    <Grid container direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+                                        <Grid item xs={4}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="attempt-policy-select-label">Attempt Policy</InputLabel>
+                                                <Select
+                                                    labelId="attempt-policy-select-label"
+                                                    id="attempt-policy-select"
+                                                    value={attemptPolicy}
+                                                    error={attemptPolicyError}
+                                                    label="Attempt Policy"
+                                                    onChange={(event) => setAttemptPolicy(event.target.value)}
+                                                >
+                                                    <MenuItem value="passing-required">Passing Required</MenuItem>
+                                                    <MenuItem value="limited-attempts">Limited Attempts</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item xs={4}>
+                                            <FormControl fullWidth>
+                                                <TextField
+                                                    required
+                                                    fullWidth
+                                                    label="Attempts Allowed"
+                                                    variant="outlined"
+                                                    type="text"
+                                                    value={attemptPolicy === "passing-required" ? "Unlimited" : attempts}
+                                                    error={attemptError}
+                                                    InputProps={{
+                                                        readOnly: attemptPolicy === "passing-required",
+                                                        inputProps: {
+                                                            type: attemptPolicy === "limited-attempts" ? "number" : "text",
+                                                            min: 1,
+                                                        },
+                                                    }}
+                                                    onChange={(event) => {
+                                                        if (attemptPolicy === "limited-attempts") {
+                                                            const value = event.target.value;
+                                                            if (value === "" || (Number(value) > 0 && Number.isInteger(Number(value)))) {
+                                                                setAttempts(value === "" ? "" : Number(value));
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item container xs={4} spacing={1}>
+                                            <Grid item xs={6}>
+                                                <FormControl fullWidth>
+                                                    <TextField
+                                                        required
+                                                        fullWidth
+                                                        label="Passing Score"
+                                                        variant="outlined"
+                                                        type="number"
+                                                        value={passingScore}
+                                                        error={passingScoreError}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <InputAdornment position="end">
+                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                        %
+                                                                    </Typography>
+                                                                </InputAdornment>
+                                                            ),
+                                                            inputProps: {
+                                                                max: 100,
+                                                                min: 0,
+                                                                step: 1,
+                                                            },
+                                                        }}
+                                                        onChange={(event) => {
+                                                            const value = event.target.value;
+                                                            if (value === "" || (Number(value) <= 100 && Number(value) >= 0 && Number.isInteger(Number(value)))) {
+                                                                setPassingScore(value === "" ? "" : Number(value));
+                                                            }
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <FormControl fullWidth>
+                                                    <TextField
+                                                        required
+                                                        fullWidth
+                                                        label="Duration"
+                                                        variant="outlined"
+                                                        type="number"
+                                                        value={duration}
+                                                        error={durationError}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <InputAdornment position="end">
+                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                        Min
+                                                                    </Typography>
+                                                                </InputAdornment>
+                                                            ),
+                                                            inputProps: {
+                                                                min: 1,
+                                                                step: 1,
+                                                            },
+                                                        }}
+                                                        onChange={(event) => {
+                                                            const value = event.target.value;
+                                                            if (value === "" || (Number(value) > 0 && Number.isInteger(Number(value)))) {
+                                                                setDuration(value === "" ? "" : Number(value));
+                                                            }
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                                <InfoOutlined sx={{ color: "text.secondary" }} />
+                                                <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
+                                                    Items/Questions can be added later
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
                                 ) : null}
                             </Grid>
                             {/* Description Field */}
@@ -634,7 +781,7 @@ const ContentEdit = ({ open, close, content }) => {
                                             name='description'
                                             value={description}
                                             onChange={(value) => {
-                                                if (value.length <= 512) {
+                                                if (value.length <= 1024) {
                                                     setDescription(value);
                                                 }
                                             }}
@@ -660,7 +807,7 @@ const ContentEdit = ({ open, close, content }) => {
                                             style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
                                         ></ReactQuill>
                                         <FormHelperText>
-                                            {description.length}/{512}
+                                            {description.length}/{1024}
                                         </FormHelperText>
                                     </div>
                                 </FormControl>

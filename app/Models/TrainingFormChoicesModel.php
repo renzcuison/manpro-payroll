@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingFormChoicesModel extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'training_form_choices';
 
@@ -19,8 +21,10 @@ class TrainingFormChoicesModel extends Model
         'is_correct'
     ];
 
+    public $timestamps = false;
+
     public function item()
     {
-        return $this->belongsTo(TrainingFormItemsModel::class, 'training_item_id');
+        return $this->belongsTo(TrainingFormItemsModel::class, 'form_item_id');
     }
 }

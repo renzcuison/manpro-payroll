@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz } from "@mui/icons-material";
+import { TaskAlt, MoreVert, WarningAmber, OndemandVideo, Image, Description, Quiz, ErrorOutline } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -348,6 +348,16 @@ const TrainingView = () => {
                 customClass: { container: "my-swal" },
                 title: "No Content!",
                 text: "You cannot activate a training without any content",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (content.some(item => item.empty_form === true) && type === "Activate") {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Empty Form Found!",
+                text: "All forms must have at least one item!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -752,6 +762,21 @@ const TrainingView = () => {
                                                                     </Box>
                                                                 </Box>
                                                             </CardActions>
+                                                            {cont.empty_form && (
+                                                                <Chip
+                                                                    icon={<ErrorOutline sx={{ color: "white !important" }} />}
+                                                                    label="EMPTY"
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: "#f44336",
+                                                                        color: "white",
+                                                                        fontWeight: "bold",
+                                                                        boxShadow: 2,
+                                                                    }}
+                                                                />
+                                                            )}
                                                         </Card>
                                                     </CardActionArea>
                                                 </Grid>

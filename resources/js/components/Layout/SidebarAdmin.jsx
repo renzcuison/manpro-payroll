@@ -146,68 +146,37 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const payrollItems = [
-        {
-            id: 3,
-            text: "Payroll",
-            icon: "fa fa-money",
-            children: [
-                {
-                    href: `/admin/payroll/process?`,
-                    text: "Process",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/admin/payroll/records?`,
-                    text: "Records",
-                    icon: "fa fa-cogs",
-                },
-                // {
-                //     href: `/hr/payroll-process?`,
-                //     text: 'Process Old',
-                //     icon: 'fa fa-cogs',
-                // }, {
-                //     href: `/hr/payroll-records?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                //     text: 'Records',
-                //     icon: 'fa fa-cogs',
-                // }, {
-                //     href: `/hr/payroll-summary?month=${moment().format('M')}&cutoff=${1}&year=${moment().year()}&`,
-                //     text: 'Summary',
-                //     icon: 'fa fa-cogs',
-                // }
-            ],
-        },
-    ];
+    const payrollItems = [{
+        id: 3,
+        text: 'Payroll',
+        icon: 'fa fa-money',
+        children: [
+            {
+                href: `/admin/payroll/process?`,
+                text: 'Process',
+            },
+            {
+                href: `/admin/payroll/records?`,
+                text: 'Records',
+            },
+        ]
+    }]
 
-    const applicationsItems = [
-        {
-            id: 4,
-            text: "Applications",
-            icon: "fa fa-pencil-square-o",
-            children: [
-                {
-                    href: `/admin/applications?`,
-                    text: "Application Request",
-                    icon: "fa fa-cogs",
-                },
-                // {
-                //     href: `/hr/applications-list?`,
-                //     text: 'List',
-                //     icon: 'fa fa-cogs',
-                // },
-                // {
-                //     href: `/hr/applications-leave?`,
-                //     text: 'Leave Credit',
-                //     icon: 'fa fa-cogs',
-                // },
-                // {
-                //     href: `/hr/applications-overtime?`,
-                //     text: 'Overtime',
-                //     icon: 'fa fa-cogs',
-                // }
-            ],
-        },
-    ];
+    const applicationsItems = [{
+        id: 4,
+        text: 'Applications',
+        icon: 'fa fa-pencil-square-o',
+        children: [
+            {
+                href: `/admin/application/types?`,
+                text: 'Application Types',
+            },
+            {
+                href: `/admin/applications?`,
+                text: 'Application Request',
+            }
+        ]
+    }];
 
     const workShifts = [
         {
@@ -247,38 +216,49 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const settingsItems = [
-        {
-            id: 7,
-            text: "Settings",
-            icon: "fa fa-gear",
-            children: [
-                {
-                    href: `/admin/settings/general?`,
-                    text: "General",
-                    icon: "fa fa-cogs",
-                },
-            ],
-        },
-    ];
+    const settingsItems = [{
+        id: 7,
+        text: 'Settings',
+        icon: 'fa fa-gear',
+        children: [
+            {
+                href: `/admin/settings/general?`,
+                text: 'General',
+                icon: 'fa fa-cogs',
+            },
+        ]
+    }]
 
-    const evaluationItems = [
-        {
-            id: 8,
-            text: "Performance Evaluation",
-            icon: "fa fa-check",
-            children: [
-                {
-                    href: `/member/evaluate`,
-                    text: "Evaluate",
-                },
-                {
-                    href: `/member/evaluation`,
-                    text: "My Evaluation",
-                },
-            ],
-        },
-    ];
+    // const loanItems = [{
+    //     id: 8,
+    //     text: 'Performance Evaluation',
+    //     icon: 'fa fa-check',
+    //     children: [
+    //         {
+    //             href: `/member/evaluate`,
+    //             text: 'Evaluate',
+    //         }, {
+    //             href: `/member/evaluation`,
+    //             text: 'My Evaluation',
+    //         }
+    //     ]
+    // }]
+
+    const evaluationItems = [{
+        id: 9,
+        text: 'Performance Evaluation',
+        icon: 'fa fa-check',
+        children: [
+            {
+                href: `/member/evaluate`,
+                text: 'Evaluate',
+            }, {
+                href: `/member/evaluation`,
+                text: 'My Evaluation',
+            }
+        ]
+    }]
+
 
     return (
         <nav
@@ -422,14 +402,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
-                                    {applicationsItems.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
+                                {applicationsItems.map((items, index) => {
+                                    return <SideItem key={index} items={items} />
+                                })}
+
+                                <StyledNav to={`/admin/loan-management`} >
+                                    <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
+                                </StyledNav>
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i

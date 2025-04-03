@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TrainingContentModel;
-use App\Models\TrainingFormsModel;
+use App\Models\UsersModel;
 use App\Models\TrainingsModel;
-use App\Models\TrainingMediaModel;
+use App\Models\TrainingContentModel;
 use App\Models\TrainingViewsModel;
+use App\Models\TrainingMediaModel;
+use App\Models\TrainingFormsModel;
+use App\Models\TrainingFormItemsModel;
+use App\Models\TrainingFormChoicesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +38,7 @@ class TrainingsController extends Controller
         return false;
     }
 
-    // Training List
+    // Training List ---------------------------------------------------------------- /
     public function getTrainings()
     {
         //Log::info("TrainingsController::getTrainings");
@@ -137,7 +140,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training CRUD
+    // Training CRUD ---------------------------------------------------------------- /
     public function saveTraining(Request $request)
     {
         //Log::info("TrainingsController::saveTraining");
@@ -166,7 +169,7 @@ class TrainingsController extends Controller
                     'unique_code' => $uniqueCode,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'cover_photo' => $coverPath,
+                    'cover_photo' => $coverPath ?? null,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'duration' => $request->input('duration'),
@@ -273,7 +276,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Content CRUD
+    // Content CRUD ----------------------------------------------------------------- /
     public function saveContent(Request $request)
     {
         //Log::info("TrainingsController::saveContent");
@@ -303,7 +306,10 @@ class TrainingsController extends Controller
                         if (!$source) {
                             return response()->json(['status' => 400, 'message' => 'Video link is required'], 400);
                         }
-                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        $contentData = TrainingMediaModel::create([
+                            'type' => $contentType,
+                            'source' => $source
+                        ]);
                         $trainingMediaId = $contentData->id;
                         break;
 
@@ -317,13 +323,19 @@ class TrainingsController extends Controller
                         $location = 'trainings/' . strtolower($contentType) . 's';
                         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
                         $source = $file->storeAs($location, $fileName, 'public');
-                        $contentData = TrainingMediaModel::create(['type' => $contentType, 'source' => $source]);
+                        $contentData = TrainingMediaModel::create([
+                            'type' => $contentType,
+                            'source' => $source
+                        ]);
                         $trainingMediaId = $contentData->id;
                         break;
 
                     case 'Form':
-                        // FEATURE COMING SOON
-                        $contentData = TrainingFormsModel::create([]);
+                        $contentData = TrainingFormsModel::create([
+                            'require_pass' => $request->input('attempt_policy') == "passing-required",
+                            'passing_score' => $request->input('passing_score'),
+                            'attempts_allowed' => $request->input('attempt_policy') == "limited-attempts" ? $request->input('attempts') : null,
+                        ]);
                         $trainingFormId = $contentData->id;
                         break;
 
@@ -331,15 +343,15 @@ class TrainingsController extends Controller
                         return response()->json(['status' => 400, 'message' => 'Invalid content type'], 400);
                 }
 
-                $trainingContent = new TrainingContentModel([
+                TrainingContentModel::create([
                     'training_id' => $training->id,
                     'training_media_id' => $trainingMediaId,
                     'training_form_id' => $trainingFormId,
                     'order' => $nextOrder,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
+                    'duration' => $request->input('duration'),
                 ]);
-                $trainingContent->save();
 
                 DB::commit();
 
@@ -365,8 +377,8 @@ class TrainingsController extends Controller
 
     public function editContent(Request $request)
     {
-        // Log::info("TrainingsController::editContent");
-        // Log::info($request);
+        Log::info("TrainingsController::editContent");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -383,6 +395,7 @@ class TrainingsController extends Controller
                 $content->title = $request->input('title', $content->title);
                 $content->description = $request->input('description', $content->description);
                 $content->order = $request->input('order', $content->order);
+                $content->duration = $request->input('duration');
 
                 $relatedContent = null;
                 $contentType = null;
@@ -431,7 +444,10 @@ class TrainingsController extends Controller
                         break;
 
                     case 'Form':
-                        Log::info("Content is of type Form. Editor Function to be added soon");
+                        $relatedContent->require_pass = $request->input('attempt_policy') == 'passing-required';
+                        $relatedContent->attempts_allowed = $request->input('attempts');
+                        $relatedContent->passing_score = $request->input('passing_score');
+                        $relatedContent->save();
                         break;
 
                     default:
@@ -480,7 +496,30 @@ class TrainingsController extends Controller
                 $content->delete();
 
                 TrainingContentModel::where('order', '>', $deletedOrder)
+                    ->where('training_id', $content->training_id)
                     ->decrement('order', 1);
+
+                // Training Media Soft Delete
+                if ($content->training_media_id) {
+                    $media = TrainingMediaModel::find($content->training_media_id);
+                    $media->delete();
+                }
+
+                // Training Form Soft Delete
+                if ($content->training_form_id) {
+                    $formId = $content->training_form_id;
+
+                    //Form Removal, Pending addition of SoftDeletes();
+                    //$form = TrainingFormsModel::find($formId);
+                    //$form->delete();
+
+                    $formItems = TrainingFormItemsModel::where('form_id', $formId)->get();
+                    if ($formItems->isNotEmpty()) {
+                        $formItemIds = $formItems->pluck('id')->toArray();
+                        TrainingFormChoicesModel::whereIn('form_item_id', $formItemIds)->delete();
+                    }
+                    TrainingFormItemsModel::where('form_id', $formId)->delete();
+                }
 
                 DB::commit();
 
@@ -538,7 +577,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training/Content Details
+    // Training, Content Details ---------------------------------------------------- /
     public function getTrainingDetails($code)
     {
         //Log::info("TrainingsController::getTrainingDetails");
@@ -561,7 +600,7 @@ class TrainingsController extends Controller
             ]));
             $training->author_title = $author->jobTitle->name;
 
-            if ($training->cover_photo) {
+            if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
                 $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
                 $training->cover_name = basename($training->cover_photo);
             } else {
@@ -597,9 +636,12 @@ class TrainingsController extends Controller
                     if ($cont->training_media_id) {
                         $cont->content = $cont->media;
                     } elseif ($cont->training_form_id) {
-                        $cont->content = $cont->form;
+                        $formData = $cont->form;
+                        $cont->content = $formData;
+                        $cont->empty_form = $formData->items->count() == 0;
                     } else {
                         $cont->content = null;
+                        $cont->empty_form = false;
                     }
 
                     if ($cont->training_media_id && $cont->media && $cont->media->type === 'Image') {
@@ -634,18 +676,21 @@ class TrainingsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $content = TrainingContentModel::with(['form', 'media', 'views' => function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            }])->find($id);
+            $content = TrainingContentModel::with(['form', 'media', 'views'])->find($id);
 
             if (!$content) {
                 return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
             }
 
             // View Check
-            $view = $content->views->first();
-            $content->has_viewed = !is_null($view);
-            $content->is_finished = $view && $view->status === 'Finished';
+            $content->view_count = $content->views->where('status', 'Viewed')->count();
+            $content->finished_count = $content->views->where('status', 'Finished')->count();
+
+            $viewedUserIds = $content->views->pluck('user_id')->toArray();
+            $content->no_view_count = UsersModel::where('client_id', $user->client_id)
+                ->where('user_type', 'Employee')
+                ->whereNotIn('id', $viewedUserIds)
+                ->count();
 
             unset($content->views);
 
@@ -653,7 +698,11 @@ class TrainingsController extends Controller
             if ($content->training_media_id) {
                 $content->content = $content->media;
             } elseif ($content->training_form_id) {
-                $content->content = $content->form;
+                $formData = $content->form;
+                $content->content = $formData;
+                $content->content->type = "Form";
+                $content->item_count = $formData->items->count();
+                $content->total_points = $formData->items->sum('value') ?? 0;
             } else {
                 $content->content = null;
             }
@@ -707,7 +756,7 @@ class TrainingsController extends Controller
         ]));
         $training->author_title = $author->jobTitle->name;
 
-        if ($training->cover_photo) {
+        if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
             $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
             $training->cover_name = basename($training->cover_photo);
             $training->cover_mime =  mime_content_type(storage_path('app/public/' . $training->cover_photo));
@@ -809,6 +858,7 @@ class TrainingsController extends Controller
             $content->content = $content->media;
         } elseif ($content->training_form_id) {
             $content->content = $content->form;
+            $content->content->type = "Form";
         } else {
             $content->content = null;
         }
@@ -853,7 +903,9 @@ class TrainingsController extends Controller
             ->get();
 
         $coverFiles->each(function ($file) use (&$covers) {
-            $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            if (Storage::disk('public')->exists($file->cover_photo)) {
+                $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            }
         });
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
@@ -892,7 +944,7 @@ class TrainingsController extends Controller
         }
     }
 
-    // Training Views
+    // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
         //Log::info("TrainingsController:handleTrainingViews");
@@ -948,6 +1000,289 @@ class TrainingsController extends Controller
 
             return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
         }
+    }
+
+    // Training Forms (Admin) ------------------------------------------------------- /
+    public function saveFormItem(Request $request)
+    {
+        //Log::info("TrainingsController:saveFormItem");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+
+            $form = TrainingFormsModel::find($request->input('form_id'));
+
+            try {
+                DB::beginTransaction();
+
+                $itemCount = TrainingFormItemsModel::where('form_id', $form->id)->count();
+                $nextOrder = $itemCount + 1;
+
+                $item = TrainingFormItemsModel::create([
+                    'form_id' => $form->id,
+                    'type' => $request->input('item_type'),
+                    'description' => $request->input('description'),
+                    'order' => $nextOrder,
+                    'value' => $request->input('points')
+                ]);
+
+                if ($request->input('item_type') === 'FillInTheBlank' && $request->has('answer')) {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
+                } else {
+                    // Choice, Multi Selection
+                    $choices = $request->input('choices', []);
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            TrainingFormChoicesModel::create([
+                                'form_item_id' => $item->id,
+                                'description' => $choice,
+                                'is_correct' => in_array($index, $request->input('correctItems', [])),
+                            ]);
+                        }
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item saved successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error saving item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function editFormItem(Request $request)
+    {
+        //Log::info("TrainingsController:editFormItem");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                // Form Item
+                $item = TrainingFormItemsModel::findOrFail($request->input('item_id'));
+                $oldType = $item->type;
+                $item->type = $request->input('item_type');
+                $item->description = $request->input('description');
+                $item->value = $request->input('points');
+                $item->save();
+
+                // Choice Handling Prep
+                $choices = $request->input('choices', []);
+                $correctItems = $request->input('correctItems', []);
+                $deletedChoices = $request->input('deletedChoices', []);
+
+                if ($request->input('item_type') == "FillInTheBlank") {
+                    // Fill In The Blank
+                    $answer = $request->input('answer');
+                    TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                    TrainingFormChoicesModel::create([
+                        'form_item_id' => $item->id,
+                        'description' => $answer,
+                        'is_correct' => true,
+                    ]);
+                } else {
+                    if ($oldType == "FillInTheBlank") {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+                    }
+                    // Choice Deletion
+                    if (!empty($deletedChoices)) {
+                        TrainingFormChoicesModel::where('form_item_id', $item->id)
+                            ->whereIn('id', $deletedChoices)
+                            ->delete();
+                    }
+                    // Choice Updaters
+                    if (is_array($choices) && !(count($choices) === 1 && $choices[0] === 'null')) {
+                        foreach ($choices as $index => $choice) {
+                            $isCorrect = in_array((string) $index, $correctItems);
+
+                            if ($choice['id'] === 'null') {
+                                // Create New Choice
+                                TrainingFormChoicesModel::create([
+                                    'form_item_id' => $item->id,
+                                    'description' => $choice['text'],
+                                    'is_correct' => $isCorrect,
+                                ]);
+                            } else {
+                                // Update Existing Choice
+                                TrainingFormChoicesModel::where('id', $choice['id'])
+                                    ->where('form_item_id', $item->id)
+                                    ->update([
+                                        'description' => $choice['text'],
+                                        'is_correct' => $isCorrect,
+                                    ]);
+                            }
+                        }
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['status' => 500, 'message' => 'Error updating item'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function removeFormItem(Request $request)
+    {
+        // Log::info("TrainingsController::removeFormItem");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $item = TrainingFormItemsModel::find($request->input('id'));
+                if (!$item) {
+                    return response()->json(['status' => 404, 'message' => 'Item not found'], 404);
+                }
+
+                $deletedOrder = $item->order;
+                $item->order = null;
+                $item->save();
+                $item->delete();
+
+                TrainingFormItemsModel::where('order', '>', $deletedOrder)
+                    ->where('form_id', $item->form_id)
+                    ->decrement('order', 1);
+
+                TrainingFormChoicesModel::where('form_item_id', $item->id)->delete();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error removing content: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function getFormItems($id)
+    {
+        //Log::info("TrainingsController:getFormItems");
+        //Log::info($id);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $itemData = TrainingFormItemsModel::with('choices')
+                ->where('form_id', $id)
+                ->orderBy('order', 'asc')
+                ->get();
+
+            return response()->json(['status' => 403, 'items' => $itemData]);
+        } else {
+            return response()->json(['status' => 403, 'items' => null]);
+        }
+    }
+
+    public function saveFormItemSettings(Request $request)
+    {
+        // Log::info("TrainingsController:saveFormItemSettings");
+        // Log::info($request);
+
+        $user = Auth::user();
+        $order = $request->input('new_order');
+
+        $form = TrainingFormsModel::with('items')->find($request->input('form_id'));
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $orderMap = [];
+                foreach ($order as $ord) {
+                    $orderMap[$ord['id']] = $ord['order'];
+                }
+
+                $form->items()->update([
+                    'order' => DB::raw("CASE id " . implode(' ', array_map(function ($id) use ($orderMap) {
+                        return "WHEN $id THEN " . $orderMap[$id];
+                    }, array_keys($orderMap))) . " END")
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Item order updated successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error updating content order: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error updating item order'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    // Training Forms (Employee) ---------------------------------------------------- /
+    public function getEmployeeFormDetails($id)
+    {
+        //Log::info("TrainingsController:getFormDetails");
+        //Log::info($id);
+
+        $content = TrainingContentModel::with([
+            'form.items' => function ($query) {
+                $query->orderBy('order', 'ASC');
+            },
+            'form.items.choices'
+        ])->find($id);
+
+        if (!$content || !$content->form) {
+            Log::warning("Form not found for training content ID: {$id}");
+            return response()->json(['error' => 'Form not found'], 404);
+        }
+
+        // Form Items
+        $items = $content->form->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'type' => $item->type,
+                'order' => $item->order,
+                'value' => $item->value,
+                'form_id' => $item->form_id,
+                'description' => $item->description,
+                'choices' => $item->choices->map(function ($choice) {
+                    return [
+                        'id' => $choice->id,
+                        'item_id' => $choice->form_item_id,
+                        'description' => $choice->description,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+
+        return response()->json([
+            'form' => $content,
+            'items' => $items,
+            'attempt_data' => null,
+        ]);
     }
 
     function generateRandomCode($length)

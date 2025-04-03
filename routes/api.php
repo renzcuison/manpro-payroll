@@ -12,6 +12,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\LoanApplicationsController;
 
 
 // use App\Http\Controllers\NewControllerName;
@@ -191,7 +192,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('payroll')->group(function () {
         Route::get('/payrollDetails', [PayrollController::class, 'payrollDetails']);
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
-        
+
         Route::get('/getPayrollRecord', [PayrollController::class, 'getPayrollRecord']);
         Route::get('/getEmployeePayrollRecords', [PayrollController::class, 'getEmployeePayrollRecords']);
         Route::get('/getEmployeesPayrollRecords', [PayrollController::class, 'getEmployeesPayrollRecords']);
@@ -200,10 +201,20 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
     });
 
+    Route::prefix('loans')->group(function () {
+        Route::get('/getLoanApplications', [LoanApplicationsController::class, 'getLoanApplications']);
+        Route::post('/saveLoanApplication', [LoanApplicationsController::class, 'saveLoanApplication']);
+        Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
+        Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
+        Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
+    });
+
     Route::prefix('applications')->group(function () {
         Route::get('/getApplications', [ApplicationsController::class, 'getApplications']);
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
+        Route::post('/editApplicationType', [ApplicationsController::class, 'editApplicationType']);
+        
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
         Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
@@ -255,6 +266,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('adminDashboard')->group(function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendance', [AdminDashboardController::class, 'getAttendance']);
+        Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
     });
 
     Route::prefix('trainings')->group(function () {
@@ -281,6 +293,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
+
+        Route::get('/getFormItems/{id}', [TrainingsController::class, 'getFormItems']);
+        Route::post('/saveFormItem', [TrainingsController::class, 'saveFormItem']);
+        Route::post('/editFormItem', [TrainingsController::class, 'editFormItem']);
+        Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
+        Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
+
+        Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
     });
 
 

@@ -21,6 +21,6 @@ class TrainingFormsModel extends Model
 
     public function items()
     {
-        return $this->hasMany(TrainingFormItemsModel::class, 'training_form_id');
+        return $this->hasMany(TrainingFormItemsModel::class, 'form_id');
     }
 }

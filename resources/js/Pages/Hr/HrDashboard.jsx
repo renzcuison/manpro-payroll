@@ -94,14 +94,23 @@ const HrDashboard = () => {
         1 - Present
         2 - Late
         3 - Absent
+        4 - On Leave
         */
+        setAttendanceLoading(true);
         axiosInstance
             .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
             .then((response) => {
-                setAttendance(response.data.attendance);
+                const attendanceData = response.data.attendance || [];
+                setAttendance(attendanceData);
+                setAttendanceLoading(false);
+                getAvatar(attendanceData);
+            })
+            .catch((error) => {
+                console.error('Error fetching attendance:', error);
+                setAttendance([]);
                 setAttendanceLoading(false);
             });
-    }
+    };
 
     // Attendance Pie Chart
     const attendancePieChart = {
@@ -214,32 +223,53 @@ const HrDashboard = () => {
         }
     };
 
-
     // "../../../images/avatarpic.jpg"
     const [blobMap, setBlobMap] = useState({});
 
-    const renderProfile = (id, avatar, mime) => {
-        if (!blobMap[id]) {
-            if (avatar && mime) {
-                const byteCharacters = atob(avatar);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: mime });
-                const newBlob = URL.createObjectURL(blob);
+    const getAvatar = (attendanceData) => {
+        const userIds = attendanceData.map((attend) => attend.id);
+        if (userIds.length === 0) return;
 
-                setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+        axiosInstance
+            .post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
+            .then((avatarResponse) => {
+                const avatars = avatarResponse.data.avatars || {};
+                setBlobMap((prev) => {
+                    // Old blob cleanup
+                    Object.values(prev).forEach((url) => {
+                        if (url.startsWith('blob:')) {
+                            URL.revokeObjectURL(url);
+                        }
+                    });
 
-                return newBlob;
-            } else {
-                return "../../../images/avatarpic.jpg";
-            }
-        } else {
+                    // New blobs
+                    const newBlobMap = {};
+                    Object.entries(avatars).forEach(([id, data]) => {
+                        if (data.avatar && data.avatar_mime) {
+                            const byteCharacters = atob(data.avatar);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
+                            }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: data.avatar_mime });
+                            newBlobMap[id] = URL.createObjectURL(blob);
+                        }
+                    });
+                    return newBlobMap;
+                });
+            })
+            .catch((error) => {
+                console.error('Error fetching avatars:', error);
+            });
+    };
+
+    const renderProfile = (id) => {
+        if (blobMap[id]) {
             return blobMap[id];
         }
-    }
+        return "../../../images/avatarpic.jpg";
+    };
 
     useEffect(() => {
         return () => {
@@ -450,7 +480,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -515,7 +545,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -564,7 +594,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
@@ -614,7 +644,7 @@ const HrDashboard = () => {
                                                                         <TableRow key={index}>
                                                                             <TableCell align="left">
                                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id, attend.avatar, attend.avatar_mime)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>

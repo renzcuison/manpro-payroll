@@ -20,7 +20,7 @@ class CreateUserFormsTable extends Migration
             $table->integer('limit');
             $table->integer('used');
             $table->dateTime('expiration');
-            $table->enum('status', ['Unused', 'Partially Used', 'Used'])->default('Unused');
+            $table->enum('status', ['Unused', 'Partially Used', 'Used', 'Expired'])->default('Unused');
             $table->unsignedBigInteger('branch_id')->nullable();
             $table->unsignedBigInteger('department_id')->nullable();
             $table->unsignedBigInteger('created_by');

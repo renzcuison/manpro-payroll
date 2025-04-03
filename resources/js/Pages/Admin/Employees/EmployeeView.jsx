@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
+import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, Avatar, Button, Menu, MenuItem } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PropTypes from 'prop-types';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
-import EmployeeDetailsEdit from '../Employees/Modals/EmployeeDetailsEdit';
+import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
 
 const EmployeeView = () => {
@@ -170,11 +170,14 @@ const EmployeeView = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                            <Link to="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
+                            </Link>
+                            &nbsp; Employee Profile
+                        </Typography>
 
-                        <Button variant="contained" color="primary" onClick={handleOpenActions} >
-                            Actions
-                        </Button>
+                        <Button variant="contained" color="primary" onClick={handleOpenActions}> Actions </Button>
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenEmployeeDetailsEditModal}>Edit Employee Details</MenuItem>
@@ -190,17 +193,7 @@ const EmployeeView = () => {
                             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Avatar
-                                        alt={`${employee.user_name} Profile Pic`}
-                                        src={imagePath || null}
-                                        sx={{
-                                            width: '50%',
-                                            height: 'auto',
-                                            aspectRatio: '1 / 1',
-                                            objectFit: 'cover',
-                                            boxShadow: 3,
-                                        }}
-                                    />
+                                    <Avatar alt={`${employee.user_name} Profile Pic`} src={imagePath || null} sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }} />
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
@@ -268,9 +261,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>
-                                                    {employee.total_payroll || "0"}
-                                                </Avatar>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}> {employee.total_payroll || "0"} </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Signed Payroll </Typography>
@@ -281,9 +272,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>
-                                                    {employee.total_attendance || "0"}
-                                                </Avatar>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}> {employee.total_attendance || "0"} </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Attendance </Typography>
@@ -294,9 +283,7 @@ const EmployeeView = () => {
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>
-                                                    {employee.total_applications || "0"}
-                                                </Avatar>
+                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}> {employee.total_applications || "0"} </Avatar>
                                             </Grid>
                                             <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
                                                 <Typography variant="h6"> Applications </Typography>
