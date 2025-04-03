@@ -32,7 +32,7 @@ import {
     ImageListItem,
     ImageListItemBar,
     Tooltip,
-    CardActionArea
+    CardActionArea,
 } from "@mui/material";
 import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save } from "@mui/icons-material";
 import { Form, useLocation, useNavigate } from "react-router-dom";
@@ -365,8 +365,17 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                     <Divider />
                                 </Grid>
                                 <Grid item container xs={12}>
-                                    <Grid item xs={12}>
-                                        {`[INSERT ATTEMPT ANALYTICS HERE]`}
+                                    <Grid item xs={3}>
+                                        {`[ATTEMPT COUNT (PIE)]`}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                        {`[AVERAGE SCORE (PIE)]`}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                        {`[AVERAGE DURATION (PIE)]`}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                        {`[ATTEMPT LIST (SCROLLABLE)]`}
                                     </Grid>
                                 </Grid>
                             </>
