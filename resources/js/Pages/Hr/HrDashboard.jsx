@@ -447,19 +447,21 @@ const HrDashboard = () => {
                                         {/* Present Employees */}
                                         <TabPanel value="1" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
+                                                <TableContainer sx={{ maxHeight: "450px" }}>
+                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
                                                         <TableHead>
                                                             <TableRow>
                                                                 <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
-                                                                <TableCell align="center" sx={{ width: "30%" }}>Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "30%" }}>Time Out</TableCell>
+                                                                <TableCell align="center" sx={{ width: "15%" }}>First Time In</TableCell>
+                                                                <TableCell align="center" sx={{ width: "15%" }}>First Time Out</TableCell>
+                                                                <TableCell align="center" sx={{ width: "15%" }}>Second Time In</TableCell>
+                                                                <TableCell align="center" sx={{ width: "15%" }}>Second Time Out</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
                                                             <TableBody>
                                                                 <TableRow>
-                                                                    <TableCell colSpan={3}>
+                                                                    <TableCell colSpan={5}>
                                                                         <Box
                                                                             sx={{
                                                                                 display: "flex",
@@ -485,10 +487,16 @@ const HrDashboard = () => {
                                                                                 </Box>
                                                                             </TableCell>
                                                                             <TableCell align="center">
-                                                                                {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"}
+                                                                                {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
                                                                             </TableCell>
                                                                             <TableCell align="center">
-                                                                                {attend.time_out ? dayjs(attend.time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                                {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
                                                                             </TableCell>
                                                                         </TableRow>
                                                                     ))
@@ -518,20 +526,23 @@ const HrDashboard = () => {
                                         {/* Late Employees */}
                                         <TabPanel value="2" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
+                                                <TableContainer sx={{ maxHeight: "450px" }}>
+                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
                                                         <TableHead>
                                                             <TableRow>
-                                                                <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>Schedule</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>Late By</TableCell>
+                                                                <TableCell align="left" sx={{ width: "24%" }}>Employee</TableCell>
+                                                                <TableCell align="center" sx={{ width: "10%" }}>Schedule</TableCell>
+                                                                <TableCell align="center" sx={{ width: "14%" }}>First Time In</TableCell>
+                                                                <TableCell align="center" sx={{ width: "14%" }}>First Time Out</TableCell>
+                                                                <TableCell align="center" sx={{ width: "14%" }}>Second Time In</TableCell>
+                                                                <TableCell align="center" sx={{ width: "14%" }}>Second Time Out</TableCell>
+                                                                <TableCell align="center" sx={{ width: "10%" }}>Late By</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         {attendanceLoading ? (
                                                             <TableBody>
                                                                 <TableRow>
-                                                                    <TableCell colSpan={4}>
+                                                                    <TableCell colSpan={7}>
                                                                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                                                             <CircularProgress />
                                                                         </Box>
@@ -549,9 +560,24 @@ const HrDashboard = () => {
                                                                                     {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
                                                                                 </Box>
                                                                             </TableCell>
-                                                                            <TableCell align="center"> {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"} </TableCell>
-                                                                            <TableCell align="center"> {attend.time_in ? dayjs(attend.time_in).format("hh:mm:ss A") : "-"} </TableCell>
-                                                                            <TableCell align="center"> {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"} </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                            </TableCell>
+                                                                            <TableCell align="center">
+                                                                                {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
+                                                                            </TableCell>
                                                                         </TableRow>
                                                                     ))
                                                                 ) : (
@@ -570,8 +596,8 @@ const HrDashboard = () => {
                                         {/* Absent */}
                                         <TabPanel value="3" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
+                                                <TableContainer sx={{ maxHeight: "450px" }}>
+                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
                                                         <TableHead>
                                                             <TableRow>
                                                                 <TableCell align="left" sx={{ width: "100%" }}>Employee</TableCell>
@@ -617,8 +643,8 @@ const HrDashboard = () => {
                                         {/* On Leave */}
                                         <TabPanel value="4" sx={{ px: 0 }}>
                                             <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer>
-                                                    <Table className="table table-md table-striped table-vcenter">
+                                                <TableContainer sx={{ maxHeight: "450px" }}>
+                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
                                                         <TableHead>
                                                             <TableRow>
                                                                 <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
