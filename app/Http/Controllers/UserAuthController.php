@@ -30,23 +30,29 @@ class UserAuthController extends Controller
 
     public function checkUser(Request $request)
     {
-        log::info("UserAuthController::checkUser");
+        try {
+            
+            log::info("UserAuthController::checkUser");
 
-        $fields = $request->validate(['user' => 'required|string', 'pass' => 'required|string']);
+            $fields = $request->validate(['user' => 'required|string', 'pass' => 'required|string']);
 
-        $user = UsersModel::where('user_name', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
+            $user = UsersModel::where('user_name', '=', $fields['user'])->orWhere('email', '=', $fields['user'])->first();
 
-        log::info($user);
+            log::info($user);
 
-        // $user->password = Hash::make('Admin@123');
-        // $user->save();
+            // $user->password = Hash::make('Admin@123');
+            // $user->save();
 
-        if ($user && Hash::check($request->input('pass'), $user->password)) {
-            log::info("Valid User");
-            return response()->json(['success' => 1, 'user' => $user->id, 'email' => $user->email]);
-        } else {
-            log::info("Invalid User");
-            return response()->json(['success' => 0]);
+            if ($user && Hash::check($request->input('pass'), $user->password)) {
+                log::info("Valid User");
+                return response()->json(['success' => 1, 'user' => $user->id, 'email' => $user->email]);
+            } else {
+                log::info("Invalid User");
+                return response()->json(['success' => 0]);
+            }
+        } catch (\Throwable $th) {
+            log::info($th);
+            return response()->json(['success' => 0,'message' => 'Error: '.$th->getMessage()]);
         }
     }
 
