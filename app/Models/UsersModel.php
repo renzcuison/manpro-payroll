@@ -82,6 +82,11 @@ class UsersModel extends Authenticatable
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
 
+    public function tax()
+    {
+        return $this->hasOne(EmployeeTaxesModel::class, 'employee_id');
+    }
+
     public function workShift()
     {
         return $this->hasOneThrough(
