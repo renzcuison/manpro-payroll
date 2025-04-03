@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://team.manpromanagement.com/', 'https://phplaravel-719501-5268927.cloudwaysapps.com/'],
 
     'allowed_origins_patterns' => [],
 
