@@ -15,6 +15,7 @@ import DocumentCard from "./DocumentCard";
 import EditDocumentDialog from "./Modals/Edit";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
 function Documents() {
     const { documents, isFetching, deleteDoc } = useDocuments();
@@ -74,11 +75,13 @@ function Documents() {
         });
     };
 
-    useEffect(() => {
-        fetch("https://team.manpromanagement.com/api/cors-test")
-            .then((res) => res.json())
-            .then((data) => console.log("✅ CORS Success:", data))
-            .catch((err) => console.error("❌ CORS Error:", err));
+    useEffect(async () => {
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
+        const { data } = await axiosInstance.get("/admin/documents/", {
+            headers,
+        });
+        return data;
     }, []);
 
     console.log(selectedDoc);

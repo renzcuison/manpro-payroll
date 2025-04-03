@@ -57,13 +57,6 @@ use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/cors-test', function () {
-    return response()->json([
-        'message' => 'CORS is working!',
-        'origin' => request()->headers->get('origin')
-    ]);
-});
-
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
