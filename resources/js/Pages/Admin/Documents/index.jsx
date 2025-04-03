@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Box,
@@ -73,6 +73,13 @@ function Documents() {
             }
         });
     };
+
+    useEffect(() => {
+        fetch("https://team.manpromanagement.com/api/cors-test")
+            .then((res) => res.json())
+            .then((data) => console.log("✅ CORS Success:", data))
+            .catch((err) => console.error("❌ CORS Error:", err));
+    }, []);
 
     console.log(selectedDoc);
 
