@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 
-const InfoBox = ({ title, info }) => {
+const InfoBox = ({ title, info, compact = false, clean = false }) => {
     return (
         <Box
             sx={{
@@ -8,30 +8,45 @@ const InfoBox = ({ title, info }) => {
                 width: '100%',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                p: 1,
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px',
-                backgroundColor: '#fafafa',
-                transition: 'background-color 0.2s ease',
-                '&:hover': {
-                    backgroundColor: '#f3f5fa',
-                },
+                ...(!clean && {
+                    p: 1,
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '6px',
+                    backgroundColor: '#fafafa',
+                    transition: 'background-color 0.2s ease',
+                    '&:hover': {
+                        backgroundColor: '#f3f5fa',
+                    },
+                }),
             }}
         >
+            {/* Info Title */}
             <Typography
-                variant="body2"
                 sx={{
-                    color: 'text.secondary', fontWeight: 500,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }} >
+                    color: 'text.secondary',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    ...(compact && { flex: '0 0 50%' }),
+                }}
+            >
                 {title}
             </Typography>
+            {/* Info Text */}
             <Typography
-                variant="body2"
                 sx={{
-                    color: 'text.primary', fontWeight: 600,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }} >
+                    color: 'text.primary',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    ...(compact && {
+                        flex: '0 0 50%',
+                        textAlign: 'left',
+                    }),
+                }}
+            >
                 {info ?? '—'}
             </Typography>
         </Box>
