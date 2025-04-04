@@ -33,9 +33,11 @@ import {
     ImageListItemBar,
     Tooltip,
     CardActionArea,
+    Paper
 } from "@mui/material";
-import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save } from "@mui/icons-material";
+import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save, BarChart, Assessment, History } from "@mui/icons-material";
 import { Form, useLocation, useNavigate } from "react-router-dom";
+import { Gauge, LineChart } from '@mui/x-charts';
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -44,6 +46,7 @@ import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import FormItem from "./FormItem";
+import InfoBox from "../../../../components/General/InfoBox";
 
 
 const FormViews = ({ content, formItems, attemptData, handleFormFinished, contentReload }) => {
@@ -85,6 +88,18 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         if (formTimer < 60) return '#f44336'; // Red (< 1 min)
         if (formTimer < 300) return '#f57c00'; // Orange (< 5 min)
         return '#177604'; // Green
+    };
+
+    const formatDuration = (seconds) => {
+        const roundedSeconds = Math.round(seconds);
+        const hours = Math.floor(roundedSeconds / 3600);
+        const minutes = Math.floor((roundedSeconds % 3600) / 60);
+        const secs = roundedSeconds % 60;
+        let result = '';
+        if (hours > 0) result += `${hours}h `;
+        if (minutes > 0 || hours > 0) result += `${minutes}m `;
+        result += `${secs}s`;
+        return result.trim();
     };
 
     // Attempt Initialization
@@ -292,58 +307,42 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                     <Grid item container xs={12} spacing={2}>
                         {/* Availability */}
                         <Grid item xs={6}>
-                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {formInfo.require_pass ? "Availability" : "Attempt Limit"}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {formInfo.require_pass ? "Until Passed" : `${formInfo.attempts_allowed} attempt/s` ?? "N/A"}
-                                </Typography>
-                            </Box>
+                            <InfoBox
+                                title={formInfo.require_pass ? 'Availability' : 'Attempt Limit'}
+                                info={
+                                    formInfo.require_pass
+                                        ? 'Until Passed'
+                                        : `${formInfo.attempts_allowed} attempt${formInfo.attempts_allowed > 1 ? 's' : ''}`
+                                }
+                            />
                         </Grid>
                         {/* Duration */}
                         <Grid item xs={6}>
-                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {"Attempt Duration"}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
-                                </Typography>
-                            </Box>
+                            <InfoBox
+                                title="Attempt Duration"
+                                info={`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
+                            />
                         </Grid>
                         {/* Item Count */}
                         <Grid item xs={3}>
-                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {"Item Count"}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {formItems.length}
-                                </Typography>
-                            </Box>
+                            <InfoBox
+                                title="Item Count"
+                                info={formItems.length}
+                            />
                         </Grid>
                         {/* Total Points */}
                         <Grid item xs={3}>
-                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {"Total Points"}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {formItems.reduce((sum, item) => sum + (item.value || 0), 0)}
-                                </Typography>
-                            </Box>
+                            <InfoBox
+                                title="Total Points"
+                                info={formItems.reduce((sum, item) => sum + (item.value || 0), 0)}
+                            />
                         </Grid>
                         {/* Passing Score */}
                         <Grid item xs={3}>
-                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                    {"Passing Score"}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    {`${64}%`}
-                                </Typography>
-                            </Box>
+                            <InfoBox
+                                title="Passing Score"
+                                info={`${formInfo.passing_score}%`}
+                            />
                         </Grid>
                         {/* Button */}
                         <Grid item xs={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -364,18 +363,207 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 <Grid item xs={12}>
                                     <Divider />
                                 </Grid>
-                                <Grid item container xs={12}>
-                                    <Grid item xs={3}>
-                                        {`[ATTEMPT COUNT (PIE)]`}
+                                <Grid item container xs={12} spacing={2}>
+                                    {/* Attempt Count */}
+                                    <Grid item xs={12} sm={6} md={3}>
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 3,
+                                                textAlign: 'center',
+                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                color: '#fff',
+                                                height: 180,
+                                                transition: 'transform 0.2s ease',
+                                                '&:hover': {
+                                                    transform: 'scale(0.95)',
+                                                },
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
+                                                    <BarChart sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
+                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                                        Attempt Count
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
+                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                        {attemptData?.response_count ?? 0}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Paper>
                                     </Grid>
-                                    <Grid item xs={3}>
-                                        {`[AVERAGE SCORE (PIE)]`}
+
+                                    {/* Average Score */}
+                                    <Grid item xs={12} sm={6} md={3}>
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 3,
+                                                textAlign: 'center',
+                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                color: '#fff',
+                                                height: 180,
+                                                transition: 'transform 0.2s ease',
+                                                '&:hover': {
+                                                    transform: 'scale(0.95)',
+                                                },
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
+                                                    <Assessment sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
+                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                                        Avg. Score
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
+                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : (attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Paper>
                                     </Grid>
-                                    <Grid item xs={3}>
-                                        {`[AVERAGE DURATION (PIE)]`}
+
+                                    {/* Average Duration */}
+                                    <Grid item xs={12} sm={6} md={3}>
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 3,
+                                                textAlign: 'center',
+                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                color: '#fff',
+                                                height: 180,
+                                                transition: 'transform 0.2s ease',
+                                                '&:hover': {
+                                                    transform: 'scale(0.95)',
+                                                },
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
+                                                    <AccessTime sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
+                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                                        Avg. Duration
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
+                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : formatDuration(attemptData?.average_duration ?? 0)}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Paper>
                                     </Grid>
+
+                                    {/* Attempt History */}
                                     <Grid item xs={3}>
-                                        {`[ATTEMPT LIST (SCROLLABLE)]`}
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 1,
+                                                bgcolor: 'white',
+                                                borderRadius: '8px',
+                                                border: '2px solid #e0e0e0',
+                                                height: 180,
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                                {/* Header */}
+                                                <Box
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'flex-start',
+                                                        alignItems: 'center',
+                                                        mb: 1,
+                                                        px: 1,
+                                                        py: 0.5,
+                                                        borderBottom: '1px solid #e0e0e0',
+                                                    }}
+                                                >
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                        Attempt History
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* Attempt List */}
+                                                <Box
+                                                    sx={{
+                                                        flexGrow: 1,
+                                                        maxHeight: 'calc(180px - 48px)',
+                                                        overflowY: 'auto',
+                                                        scrollbarWidth: 'thin',
+                                                        scrollbarColor: '#777 #f5f5f5',
+                                                        '&::-webkit-scrollbar': {
+                                                            width: '6px',
+                                                        },
+                                                        '&::-webkit-scrollbar-thumb': {
+                                                            backgroundColor: '#777',
+                                                            borderRadius: '3px',
+                                                        },
+                                                        '&::-webkit-scrollbar-track': {
+                                                            backgroundColor: '#f5f5f5',
+                                                        },
+                                                    }}
+                                                >
+                                                    {attemptData?.responses?.length > 0 ? (
+                                                        attemptData.responses.map((response, index) => (
+                                                            <Box
+                                                                key={index}
+                                                                sx={{
+                                                                    mb: 1,
+                                                                    p: '8px',
+                                                                    border: '1px solid #e0e0e0',
+                                                                    borderRadius: '8px',
+                                                                    backgroundColor: 'white',
+                                                                }}
+                                                            >
+                                                                <Box display="flex" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    {/* Attempt Date */}
+                                                                    <Box display="flex" alignItems="center" sx={{ width: '70%' }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                                            {dayjs(response.created_at).format('MM/DD/YYYY hh:mm A')}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                    {/* Score */}
+                                                                    <Box
+                                                                        sx={{
+                                                                            width: '30%',
+                                                                            mr: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            borderRadius: '12px',
+                                                                            backgroundColor: response.passed ? '#e8f5e9' : "#ffebee",
+                                                                            color: response.passed ? '#2e7d32' : "#d32f2f",
+                                                                            fontSize: '0.875rem',
+                                                                            fontWeight: 'bold',
+                                                                            textAlign: 'center',
+                                                                        }}
+                                                                    >
+                                                                        {`${response.score} pt${response.score > 1 ? 's' : ''}`}
+                                                                    </Box>
+                                                                </Box>
+                                                            </Box>
+                                                        ))
+                                                    ) : (
+                                                        <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 2 }}>
+                                                            No attempts recorded
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            </Box>
+                                        </Paper>
                                     </Grid>
                                 </Grid>
                             </>
@@ -453,66 +641,24 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                 <>
                     {/* Attempt Count */}
                     <Grid item xs={3}>
-                        <Box
-                            display="flex"
-                            sx={{
-                                width: "100%",
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 1,
-                                borderRadius: '4px',
-                                backgroundColor: '#f5f5f5',
-                            }}
-                        >
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                Attempt No.
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
-                            </Typography>
-                        </Box>
+                        <InfoBox
+                            title={"Attempt No."}
+                            info={`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
+                        />
                     </Grid>
                     {/* Item Count */}
                     <Grid item xs={3}>
-                        <Box
-                            display="flex"
-                            sx={{
-                                width: "100%",
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 1,
-                                borderRadius: '4px',
-                                backgroundColor: '#f5f5f5',
-                            }}
-                        >
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                No. of Items
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {formItems.length}
-                            </Typography>
-                        </Box>
+                        <InfoBox
+                            title={'No. of Items'}
+                            info={formItems.length}
+                        />
                     </Grid>
                     {/* Passing Score*/}
                     <Grid item xs={3}>
-                        <Box
-                            display="flex"
-                            sx={{
-                                width: "100%",
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 1,
-                                borderRadius: '4px',
-                                backgroundColor: '#f5f5f5',
-                            }}
-                        >
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                Passing Score
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                {`${formInfo.passing_score}%`}
-                            </Typography>
-                        </Box>
+                        <InfoBox
+                            title={'Passing Score'}
+                            info={`${formInfo.passing_score}%`}
+                        />
                     </Grid>
                     {/* Timer */}
                     <Grid item xs={3} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>

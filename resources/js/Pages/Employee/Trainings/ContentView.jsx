@@ -278,10 +278,11 @@ const ContentView = () => {
                                             if (intervalId) clearInterval(intervalId);
                                         }
                                     });
-
-                                    // Seek Event Listener (blocked by YT, alternative needed)
-                                    // iframe.contentWindow.addEventListener('seeked', restrictSeeking);
                                 },
+                                onError: (event) => { // Video Removed, Privated, Restricted, etc.
+                                    // Automatically Clear (TEMPORARY FIX, Implement Alternative Actions Later)
+                                    onVideoClear();
+                                }
                             },
                         });
                     }}
@@ -377,7 +378,7 @@ const ContentView = () => {
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training Content
+                            {title}
                         </Typography>
                         <Link to={`/employee/training/${code}`}>
                             <Button
@@ -395,8 +396,8 @@ const ContentView = () => {
                         <>
                             {/* Content List */}
                             <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0" }}>
-                                <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
-                                    {title}
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
+                                    Content List
                                 </Typography>
                                 <Box sx={{ height: "95%" }}>
                                     {contentList.length > 0 && (
