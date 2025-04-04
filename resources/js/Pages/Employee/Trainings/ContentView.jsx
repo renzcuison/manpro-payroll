@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending, CheckBox, ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, Lock, Pending, CheckBox, ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -403,26 +403,25 @@ const ContentView = () => {
                                 <Box
                                     sx={{
                                         width: '20%',
-                                        p: 2,
                                         borderRight: '1px solid #e0e0e0',
-                                        bgcolor: '#fafafa', // Subtle background
+                                        bgcolor: '#fafafa',
                                         transition: 'width 0.3s ease',
                                     }}
                                 >
-                                    <Typography
-                                        variant="subtitle1" // Smaller, modern
-                                        sx={{ mb: 1.5, fontWeight: 600, color: '#177604' }} // Primary color
-                                    >
-                                        Content List
-                                    </Typography>
+                                    <Box sx={{ width: "100%", p: 3, pb: 1, mb: 1, bgcolor: "#f5f5f5", borderBottom: "solid 1px #e0e0e0", }}>
+                                        <Typography sx={{ fontWeight: 600, color: '#177604' }}>
+                                            Content List
+                                        </Typography>
+                                    </Box>
                                     <Box
                                         sx={{
-                                            maxHeight: 'calc(100% - 32px)', // Adjust for header
-                                            overflowY: 'auto', // Scrollable
-                                            pr: 1, // Space for scrollbar
-                                            scrollbarWidth: 'thin', // Firefox
-                                            scrollbarColor: '#e9ae20 #fafafa', // Secondary scrollbar
-                                            '&::-webkit-scrollbar': { width: '6px' }, // Chrome/Safari
+                                            maxHeight: 'calc(100% - 32px)',
+                                            overflowY: 'auto',
+                                            pr: 3,
+                                            pl: 2,
+                                            scrollbarWidth: 'thin',
+                                            scrollbarColor: '#e9ae20 #fafafa',
+                                            '&::-webkit-scrollbar': { width: '6px' },
                                             '&::-webkit-scrollbar-thumb': { backgroundColor: '#e9ae20', borderRadius: '3px' },
                                             '&::-webkit-scrollbar-track': { backgroundColor: '#fafafa' },
                                         }}
@@ -447,7 +446,7 @@ const ContentView = () => {
                                                                 cursor: locked ? 'not-allowed' : 'pointer',
                                                                 transition: 'background-color 0.2s ease',
                                                                 ...(cont.id === contentId
-                                                                    ? { backgroundColor: '#e9ae20', color: 'white' }
+                                                                    ? { background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)', color: 'white' }
                                                                     : {
                                                                         '&:hover': !locked && {
                                                                             backgroundColor: '#f0f0f0',
@@ -483,11 +482,13 @@ const ContentView = () => {
                                                                     {cont.title}
                                                                 </Typography>
                                                             </Box>
-                                                            {cont.is_finished ? (
-                                                                <CheckBox sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#177604' }} />
-                                                            ) : cont.has_viewed ? (
-                                                                <Pending sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#f57c00' }} />
-                                                            ) : null}
+                                                            <Box display="flex" sx={{ alignItems: 'center' }}>
+                                                                {cont.is_finished ? (
+                                                                    <CheckBox sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#177604' }} />
+                                                                ) : cont.has_viewed ? (
+                                                                    <Pending sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#f57c00' }} />
+                                                                ) : null}
+                                                            </Box>
                                                         </Box>
                                                         {locked && (
                                                             <Box
@@ -518,7 +519,7 @@ const ContentView = () => {
                             <Box
                                 sx={{
                                     width: contentListOn ? '80%' : '100%',
-                                    mt: 3,
+                                    mt: 2,
                                     mb: 2,
                                     p: 3,
                                     position: 'relative',
@@ -554,10 +555,10 @@ const ContentView = () => {
                                         <CircularProgress />
                                     </Box>
                                 ) : (
-                                    <Grid container spacing={2} sx={{ mt: 3 }}>
+                                    <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
                                         {/* Title */}
                                         <Grid item xs={12}>
-                                            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
+                                            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
                                         </Grid>
@@ -579,6 +580,7 @@ const ContentView = () => {
                                                     {content.content.type === "Video" ? (
                                                         <Box
                                                             sx={{
+                                                                maxWidth: '720px',
                                                                 width: "90%",
                                                                 aspectRatio: "16 / 9",
                                                                 placeSelf: "center",
@@ -591,6 +593,7 @@ const ContentView = () => {
                                                         <CardMedia
                                                             component="img"
                                                             sx={{
+                                                                maxWidth: '640px',
                                                                 width: "80%",
                                                                 aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
                                                                 objectFit: "contain",
@@ -658,9 +661,9 @@ const ContentView = () => {
                                                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                                         Description
                                                     </Typography>
-                                                    <div
-                                                        id="description"
-                                                        style={{
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{
                                                             wordWrap: 'break-word',
                                                             wordBreak: 'break-word',
                                                             overflowWrap: 'break-word',
@@ -678,7 +681,7 @@ const ContentView = () => {
                     </Box>
                 </Box>
             </Box>
-        </Layout>
+        </Layout >
     );
 };
 

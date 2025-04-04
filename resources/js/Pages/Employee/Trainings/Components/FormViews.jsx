@@ -371,10 +371,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             sx={{
                                                 p: 3,
                                                 textAlign: 'center',
-                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)', // Shadow for elevation 1
+                                                border: '1px solid #e0e0e0',
                                                 borderRadius: '8px',
-                                                border: 'none',
-                                                color: '#fff',
                                                 height: 180,
                                                 transition: 'transform 0.2s ease',
                                                 '&:hover': {
@@ -382,22 +381,27 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                 },
                                             }}
                                         >
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
-                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
-                                                    <BarChart sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }}>
+                                                    <BarChart sx={{ mr: 1, color: 'text.secondary', width: 28, height: 28 }} />
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: '0.5px' }}
+                                                    >
                                                         Attempt Count
                                                     </Typography>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
-                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1 }}>
+                                                    <Typography
+                                                        variant="h3"
+                                                        sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px' }}
+                                                    >
                                                         {attemptData?.response_count ?? 0}
                                                     </Typography>
                                                 </Box>
                                             </Box>
                                         </Paper>
                                     </Grid>
-
                                     {/* Average Score */}
                                     <Grid item xs={12} sm={6} md={3}>
                                         <Paper
@@ -405,10 +409,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             sx={{
                                                 p: 3,
                                                 textAlign: 'center',
-                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+                                                border: '1px solid #e0e0e0',
                                                 borderRadius: '8px',
-                                                border: 'none',
-                                                color: '#fff',
                                                 height: 180,
                                                 transition: 'transform 0.2s ease',
                                                 '&:hover': {
@@ -418,20 +421,19 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         >
                                             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
                                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
-                                                    <Assessment sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                                    <Assessment sx={{ mr: 1, color: 'text.secondary', width: 28, height: 28 }} />
+                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: '0.5px', }} >
                                                         Avg. Score
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
-                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px', }} >
                                                         {(attemptData?.response_count ?? 0) == 0 ? "-" : (attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')}
                                                     </Typography>
                                                 </Box>
                                             </Box>
                                         </Paper>
                                     </Grid>
-
                                     {/* Average Duration */}
                                     <Grid item xs={12} sm={6} md={3}>
                                         <Paper
@@ -439,10 +441,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             sx={{
                                                 p: 3,
                                                 textAlign: 'center',
-                                                background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)',
+                                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+                                                border: '1px solid #e0e0e0',
                                                 borderRadius: '8px',
-                                                border: 'none',
-                                                color: '#fff',
                                                 height: 180,
                                                 transition: 'transform 0.2s ease',
                                                 '&:hover': {
@@ -452,20 +453,19 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         >
                                             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
                                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
-                                                    <AccessTime sx={{ mr: 1, color: '#fff', width: 28, height: 28 }} />
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', }} >
+                                                    <AccessTime sx={{ mr: 1, color: 'text.secondary', width: 28, height: 28 }} />
+                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: '0.5px', }} >
                                                         Avg. Duration
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
-                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#fff', mb: 1, letterSpacing: '-0.5px', }} >
+                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px', }} >
                                                         {(attemptData?.response_count ?? 0) == 0 ? "-" : formatDuration(attemptData?.average_duration ?? 0)}
                                                     </Typography>
                                                 </Box>
                                             </Box>
                                         </Paper>
                                     </Grid>
-
                                     {/* Attempt History */}
                                     <Grid item xs={3}>
                                         <Paper
@@ -474,9 +474,10 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                 p: 1,
                                                 bgcolor: 'white',
                                                 borderRadius: '8px',
-                                                border: '2px solid #e0e0e0',
+                                                border: '1px solid #e0e0e0',
                                                 height: 180,
                                                 overflow: 'hidden',
+                                                boxShadow: 1,
                                             }}
                                         >
                                             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -577,9 +578,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Description
                         </Typography>
-                        <div
-                            id="description"
-                            style={{
+                        <Typography
+                            variant="body1"
+                            sx={{
                                 wordWrap: 'break-word',
                                 wordBreak: 'break-word',
                                 overflowWrap: 'break-word',
