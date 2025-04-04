@@ -114,20 +114,28 @@ class TrainingsController extends Controller
                 ])
                 ->get()
                 ->map(function ($training) use ($user) {
-                    // Debug logging for is_completed
                     $totalContents = TrainingContentModel::where('training_id', $training->id)->count();
+
+                    // View Trackers
+                    $hasViews = TrainingContentModel::where('training_id', $training->id)
+                        ->whereHas('views', function ($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->exists();
                     $completedContents = TrainingContentModel::where('training_id', $training->id)
                         ->whereHas('views', function ($query) use ($user) {
                             $query->where('user_id', $user->id)->where('status', 'Finished');
                         })
                         ->count();
 
+                    // Appended Data
                     $contentTypes = json_decode($training->content_types, true);
                     $training->video = (bool) ($contentTypes['has_video'] ?? 0);
                     $training->image = (bool) ($contentTypes['has_image'] ?? 0);
                     $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
                     $training->form = (bool) ($contentTypes['has_form'] ?? 0);
                     $training->completed = $totalContents == $completedContents;
+                    $training->viewed = $hasViews;
 
                     unset($training->content_types);
 
@@ -693,7 +701,18 @@ class TrainingsController extends Controller
                 ->whereNotIn('id', $viewedUserIds)
                 ->count();
 
-            unset($content->views);
+            // Add latest views with user details
+            $content->latest_views = $content->views()
+                ->with('user')
+                ->orderBy('updated_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($view) {
+                    $view->user_first_name = $view->user->first_name ?? 'N/A';
+                    $view->user_last_name = $view->user->last_name ?? 'N/A';
+                    unset($view->user);
+                    return $view;
+                });
 
             // Content Constructor
             if ($content->training_media_id) {
@@ -793,6 +812,7 @@ class TrainingsController extends Controller
                 $view = $contentItem->views->first();
 
                 $contentItem->has_viewed = !is_null($view);
+                $contentItem->viewed_at = $view ? $view->created_at : null;
 
                 $contentItem->is_finished = false;
                 $contentItem->completed_at = null;

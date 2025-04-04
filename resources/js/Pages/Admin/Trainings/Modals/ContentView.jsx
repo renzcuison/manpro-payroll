@@ -50,6 +50,8 @@ import ContentEdit from "./ContentEdit";
 import FormItemAdd from "./FormItemAdd";
 import FormItemSettings from "./FormItemSettings";
 import FormItemEdit from "./FormItemEdit";
+import { PieChart } from "@mui/x-charts";
+import InfoBox from "../../../../components/General/InfoBox";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -365,7 +367,7 @@ const ContentView = ({ open, close, contentId, status }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Content Details </Typography>
@@ -537,62 +539,47 @@ const ContentView = ({ open, close, contentId, status }) => {
                                         <Divider />
                                     </Grid>
                                     {/* Additional Form Information */}
-                                    {content.content.type === "Form" && (
+                                    {content.content.type === 'Form' && (
                                         <Grid container item xs={12} spacing={2}>
                                             <Grid item xs={12}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                                     Form Details
                                                 </Typography>
                                             </Grid>
+                                            {/* Attempt Limit */}
                                             <Grid item xs={4}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {content.content.require_pass ? "Availability" : "Attempt Limit"}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.content.require_pass ? "Until Passed" : content.content.attempts_allowed ?? "N/A"}
-                                                    </Typography>
-                                                </Box>
+                                                <InfoBox
+                                                    title={content.content.require_pass ? 'Availability' : 'Attempt Limit'}
+                                                    info={content.content.require_pass ? 'Until Passed' : content.content.attempts_allowed ?? 'N/A'}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Passing Score
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.content.passing_score ?? "N/A"} %`}
-                                                    </Typography>
-                                                </Box>
+                                            {/* Passing Score */}
+                                            <Grid item xs={4}>
+                                                <InfoBox
+                                                    title="Passing Score"
+                                                    info={`${content.content.passing_score ?? 'N/A'} %`}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Duration Per Attempt
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.duration ?? "N/A"} min`}
-                                                    </Typography>
-                                                </Box>
+                                            {/* Duration Per Attempt */}
+                                            <Grid item xs={4}>
+                                                <InfoBox
+                                                    title="Duration Per Attempt"
+                                                    info={`${content.duration ?? 'N/A'} min`}
+                                                />
                                             </Grid>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Item Count
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.item_count}
-                                                    </Typography>
-                                                </Box>
+                                            {/* Item Count */}
+                                            <Grid item xs={6}>
+                                                <InfoBox
+                                                    title="Item Count"
+                                                    info={content.item_count}
+                                                />
                                             </Grid>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Total Points
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.total_points} pts`}
-                                                    </Typography>
-                                                </Box>
+                                            {/* Total Points */}
+                                            <Grid item xs={6}>
+                                                <InfoBox
+                                                    title="Total Points"
+                                                    info={`${content.total_points} pts`}
+                                                />
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }}>
                                                 <Divider />
@@ -601,48 +588,60 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     )}
                                     {/* Progress Viewer */}
                                     {status !== "Pending" && (
-                                        <Grid container item xs={12} spacing={1}>
-                                            <Grid item xs={12}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                        <>
+                                            {/* View Summary */}
+                                            <Grid item xs={7} >
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
                                                     Progress Statistics
                                                 </Typography>
+                                                <PieChart
+                                                    series={[
+                                                        {
+                                                            data: [
+                                                                { id: 0, value: content.no_view_count ?? 0, label: 'Not Yet Viewed', color: "#777777" },
+                                                                { id: 1, value: content.view_count ?? 0, label: 'Viewed', color: "#f57c00" },
+                                                                { id: 2, value: content.finished_count ?? 0, label: 'Completed', color: "#177604" },
+                                                            ],
+                                                            innerRadius: 30,
+                                                            outerRadius: 100,
+                                                            startAngle: 0,
+                                                            endAngle: -360,
+                                                        },
+                                                    ]}
+                                                    height={200}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Not Yet Viewed
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.no_view_count ?? 0}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Viewers
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.view_count ?? 0}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Completers
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.finished_count ?? 0}
-                                                    </Typography>
+                                            {/* Recent Views */}
+                                            <Grid item xs={5} >
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
+                                                    Recent Updates
+                                                </Typography>
+                                                <Box sx={{ width: '100%', height: 200, border: "solid 1px #e0e0e0" }}>
+                                                    {content.latest_views && content.latest_views.length > 0 ? (
+                                                        content.latest_views.map((view, index) => (
+                                                            <Box key={index} display="flex" sx={{ p: 1, width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                                                <Typography>
+                                                                    {`${view.user_first_name} ${view.user_last_name}`}
+                                                                </Typography>
+                                                                <Typography>
+                                                                    {view.status}
+                                                                </Typography>
+                                                            </Box>
+                                                        ))
+                                                    ) : (
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{ color: 'text.secondary', textAlign: 'center', lineHeight: '200px' }}
+                                                        >
+                                                            No views available
+                                                        </Typography>
+                                                    )}
                                                 </Box>
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }}>
-                                                <Divider sx={{ my: 1 }} />
+                                                <Divider />
                                             </Grid>
-                                        </Grid>
+                                        </>
                                     )}
                                     {/* Description */}
                                     <Grid item xs={12}>
