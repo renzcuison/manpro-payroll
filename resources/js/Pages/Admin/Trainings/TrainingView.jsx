@@ -66,6 +66,7 @@ import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.pn
 
 import ContentSettings from "./Modals/ContentSettings";
 import ContentView from "./Modals/ContentView";
+import InfoBox from "../../../components/General/InfoBox";
 
 const TrainingView = () => {
     const { code } = useParams();
@@ -244,11 +245,7 @@ const TrainingView = () => {
             color = "black";
         }
 
-        return <Grid item xs={7} align="left">
-            <Typography sx={{ fontWeight: "bold", color: color }}>
-                {label}
-            </Typography>
-        </Grid>
+        return { label: label, color: color }
     }
 
     // Training Menu
@@ -411,12 +408,12 @@ const TrainingView = () => {
     };
 
     return (
-        <Layout title={"AnnouncementView"}>
+        <Layout title={"TrainingView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training
+                            {training?.title ?? "Training"}
                         </Typography>
                     </Box>
 
@@ -429,13 +426,13 @@ const TrainingView = () => {
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
                                     {/* Core Information */}
-                                    <Grid item container xs={8} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                        <Grid item container spacing={1} sx={{ mb: 1 }}>
+                                    <Grid item container xs={6} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                        <Grid item container spacing={1} >
                                             {/* Title and Action Menu */}
                                             <Grid item xs={12}>
                                                 <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography variant="h5">
-                                                        {training.title || "-"}
+                                                    <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary", }}>
+                                                        Training Details:
                                                     </Typography>
                                                     {/* Options */}
                                                     {training.status != "Cancelled" && (
@@ -518,13 +515,11 @@ const TrainingView = () => {
                                                 <Divider />
                                             </Grid>
                                             {/* Status */}
-                                            <Grid item xs={5} align="left">
-                                                Status
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{
-                                                    fontWeight: "bold",
-                                                    color: training.status == "Pending"
+                                            <Grid item xs={12}>
+                                                <InfoBox
+                                                    title="Status"
+                                                    info={String(training.status || "-").toUpperCase()}
+                                                    color={training.status == "Pending"
                                                         ? "#e9ae20"
                                                         : training.status == "Active"
                                                             ? "#177604"
@@ -532,84 +527,98 @@ const TrainingView = () => {
                                                                 ? "#f57c00"
                                                                 : training.status == "Cancelled"
                                                                     ? "#f44336"
-                                                                    : "#000000"
-                                                }}>
-                                                    {String(training.status || "-").toUpperCase()}
-                                                </Typography>
+                                                                    : "#000000"}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Visibility */}
                                             {training.status !== "Pending" && training.status !== "Cancelled" && (
-                                                <>
-                                                    <Grid item xs={5} align="left">
-                                                        Visibility
-                                                    </Grid>
-                                                    {renderVisibility()}
-                                                </>
+                                                <Grid item xs={12}>
+                                                    <InfoBox
+                                                        title="Visibility"
+                                                        info={renderVisibility().label}
+                                                        color={renderVisibility().color}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
                                             )}
                                             <Grid item xs={12} sx={{ my: 0 }} >
                                                 <Divider />
                                             </Grid>
                                             {/* Posting Date */}
-                                            <Grid item xs={5} align="left">
-                                                Created
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
-                                                </Typography>
+                                            <Grid item xs={12}>
+                                                <InfoBox
+                                                    title="Created"
+                                                    info={dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Author Information */}
-                                            <Grid item xs={5} align="left">
-                                                Prepared by
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Stack>
-                                                    <Typography sx={{ fontWeight: "bold", }}>
-                                                        {training.author_name || "-"}
+                                            <Grid item xs={12}>
+                                                <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', }} >
+                                                    <Typography
+                                                        sx={{
+                                                            color: 'text.secondary',
+                                                            fontWeight: 500,
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            flex: '0 0 40%',
+                                                        }}
+                                                    >
+                                                        Prepared by
                                                     </Typography>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {training.author_title || "-"}
-                                                    </Typography>
-                                                </Stack>
+                                                    <Stack sx={{ flex: '0 0 60%', textAlign: 'left', }} >
+                                                        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                                            {training.author_name || '-'}
+                                                        </Typography>
+                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                            {training.author_title || '-'}
+                                                        </Typography>
+                                                    </Stack>
+                                                </Box>
                                             </Grid>
                                             <Grid item xs={12} sx={{ my: 0 }} >
                                                 <Divider />
                                             </Grid>
                                             {/* Opens */}
-                                            <Grid item xs={5} align="left">
-                                                Opens
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
-                                                </Typography>
+                                            <Grid item xs={12}>
+                                                <InfoBox
+                                                    title="Opens"
+                                                    info={dayjs(training.start_date).format("MMM D, YYYY    h:mm A") || "-"}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Closes */}
-                                            <Grid item xs={5} align="left">
-                                                Closes
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
-                                                </Typography>
+                                            <Grid item xs={12}>
+                                                <InfoBox
+                                                    title="Closes"
+                                                    info={dayjs(training.end_date).format("MMM D, YYYY    h:mm A") || "-"}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Duration */}
-                                            <Grid item xs={5} align="left">
-                                                Duration
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {formatTime(training.duration)}
-                                                </Typography>
+                                            <Grid item xs={12}>
+                                                <InfoBox
+                                                    title="Duration"
+                                                    info={formatTime(training.duration)}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                         </Grid>
                                     </Grid>
                                     {/* Thumbnail */}
-                                    <Grid item xs={4}>
+                                    <Grid item xs={6}>
                                         <Box sx={{
                                             position: 'relative',
                                             width: '100%',
-                                            aspectRatio: '2 / 1',
+                                            aspectRatio: '16 / 9',
                                             borderRadius: "4px",
                                             border: '2px solid #e0e0e0',
                                         }}>
@@ -636,9 +645,12 @@ const TrainingView = () => {
                                     </Grid>
                                     {/* Description */}
                                     <Grid item xs={12} >
-                                        <div
-                                            id="description"
-                                            style={{
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                            Description
+                                        </Typography>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
                                                 wordWrap: 'break-word',
                                                 wordBreak: 'break-word',
                                                 overflowWrap: 'break-word',
@@ -662,7 +674,7 @@ const TrainingView = () => {
                                                         </Typography>
                                                     </>
                                                 ) : (
-                                                    <Typography>
+                                                    <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary", }}>
                                                         {`Content${content.length > 1 ? 's' : ''}`}
                                                     </Typography>
                                                 )
@@ -682,7 +694,7 @@ const TrainingView = () => {
                                             </Box>
                                             {content.length > 0 && (
                                                 <Box display="flex" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                    <Typography variant="body1" sx={{ color: "text.secondary" }}>
                                                         {inOrder == null ? "-" : `Contents ${inOrder ? 'have to be completed in order.' : 'can be completed in any order.'}`}
                                                     </Typography>
                                                     {training.status == "Pending" && (
@@ -705,7 +717,7 @@ const TrainingView = () => {
                                     {content && content.length > 0 && (
                                         <Grid container item xs={12} rowSpacing={3} columnSpacing={2}>
                                             {content.map((cont) => (
-                                                <Grid item xs={3} key={cont.id}>
+                                                <Grid item xs={4} key={cont.id}>
                                                     <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleOpenContentViewModal(cont)}
                                                         sx={{
                                                             "&:hover": {

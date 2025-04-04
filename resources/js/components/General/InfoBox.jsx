@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 
-const InfoBox = ({ title, info, compact = false, clean = false }) => {
+const InfoBox = ({ title, info, compact = false, clean = false, color = null }) => {
     return (
         <Box
             sx={{
@@ -28,7 +28,7 @@ const InfoBox = ({ title, info, compact = false, clean = false }) => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    ...(compact && { flex: '0 0 50%' }),
+                    ...(compact && { flex: '0 0 40%' }),
                 }}
             >
                 {title}
@@ -36,13 +36,13 @@ const InfoBox = ({ title, info, compact = false, clean = false }) => {
             {/* Info Text */}
             <Typography
                 sx={{
-                    color: 'text.primary',
+                    color: color || 'text.primary',
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     ...(compact && {
-                        flex: '0 0 50%',
+                        flex: '0 0 60%',
                         textAlign: 'left',
                     }),
                 }}

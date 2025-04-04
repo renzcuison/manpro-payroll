@@ -326,7 +326,7 @@ const TrainingView = () => {
                                         {/* Posting Date */}
                                         <Grid item xs={6}>
                                             <InfoBox
-                                                title={"Created"}
+                                                title="Created"
                                                 info={dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
                                                 compact
                                                 clean
@@ -342,12 +342,12 @@ const TrainingView = () => {
                                                         whiteSpace: 'nowrap',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
-                                                        flex: '0 0 50%',
+                                                        flex: '0 0 40%',
                                                     }}
                                                 >
                                                     Prepared by
                                                 </Typography>
-                                                <Stack sx={{ flex: '0 0 50%', textAlign: 'left', }} >
+                                                <Stack sx={{ flex: '0 0 60%', textAlign: 'left', }} >
                                                     <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
                                                         {training.author_name || '-'}
                                                     </Typography>
@@ -363,7 +363,7 @@ const TrainingView = () => {
                                         {/* Opens */}
                                         <Grid item xs={6}>
                                             <InfoBox
-                                                title={"Opens"}
+                                                title="Opens"
                                                 info={dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
                                                 compact
                                                 clean
@@ -372,7 +372,7 @@ const TrainingView = () => {
                                         {/* Duration */}
                                         <Grid item xs={6}>
                                             <InfoBox
-                                                title={"Duration"}
+                                                title="Duration"
                                                 info={formatTime(training.duration)}
                                                 compact
                                                 clean
@@ -381,7 +381,7 @@ const TrainingView = () => {
                                         {/* Closes */}
                                         <Grid item xs={6}>
                                             <InfoBox
-                                                title={"Closes"}
+                                                title="Closes"
                                                 info={dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
                                                 compact
                                                 clean
@@ -391,7 +391,7 @@ const TrainingView = () => {
                                         {trainingComplete != null ? (
                                             <Grid item xs={6}>
                                                 <InfoBox
-                                                    title={"Completed On"}
+                                                    title="Completed On"
                                                     info={dayjs(trainingComplete).format("MMM D, YYYY    h:mm A")}
                                                     compact
                                                     clean

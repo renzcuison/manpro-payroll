@@ -649,17 +649,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                             Description
                                         </Typography>
-                                        <div
-                                            id="description"
-                                            style={{
-                                                wordWrap: "break-word",
-                                                wordBreak: "break-word",
-                                                overflowWrap: "break-word",
-                                                whiteSpace: "pre-wrap",
-                                                backgroundColor: "#f5f5f5",
-                                                borderRadius: "4px",
-                                                p: 2,
-                                                minHeight: "60px",
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                wordWrap: 'break-word',
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'break-word',
+                                                whiteSpace: 'pre-wrap',
                                             }}
                                             dangerouslySetInnerHTML={{ __html: content.description }}
                                         />

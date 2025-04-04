@@ -643,21 +643,21 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                     {/* Attempt Count */}
                     <Grid item xs={3}>
                         <InfoBox
-                            title={"Attempt No."}
+                            title="Attempt No."
                             info={`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                         />
                     </Grid>
                     {/* Item Count */}
                     <Grid item xs={3}>
                         <InfoBox
-                            title={'No. of Items'}
+                            title='No. of Items'
                             info={formItems.length}
                         />
                     </Grid>
                     {/* Passing Score*/}
                     <Grid item xs={3}>
                         <InfoBox
-                            title={'Passing Score'}
+                            title='Passing Score'
                             info={`${formInfo.passing_score}%`}
                         />
                     </Grid>
