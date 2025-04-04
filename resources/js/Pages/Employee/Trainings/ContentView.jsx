@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, Lock, Pending, CheckBox, ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, Lock, Pending, CheckBox, ArrowBackIos, ArrowForwardIos, HourglassBottom } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -445,7 +445,7 @@ const ContentView = () => {
                                                                 alignItems: 'center',
                                                                 cursor: locked ? 'not-allowed' : 'pointer',
                                                                 transition: 'background-color 0.2s ease',
-                                                                ...(cont.id === contentId
+                                                                ...(cont.id == contentId
                                                                     ? { background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)', color: 'white' }
                                                                     : {
                                                                         '&:hover': !locked && {
@@ -457,23 +457,23 @@ const ContentView = () => {
                                                         >
                                                             <Box display="flex" sx={{ alignItems: 'center' }}>
                                                                 {cont.content.type === 'Video' && (
-                                                                    <OndemandVideo sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#757575' }} />
+                                                                    <OndemandVideo sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
                                                                 )}
                                                                 {cont.content.type === 'Image' && (
-                                                                    <Image sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#757575' }} />
+                                                                    <Image sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
                                                                 )}
-                                                                {(cont.content.type === 'Document' || cont.content.type === 'PowerPoint') && (
+                                                                {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && (
                                                                     <Description sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#757575' }} />
                                                                 )}
                                                                 {!cont.content.type && (
-                                                                    <Quiz sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#757575' }} />
+                                                                    <Quiz sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
                                                                 )}
                                                                 <Typography
                                                                     variant="body2"
                                                                     sx={{
                                                                         ml: 1,
-                                                                        color: cont.id === contentId ? 'white' : 'text.primary',
-                                                                        fontWeight: cont.id === contentId ? 600 : 400,
+                                                                        color: cont.id == contentId ? 'white' : 'text.primary',
+                                                                        fontWeight: cont.id == contentId ? 600 : 400,
                                                                         whiteSpace: 'nowrap',
                                                                         overflow: 'hidden',
                                                                         textOverflow: 'ellipsis',
@@ -484,9 +484,9 @@ const ContentView = () => {
                                                             </Box>
                                                             <Box display="flex" sx={{ alignItems: 'center' }}>
                                                                 {cont.is_finished ? (
-                                                                    <CheckBox sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#177604' }} />
+                                                                    <CheckBox sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#177604' }} />
                                                                 ) : cont.has_viewed ? (
-                                                                    <Pending sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#f57c00' }} />
+                                                                    <HourglassBottom sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#f57c00' }} />
                                                                 ) : null}
                                                             </Box>
                                                         </Box>

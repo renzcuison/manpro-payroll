@@ -36,7 +36,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { OndemandVideo, Image, Description, Quiz, Lock, CheckCircle } from "@mui/icons-material";
+import { OndemandVideo, Image, Description, Quiz, Lock, CheckCircle, CheckCircleOutline, HourglassBottom } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -315,9 +315,6 @@ const TrainingView = () => {
                                             }
                                         </Box>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
-                                        <Divider />
-                                    </Grid>
                                     {/* Core Information */}
                                     <Grid item container xs={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                         {/* Header */}
@@ -471,18 +468,18 @@ const TrainingView = () => {
                                                 <CardActionArea onClick={() => handleContentViewer(cont, locked)}
                                                     sx={{
                                                         "&:hover": {
-                                                            transform: "scale(0.97)",
+                                                            transform: "scale(0.98)",
                                                             transition: "transform 0.2s ease-in-out",
                                                         },
                                                     }}
                                                 >
-                                                    <Card sx={{ boxShadow: 3, position: 'relative', borderRadius: "8px" }}>
+                                                    <Card sx={{ boxShadow: 2, position: 'relative', borderRadius: "8px" }}>
                                                         {/* Card Content */}
                                                         <CardMedia
                                                             sx={{
                                                                 backgroundColor: 'transparent',
                                                                 width: '100%',
-                                                                aspectRatio: '16 / 9',
+                                                                height: '200px',
                                                                 display: 'flex',
                                                                 placeSelf: 'center',
                                                                 borderBottom: `solid 1px #e0e0e0`,
@@ -508,7 +505,7 @@ const TrainingView = () => {
                                                                         {cont.order}
                                                                     </Typography>
                                                                 </Box>
-                                                                <Typography variant="body1" noWrap>
+                                                                <Typography variant="h6" noWrap sx={{ textOverflow: 'ellipsis' }}>
                                                                     {cont.title || 'Content Item'}
                                                                 </Typography>
                                                             </Stack>
@@ -530,6 +527,7 @@ const TrainingView = () => {
                                                         {cont.is_finished ? (
                                                             <Tooltip title={`Completed ${dayjs(cont.completed_at).format('MMM DD, YYYY hh:mm A')}`}>
                                                                 <Chip
+                                                                    icon={<CheckCircleOutline sx={{ color: 'white !important', fontSize: '18px' }} />}
                                                                     label="COMPLETED"
                                                                     sx={{
                                                                         position: 'absolute',
@@ -545,7 +543,8 @@ const TrainingView = () => {
                                                         ) : cont.has_viewed ? (
                                                             <Tooltip title={`Viewed ${dayjs(cont.viewed_at).format('MMM DD, YYYY hh:mm A')}`}>
                                                                 <Chip
-                                                                    label="PENDING"
+                                                                    icon={<HourglassBottom sx={{ color: 'white !important', fontSize: '18px' }} />}
+                                                                    label="IN PROGRESS"
                                                                     sx={{
                                                                         position: 'absolute',
                                                                         top: 8,

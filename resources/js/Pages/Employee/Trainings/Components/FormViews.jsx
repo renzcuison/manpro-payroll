@@ -428,7 +428,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
                                                     <Typography variant="h3" sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px', }} >
-                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : (attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')}
+                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : `${(attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')} pt${(attemptData?.average_score ?? 0).toFixed(2) > 1 ? 's' : ''}`}
                                                     </Typography>
                                                 </Box>
                                             </Box>
