@@ -57,6 +57,7 @@ import FormItemSettings from "./FormItemSettings";
 import FormItemEdit from "./FormItemEdit";
 import { PieChart } from "@mui/x-charts";
 import InfoBox from "../../../../components/General/InfoBox";
+import ContentProgressView from "./ContentProgressView";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -275,7 +276,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         }
     };
 
-    // ---------------- Item Menu
+    // Item Menu
     const [itemMenuStates, setItemMenuStates] = useState({});
     const handleItemMenuOpen = (event, id) => {
         setItemMenuStates((prevStates) => ({
@@ -359,6 +360,15 @@ const ContentView = ({ open, close, contentId, status }) => {
                     });
             }
         });
+    }
+
+    // EXPANDED CONTENT VIEW LIST
+    const [openProgressViewModal, setOpenProgressViewModal] = useState(false);
+    const handleOpenProgressViewModal = () => {
+        setOpenProgressViewModal(true);
+    }
+    const handleCloseProgressViewModal = () => {
+        setOpenProgressViewModal(false);
     }
 
     // File Cleanup
@@ -498,7 +508,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log('Viewing Employee Progress');
+                                                            handleOpenProgressViewModal();
                                                             handleMenuClose();
                                                         }}
                                                     >
@@ -914,6 +924,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openFormItemEditModal}
                         close={handleCloseFormItemEditModal}
                         itemInfo={loadItem}
+                    />
+                )}
+                {openProgressViewModal && (
+                    <ContentProgressView
+                        open={openProgressViewModal}
+                        close={handleCloseProgressViewModal}
+                        contentId={content.id}
                     />
                 )}
             </Dialog>

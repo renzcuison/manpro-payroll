@@ -1023,6 +1023,57 @@ class TrainingsController extends Controller
         }
     }
 
+    public function getTrainingViews($id)
+    {
+        // Log::info("TrainingsController:getTrainingViews");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $views = TrainingViewsModel::with('user')
+                ->where('training_content_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $viewedIds = $views->pluck('user_id')->toArray();
+
+            $views = $views->map(function ($view) {
+                $emp = $view->user;
+                return [
+                    'emp_id' => $emp->id,
+                    'emp_first_name' => $emp->first_name,
+                    'emp_middle_name' => $emp->middle_name ?? '',
+                    'emp_last_name' => $emp->last_name,
+                    'emp_suffix' => $emp->suffix ?? '',
+                    'emp_profile_pic' => $emp->profile_pic ?? null,
+                    'status' => $view->status,
+                    'viewed_at' => $view->created_at,
+                    'completed_at' => $view->completed_at ?? null,
+                ];
+            })->all();
+
+            $noViews = UsersModel::where('client_id', $user->client_id)
+                ->where('user_type', 'Employee')
+                ->whereNotIn('id', $viewedIds)
+                ->get()
+                ->map(function ($emp) {
+                    return [
+                        'emp_id' => $emp->id,
+                        'emp_first_name' => $emp->first_name,
+                        'emp_middle_name' => $emp->middle_name ?? '',
+                        'emp_last_name' => $emp->last_name,
+                        'emp_suffix' => $emp->suffix ?? '',
+                        'emp_profile_pic' => $emp->profile_pic ?? null,
+                    ];
+                })->all();
+
+            return response()->json(['status' => 200, 'views' => $views, 'no_views' => $noViews]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
     // Training Forms (Admin) ------------------------------------------------------- /
     public function saveFormItem(Request $request)
     {
