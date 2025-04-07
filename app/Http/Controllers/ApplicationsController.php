@@ -408,7 +408,7 @@ class ApplicationsController extends Controller
         return response()->download($filePath, $fileName);
     }
 
-    public function getLeaveCredits($userName)
+    public function getLeaveCredits($user_name)
     {
         Log::info("ApplicationsController::getLeaveCredits");
 
@@ -417,7 +417,8 @@ class ApplicationsController extends Controller
         if ($this->checkUser()) {
             $clientId = $user->client_id;
 
-            $emp = UsersModel::where('user_name', $userName)->first();
+            log::info($user_name);
+            $emp = UsersModel::where('user_name', $user_name)->first();
             log::info($emp);
             $leaves = LeaveCreditsModel::where('client_id', $clientId)->where('user_id', $emp->id)->get();
 
@@ -476,6 +477,8 @@ class ApplicationsController extends Controller
     {
         Log::info("ApplicationsController::saveLeaveCredits");
         $user = Auth::user();
+
+        log::info($request);
 
         if ($this->checkUser()) {
             try {
