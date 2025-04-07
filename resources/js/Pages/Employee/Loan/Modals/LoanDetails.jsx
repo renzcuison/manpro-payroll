@@ -1,40 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Grid,
-    Typography,
-    CircularProgress,
-    Divider,
-    Stack,
-    Tooltip
+    Box, IconButton, Dialog, DialogTitle, DialogContent, Grid, Typography,
+    CircularProgress, Divider, Stack, Tooltip, Button
 } from "@mui/material";
 import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import PreviewProposal from '../../../../components/Loan/Modal/PreviewProposal';
+
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
 const LoanDetails = ({ open, close, loanId }) => {
     const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
 
     const [loan, setLoan] = useState(null);
     const [files, setFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [openPreview, setOpenPreview] = useState(false);
+    const [pendingProposal, setPendingProposal] = useState(null); // Store proposal locally
 
     useEffect(() => {
-        if (loanId) {
+        if (loanId && open) {
             fetchLoanDetails();
             fetchLoanFiles();
         }
-    }, [loanId]);
+    }, [loanId, open]);
 
     const fetchLoanDetails = async () => {
         try {
@@ -57,64 +52,50 @@ const LoanDetails = ({ open, close, loanId }) => {
             setFiles(response.data.filenames || []);
         } catch (err) {
             console.error('Error fetching files:', err);
+            setFiles([]);
         }
     };
 
     const getFileIcon = (filename) => {
-        const fileType = filename
-            .split(".")
-            .pop()
-            .toLowerCase();
-
+        const fileType = filename.split(".").pop().toLowerCase();
         let icon = null;
         let color = null;
-
         switch (fileType) {
-            case "png":
-            case "jpg":
-            case "jpeg":
-                icon = InsertPhoto;
-                color = "purple";
-                break;
-            case "doc":
-            case "docx":
-                icon = Description;
-                color = "blue";
-                break;
+            case "png": case "jpg": case "jpeg":
+                icon = InsertPhoto; color = "purple"; break;
+            case "doc": case "docx":
+                icon = Description; color = "blue"; break;
             case "pdf":
-                icon = PictureAsPdf;
-                color = "red";
-                break;
-            case "xls":
-            case "xlsx":
-                icon = GridOn;
-                color = "green";
+                icon = PictureAsPdf; color = "red"; break;
+            case "xls": case "xlsx":
+                icon = GridOn; color = "green"; break;
+            default:
+                icon = Description; color = "grey";
         }
-
         return { icon, color };
     };
 
     const handleFileDownload = async (filename, id) => {
         try {
-            const response = await axiosInstance.get(
-                `/loans/downloadFile/${id}`,
-                {
-                    responseType: "blob",
-                    headers,
-                }
-            );
-            const blob = new Blob([response.data], {
-                type: response.headers["content-type"],
+            const response = await axiosInstance.get(`/loans/downloadFile/${id}`, {
+                responseType: "blob",
+                headers,
             });
+            const blob = new Blob([response.data], { type: response.headers["content-type"] });
             const link = document.createElement("a");
             link.href = window.URL.createObjectURL(blob);
             link.download = filename;
             link.click();
-
             window.URL.revokeObjectURL(link.href);
         } catch (error) {
             console.error("Error downloading file:", error);
         }
+    };
+
+    // Sync proposal state with PreviewProposal
+    const handleProposalSent = (proposal) => {
+        setPendingProposal(proposal);
+        setOpenPreview(true); // Open preview immediately after sending (optional)
     };
 
     if (isLoading) {
@@ -193,120 +174,66 @@ const LoanDetails = ({ open, close, loanId }) => {
                     </IconButton>
                 </Box>
             </DialogTitle>
-
             <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                 <Grid container rowSpacing={2}>
-                    {/* Loan Amount */}
-                    <Grid item xs={5} align="left">
-                        Loan Amount
-                    </Grid>
+                    <Grid item xs={5} align="left">Loan Amount</Grid>
                     <Grid item xs={7} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Date Created */}
-                    <Grid item xs={5} align="left">
-                        Requested
-                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item xs={5} align="left">Requested</Grid>
                     <Grid item xs={7} align="left">
                         <Stack direction="row">
-                            <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                {dayjs(loan.created_at).format("MMM D, YYYY")}
-                            </Typography>
-                            <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                {dayjs(loan.created_at).format("h:mm A")}
-                            </Typography>
+                            <Typography sx={{ fontWeight: "bold", width: "50%" }}>{dayjs(loan.created_at).format("MMM D, YYYY")}</Typography>
+                            <Typography sx={{ fontWeight: "bold", width: "50%" }}>{dayjs(loan.created_at).format("h:mm A")}</Typography>
                         </Stack>
                     </Grid>
-                    {/* Payment Term */}
-                    <Grid item xs={5} align="left">
-                        Payment Term
-                    </Grid>
+                    <Grid item xs={5} align="left">Payment Term</Grid>
                     <Grid item xs={7} align="left">
-                        <Typography sx={{ fontWeight: "bold" }}>
-                            {loan.payment_term ? `${loan.payment_term} months` : '-'}
-                        </Typography>
+                        <Typography sx={{ fontWeight: "bold" }}>{loan.payment_term ? `${loan.payment_term} months` : '-'}</Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Paid Amount */}
-                    <Grid item xs={5} align="left">
-                        Paid Amount
-                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item xs={5} align="left">Paid Amount</Grid>
                     <Grid item xs={7} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat(loan.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Remaining Amount */}
-                    <Grid item xs={5} align="left">
-                        Remaining Amount
-                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item xs={5} align="left">Remaining Amount</Grid>
                     <Grid item xs={7} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat((loan.loan_amount - (loan.paid_amount || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Status */}
-                    <Grid item xs={5} align="left">
-                        Status
-                    </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item xs={5} align="left">Status</Grid>
                     <Grid item xs={7} align="left">
                         <Typography
                             sx={{
                                 fontWeight: "bold",
-                                color:
-                                    loan.status === "Approved"
-                                        ? "#177604"
-                                        : loan.status === "Declined"
-                                        ? "#f44336"
-                                        : loan.status === "Pending"
-                                        ? "#e9ae20"
-                                        : loan.status === "Released"
-                                        ? "#42a5f5"
-                                        : loan.status === "Paid"
-                                        ? "#4caf50"
-                                        : loan.status === "Cancelled"
-                                        ? "#9e9e9e"
-                                        : "#000000",
+                                color: loan.status === "Approved" ? "#177604"
+                                    : loan.status === "Declined" ? "#f44336"
+                                    : loan.status === "Pending" ? "#e9ae20"
+                                    : loan.status === "Released" ? "#42a5f5"
+                                    : loan.status === "Paid" ? "#4caf50"
+                                    : loan.status === "Cancelled" ? "#9e9e9e"
+                                    : "#000000",
                             }}
                         >
                             {loan.status.toUpperCase()}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Reason */}
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
-                        <Grid item xs={12}>
-                            <div style={{ textDecoration: "underline" }}>
-                                Reason
-                            </div>
-                        </Grid>
-                        <Grid item xs={12} sx={{ mt: 1 }}>
-                            {loan.reason || '-'}
-                        </Grid>
+                        <Grid item xs={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
+                        <Grid item xs={12} sx={{ mt: 1 }}>{loan.reason || '-'}</Grid>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}>
-                        <Divider />
-                    </Grid>
-                    {/* Attachments */}
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
-                        <Grid item xs={12}>
-                            Attached Files
-                        </Grid>
+                        <Grid item xs={12}>Attached Files</Grid>
                         <Grid item xs={12}>
                             {files && files.length > 0 ? (
                                 <Stack direction="column" sx={{ width: '100%' }}>
@@ -339,16 +266,7 @@ const LoanDetails = ({ open, close, loanId }) => {
                                     })}
                                 </Stack>
                             ) : (
-                                <Box
-                                    sx={{
-                                        mt: 1,
-                                        width: "100%",
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        padding: '4px 8px'
-                                    }}
-                                >
+                                <Box sx={{ mt: 1, width: "100%", display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px 8px' }}>
                                     <Typography noWrap variant="caption" sx={{ color: 'text.secondary' }}>
                                         -- No Attached Files --
                                     </Typography>
@@ -356,7 +274,26 @@ const LoanDetails = ({ open, close, loanId }) => {
                             )}
                         </Grid>
                     </Grid>
+                    {/* Show Preview Proposal if there's a pending proposal */}
+                    {pendingProposal && (
+                        <Grid item xs={12} sx={{ mt: 2 }}>
+                            <Button variant="contained" color="primary" onClick={() => setOpenPreview(true)}>
+                                Preview Proposal
+                            </Button>
+                        </Grid>
+                    )}
                 </Grid>
+                <PreviewProposal
+                    open={openPreview}
+                    onClose={() => {
+                        setOpenPreview(false);
+                        fetchLoanDetails();
+                    }}
+                    selectedLoan={loanId}
+                    isAdmin={false}
+                    existingProposal={pendingProposal} 
+                    onProposalSent={handleProposalSent} 
+                />
             </DialogContent>
         </Dialog>
     );

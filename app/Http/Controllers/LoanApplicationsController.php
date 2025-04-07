@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LoanProposalsModel;
 use App\Models\LoanApplicationsModel;
 use App\Models\LoanApplicationFilesModel;
 use App\Models\UsersModel;
@@ -28,7 +29,6 @@ class LoanApplicationsController extends Controller
     {
         $user = Auth::user();
     
-        // Fetch loans sorted by created_at in descending order
         $loans = LoanApplicationsModel::where('employee_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -62,25 +62,28 @@ class LoanApplicationsController extends Controller
     public function getLoanDetails($id)
     {
         $user = Auth::user();
-
-        // Fetch the loan application by ID, ensuring it belongs to the authenticated user
-        $loan = LoanApplicationsModel::where('id', $id)
-            ->where('employee_id', $user->id)
-            ->first();
-
+    
+        $loan = null;
+        if ($this->checkUser()) {
+            $loan = LoanApplicationsModel::where('id', $id)->first();
+        } else {
+            $loan = LoanApplicationsModel::where('id', $id)
+                ->where('employee_id', $user->id)
+                ->first();
+        }
+    
         if (!$loan) {
+            Log::warning("Loan not found or unauthorized for ID: $id, User ID: {$user->id}");
             return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
         }
-
-        // Fetch the employee and approver details
+    
         $employee = UsersModel::find($loan->employee_id);
         $approver = UsersModel::find($loan->approved_by);
-
-        // Fetch the attachments
+    
         $files = LoanApplicationFilesModel::where('loan_application_id', $loan->id)
             ->select('id', 'path', 'type')
             ->get();
-
+    
         $attachments = [];
         foreach ($files as $file) {
             $attachments[] = [
@@ -89,12 +92,10 @@ class LoanApplicationsController extends Controller
                 'type' => $file->type,
             ];
         }
-
-        // Since we're not tracking payments yet, set paid_amount to 0
+    
         $paidAmount = 0;
         $remainingAmount = $loan->loan_amount - $paidAmount;
-
-        // Prepare the loan details
+    
         $loanDetails = [
             'id' => $loan->id,
             'employee_name' => $employee ? $employee->first_name . ' ' . $employee->last_name : 'Unknown',
@@ -108,11 +109,13 @@ class LoanApplicationsController extends Controller
             'approver_name' => $approver ? $approver->first_name . ' ' . $approver->last_name : null,
             'created_at' => $loan->created_at->format('Y-m-d H:i:s'),
             'attachments' => $attachments ?: null,
+            'proposal' => $loan->proposal ? json_decode($loan->proposal, true) : null,
+            'proposal_status' => $loan->proposal_status,
         ];
-
+    
         return response()->json(['status' => 200, 'loan' => $loanDetails]);
     }
-
+    
     public function saveLoanApplication(Request $request)
     {
         $user = Auth::user();
@@ -120,7 +123,6 @@ class LoanApplicationsController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create a new loan application for the logged-in employee
             $loan = LoanApplicationsModel::create([
                 'employee_id' => $user->id,
                 'loan_amount' => $request->input('loan_amount'),
@@ -132,7 +134,6 @@ class LoanApplicationsController extends Controller
 
             $dateTime = now()->format('YmdHis');
 
-            // Handle file uploads - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
                     $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -146,7 +147,6 @@ class LoanApplicationsController extends Controller
                 }
             }
 
-            // Handle file uploads - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $file) {
                     $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
@@ -174,7 +174,6 @@ class LoanApplicationsController extends Controller
     {
         $user = Auth::user();
 
-        // Fetch the loan application by ID, ensuring it belongs to the authenticated user
         $loan = LoanApplicationsModel::where('id', $id)
             ->where('employee_id', $user->id)
             ->first();
@@ -183,13 +182,11 @@ class LoanApplicationsController extends Controller
             return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
         }
 
-        // Check if the loan is in a cancellable state (e.g., Pending)
         if ($loan->status !== 'Pending') {
             return response()->json(['status' => 400, 'message' => 'Only Pending loan applications can be cancelled'], 400);
         }
 
         try {
-            // Update the loan status to Cancelled
             $loan->status = 'Cancelled';
             $loan->save();
 
@@ -204,7 +201,6 @@ class LoanApplicationsController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure the employee can only access their own loan application files
         $loan = LoanApplicationsModel::where('id', $id)
             ->where('employee_id', $user->id)
             ->first();
@@ -239,7 +235,6 @@ class LoanApplicationsController extends Controller
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        // Ensure the employee can only download files from their own loan applications
         $loan = LoanApplicationsModel::where('id', $file->loan_application_id)
             ->where('employee_id', $user->id)
             ->first();
@@ -260,98 +255,233 @@ class LoanApplicationsController extends Controller
     }
 
     public function editLoanApplication(Request $request)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    Log::info("Starting editLoanApplication for user: " . $user->id . ", loan ID: " . $request->input('id'));
+        Log::info("Starting editLoanApplication for user: " . $user->id . ", loan ID: " . $request->input('id'));
 
-    $loan = LoanApplicationsModel::where('id', $request->input('id'))
-        ->where('employee_id', $user->id)
-        ->first();
+        $loan = LoanApplicationsModel::where('id', $request->input('id'))
+            ->where('employee_id', $user->id)
+            ->first();
 
-    if (!$loan) {
-        Log::warning("Loan not found or unauthorized access for ID: " . $request->input('id'));
-        return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
-    }
-
-    if ($loan->status !== 'Pending') {
-        Log::warning("Loan status is not Pending for ID: " . $loan->id);
-        return response()->json(['status' => 400, 'message' => 'Only Pending loan applications can be edited'], 400);
-    }
-
-    try {
-        DB::beginTransaction();
-
-        Log::info("Updating loan details: " . json_encode($request->all()));
-        $loan->loan_amount = $request->input('loan_amount');
-        $loan->reason = $request->input('reason');
-        $loan->payment_term = $request->input('payment_term');
-        $loan->save();
-
-        $dateTime = now()->format('YmdHis');
-
-        if ($request->hasFile('attachment')) {
-            Log::info("Processing new attachments: " . count($request->file('attachment')));
-            foreach ($request->file('attachment') as $file) {
-                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('loans/employees/attachments', $fileName, 'public');
-                LoanApplicationFilesModel::create([
-                    'loan_application_id' => $loan->id,
-                    'type' => 'Document',
-                    'path' => $filePath,
-                ]);
-            }
+        if (!$loan) {
+            Log::warning("Loan not found or unauthorized access for ID: " . $request->input('id'));
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
         }
 
-        if ($request->hasFile('image')) {
-            Log::info("Processing new images: " . count($request->file('image')));
-            foreach ($request->file('image') as $file) {
-                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('loans/employees/images', $fileName, 'public');
-                LoanApplicationFilesModel::create([
-                    'loan_application_id' => $loan->id,
-                    'type' => 'Image',
-                    'path' => $filePath,
-                ]);
-            }
+        if ($loan->status !== 'Pending') {
+            Log::warning("Loan status is not Pending for ID: " . $loan->id);
+            return response()->json(['status' => 400, 'message' => 'Only Pending loan applications can be edited'], 400);
         }
 
-        if ($request->input('deleteAttachments') && !empty($request->input('deleteAttachments')[0])) {
-            Log::info("Deleting attachments: " . json_encode($request->input('deleteAttachments')));
-            foreach ($request->input('deleteAttachments') as $fileId) {
-                $file = LoanApplicationFilesModel::find($fileId);
-                if ($file && $file->loan_application_id === $loan->id) {
-                    $filePath = storage_path('app/public/' . $file->path);
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                    $file->delete();
+        try {
+            DB::beginTransaction();
+
+            Log::info("Updating loan details: " . json_encode($request->all()));
+            $loan->loan_amount = $request->input('loan_amount');
+            $loan->reason = $request->input('reason');
+            $loan->payment_term = $request->input('payment_term');
+            $loan->save();
+
+            $dateTime = now()->format('YmdHis');
+
+            if ($request->hasFile('attachment')) {
+                Log::info("Processing new attachments: " . count($request->file('attachment')));
+                foreach ($request->file('attachment') as $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('loans/employees/attachments', $fileName, 'public');
+                    LoanApplicationFilesModel::create([
+                        'loan_application_id' => $loan->id,
+                        'type' => 'Document',
+                        'path' => $filePath,
+                    ]);
                 }
             }
-        }
 
-        if ($request->input('deleteImages') && !empty($request->input('deleteImages')[0])) {
-            Log::info("Deleting images: " . json_encode($request->input('deleteImages')));
-            foreach ($request->input('deleteImages') as $fileId) {
-                $file = LoanApplicationFilesModel::find($fileId);
-                if ($file && $file->loan_application_id === $loan->id) {
-                    $filePath = storage_path('app/public/' . $file->path);
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                    $file->delete();
+            if ($request->hasFile('image')) {
+                Log::info("Processing new images: " . count($request->file('image')));
+                foreach ($request->file('image') as $file) {
+                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('loans/employees/images', $fileName, 'public');
+                    LoanApplicationFilesModel::create([
+                        'loan_application_id' => $loan->id,
+                        'type' => 'Image',
+                        'path' => $filePath,
+                    ]);
                 }
             }
+
+            if ($request->input('deleteAttachments') && !empty($request->input('deleteAttachments')[0])) {
+                Log::info("Deleting attachments: " . json_encode($request->input('deleteAttachments')));
+                foreach ($request->input('deleteAttachments') as $fileId) {
+                    $file = LoanApplicationFilesModel::find($fileId);
+                    if ($file && $file->loan_application_id === $loan->id) {
+                        $filePath = storage_path('app/public/' . $file->path);
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                        $file->delete();
+                    }
+                }
+            }
+
+            if ($request->input('deleteImages') && !empty($request->input('deleteImages')[0])) {
+                Log::info("Deleting images: " . json_encode($request->input('deleteImages')));
+                foreach ($request->input('deleteImages') as $fileId) {
+                    $file = LoanApplicationFilesModel::find($fileId);
+                    if ($file && $file->loan_application_id === $loan->id) {
+                        $filePath = storage_path('app/public/' . $file->path);
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                        $file->delete();
+                    }
+                }
+            }
+
+            DB::commit();
+            Log::info("Loan application updated successfully for ID: " . $loan->id);
+            return response()->json(['status' => 200, 'message' => 'Loan application updated successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error updating loan application: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
+            return response()->json(['status' => 500, 'message' => 'Error updating loan application: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getAllLoanApplications()
+    {
+        Log::info("LoanApplicationsController::getAllLoanApplications");
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $loans = LoanApplicationsModel::with(['user', 'department', 'branch', 'jobTitle'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $loanApplications = [];
+
+            foreach ($loans as $loan) {
+                $employee = $loan->user;
+                $branch = $loan->branch;
+                $department = $loan->department;
+                $job_title = $loan->jobTitle;
+
+                $loanApplications[] = [
+                    'loan_id' => $loan->id,
+                    'loan_amount' => $loan->loan_amount,
+                    'payment_term' => $loan->payment_term,
+                    'status' => $loan->status,
+                    'date_created' => $loan->created_at->format('Y-m-d H:i:s'),
+                    'emp_id' => $loan->employee_id,
+                    'emp_first_name' => $employee ? $employee->first_name : 'Unknown',
+                    'emp_middle_name' => $employee ? $employee->middle_name : null,
+                    'emp_last_name' => $employee ? $employee->last_name : 'Unknown',
+                    'emp_suffix' => $employee ? $employee->suffix : null,
+                    'emp_branch' => $branch ? $branch->name : '',
+                    'emp_department' => $department ? $department->name : '',
+                    'emp_job_title' => $job_title ? $job_title->name : ''
+                ];
+            }
+
+            return response()->json(['status' => 200, 'loans' => $loanApplications]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access'], 403);
+        }
+    }
+
+    public function updateLoanStatus(Request $request, $id)
+    {
+        Log::info("LoanApplicationsController::updateLoanStatus for loan ID: " . $id);
+
+        $user = Auth::user();
+
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access'], 403);
         }
 
-        DB::commit();
-        Log::info("Loan application updated successfully for ID: " . $loan->id);
-        return response()->json(['status' => 200, 'message' => 'Loan application updated successfully']);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error("Error updating loan application: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
-        return response()->json(['status' => 500, 'message' => 'Error updating loan application: ' . $e->getMessage()], 500);
+        $loan = LoanApplicationsModel::find($id);
+
+        if (!$loan) {
+            return response()->json(['status' => 404, 'message' => 'Loan application not found'], 404);
+        }
+
+        $request->validate([
+            'status' => 'required|in:Pending,Approved,Declined,Released,Paid,Cancelled'
+        ]);
+
+        try {
+            $loan->status = $request->input('status');
+            $loan->approved_by = $user->id;
+            $loan->save();
+
+            return response()->json(['status' => 200, 'message' => 'Loan status updated successfully']);
+        } catch (\Exception $e) {
+            Log::error("Error updating loan status: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error updating loan status'], 500);
+        }
     }
-}
+
+
+        public function createProposal(Request $request, $id)
+    {
+        Log::info("LoanApplicationsController::createProposal for loan ID: " . $id);
+
+        $user = Auth::user();
+
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access'], 403);
+        }
+
+        $loan = LoanApplicationsModel::find($id);
+
+        if (!$loan) {
+            return response()->json(['status' => 404, 'message' => 'Loan application not found'], 404);
+        }
+
+        $request->validate([
+            'proposed_loan_amount' => 'required|numeric|min:1',
+            'proposed_payment_term' => 'required|integer|min:1',
+            'monthly_interest_rate' => 'required|numeric|min:0'
+        ]);
+
+        $proposedLoanAmount = $request->input('proposed_loan_amount');
+        $proposedPaymentTerm = $request->input('proposed_payment_term');
+        $monthlyInterestRate = $request->input('monthly_interest_rate') / 100;
+
+        $r = $monthlyInterestRate;
+        $pv = $proposedLoanAmount;
+        $n = $proposedPaymentTerm;
+        $monthlyPayment = ($r * $pv) / (1 - pow(1 + $r, -$n));
+        $monthlyPayment = round($monthlyPayment, 2);
+
+        try {
+            $proposal = LoanProposalsModel::create([
+                'loan_application_id' => $loan->id,
+                'proposed_loan_amount' => $proposedLoanAmount,
+                'proposed_payment_term' => $proposedPaymentTerm,
+                'monthly_interest_rate' => $request->input('monthly_interest_rate'),
+                'proposed_monthly_payment' => $monthlyPayment,
+                'status' => 'Pending',
+                'created_by' => $user->id
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'proposal' => [
+                    'id' => $proposal->id,
+                    'proposed_loan_amount' => $proposal->proposed_loan_amount,
+                    'proposed_payment_term' => $proposal->proposed_payment_term,
+                    'monthly_interest_rate' => $proposal->monthly_interest_rate,
+                    'proposed_monthly_payment' => $proposal->proposed_monthly_payment
+                ],
+                'message' => 'Proposal created successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error creating proposal: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error creating proposal'], 500);
+        }
+    }
 
 }
