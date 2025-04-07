@@ -227,13 +227,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/cancelApplication/{id}', [ApplicationsController::class, 'cancelApplication']);
         Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
-        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
+        Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
 
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
 
-        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
+        Route::get('/getLeaveCreditLogs/{id}', [ApplicationsController::class, 'getLeaveCreditLogs']);
     });
 
     Route::prefix('announcements')->group(function () {

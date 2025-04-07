@@ -7,7 +7,6 @@ use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationFilesModel;
 use App\Models\LeaveCreditsModel;
 use App\Models\LogsLeaveCreditsModel;
-use App\Models\UsersModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -408,19 +407,18 @@ class ApplicationsController extends Controller
         return response()->download($filePath, $fileName);
     }
 
-    public function getLeaveCredits($user_name)
+    public function getLeaveCredits($id)
     {
-        Log::info("ApplicationsController::getLeaveCredits");
+        //Log::info("ApplicationsController::getLeaveCredits");
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
 
-            log::info($user_name);
-            $emp = UsersModel::where('user_name', $user_name)->first();
-            log::info($emp);
-            $leaves = LeaveCreditsModel::where('client_id', $clientId)->where('user_id', $emp->id)->get();
+            $leaves = LeaveCreditsModel::where('client_id', $clientId)
+                ->where('user_id', $id)
+                ->get();
 
             $leaveCredits = [];
 
@@ -475,20 +473,16 @@ class ApplicationsController extends Controller
 
     public function saveLeaveCredits(Request $request)
     {
-        Log::info("ApplicationsController::saveLeaveCredits");
+        //Log::info("ApplicationsController::saveLeaveCredits");
         $user = Auth::user();
-
-        log::info($request);
 
         if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
 
-                $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
-                log::info($employee);
                 $leave = LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
-                    'user_id' => $employee->id,
+                    'user_id' => $request->input('emp_id'),
                     'application_type_id' => $request->input('app_type_id'),
                     'number' => $request->input('credit_count'),
                     'used' => 0
@@ -543,7 +537,7 @@ class ApplicationsController extends Controller
         }
     }
 
-    public function getLeaveCreditLogs($userName)
+    public function getLeaveCreditLogs($id)
     {
         //Log::info("ApplicationsController::getLeaveCreditLogs");
 
@@ -551,11 +545,8 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             try {
-
-                $emp = UsersModel::where('user_name', $userName)->first();
-
-                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($emp) {
-                    $query->where('user_id', $emp->id);
+                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($id) {
+                    $query->where('user_id', $id);
                 })->orderBy('created_at', 'desc')->get();
 
                 $logData = [];
