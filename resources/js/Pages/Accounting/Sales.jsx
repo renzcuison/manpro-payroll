@@ -24,7 +24,6 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import { useTransactions } from "./hooks/useTransactions";
 import Paper from "@mui/material/Paper";
-import Moment from "react-moment";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -32,6 +31,7 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import CustomModal from "./components/CustomModal";
 import TransactionModal from "./components/TransactionModal";
+import moment from "moment";
 
 function createData(
     settleId,
@@ -367,9 +367,9 @@ function Sales() {
                                             {row.contactName}
                                         </TableCell>
                                         <TableCell align="left">
-                                            <Moment format="YYYY/MM/DD">
-                                                {row.date}
-                                            </Moment>
+                                            {moment(row.date).format(
+                                                "MM-DD-YYYY"
+                                            )}
                                         </TableCell>
                                         <TableCell align="center">
                                             {row.remittance}

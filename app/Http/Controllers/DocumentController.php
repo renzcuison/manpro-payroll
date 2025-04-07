@@ -15,12 +15,19 @@ class DocumentController extends Controller
      */
     public function index()
     {
-        $documents = Document::with('media')->get();
+        try {
+            $documents = Document::with('media')->get();
 
-        return response()->json([
-            'data' => $documents,
-            'message' => 'Document list retrieved successfully.',
-        ]);
+            return response()->json([
+                'data' => $documents,
+                'message' => 'Document list retrieved successfully.',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+               'message' => 'An error occurred while retrieving documents.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -56,11 +63,13 @@ class DocumentController extends Controller
             $document->save();
 
             return response()->json([
+                'success' => true,
                 'document' => $document,
-            'message' => 'Document created successfully.',
+                'message' => 'Document created successfully.',
             ], 201);
         } catch (\Throwable $th) {
             return response()->json([
+                'success' => false,
                 'error' => 'An error occurred while creating the document.',
                 'details' => $th->getMessage(),
             ], 500);
@@ -94,8 +103,25 @@ class DocumentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Document $document)
+    public function destroy($id)
     {
-        //
+        try {
+            $document = Document::find($id);
+            if (!$document) {
+                return response()->json([
+                   'message' => 'Document not found.',
+                ], 404);
+            }
+            $document->delete();
+            return response()->json([
+                'success' => true,
+               'message' => 'Document deleted successfully.',
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'error' => 'An error occurred while deleting the document.',
+                'details' => $th->getMessage(),
+            ], 500);
+        }
     }
 }
