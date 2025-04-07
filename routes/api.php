@@ -57,7 +57,6 @@ use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
@@ -93,15 +92,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     // 
-    Route::prefix('admin')->group(function () {
-        
-        Route::prefix('documents')->group(function () {
-            Route::get('/', [DocumentController::class, 'index']);
-            Route::post('/store', [DocumentController::class, 'store']);
-            Route::post('/edit', [DocumentController::class, 'edit']);
-            Route::delete('/{id}', [DocumentController::class, 'destroy']);
-        });
+    Route::prefix('admin/documents')->group(function () {
+        Route::get('/', [DocumentController::class, 'index']); // GET /admin/documents
+        Route::post('/store', [DocumentController::class, 'store']);
+        Route::post('/edit', [DocumentController::class, 'edit']);
+        Route::delete('/{id}', [DocumentController::class, 'destroy']);
     });
+    
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
