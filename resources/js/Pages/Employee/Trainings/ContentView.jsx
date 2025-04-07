@@ -463,7 +463,7 @@ const ContentView = () => {
                                                                     <Image sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
                                                                 )}
                                                                 {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && (
-                                                                    <Description sx={{ fontSize: 18, color: cont.id === contentId ? 'white' : '#757575' }} />
+                                                                    <Description sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
                                                                 )}
                                                                 {!cont.content.type && (
                                                                     <Quiz sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
