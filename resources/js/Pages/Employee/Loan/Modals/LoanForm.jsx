@@ -207,11 +207,11 @@ const LoanForm = ({ open, close }) => {
                 </Box>
             </DialogTitle>
 
-            <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+            <DialogContent sx={{ padding: 5, mt: 2, mb: 3, overflowY: 'auto' }}>
                 <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
                     <Grid container columnSpacing={2} rowSpacing={3}>
                         {/* Loan Amount */}
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -220,7 +220,50 @@ const LoanForm = ({ open, close }) => {
                                     onChange={(e) => setLoanAmount(e.target.value)}
                                     error={loanAmountError}
                                     helperText={loanAmountError ? 'Please enter a valid loan amount' : ''}
-                                    inputProps={{ min: 0, step: '0.01' }}
+                                    InputProps={{
+                                        startAdornment: <Typography sx={{ mr: 1 }}>₱</Typography>,
+                                        inputProps: { min: 0, step: '0.01' },
+                                    }}
+                                    sx={{
+                                        '& .MuiInputBase-root': {
+                                            height: '45px', // Smaller height for the input
+                                        },
+                                        '& .MuiInputLabel-root': {
+                                            transform: 'translate(14px, 12px) scale(1)', // Adjust label position
+                                        },
+                                        '& .MuiInputLabel-shrink': {
+                                            transform: 'translate(14px, -6px) scale(0.75)', // Adjust label when focused/shrunk
+                                        },
+                                    }}
+                                />
+                            </FormControl>
+                        </Grid>
+
+                        {/* Payment Term */}
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                                <TextField
+                                    required
+                                    label="Payment Term (Months)"
+                                    type="number"
+                                    value={paymentTerm}
+                                    onChange={(e) => setPaymentTerm(e.target.value)}
+                                    error={paymentTermError}
+                                    helperText={paymentTermError ? 'Please enter a valid payment term' : ''}
+                                    InputProps={{
+                                        inputProps: { min: 1 },
+                                    }}
+                                    sx={{
+                                        '& .MuiInputBase-root': {
+                                            height: '45px', // Smaller height for the input
+                                        },
+                                        '& .MuiInputLabel-root': {
+                                            transform: 'translate(14px, 12px) scale(1)', // Adjust label position
+                                        },
+                                        '& .MuiInputLabel-shrink': {
+                                            transform: 'translate(14px, -6px) scale(0.75)', // Adjust label when focused/shrunk
+                                        },
+                                    }}
                                 />
                             </FormControl>
                         </Grid>
@@ -231,29 +274,13 @@ const LoanForm = ({ open, close }) => {
                                 <TextField
                                     required
                                     multiline
-                                    rows={3}
+                                    rows={2} 
                                     label="Reason"
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                     error={reasonError}
                                     helperText={reasonError ? 'Please provide a reason for the loan' : `${reason.length}/256`}
                                     inputProps={{ maxLength: 256 }}
-                                />
-                            </FormControl>
-                        </Grid>
-
-                        {/* Payment Term */}
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <TextField
-                                    required
-                                    label="Payment Term (Months)"
-                                    type="number"
-                                    value={paymentTerm}
-                                    onChange={(e) => setPaymentTerm(e.target.value)}
-                                    error={paymentTermError}
-                                    helperText={paymentTermError ? 'Please enter a valid payment term' : ''}
-                                    inputProps={{ min: 1 }}
                                 />
                             </FormControl>
                         </Grid>

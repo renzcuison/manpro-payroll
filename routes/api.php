@@ -196,14 +196,23 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/savePayroll', [PayrollController::class, 'savePayroll']);
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
+
+        Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
+
     });
 
     Route::prefix('loans')->group(function () {
         Route::get('/getLoanApplications', [LoanApplicationsController::class, 'getLoanApplications']);
         Route::post('/saveLoanApplication', [LoanApplicationsController::class, 'saveLoanApplication']);
+        Route::post('/cancelLoanApplication/{id}', [LoanApplicationsController::class, 'cancelLoanApplication']);
+        Route::post('/editLoanApplication', [LoanApplicationsController::class, 'editLoanApplication']);
         Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
         Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
         Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
+        Route::get('/getAllLoanApplications', [LoanApplicationsController::class, 'getAllLoanApplications']);
+        Route::post('/updateLoanStatus', [LoanApplicationsController::class, 'updateLoanStatus']);
+        Route::post('/createProposal/{id}', [LoanApplicationsController::class, 'createProposal']);
+        Route::post('/respondToProposal/{id}', [LoanApplicationsController::class, 'respondToProposal']);
     });
 
     Route::prefix('applications')->group(function () {
