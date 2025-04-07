@@ -410,7 +410,7 @@ class ApplicationsController extends Controller
 
     public function getLeaveCredits($userName)
     {
-        //Log::info("ApplicationsController::getLeaveCredits");
+        Log::info("ApplicationsController::getLeaveCredits");
 
         $user = Auth::user();
 
@@ -418,6 +418,7 @@ class ApplicationsController extends Controller
             $clientId = $user->client_id;
 
             $emp = UsersModel::where('user_name', $userName)->first();
+            log::info($emp);
             $leaves = LeaveCreditsModel::where('client_id', $clientId)->where('user_id', $emp->id)->get();
 
             $leaveCredits = [];
@@ -473,7 +474,7 @@ class ApplicationsController extends Controller
 
     public function saveLeaveCredits(Request $request)
     {
-        //Log::info("ApplicationsController::saveLeaveCredits");
+        Log::info("ApplicationsController::saveLeaveCredits");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -481,7 +482,7 @@ class ApplicationsController extends Controller
                 DB::beginTransaction();
 
                 $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
-
+                log::info($employee);
                 $leave = LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
                     'user_id' => $employee->id,
