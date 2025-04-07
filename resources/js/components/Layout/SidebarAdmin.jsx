@@ -402,13 +402,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
-                                {applicationsItems.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })}
+                                    {applicationsItems.map((items, index) => {
+                                        return <SideItem key={index} items={items} />
+                                    })}
 
-                                <StyledNav to={`/admin/loan-management`} >
-                                    <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                                </StyledNav>
+                                    <StyledNav to={`/admin/loan-management`} >
+                                        <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i

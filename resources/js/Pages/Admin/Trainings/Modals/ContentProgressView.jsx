@@ -42,27 +42,27 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import dayjs from "dayjs";
 
-const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
+const ContentProgressView = ({ open, close, contentId }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [acknowledgements, setAcknowledgements] = useState([]);
-    const [unAcknowledged, setUnAcknowledged] = useState([]);
+    const [contentViews, setContentViews] = useState([]);
+    const [noViews, setNoViews] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         axiosInstance
-            .get(`announcements/getAcknowledgements/${uniCode}`, {
+            .get(`trainings/getTrainingViews/${contentId}`, {
                 headers
             })
             .then((response) => {
-                setAcknowledgements(response.data.acknowledgements);
-                setUnAcknowledged(response.data.unacknowledged);
+                setContentViews(response.data.views);
+                setNoViews(response.data.no_views);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error("Error fetching acknowledgements:", error);
+                console.error("Error fetching content progress:", error);
             });
     }, []);
 
@@ -88,7 +88,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                     },
                 }}
             >
-                <DialogTitle sx={{ padding: 2 }}>
+                <DialogTitle sx={{ padding: 2, mt: 2 }}>
                     <Box
                         sx={{
                             display: "flex",
@@ -97,7 +97,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                         }}
                     >
                         <Typography variant="h5" sx={{ marginLeft: 1, fontWeight: "bold" }} >
-                            {" "}Recipients{" "}
+                            {" "}Employee Progress{" "}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
@@ -121,45 +121,63 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                         <Box>
                             <TabContext value={viewTab}>
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <TabList onChange={handleTabChange} aria-label="Acknowledgement Tabs">
-                                        <Tab label="Acknowledged" value="1" />
-                                        <Tab label="Not Acknowledged" value="2" />
+                                    <TabList onChange={handleTabChange} aria-label="View Tabs">
+                                        <Tab label="Viewed" value="1" />
+                                        <Tab label="Not Yet Viewed" value="2" />
                                     </TabList>
                                 </Box>
-                                {/* Acknowledged */}
+                                {/* Views */}
                                 <TabPanel value="1" sx={{ p: 0, width: '100%' }}>
                                     <TableContainer sx={{ height: '400px', overflowY: 'auto' }}>
                                         <Table stickyHeader size="small">
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell sx={{ width: '75%', fontWeight: 'bold' }}>
+                                                    <TableCell sx={{ width: '40%', fontWeight: 'bold' }}>
                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                             Employee
                                                         </Typography>
                                                     </TableCell>
+                                                    <TableCell sx={{ width: '10%', fontWeight: 'bold' }}>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Status
+                                                        </Typography>
+                                                    </TableCell>
                                                     <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>
                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                            Acknowledged At
+                                                            Date Viewed
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                            Date Completed
                                                         </Typography>
                                                     </TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {acknowledgements.length > 0 ? (
-                                                    acknowledgements.map((ack, index) => (
+                                                {contentViews.length > 0 ? (
+                                                    contentViews.map((view, index) => (
                                                         <TableRow key={index}>
-                                                            <TableCell sx={{ width: '75%' }}>
+                                                            <TableCell sx={{ width: '40%' }}>
                                                                 <Box display="flex" sx={{ alignItems: 'center' }}>
                                                                     <Avatar
-                                                                        alt={`${ack.emp_first_name}_Avatar`}
-                                                                        src={`${location.origin}/storage/${ack.emp_profile_pic}` || '../../../../../images/avatarpic.jpg'}
+                                                                        alt={`${view.emp_first_name}_Avatar`}
+                                                                        src={`${location.origin}/storage/${view.emp_profile_pic}` || '../../../../../images/avatarpic.jpg'}
                                                                         sx={{ mr: 1 }}
                                                                     />
-                                                                    {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`}
+                                                                    {`${view.emp_first_name} ${view.emp_middle_name || ''} ${view.emp_last_name} ${view.emp_suffix || ''}`}
                                                                 </Box>
                                                             </TableCell>
+                                                            <TableCell sx={{ width: '10%' }}>
+                                                                <Typography sx={{ fontWeight: "bold", color: view.status == "Finished" ? "#177604" : view.status == "Viewed" ? "#f57c00" : "#000" }}>
+                                                                    {view.status}
+                                                                </Typography>
+                                                            </TableCell>
                                                             <TableCell sx={{ width: '25%' }}>
-                                                                {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A')}
+                                                                {dayjs(view.viewed_at).format('MMM D, YYYY h:mm A')}
+                                                            </TableCell>
+                                                            <TableCell sx={{ width: '25%' }}>
+                                                                {view.completed_at ? dayjs(view.completed_at).format('MMM D, YYYY h:mm A') : "-"}
                                                             </TableCell>
                                                         </TableRow>
                                                     ))
@@ -167,7 +185,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                                     <TableRow>
                                                         <TableCell colSpan={2} align="center">
                                                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                -- No Acknowledgements --
+                                                                -- No Views --
                                                             </Typography>
                                                         </TableCell>
                                                     </TableRow>
@@ -176,7 +194,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                         </Table>
                                     </TableContainer>
                                 </TabPanel>
-                                {/* Unacknowledged */}
+                                {/* Not Yet Viewed */}
                                 <TabPanel value="2" sx={{ p: 0, width: '100%' }}>
                                     <TableContainer sx={{ height: '400px', overflowY: 'auto' }}>
                                         <Table stickyHeader size="small">
@@ -190,17 +208,17 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {unAcknowledged.length > 0 ? (
-                                                    unAcknowledged.map((unAck, index) => (
+                                                {noViews.length > 0 ? (
+                                                    noViews.map((view, index) => (
                                                         <TableRow key={index}>
                                                             <TableCell>
                                                                 <Box display="flex" sx={{ alignItems: 'center' }}>
                                                                     <Avatar
-                                                                        alt={`${unAck.emp_first_name}_Avatar`}
-                                                                        src={`${location.origin}/storage/${unAck.emp_profile_pic}` || '../../../../../images/avatarpic.jpg'}
+                                                                        alt={`${view.emp_first_name}_Avatar`}
+                                                                        src={`${location.origin}/storage/${view.emp_profile_pic}` || '../../../../../images/avatarpic.jpg'}
                                                                         sx={{ mr: 1 }}
                                                                     />
-                                                                    {`${unAck.emp_first_name} ${unAck.emp_middle_name || ''} ${unAck.emp_last_name} ${unAck.emp_suffix || ''}`}
+                                                                    {`${view.emp_first_name} ${view.emp_middle_name || ''} ${view.emp_last_name} ${view.emp_suffix || ''}`}
                                                                 </Box>
                                                             </TableCell>
                                                         </TableRow>
@@ -209,7 +227,7 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
                                                     <TableRow>
                                                         <TableCell align="center">
                                                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                -- Announcement acknowledged by all recipients --
+                                                                All Employees have viewed this content
                                                             </Typography>
                                                         </TableCell>
                                                     </TableRow>
@@ -227,4 +245,4 @@ const AnnouncementAcknowledgements = ({ open, close, uniCode }) => {
     );
 };
 
-export default AnnouncementAcknowledgements;
+export default ContentProgressView;

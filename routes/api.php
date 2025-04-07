@@ -227,13 +227,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/cancelApplication/{id}', [ApplicationsController::class, 'cancelApplication']);
         Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
-        Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
+        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
 
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
 
-        Route::get('/getLeaveCreditLogs/{id}', [ApplicationsController::class, 'getLeaveCreditLogs']);
+        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
     });
 
     Route::prefix('announcements')->group(function () {
@@ -268,8 +268,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('trainings')->group(function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
-        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
         Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
+        Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
         Route::get('/getContentDetails/{id}', [TrainingsController::class, 'getContentDetails']);
 
         Route::get('/getEmployeeTrainings', [TrainingsController::class, 'getEmployeeTrainings']);
@@ -278,7 +278,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeContentDetails/{id}', [TrainingsController::class, 'getEmployeeContentDetails']);
 
         Route::get('/getSource/{id}', [TrainingsController::class, 'getSource']);
-        Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
+        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);
         Route::post('/editTraining', [TrainingsController::class, 'editTraining']);
@@ -289,6 +289,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/removeContent', [TrainingsController::class, 'removeContent']);
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
+        Route::get('/getTrainingViews/{id}', [TrainingsController::class, 'getTrainingViews']);
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
 
         Route::get('/getFormItems/{id}', [TrainingsController::class, 'getFormItems']);
@@ -296,6 +297,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editFormItem', [TrainingsController::class, 'editFormItem']);
         Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
         Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
+
+        Route::get('/getFormAnalytics/{id}', [TrainingsController::class, 'getFormAnalytics']);
 
         Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
         Route::post('/saveEmployeeFormSubmission', [TrainingsController::class, 'saveEmployeeFormSubmission']);

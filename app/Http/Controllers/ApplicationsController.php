@@ -7,6 +7,8 @@ use App\Models\ApplicationTypesModel;
 use App\Models\ApplicationFilesModel;
 use App\Models\LeaveCreditsModel;
 use App\Models\LogsLeaveCreditsModel;
+use App\Models\UsersModel;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -253,18 +255,18 @@ class ApplicationsController extends Controller
             $application->description = $request->input('description');
             $application->leave_used = $request->input('leave_used');
             $application->save();
-    
+
             // Get files to delete from deleteAttachments[] (array or null)
             $deleteFiles = $request->input('deleteAttachments', []);
             if (!is_array($deleteFiles)) {
                 $deleteFiles = []; // Ensure it’s always an array
             }
-    
+
             // Remove Files
             ApplicationFilesModel::whereIn('id', $deleteFiles)->delete();
-    
+
             $dateTime = now()->format('YmdHis');
-    
+
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
@@ -277,7 +279,7 @@ class ApplicationsController extends Controller
                     ]);
                 }
             }
-    
+
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $index => $file) {
@@ -290,7 +292,7 @@ class ApplicationsController extends Controller
                     ]);
                 }
             }
-    
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -407,7 +409,7 @@ class ApplicationsController extends Controller
         return response()->download($filePath, $fileName);
     }
 
-    public function getLeaveCredits($id)
+    public function getLeaveCredits($userName)
     {
         //Log::info("ApplicationsController::getLeaveCredits");
 
@@ -416,9 +418,8 @@ class ApplicationsController extends Controller
         if ($this->checkUser()) {
             $clientId = $user->client_id;
 
-            $leaves = LeaveCreditsModel::where('client_id', $clientId)
-                ->where('user_id', $id)
-                ->get();
+            $emp = UsersModel::where('user_name', $userName)->first();
+            $leaves = LeaveCreditsModel::where('client_id', $clientId)->where('user_id', $emp->id)->get();
 
             $leaveCredits = [];
 
@@ -474,15 +475,18 @@ class ApplicationsController extends Controller
     public function saveLeaveCredits(Request $request)
     {
         //Log::info("ApplicationsController::saveLeaveCredits");
+        Log::info($request);
         $user = Auth::user();
 
         if ($this->checkUser()) {
             try {
                 DB::beginTransaction();
 
+                $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
+
                 $leave = LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
-                    'user_id' => $request->input('emp_id'),
+                    'user_id' => $employee->id,
                     'application_type_id' => $request->input('app_type_id'),
                     'number' => $request->input('credit_count'),
                     'used' => 0
@@ -537,7 +541,7 @@ class ApplicationsController extends Controller
         }
     }
 
-    public function getLeaveCreditLogs($id)
+    public function getLeaveCreditLogs($userName)
     {
         //Log::info("ApplicationsController::getLeaveCreditLogs");
 
@@ -545,8 +549,9 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             try {
-                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($id) {
-                    $query->where('user_id', $id);
+                $emp = UsersModel::where('user_name', $userName)->first();
+                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($emp) {
+                    $query->where('user_id', $emp->id);
                 })->orderBy('created_at', 'desc')->get();
 
                 $logData = [];
