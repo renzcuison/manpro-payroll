@@ -66,9 +66,9 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
         getWorkShift(selectedWorkShift);
     };
 
-    const getWorkShift = (shift) => {
+    const getWorkShift = (selectedWorkShift) => {
 
-        const data = { shift, shift };
+        const data = { shift, selectedWorkShift };
 
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {

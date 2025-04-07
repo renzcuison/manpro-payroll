@@ -17,7 +17,7 @@ import { Padding } from '@mui/icons-material';
 
 const WorkshiftView = () => {
     const { user } = useUser();
-    const { shift } = useParams();
+    const { selectedShift } = useParams();
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -139,7 +139,6 @@ const WorkshiftView = () => {
 
         setShiftType(newValue);
     };
-
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -386,7 +385,7 @@ const WorkshiftView = () => {
     };
 
     useEffect(() => {
-        const data = { shift, shift };
+        const data = { shift, selectedShift };
 
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
