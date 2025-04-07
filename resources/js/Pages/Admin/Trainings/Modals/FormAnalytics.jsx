@@ -41,7 +41,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
 import moment from "moment";
 import dayjs from "dayjs";
-import { BarChart } from "@mui/x-charts";
+import { BarChart, Gauge, gaugeClasses } from "@mui/x-charts";
+import InfoBox from "../../../../components/General/InfoBox";
 
 const FormAnalytics = ({ open, close, formData }) => {
     const navigate = useNavigate();
@@ -119,18 +120,41 @@ const FormAnalytics = ({ open, close, formData }) => {
                         <Box>
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                        Attempts
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <InfoBox
+                                        title="Total Respondents"
+                                        info={10}
+                                    />
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <InfoBox
+                                        title="Total Attempts"
+                                        info={20}
+                                    />
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <InfoBox
+                                        title="Avg. Attempt Count"
+                                        info={2}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sx={{ my: 0 }}>
+                                    <Divider />
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                        Score Summary
+                                    </Typography>
                                     <BarChart
-                                        series={[{
-                                            data: [
-                                                { value: 30, color: '#8884d8' },  // Purple for High Score
-                                                { value: 20, color: '#82ca9d' },  // Green for Average Score
-                                                { value: 10, color: '#ff7300' }   // Orange for Low Score
-                                            ]
-                                        }]}
+                                        series={[{ data: [30, 20, 10] }]}
                                         yAxis={[
                                             {
                                                 scaleType: 'band',
-                                                data: ['High Score', 'Average Score', 'Low Score'],
+                                                data: ['Highest', 'Average', 'Lowest'],
                                             },
                                         ]}
                                         xAxis={[
@@ -138,11 +162,53 @@ const FormAnalytics = ({ open, close, formData }) => {
                                                 max: formData.total_points ?? 100,
                                             },
                                         ]}
-                                        height={300}
-                                        width={700}
+                                        width={580}
+                                        height={200}
                                         layout="horizontal"
-                                        margin={{ left: 100 }}  // Added margin to prevent label clipping
+                                        margin={{ left: 56, top: 10, bottom: 25 }}
                                     />
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                        Passing Rate
+                                    </Typography>
+                                    <Box display="flex" sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
+                                        <Gauge
+                                            value={40}
+                                            valueMax={100}
+                                            height={180}
+                                            width={180}
+                                            cornerRadius="50%"
+                                            sx={(theme) => ({
+                                                [`& .${gaugeClasses.valueText}`]: {
+                                                    fontSize: 20,
+                                                },
+                                                [`& .${gaugeClasses.valueArc}`]: {
+                                                    fill: '#177604',
+                                                },
+                                                [`& .${gaugeClasses.referenceArc}`]: {
+                                                    fill: theme.palette.text.disabled,
+                                                },
+                                            })}
+                                            text={({ value, valueMax }) => `${Math.round(value)}%`}
+                                        />
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12} sx={{ my: 0 }}>
+                                    <Divider />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                        Durations
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sx={{ my: 0 }}>
+                                    <Divider />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                        Item Statistics
+                                    </Typography>
                                 </Grid>
                             </Grid>
                         </Box>

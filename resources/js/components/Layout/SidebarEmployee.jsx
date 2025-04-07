@@ -314,9 +314,9 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-file-text-o" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide" > Announcements </span>
                             </StyledNav>
 
-                            {/* <StyledNav to={`/employee/trainings`}>
+                            <StyledNav to={`/employee/trainings`}>
                                 <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i> <span id="navName" className="sidebar-mini-hide" > Trainings </span>
-                            </StyledNav> */}
+                            </StyledNav>
                             {/*
                             {evaluationItems.map((items, index) => {
                                 return <SideItem key={index} items={items} />;
