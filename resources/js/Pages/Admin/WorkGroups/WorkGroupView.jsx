@@ -105,7 +105,6 @@ const WorkGroupView = () => {
     const handleDeleteWorkGroup = () => {
         Swal.fire({
             customClass: { container: 'my-swal' },
-            text: "Delete Work Group",
             text: "Are you sure you want to delete this group?",
             icon: "warning",
             timer: 1000,

@@ -177,7 +177,7 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="workshift/:client/:shift"
+                path="workshift/:client/:selectedShift"
                 element={
                     <ProtectedRoute element={<WorkshiftView />} user={user} />
                 }
