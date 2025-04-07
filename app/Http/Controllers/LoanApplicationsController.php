@@ -484,4 +484,38 @@ class LoanApplicationsController extends Controller
         }
     }
 
+        public function getLoanProposal($id)
+    {
+        Log::info("LoanApplicationsController::getLoanProposal for loan ID: " . $id);
+
+        $user = Auth::user();
+
+        $loan = LoanApplicationsModel::where('id', $id)
+            ->where('employee_id', $user->id) // Ensure the employee owns the loan
+            ->first();
+
+        if (!$loan) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
+        }
+
+        $proposal = LoanProposalsModel::where('loan_application_id', $id)
+            ->where('status', 'Pending') // Only fetch pending proposals
+            ->first();
+
+        if ($proposal) {
+            return response()->json([
+                'status' => 200,
+                'proposal' => [
+                    'id' => $proposal->id,
+                    'proposed_loan_amount' => $proposal->proposed_loan_amount,
+                    'proposed_payment_term' => $proposal->proposed_payment_term,
+                    'monthly_interest_rate' => $proposal->monthly_interest_rate,
+                    'proposed_monthly_payment' => $proposal->proposed_monthly_payment
+                ]
+            ]);
+        }
+
+        return response()->json(['status' => 200, 'proposal' => null, 'message' => 'No pending proposal found']);
+    }
+
 }

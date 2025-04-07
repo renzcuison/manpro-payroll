@@ -22,12 +22,13 @@ const LoanDetails = ({ open, close, loanId }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [openPreview, setOpenPreview] = useState(false);
-    const [pendingProposal, setPendingProposal] = useState(null); // Store proposal locally
+    const [pendingProposal, setPendingProposal] = useState(null);
 
     useEffect(() => {
         if (loanId && open) {
             fetchLoanDetails();
             fetchLoanFiles();
+            fetchLoanProposal(); // Add this to fetch existing proposal
         }
     }, [loanId, open]);
 
@@ -53,6 +54,20 @@ const LoanDetails = ({ open, close, loanId }) => {
         } catch (err) {
             console.error('Error fetching files:', err);
             setFiles([]);
+        }
+    };
+
+    const fetchLoanProposal = async () => {
+        try {
+            const response = await axiosInstance.get(`/loans/getLoanProposal/${loanId}`, { headers });
+            if (response.data.status === 200 && response.data.proposal) {
+                setPendingProposal(response.data.proposal);
+            } else {
+                setPendingProposal(null); // No proposal exists
+            }
+        } catch (err) {
+            console.error('Error fetching proposal:', err);
+            setPendingProposal(null); // Reset on error
         }
     };
 
@@ -92,10 +107,9 @@ const LoanDetails = ({ open, close, loanId }) => {
         }
     };
 
-    // Sync proposal state with PreviewProposal
     const handleProposalSent = (proposal) => {
         setPendingProposal(proposal);
-        setOpenPreview(true); // Open preview immediately after sending (optional)
+        setOpenPreview(true); // Open preview after sending (optional)
     };
 
     if (isLoading) {
@@ -274,7 +288,8 @@ const LoanDetails = ({ open, close, loanId }) => {
                             )}
                         </Grid>
                     </Grid>
-                    {/* Show Preview Proposal if there's a pending proposal */}
+                    
+                    {/* Show Preview Proposal button if there's a pending proposal */}
                     {pendingProposal && (
                         <Grid item xs={12} sx={{ mt: 2 }}>
                             <Button variant="contained" color="primary" onClick={() => setOpenPreview(true)}>
@@ -287,12 +302,13 @@ const LoanDetails = ({ open, close, loanId }) => {
                     open={openPreview}
                     onClose={() => {
                         setOpenPreview(false);
-                        fetchLoanDetails();
+                        fetchLoanDetails(); // Refresh loan details after closing
+                        fetchLoanProposal(); // Refresh proposal after closing
                     }}
                     selectedLoan={loanId}
                     isAdmin={false}
-                    existingProposal={pendingProposal} 
-                    onProposalSent={handleProposalSent} 
+                    existingProposal={pendingProposal}
+                    onProposalSent={handleProposalSent}
                 />
             </DialogContent>
         </Dialog>
