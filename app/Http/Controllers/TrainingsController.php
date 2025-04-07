@@ -1313,6 +1313,22 @@ class TrainingsController extends Controller
         }
     }
 
+    public function getFormAnalytics($id)
+    {
+        //Log::info("TrainingsController:getFormAnalytics");
+        //Log::info($id);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $analytics = null;
+
+            return response()->json(['status' => 200, 'analytics' => $analytics]);
+        } else {
+            return response()->json(['status' => 403, 'analytics' => null]);
+        }
+    }
+
     // Training Forms (Employee) ---------------------------------------------------- /
     public function getEmployeeFormDetails($id)
     {

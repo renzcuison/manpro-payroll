@@ -58,6 +58,7 @@ import FormItemEdit from "./FormItemEdit";
 import { PieChart } from "@mui/x-charts";
 import InfoBox from "../../../../components/General/InfoBox";
 import ContentProgressView from "./ContentProgressView";
+import FormAnalytics from "./FormAnalytics";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -141,6 +142,14 @@ const ContentView = ({ open, close, contentId, status }) => {
 
         return null;
     };
+
+    useEffect(() => {
+        return () => {
+            if (file && file.startsWith('blob:')) {
+                URL.revokeObjectURL(file);
+            }
+        };
+    }, [file]);
 
     // Edit Content
     const [openContentEditModal, setOpenContentEditModal] = useState(false);
@@ -362,7 +371,8 @@ const ContentView = ({ open, close, contentId, status }) => {
         });
     }
 
-    // EXPANDED CONTENT VIEW LIST
+    // CONTENT PROGRESSION ------------------------------------- /
+    // Progress Viewer
     const [openProgressViewModal, setOpenProgressViewModal] = useState(false);
     const handleOpenProgressViewModal = () => {
         setOpenProgressViewModal(true);
@@ -371,14 +381,14 @@ const ContentView = ({ open, close, contentId, status }) => {
         setOpenProgressViewModal(false);
     }
 
-    // File Cleanup
-    useEffect(() => {
-        return () => {
-            if (file && file.startsWith('blob:')) {
-                URL.revokeObjectURL(file);
-            }
-        };
-    }, [file]);
+    // Form Analytics
+    const [openFormAnalyticsModal, setOpenFormAnalyticsModal] = useState(false)
+    const handleOpenFormAnalyticsModal = () => {
+        setOpenFormAnalyticsModal(true);
+    }
+    const handleCloseFormAnalyticsModal = () => {
+        setOpenFormAnalyticsModal(false);
+    }
 
     return (
         <>
@@ -541,7 +551,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Form Analytics");
+                                                            handleOpenFormAnalyticsModal();
                                                             handleMenuClose();
                                                         }}
                                                     >
@@ -931,6 +941,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openProgressViewModal}
                         close={handleCloseProgressViewModal}
                         contentId={content.id}
+                    />
+                )}
+                {openFormAnalyticsModal && (
+                    <FormAnalytics
+                        open={openFormAnalyticsModal}
+                        close={handleCloseFormAnalyticsModal}
+                        formData={content}
                     />
                 )}
             </Dialog>

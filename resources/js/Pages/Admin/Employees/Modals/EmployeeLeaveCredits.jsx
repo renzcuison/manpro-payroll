@@ -51,6 +51,8 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const [leaveCreditLogs, setLeaveCreditLogs] = useState([]);
     const [logsView, setLogsView] = useState(false);
 
+    console.log(employee);
+
     // ----------- Request Leave Credits
     useEffect(() => {
         getLeaveCredits();
@@ -58,7 +60,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     }, []);
 
     const getLeaveCredits = () => {
-        axiosInstance.get(`/applications/getLeaveCredits/${employee.id}`, { headers })
+        axiosInstance.get(`/applications/getLeaveCredits/${employee.user_name}`, { headers })
             .then((response) => {
                 setLeaveCredits(response.data.leave_credits);
             })
@@ -68,7 +70,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     }
 
     const getLeaveCreditLogs = () => {
-        axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.id}`, { headers })
+        axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.user_name}`, { headers })
             .then((response) => {
                 setLeaveCreditLogs(response.data.logs);
             })
@@ -307,7 +309,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                     <LeaveCreditAdd
                         open={openAddLeaveCredit}
                         close={handleCloseAddLeaveCredit}
-                        empId={employee.id}
+                        empId={employee.user_name}
                     />
                 }
             </Dialog >

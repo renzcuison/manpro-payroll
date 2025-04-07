@@ -83,7 +83,7 @@ const ContentProgressView = ({ open, close, contentId }) => {
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
                         minWidth: { xs: "100%", sm: "750px" },
-                        maxWidth: "800px",
+                        maxWidth: "850px",
                         marginBottom: "5%",
                     },
                 }}
