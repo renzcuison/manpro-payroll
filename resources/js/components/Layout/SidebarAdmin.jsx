@@ -402,13 +402,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
-                                {applicationsItems.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })}
+                                    {applicationsItems.map((items, index) => {
+                                        return <SideItem key={index} items={items} />
+                                    })}
 
-                                <StyledNav to={`/admin/loan-management`} >
-                                    <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                                </StyledNav>
+                                    <StyledNav to={`/admin/loan-management`} >
+                                        <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i
@@ -439,7 +439,7 @@ const Sidebar = ({ children, closeMini }) => {
                                         </span>
                                     </StyledNav>
 
-                                    <StyledNav to={`/admin/trainings`}>
+                                    {/* <StyledNav to={`/admin/trainings`}>
                                         <i>
                                             <Iconify
                                                 icon="healthicons:i-training-class-outline"
@@ -452,7 +452,7 @@ const Sidebar = ({ children, closeMini }) => {
                                         >
                                             Trainings
                                         </span>
-                                    </StyledNav>
+                                    </StyledNav> */}
 
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
