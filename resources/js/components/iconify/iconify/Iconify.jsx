@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 // icons
 import { Icon } from '@iconify/react';
 // @mui
