@@ -119,7 +119,7 @@ class EmployeesController extends Controller
         }
     
         unset(
-            $employee->id,
+            // $employee->id,
             $employee->verify_code,
             $employee->code_expiration,
             $employee->is_verified,
@@ -157,7 +157,7 @@ class EmployeesController extends Controller
                 $employee = $this->enrichEmployeeDetails($employee);
     
                 unset(
-                    $employee->id,
+                    // $employee->id,
                     $employee->verify_code,
                     $employee->code_expiration,
                     $employee->is_verified,
