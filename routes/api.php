@@ -208,11 +208,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editLoanApplication', [LoanApplicationsController::class, 'editLoanApplication']);
         Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
         Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
+        
         Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
         Route::get('/getAllLoanApplications', [LoanApplicationsController::class, 'getAllLoanApplications']);
+
         Route::post('/updateLoanStatus', [LoanApplicationsController::class, 'updateLoanStatus']);
         Route::post('/createProposal/{id}', [LoanApplicationsController::class, 'createProposal']);
         Route::post('/respondToProposal/{id}', [LoanApplicationsController::class, 'respondToProposal']);
+        Route::get('/getLoanProposal/{id}', [LoanApplicationsController::class, 'getLoanProposal']);
     });
 
     Route::prefix('applications')->group(function () {

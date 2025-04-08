@@ -10,10 +10,9 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-import Payslip from '../../components/Payroll/Payslip';
 import LoanApplication from '../../components/Loan/LoanApplication';    
 
-const PayslipView = ({ open, close, selectedPayroll }) => {
+const LoanView = ({ open, close, selectedLoan }) => {
 
     return (
         <>
@@ -26,11 +25,11 @@ const PayslipView = ({ open, close, selectedPayroll }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ px: 5, pb: 5 }}>
-                    <Payslip selectedPayroll={selectedPayroll} />
+                    <LoanApplication selectedLoan={selectedLoan} />
                 </DialogContent>
             </Dialog >
         </>
     )
 }
 
-export default PayslipView;
+export default LoanView;

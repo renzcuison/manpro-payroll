@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
@@ -14,8 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
-
-import PayslipView from '../../../Modals/Payroll/PayslipView';
+import LoanView from '../../../Modals/Loan/LoanView';
 
 const LoanList = () => {
     const { user } = useUser();
@@ -26,86 +25,119 @@ const LoanList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [dataUpdated, setDataUpdated] = useState(false);
 
-    const [openViewPayrollModal, setOpenViewPayrollModal] = useState(false);
-    const [selectedPayroll, setSelectedPayroll] = useState('');
+    const [openLoanViewModal, setOpenLoanViewModal] = useState(false);
+    const [selectedLoan, setSelectedLoanId] = useState('');
 
-    const [records, setRecords] = useState([]);
-
-    const [branches, setBranches] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [cutOff, setCutOff] = useState('');
+    const [loans, setLoans] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get('/payroll/getEmployeesPayrollRecords', { headers })
+        axiosInstance.get('/loans/getAllLoanApplications', { headers })
             .then((response) => {
-                setRecords(response.data.records);
+                if (response.data.status === 200) {
+                    setLoans(response.data.loans);
+                } else if (response.data.status === 403) {
+                    Swal.fire({
+                        title: 'Unauthorized',
+                        text: 'You do not have permission to view loan applications. Please log in as an admin.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay',
+                        confirmButtonColor: '#177604',
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.data.message || 'Failed to fetch loan applications.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay',
+                        confirmButtonColor: '#177604',
+                    });
+                }
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error('Error fetching payroll calculations:', error);
-            }); 
+                console.error('Error fetching loan applications:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to fetch loan applications. Please try again later.',
+                    icon: 'error',
+                    confirmButtonText: 'Okay',
+                    confirmButtonColor: '#177604',
+                });
+                setIsLoading(false);
+            });
     }, []);
-    
-    const handleOpenViewPayrollModal = (id) => {
-        setSelectedPayroll(id);
-        setOpenViewPayrollModal(true);
-    }
 
-    const handleCloseViewPayrollModal = () => {
-        setOpenViewPayrollModal(false);
-    }
+    const handleOpenLoanViewModal = (id) => {
+        setSelectedLoanId(id);
+        setOpenLoanViewModal(true);
+    };
+
+    const handleCloseLoanViewModal = () => {
+        setOpenLoanViewModal(false);
+    };
 
     return (
         <Layout title={"LoanManagement"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
-
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'left' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Loan Management </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Loan Management</Typography>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400}}>
-                                    <Table aria-label="simple table">
+                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <Table aria-label="loan table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">Name</TableCell>
-                                                <TableCell align="center">Old Limit</TableCell>
-                                                <TableCell align="center">New Limit</TableCell>
+                                                <TableCell align="center">Loan Amount</TableCell>
+                                                <TableCell align="center">Payment Terms</TableCell>
+                                                <TableCell align="center">Status</TableCell>
+                                                <TableCell align="center">Date Created</TableCell>
                                             </TableRow>
                                         </TableHead>
-
                                         <TableBody>
-                                            {records.map((record) => (
-                                                <TableRow key={record.record} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenViewPayrollModal(record.record)} >
-                                                    <TableCell align="left">{record.employeeName}</TableCell>
-                                                    <TableCell align="center"></TableCell>
-                                                    <TableCell align="center"></TableCell>
+                                            {loans.length > 0 ? (
+                                                loans.map((loan) => (
+                                                    <TableRow
+                                                        key={loan.loan_id}
+                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}
+                                                        onClick={() => handleOpenLoanViewModal(loan.loan_id)}
+                                                    >
+                                                        <TableCell align="left">
+                                                            {`${loan.emp_first_name} ${loan.emp_middle_name ? loan.emp_middle_name + ' ' : ''}${loan.emp_last_name}${loan.emp_suffix ? ' ' + loan.emp_suffix : ''}`}
+                                                        </TableCell>
+                                                        <TableCell align="center">₱{parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                                        <TableCell align="center">{loan.payment_term} months</TableCell>
+                                                        <TableCell align="center">{loan.status}</TableCell>
+                                                        <TableCell align="center">{loan.date_created}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center">
+                                                        No loan applications found.
+                                                    </TableCell>
                                                 </TableRow>
-                                            ))}
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                            </>    
+                            </>
                         )}
                     </Box>
-
                 </Box>
 
-                {openViewPayrollModal &&
-                    <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
-                }
-
+                {openLoanViewModal && (
+                    <LoanView open={openLoanViewModal} close={handleCloseLoanViewModal} selectedLoan={selectedLoan} />
+                )}
             </Box>
-        </Layout >
-    )
-}
+        </Layout>
+    );
+};
 
-export default LoanList
+export default LoanList;
