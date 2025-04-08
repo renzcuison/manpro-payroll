@@ -28,7 +28,7 @@ const LoanDetails = ({ open, close, loanId }) => {
         if (loanId && open) {
             fetchLoanDetails();
             fetchLoanFiles();
-            fetchLoanProposal(); // Add this to fetch existing proposal
+            fetchLoanProposal();
         }
     }, [loanId, open]);
 
@@ -63,11 +63,11 @@ const LoanDetails = ({ open, close, loanId }) => {
             if (response.data.status === 200 && response.data.proposal) {
                 setPendingProposal(response.data.proposal);
             } else {
-                setPendingProposal(null); // No proposal exists
+                setPendingProposal(null);
             }
         } catch (err) {
             console.error('Error fetching proposal:', err);
-            setPendingProposal(null); // Reset on error
+            setPendingProposal(null);
         }
     };
 
@@ -109,7 +109,7 @@ const LoanDetails = ({ open, close, loanId }) => {
 
     const handleProposalSent = (proposal) => {
         setPendingProposal(proposal);
-        setOpenPreview(true); // Open preview after sending (optional)
+        setOpenPreview(true);
     };
 
     if (isLoading) {
@@ -161,6 +161,8 @@ const LoanDetails = ({ open, close, loanId }) => {
             </Dialog>
         );
     }
+
+    const isApprovedProposal = pendingProposal && pendingProposal.status === 'Approved';
 
     return (
         <Dialog
@@ -288,12 +290,14 @@ const LoanDetails = ({ open, close, loanId }) => {
                             )}
                         </Grid>
                     </Grid>
-                    
-                    {/* Show Preview Proposal button if there's a pending proposal */}
                     {pendingProposal && (
                         <Grid item xs={12} sx={{ mt: 2 }}>
-                            <Button variant="contained" color="primary" onClick={() => setOpenPreview(true)}>
-                                Preview Proposal
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => setOpenPreview(true)}
+                            >
+                                {isApprovedProposal ? "Preview Loan" : "Preview Proposal"}
                             </Button>
                         </Grid>
                     )}
@@ -302,8 +306,8 @@ const LoanDetails = ({ open, close, loanId }) => {
                     open={openPreview}
                     onClose={() => {
                         setOpenPreview(false);
-                        fetchLoanDetails(); // Refresh loan details after closing
-                        fetchLoanProposal(); // Refresh proposal after closing
+                        fetchLoanDetails();
+                        fetchLoanProposal();
                     }}
                     selectedLoan={loanId}
                     isAdmin={false}

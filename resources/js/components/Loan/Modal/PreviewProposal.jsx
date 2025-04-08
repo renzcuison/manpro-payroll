@@ -16,6 +16,8 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
+    maxHeight: '80vh', // Limit modal height to 80% of viewport height
+    overflowY: 'auto', // Enable vertical scrolling
 };
 
 const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTerm, monthlyInterestRate, selectedLoan, isAdmin, existingProposal, onProposalSent }) => {
@@ -87,7 +89,7 @@ const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTer
             .then((response) => {
                 if (response.data.status === 200) {
                     setProposalData(response.data.proposal);
-                    if (onProposalSent) onProposalSent(response.data.proposal); // Notify parent
+                    if (onProposalSent) onProposalSent(response.data.proposal);
                     Swal.fire({
                         title: 'Success',
                         text: 'Proposal sent to employee for approval!',
@@ -138,16 +140,17 @@ const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTer
 
         axiosInstance.post(`/loans/respondToProposal/${selectedLoan}`, data, { headers })
             .then((response) => {
+                console.log('Respond to proposal response:', response.data);
                 if (response.data.status === 200) {
                     Swal.fire({
                         title: 'Success',
-                        text: `Loan terms ${action === 'approve' ? 'updated' : 'declined'} successfully!`,
+                        text: action === 'approve' ? 'Proposal approved and loan updated successfully!' : 'Proposal and loan declined successfully!',
                         icon: 'success',
                         confirmButtonText: 'Okay',
                         confirmButtonColor: '#177604',
                     });
-                    setProposalData(null);
-                    if (onProposalSent) onProposalSent(null); // Clear proposal
+                    setProposalData({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
+                    if (onProposalSent) onProposalSent({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
                     onClose();
                 } else {
                     Swal.fire({
@@ -175,12 +178,17 @@ const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTer
         proposed_loan_amount: proposedLoanAmount || 0,
         proposed_payment_term: proposedPaymentTerm || 0,
         monthly_interest_rate: monthlyInterestRate || 0,
+        status: existingProposal?.status || 'Pending'
     };
+
+    const isProposalResolved = proposal.status === 'Approved' || proposal.status === 'Declined';
 
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={style}>
-                <Typography variant="h6" component="h2">Preview Proposal</Typography>
+                <Typography variant="h6" component="h2">
+                    {isProposalResolved && proposal.status === 'Approved' ? 'Loan Preview' : 'Preview Proposal'}
+                </Typography>
                 <FormControl sx={{ mt: 2, width: '100%' }}>
                     <InputLabel shrink>New Loan Amount</InputLabel>
                     <TextField
@@ -197,15 +205,15 @@ const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTer
                     <TextField value={`${proposal.monthly_interest_rate || 0}%`} InputProps={{ readOnly: true }} />
                 </FormControl>
                 <Typography variant="subtitle1" sx={{ mt: 2 }}>Monthly Payment Schedule</Typography>
-                <TableContainer component={Paper} sx={{ mt: 1 }}>
-                    <Table>
+                <TableContainer component={Paper} sx={{ mt: 1, maxHeight: '300px', overflowY: 'auto' }}>
+                    <Table stickyHeader>
                         <TableHead>
                             <TableRow>
                                 <TableCell>Month</TableCell>
                                 <TableCell>Payment</TableCell>
                                 <TableCell>Principal</TableCell>
                                 <TableCell>Interest</TableCell>
-                                <TableCell>Remaining Balance</TableCell>
+                                <TableCell>Expected Balance</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -221,20 +229,22 @@ const PreviewProposal = ({ open, onClose, proposedLoanAmount, proposedPaymentTer
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', position: 'sticky', bottom: 0, bgcolor: 'background.paper', p: 1 }}>
                     {isAdmin ? (
                         <Button variant="contained" color="primary" onClick={handleCreateProposal}>
                             Send Proposal
                         </Button>
                     ) : (
-                        <>
-                            <Button variant="contained" color="success" onClick={() => handleRespondToProposal('approve')}>
-                                Approve
-                            </Button>
-                            <Button variant="contained" color="error" onClick={() => handleRespondToProposal('decline')} sx={{ ml: 2 }}>
-                                Decline
-                            </Button>
-                        </>
+                        !isProposalResolved && (
+                            <>
+                                <Button variant="contained" color="success" onClick={() => handleRespondToProposal('approve')}>
+                                    Approve
+                                </Button>
+                                <Button variant="contained" color="error" onClick={() => handleRespondToProposal('decline')} sx={{ ml: 2 }}>
+                                    Decline
+                                </Button>
+                            </>
+                        )
                     )}
                     <Button sx={{ ml: 2 }} onClick={onClose}>Close</Button>
                 </Box>
