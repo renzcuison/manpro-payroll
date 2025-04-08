@@ -35,9 +35,9 @@ import {
     CardActionArea,
     Paper
 } from "@mui/material";
-import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save, BarChart, Assessment, History } from "@mui/icons-material";
+import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save, BarChart, Assessment, History, Grading } from "@mui/icons-material";
 import { Form, useLocation, useNavigate } from "react-router-dom";
-import { Gauge, LineChart } from '@mui/x-charts';
+import { Gauge, LineChart, gaugeClasses, areaElementClasses } from '@mui/x-charts';
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -57,9 +57,13 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
     const formInfo = content.content;
     const [analyticView, setAnalyticView] = useState(false);
     const [submissionView, setSubmissionView] = useState(false);
+
     const durationInSeconds = (content?.duration || 15) * 60;
     const [formTimer, setFormTimer] = useState(durationInSeconds);
     const [viewType, setViewType] = useState('Overview');
+
+    const [overviewReload, setOverviewReload] = useState(false);
+    const [resultData, setResultData] = useState(null);
 
     // Local Storage
     let attemptedQuiz = null;
@@ -102,17 +106,15 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         return result.trim();
     };
 
-    // Attempt Initialization
+    // View Initialization
     useEffect(() => {
         attemptedQuiz = localStorage.getItem('quizAttempted');
         if (attemptedQuiz) {
             if (attemptedQuiz == content.id) {
                 setViewType('Attempt');
-            } else {
-                setViewType('Overview');
             }
         }
-    }, [content.id]); // Runs when content.id changes
+    }, [content.id]);
 
     // EVENTS
     // Start Attempt
@@ -239,14 +241,19 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         localStorage.removeItem('quizStartTime');
                         localStorage.removeItem('quizViewType');
                         localStorage.removeItem('quizAnswerData');
-                        setViewType('Overview');
+
+                        const resData = response.data.results;
+                        // Results Page Prep
+                        setViewType('Results');
+                        setOverviewReload(true);
+                        setResultData(resData);
+                        console.log(resData);
 
                         // Form Clear Conditions
                         const allAttempts = !formInfo.require_pass && (((attemptData?.response_count ?? 0) + 1) == formInfo.attempts_allowed);
-                        if (response.data.passed || allAttempts) {
+                        if (resData.passed || allAttempts) {
                             handleFormFinished(content.id, true);
                         }
-                        contentReload(content.id);
                     });
                 }
             })
@@ -780,9 +787,156 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                 </>
             );
         case 'Results':
-            return (<></>);
+            return (
+                <>
+                    <Grid item container xs={12} spacing={2}>
+                        <Grid container item xs={5}>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Result
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
+                                    <Gauge
+                                        value={resultData.score_percentage}
+                                        height={250}
+                                        width={300}
+                                        cornerRadius="8px"
+                                        sx={(theme) => ({
+                                            [`& .${gaugeClasses.valueText}`]: {
+                                                fontSize: 32,
+                                                fontWeight: "bold",
+                                                fill: "text.secondary"
+                                            },
+                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                fill: resultData?.passed ? '#177604' : '#f44336'
+                                            },
+                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                fill: `#e0e0e0`
+                                            },
+                                        })}
+                                        startAngle={-110}
+                                        endAngle={110}
+                                        innerRadius="70%"
+                                        outerRadius="100%"
+                                        text={({ value }) => `${Math.round(value)}%`}
+                                    />
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Box sx={{ width: "100%", placeContent: "center", placeItems: "center", mb: 5 }}>
+                                    <Typography variant="h6">
+                                        {`You scored ${resultData.total_score} out of ${resultData.total_points}`}
+                                    </Typography>
+                                    {!resultData.passed && (
+                                        <Typography variant="h6">
+                                            {`The passing score is ${formInfo.passing_score}%`}
+                                        </Typography>
+                                    )}
+                                    <Box display="flex" sx={{ mt: 2, alignItems: "center" }}>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => setViewType('Review')}
+                                            sx={{ ml: 1, backgroundColor: "#177604" }}
+                                            startIcon={<Grading />}
+                                        >
+                                            Review Attempt
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => contentReload(content.id)}
+                                            sx={{ ml: 1, backgroundColor: "#f57c00" }}
+                                            startIcon={<ExitToApp />}
+                                        >
+                                            Return to Overview
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                        <Grid container item xs={7}>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Attempt History
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
+                                    <LineChart
+                                        xAxis={[
+                                            {
+                                                data: [
+                                                    0,
+                                                    ...attemptData.responses.map((_, index) => index + 1),
+                                                    attemptData.responses.length + 1,
+                                                ],
+                                                valueFormatter: (value) => {
+                                                    if (value === 0) {
+                                                        return "-";
+                                                    }
+                                                    if (value === attemptData.responses.length + 1) {
+                                                        return dayjs(resultData.created_at).format('MM/DD/YYYY \nhh:mm A');
+                                                    }
+                                                    return dayjs(attemptData.responses[value - 1].created_at).format('MM/DD/YYYY \nhh:mm A');
+                                                },
+                                                label: 'Attempt',
+                                                labelStyle: {
+                                                    transform: 'translateY(25px)',
+                                                },
+                                                tickMinStep: 1,
+                                            },
+                                        ]}
+                                        yAxis={[
+                                            {
+                                                label: 'Score (pts)',
+                                                max: (resultData.total_points)
+                                            },
+                                        ]}
+                                        series={[
+                                            {
+                                                curve: "linear",
+                                                data: [
+                                                    0,
+                                                    ...attemptData.responses.map(response => response.score),
+                                                    resultData.total_score,
+                                                ],
+                                                color: '#177604',
+                                                area: true
+                                            },
+                                        ]}
+                                        grid={{ horizontal: true }}
+                                        width={700}
+                                        height={350}
+                                        margin={{ left: 50, top: 20, bottom: 50, right: 50 }}
+                                        sx={{
+                                            [`& .${areaElementClasses.root}`]: {
+                                                fill: 'rgba(23, 118, 4, 0.5)',
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </>
+            );
         case 'Review':
-            return (<></>);
+            return (
+                <>
+                    {/* Return Button (TEMPORARY, REMOVE LATER) */}
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            if (overviewReload) {
+                                contentReload(content.id);
+                            } else {
+                                setViewType('Overview');
+                            }
+                        }}
+                        sx={{ ml: 1, backgroundColor: "#d32f2f" }}
+                        startIcon={<ExitToApp />}
+                    >
+                        Return to Overview
+                    </Button>
+                </>
+            );
         default:
             return (<></>);
     }

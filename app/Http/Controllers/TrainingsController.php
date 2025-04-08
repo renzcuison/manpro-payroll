@@ -1668,8 +1668,16 @@ class TrainingsController extends Controller
                 }
             }
 
+            $results = new \stdClass();
+            $results->total_score = $totalScore;
+            $results->score_percentage = $scorePercentage;
+            $results->total_points = $totalPoints;
+            $results->passed = $passed;
+            $results->duration = $duration;
+            $results->submission_date = $response->created_at;
+
             DB::commit();
-            return response()->json(['status' => 200, 'message' => 'Form submitted successfully', 'passed' => $passed]);
+            return response()->json(['status' => 200, 'message' => 'Form submitted successfully', 'results' => $results]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error saving form response: " . $e->getMessage());

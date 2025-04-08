@@ -240,7 +240,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                             },
                                         ]}
                                         grid={{ vertical: true }}
-                                        width={580}
+                                        width={570}
                                         height={200}
                                         borderRadius={4}
                                         layout="horizontal"
@@ -262,7 +262,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                             value={responseAnalytics.passing_rate}
                                             height={180}
                                             width={180}
-                                            cornerRadius="50%"
+                                            cornerRadius="8px"
                                             sx={(theme) => ({
                                                 [`& .${gaugeClasses.valueText}`]: {
                                                     fontSize: 20,
@@ -270,7 +270,10 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                                     fill: "text.secondary"
                                                 },
                                                 [`& .${gaugeClasses.valueArc}`]: {
-                                                    fill: '#177604'
+                                                    fill: responseAnalytics.passing_rate >= 75 ? '#177604'
+                                                        : responseAnalytics.passing_rate >= 50 ? '#e9ae20'
+                                                            : responseAnalytics.passing_rate >= 25 ? '#f57c00'
+                                                                : '#f44336'
                                                 },
                                                 [`& .${gaugeClasses.referenceArc}`]: {
                                                     fill: `#e0e0e0`
