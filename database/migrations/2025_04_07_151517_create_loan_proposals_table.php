@@ -15,7 +15,7 @@ class CreateLoanProposalsTable extends Migration
             $table->integer('proposed_payment_term');
             $table->decimal('monthly_interest_rate', 5, 2); // Stored as percentage (e.g., 2.00)
             $table->decimal('proposed_monthly_payment', 10, 2);
-            $table->enum('status', ['Pending', 'Accepted', 'Rejected'])->default('Pending');
+            $table->enum('status', ['Pending', 'Approved', 'Declined'])->default('Pending');
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
             $table->softDeletes();
