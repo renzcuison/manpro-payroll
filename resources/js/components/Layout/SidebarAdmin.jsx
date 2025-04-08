@@ -133,6 +133,11 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-calendar-check-o",
             children: [
                 {
+                    href: `/admin/attendance/today?`,
+                    text: "Today",
+                    icon: "fa fa-cogs",
+                },
+                {
                     href: `/admin/attendance/summary?`,
                     text: "Summary",
                     icon: "fa fa-cogs",

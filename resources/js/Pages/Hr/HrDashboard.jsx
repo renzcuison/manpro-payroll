@@ -430,273 +430,80 @@ const HrDashboard = () => {
                 {/* Attendance */}
                 <div className="row">
                     <div className="col-lg-12 col-sm-12" style={{ marginBottom: 10 }}>
-                        <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "10px" }}>
-                            <div className="block-content block-content-full">
-                                <div style={{ marginLeft: 10 }}>
-                                    <TabContext value={attendanceTab}>
-                                        <Box display="flex" sx={{ justifyContent: "space-between" }}>
-                                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                                <TabList onChange={handleAttendanceTabChange} aria-label="Acknowledgement Tabs">
-                                                    <Tab label="Present" value="1" />
-                                                    <Tab label="Late" value="2" />
-                                                    <Tab label="Absent" value="3" />
-                                                    <Tab label="On Leave" value="4" />
-                                                </TabList>
-                                            </Box>
-                                        </Box>
-                                        {/* Present Employees */}
-                                        <TabPanel value="1" sx={{ px: 0 }}>
-                                            <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer sx={{ maxHeight: "450px" }}>
-                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
-                                                                <TableCell align="center" sx={{ width: "15%" }}>First Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "15%" }}>First Time Out</TableCell>
-                                                                <TableCell align="center" sx={{ width: "15%" }}>Second Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "15%" }}>Second Time Out</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        {attendanceLoading ? (
-                                                            <TableBody>
-                                                                <TableRow>
-                                                                    <TableCell colSpan={5}>
-                                                                        <Box
-                                                                            sx={{
-                                                                                display: "flex",
-                                                                                justifyContent: "center",
-                                                                                alignItems: "center",
-                                                                                minHeight: 200,
-                                                                            }}
-                                                                        >
-                                                                            <CircularProgress />
-                                                                        </Box>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            </TableBody>
-                                                        ) : (
-                                                            <TableBody>
-                                                                {paginatedAttendance.length > 0 ? (
-                                                                    paginatedAttendance.map((attend, index) => (
-                                                                        <TableRow key={index}>
-                                                                            <TableCell align="left">
-                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                                </Box>
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))
-                                                                ) : (
-                                                                    <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                            No Attendance Found
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                )}
-                                                            </TableBody>
-                                                        )}
-                                                    </Table>
-                                                    <TablePagination
-                                                        rowsPerPageOptions={[5, 10, 20]}
-                                                        component="div"
-                                                        count={attendance.length}
-                                                        rowsPerPage={rowsPerPage}
-                                                        page={page}
-                                                        onPageChange={handleChangePage}
-                                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                                        sx={{ alignItems: "center" }}
-                                                    />
-                                                </TableContainer>
-                                            </div>
-                                        </TabPanel>
-                                        {/* Late Employees */}
-                                        <TabPanel value="2" sx={{ px: 0 }}>
-                                            <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer sx={{ maxHeight: "450px" }}>
-                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                <TableCell align="left" sx={{ width: "24%" }}>Employee</TableCell>
-                                                                <TableCell align="center" sx={{ width: "10%" }}>Schedule</TableCell>
-                                                                <TableCell align="center" sx={{ width: "14%" }}>First Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "14%" }}>First Time Out</TableCell>
-                                                                <TableCell align="center" sx={{ width: "14%" }}>Second Time In</TableCell>
-                                                                <TableCell align="center" sx={{ width: "14%" }}>Second Time Out</TableCell>
-                                                                <TableCell align="center" sx={{ width: "10%" }}>Late By</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        {attendanceLoading ? (
-                                                            <TableBody>
-                                                                <TableRow>
-                                                                    <TableCell colSpan={7}>
-                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
-                                                                            <CircularProgress />
-                                                                        </Box>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            </TableBody>
-                                                        ) : (
-                                                            <TableBody>
-                                                                {paginatedAttendance.length > 0 ? (
-                                                                    paginatedAttendance.map((attend, index) => (
-                                                                        <TableRow key={index}>
-                                                                            <TableCell align="left">
-                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                                </Box>
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.start_time ? dayjs(attend.start_time).format('hh:mm:ss A') : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
-                                                                            </TableCell>
-                                                                            <TableCell align="center">
-                                                                                {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))
-                                                                ) : (
-                                                                    <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
-                                                                    </TableRow>
-                                                                )}
-                                                            </TableBody>
-                                                        )}
-                                                    </Table>
-                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
-                                                </TableContainer>
-                                            </div>
-                                        </TabPanel>
-
-                                        {/* Absent */}
-                                        <TabPanel value="3" sx={{ px: 0 }}>
-                                            <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer sx={{ maxHeight: "450px" }}>
-                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                <TableCell align="left" sx={{ width: "100%" }}>Employee</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        {attendanceLoading ? (
-                                                            <TableBody>
-                                                                <TableRow>
-                                                                    <TableCell colSpan={1}>
-                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
-                                                                            <CircularProgress />
-                                                                        </Box>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            </TableBody>
-                                                        ) : (
-                                                            <TableBody>
-                                                                {paginatedAttendance.length > 0 ? (
-                                                                    paginatedAttendance.map((attend, index) => (
-                                                                        <TableRow key={index}>
-                                                                            <TableCell align="left">
-                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                                </Box>
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))
-                                                                ) : (
-                                                                    <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Absent Employees Found </TableCell>
-                                                                    </TableRow>
-                                                                )}
-                                                            </TableBody>
-                                                        )}
-                                                    </Table>
-
-                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
-                                                </TableContainer>
-                                            </div>
-                                        </TabPanel>
-
-                                        {/* On Leave */}
-                                        <TabPanel value="4" sx={{ px: 0 }}>
-                                            <div style={{ height: "450px", overflow: "auto", }} >
-                                                <TableContainer sx={{ maxHeight: "450px" }}>
-                                                    <Table stickyHeader className="table table-md table-striped table-vcenter">
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                <TableCell align="left" sx={{ width: "40%" }}>Employee</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>Leave Type</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>Start Date</TableCell>
-                                                                <TableCell align="center" sx={{ width: "20%" }}>End Date</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        {attendanceLoading ? (
-                                                            <TableBody>
-                                                                <TableRow>
-                                                                    <TableCell colSpan={4}>
-                                                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
-                                                                            <CircularProgress />
-                                                                        </Box>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            </TableBody>
-                                                        ) : (
-                                                            <TableBody>
-                                                                {paginatedAttendance.length > 0 ? (
-                                                                    paginatedAttendance.map((attend, index) => (
-                                                                        <TableRow key={index}>
-                                                                            <TableCell align="left">
-                                                                                <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                                                </Box>
-                                                                            </TableCell>
-                                                                            <TableCell align="center"> {attend.type_name} </TableCell>
-                                                                            <TableCell align="center"> {dayjs(attend.leave_start).format('MMM DD YYYY')} </TableCell>
-                                                                            <TableCell align="center"> {dayjs(attend.leave_end).format('MMM DD YYYY')} </TableCell>
-                                                                        </TableRow>
-                                                                    ))
-                                                                ) : (
-                                                                    <TableRow>
-                                                                        <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Employees on Leave Found </TableCell>
-                                                                    </TableRow>
-                                                                )}
-                                                            </TableBody>
-                                                        )}
-                                                    </Table>
-                                                    <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
-                                                </TableContainer>
-                                            </div>
-                                        </TabPanel>
-                                    </TabContext>
-                                </div>
-                            </div>
+                        <Box sx={{ p: 3, backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "10px" }}>
+                            <h5 className="block-title">Present Employees</h5>
+                            <TableContainer sx={{ mt: 2, maxHeight: "450px" }}>
+                                <Table stickyHeader className="table table-md table-striped table-vcenter">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="left" sx={{ width: "40%" }}>Name</TableCell>
+                                            <TableCell align="center" sx={{ width: "15%" }}>First Time In</TableCell>
+                                            <TableCell align="center" sx={{ width: "15%" }}>First Time Out</TableCell>
+                                            <TableCell align="center" sx={{ width: "15%" }}>Second Time In</TableCell>
+                                            <TableCell align="center" sx={{ width: "15%" }}>Second Time Out</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    {attendanceLoading ? (
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell colSpan={5}>
+                                                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
+                                                        <CircularProgress />
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    ) : (
+                                        <TableBody>
+                                            {paginatedAttendance.length > 0 ? (
+                                                paginatedAttendance.map((attend, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell align="left">
+                                                            <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                        No Attendance Found
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    )}
+                                </Table>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 20]}
+                                    component="div"
+                                    count={attendance.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                    sx={{ alignItems: "center" }}
+                                />
+                            </TableContainer>
+                            {/* <h5 className="block-title">{presentCount ? presentCount : 0} out of {headCount ? headCount : 0}</h5> */}
                         </Box>
                     </div>
                 </div>
+
             </Box >
         </Layout >
     );

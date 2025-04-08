@@ -27,6 +27,7 @@ import DocumentsList from "../Pages/Documents/DocumentsList";
 
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
+import AttendanceToday from "../Pages/Admin/Attendance/AttendanceToday";
 import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
@@ -66,6 +67,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="attendance/logs" element={ <ProtectedRoute element={<AttendanceLogs />} user={user} /> } />
             <Route path="attendance/:user" element={ <ProtectedRoute element={<AttendanceView />} user={user} /> } />
+            <Route path="attendance/today" element={ <ProtectedRoute element={<AttendanceToday />} user={user} /> } />
             <Route path="attendance/summary" element={ <ProtectedRoute element={<AttendanceSummary />} user={user} /> } />
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
