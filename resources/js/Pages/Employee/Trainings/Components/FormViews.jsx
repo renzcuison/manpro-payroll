@@ -762,15 +762,6 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                 Save your progress or submit when ready. Results will be calculated upon submission.
                                             </Typography>
                                             <Box display="flex" sx={{ alignItems: "center", mt: 1 }}>
-                                                {/* Force Exit Button (TEMPORARY, REMOVE LATER) */}
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={handleTimerEnd}
-                                                    sx={{ ml: 1, backgroundColor: "#d32f2f" }}
-                                                    startIcon={<ExitToApp />}
-                                                >
-                                                    End Attempt (Temp)
-                                                </Button>
                                                 <Button
                                                     variant="contained"
                                                     onClick={() => setSubmissionView(true)}

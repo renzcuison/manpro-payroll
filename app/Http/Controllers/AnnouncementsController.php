@@ -464,8 +464,10 @@ class AnnouncementsController extends Controller
             ->get();
 
         $thumbnailFiles->each(function ($file) use (&$thumbnails) {
-            if (Storage::disk('public')->exists($file->path)) {
-                $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+            if ($file->path) {
+                if (Storage::disk('public')->exists($file->path)) {
+                    $thumbnails[$file->announcement_id] = base64_encode(Storage::disk('public')->get($file->path));
+                }
             }
         });
 

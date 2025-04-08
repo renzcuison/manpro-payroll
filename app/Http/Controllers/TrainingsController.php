@@ -924,8 +924,10 @@ class TrainingsController extends Controller
             ->get();
 
         $coverFiles->each(function ($file) use (&$covers) {
-            if (Storage::disk('public')->exists($file->cover_photo)) {
-                $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+            if ($file->cover_photo) {
+                if (Storage::disk('public')->exists($file->cover_photo)) {
+                    $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
+                }
             }
         });
 
@@ -1315,20 +1317,209 @@ class TrainingsController extends Controller
 
     public function getFormAnalytics($id)
     {
-        //Log::info("TrainingsController:getFormAnalytics");
-        //Log::info($id);
+        // Log::info("TrainingsController:getFormAnalytics");
+        // Log::info($id);
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $analytics = null;
+            $analytics = new \stdClass();
+
+            $content = TrainingContentModel::with([
+                'views.responses.answers',
+                'form.items' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'form.items.choices'
+            ])->find($id);
+
+            if (!$content) {
+                return response()->json(['status' => 404, 'analytics' => null, 'message' => 'Content not found']);
+            }
+
+            // Respondent Count
+            $analytics->respondent_count = $content->views->filter(function ($view) {
+                return $view->responses->isNotEmpty();
+            })->count();
+            // Total Attempts
+            $analytics->total_attempts = $content->views->sum(function ($view) {
+                return $view->responses->count();
+            });
+            $analytics->avg_attempt_count = $analytics->respondent_count ? $analytics->total_attempts / $analytics->respondent_count : 0;
+
+            $responses = $content->views->flatMap->responses;
+            // Scores
+            $analytics->avg_score = $responses->avg('score') ?? 0;
+            $analytics->hi_score = $responses->max('score') ?? 0;
+            $analytics->lo_score = $responses->min('score') ?? 0;
+
+            // Durations
+            $analytics->avg_duration = $responses->avg('duration') ?? 0;
+            $analytics->fastest_attempt = $responses->min('duration') ?? 0;
+            $analytics->slowest_attempt = $responses->max('duration') ?? 0;
+
+            // Total Points
+            $totalPoints = $content->form->items->sum('value') ?? 100;
+            $analytics->total_points = $totalPoints;
+
+            // Passing Rate
+            $passingScore = $content->form->passing_score;
+            $passingResponses = $responses->filter(function ($response) use ($passingScore, $totalPoints) {
+                return ($response->score / $totalPoints) * 100 >= $passingScore;
+            })->count();
+
+            $analytics->passing_rate = $responses->isEmpty()
+                ? 0
+                : round(($passingResponses / $responses->count()) * 100, 2);
+
+            // Item-Specific Analytics
+            $analytics->items = $content->form->items->map(function ($item) use ($responses) {
+                $itemData = new \stdClass();
+                $itemData->type = $item->type;
+                $itemData->id = $item->id;
+                $itemData->description = $item->description;
+                $itemData->order = $item->order;
+
+                $answerCount = 0;
+                $correctCount = 0;
+                $incorrectCount = 0;
+                $unAnsweredCount = 0;
+                $selectionCount = 0;
+                $responseCount = $responses->count();
+
+                if ($item->type == 'FillInTheBlank') {
+                    /*
+                        Retrieves the FF: 
+                        [1] Correct Answer for Item
+                        [2] No. of Correct Answers
+                        [3] No. of Incorrect, Empty Answers
+                        [4] Frequent Incorrect Answers
+                    */
+                    //[1]
+                    $correctAnswer = strtolower(trim($item->choices->first()->description));
+                    $itemData->correct_answer = $correctAnswer;
+
+                    $itemAnswers = $responses->flatMap->answers->where('form_item_id', $item->id);
+                    $answerCount = $itemAnswers->count();
+
+                    //[2]
+                    $correctCount = $itemAnswers->filter(function ($answer) use ($correctAnswer) {
+                        return strtolower(trim($answer->description)) === $correctAnswer;
+                    })->count();
+
+                    //[3]
+                    $incorrectCount = $answerCount - $correctCount;
+                    $unAnsweredCount = $responseCount - $answerCount;
+
+                    //[4]
+                    $incorrectAnswers = $itemAnswers->filter(function ($answer) use ($correctAnswer) {
+                        return strtolower(trim($answer->description)) !== $correctAnswer;
+                    })->groupBy(function ($answer) {
+                        return strtolower(trim($answer->description));
+                    })->map(function ($group) {
+                        return [
+                            'description' => $group->first()->description,
+                            'count' => $group->count(),
+                        ];
+                    })->sortByDesc('count')->take(5)->values();
+
+                    $itemData->common_incorrects = $incorrectAnswers;
+                }
+                if ($item->type == 'Choice') {
+                    /*
+                        Retrieves the FF: 
+                        [1] Choice metadata
+                        [2] Answer Rate Per Choice
+                        [3] No. of Correct Answers
+                        [4] No. of Incorrect, Empty Answers
+                    */
+                    $itemData->choices = $item->choices->map(function ($choice) use ($responses) {
+                        $choiceData = new \stdClass();
+                        //[1]
+                        $choiceData->id = $choice->id;
+                        $choiceData->description = $choice->description;
+                        $choiceData->is_correct = $choice->is_correct;
+
+                        //[2]
+                        $choiceAnswers = $responses->flatMap->answers->where('form_choice_id', $choice->id);
+                        $choiceData->answer_rate = $choiceAnswers->count();
+
+                        return $choiceData;
+                    });
+
+                    //[3]
+                    $answerCount = $responses->flatMap->answers->where('form_item_id', $item->id)->count();
+                    $correctCount = $itemData->choices->sum(function ($choice) use ($responses) {
+                        return $choice->is_correct ? $responses->flatMap->answers->where('form_choice_id', $choice->id)->count() : 0;
+                    });
+
+                    //[4]
+                    $incorrectCount = $answerCount - $correctCount;
+                    $unAnsweredCount = $responseCount - $answerCount;
+                }
+                if ($item->type == 'MultiSelect') {
+                    /*
+                        Retrieves the FF: 
+                        [1] Choice metadata
+                        [2] Answer Rate Per Choice
+                        [3] No. of Correct Selections (per choice)
+                        [4] No. of Incorrect Selections (per choice)
+                        [5] Average Score 
+                    */
+                    $itemData->choices = $item->choices->map(function ($choice) use ($responses, $item, $responseCount) {
+                        $choiceData = new \stdClass();
+                        //[1]
+                        $choiceData->id = $choice->id;
+                        $choiceData->description = $choice->description;
+                        $choiceData->is_correct = $choice->is_correct;
+
+                        //[2]
+                        $choiceAnswers = $responses->flatMap->answers->where('form_choice_id', $choice->id);
+                        $choiceData->answer_rate = $choiceAnswers->count();
+
+                        return $choiceData;
+                    });
+
+                    //[3,4]
+                    $selectionCount = $responses->flatMap->answers->where('form_item_id', $item->id)->count();
+                    $correctCount = $itemData->choices->sum(function ($choice) use ($responses) {
+                        return $choice->is_correct ? $responses->flatMap->answers->where('form_choice_id', $choice->id)->count() : 0;
+                    });
+                    $incorrectCount = $selectionCount - $correctCount;
+
+                    //[5]
+                    $answerCount = $responses->filter(function ($response) use ($item) {
+                        return $response->answers->where('form_item_id', $item->id)->isNotEmpty();
+                    })->count();
+                    $itemData->avg_score = $responses->map(function ($response) use ($item) {
+                        $correctAnswers = $response->answers->where('form_item_id', $item->id)
+                            ->filter(function ($answer) use ($item) {
+                                return $item->choices->where('id', $answer->form_choice_id)->where('is_correct', true)->isNotEmpty();
+                            })->count();
+                        return $correctAnswers;
+                    })->avg() ?? 0;
+
+                    $unAnsweredCount = $responseCount - $answerCount;
+                }
+
+                if ($item->type == 'MultiSelect') {
+                    $itemData->correct_rate = $selectionCount ? round(($correctCount / $selectionCount) * 100, 2) : 0;
+                    $itemData->incorrect_rate = $selectionCount ? round(($incorrectCount / $selectionCount) * 100, 2) : 0;
+                } else {
+                    $itemData->correct_rate = $responseCount ? round(($correctCount / $responseCount) * 100, 2) : 0;
+                    $itemData->incorrect_rate = $responseCount ? round(($incorrectCount / $responseCount) * 100, 2) : 0;
+                }
+                $itemData->unanswered_count = $unAnsweredCount;
+                $itemData->unanswered_rate = $responseCount ? round(($unAnsweredCount / $responseCount) * 100, 2) : 0;
+
+                return $itemData;
+            });
 
             return response()->json(['status' => 200, 'analytics' => $analytics]);
         } else {
             return response()->json(['status' => 403, 'analytics' => null]);
         }
     }
-
     // Training Forms (Employee) ---------------------------------------------------- /
     public function getEmployeeFormDetails($id)
     {
