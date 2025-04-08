@@ -111,11 +111,11 @@ const Sidebar = ({ children, closeMini }) => {
             children: [
                 {
                     href: `/admin/employees?`,
-                    text: "List of Employees",
+                    text: "Employees",
                 },
                 {
                     href: `/admin/employees/benefits?`,
-                    text: "List of Benefits",
+                    text: "Benefits",
                 },
                 // {
                 // href: `/hr/employees-deductions?`,

@@ -547,7 +547,7 @@ class PayrollController extends Controller
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $deductions = [
-            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} min)", 'amount' => $absents],
+            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} day)", 'amount' => $absents],
             ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} min)", 'amount' => $tardiness],
             ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
