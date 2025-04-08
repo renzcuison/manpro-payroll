@@ -5,6 +5,12 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+
 const AttendanceToday = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
