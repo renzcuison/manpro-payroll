@@ -14,7 +14,7 @@ class AddSoftdeletesToTrainingFormItemsTable extends Migration
     public function up()
     {
         Schema::table('training_form_items', function (Blueprint $table) {
-            $table->softDeletes()->after('value');
+            $table->softDeletes();
         });
     }
 

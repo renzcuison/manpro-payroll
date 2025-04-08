@@ -22,4 +22,3 @@ export function getJWTHeader(user) {
 }
 
 export default axiosInstance;
-``;

@@ -14,15 +14,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\LoanApplicationsController;
 
-
-// use App\Http\Controllers\NewControllerName;
-// use App\Http\Controllers\NewControllerName;
-// use App\Http\Controllers\NewControllerName;
-
-
-
-
-
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -595,3 +586,6 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
+
+
+require __DIR__ . '/super-admin.php';
