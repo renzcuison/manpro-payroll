@@ -154,7 +154,7 @@ const EmployeesList = () => {
                             </Grid>
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    {/* <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                     }}>
                                         <TextField
@@ -180,10 +180,10 @@ const EmployeesList = () => {
                                                 </MenuItem>
                                             ))}
                                         </TextField>
-                                    </FormControl>
+                                    </FormControl> */}
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    {/* <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                     }}>
                                         <TextField
@@ -209,7 +209,7 @@ const EmployeesList = () => {
                                                 </MenuItem>
                                             ))}
                                         </TextField>
-                                    </FormControl>
+                                    </FormControl> */}
                                 </Grid>
                             </Grid>
                         </Grid>
