@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
+import React, { useEffect, useState, useMemo } from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableRow, Box, FormControl, Typography, TablePagination, TextField, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -14,11 +14,12 @@ dayjs.extend(localizedFormat);
 const AttendanceToday = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
 
     const [attendance, setAttendance] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const [searchName, setSearchName] = useState('');
 
     const [attendanceTab, setAttendanceTab] = useState('1');
     const [attendanceLoading, setAttendanceLoading] = useState(true);
@@ -53,7 +54,20 @@ const AttendanceToday = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-    const paginatedAttendance = attendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    const filteredAttendance = useMemo(() => {
+        if (!searchName) return attendance;
+        return attendance.filter((attend) => {
+            const fullName = `${attend.first_name} ${attend.middle_name || ''} ${attend.last_name} ${attend.suffix || ''}`.toLowerCase();
+            return fullName.includes(searchName.toLowerCase());
+        });
+    }, [searchName, attendance]);
+    
+    const paginatedAttendance = useMemo(() => {
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        return filteredAttendance.slice(startIndex, endIndex);
+    }, [filteredAttendance, page, rowsPerPage]);
 
     // Tab Controls
     const handleAttendanceTabChange = (event, newValue) => {
@@ -160,10 +174,16 @@ const AttendanceToday = () => {
                                         <Tab label="On Leave" value="4" />
                                     </TabList>
                                 </Box>
+
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                                    </FormControl>
+                                </Box>
                             </Box>
                             
                             <TabPanel value="1" sx={{ px: 0 }}>
-                                <div style={{ height: "450px", overflow: "auto", }} >
+                                <Box sx={{ height: "450px", overflow: "auto" }}>
                                     <TableContainer sx={{ maxHeight: "450px" }}>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
@@ -212,30 +232,19 @@ const AttendanceToday = () => {
                                                         ))
                                                     ) : (
                                                         <TableRow>
-                                                            <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                                No Attendance Found
-                                                            </TableCell>
+                                                            <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Attendance Found </TableCell>
                                                         </TableRow>
                                                     )}
                                                 </TableBody>
                                             )}
                                         </Table>
-                                        <TablePagination
-                                            rowsPerPageOptions={[5, 10, 20]}
-                                            component="div"
-                                            count={attendance.length}
-                                            rowsPerPage={rowsPerPage}
-                                            page={page}
-                                            onPageChange={handleChangePage}
-                                            onRowsPerPageChange={handleChangeRowsPerPage}
-                                            sx={{ alignItems: "center" }}
-                                        />
+                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={filteredAttendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                     </TableContainer>
-                                </div>
+                                </Box>
                             </TabPanel>
 
                             <TabPanel value="2" sx={{ px: 0 }}>
-                                <div style={{ height: "450px", overflow: "auto", }} >
+                                <Box sx={{ height: "450px", overflow: "auto" }}>
                                     <TableContainer sx={{ maxHeight: "450px" }}>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
@@ -298,13 +307,13 @@ const AttendanceToday = () => {
                                                 </TableBody>
                                             )}
                                         </Table>
-                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
+                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={filteredAttendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                     </TableContainer>
-                                </div>
+                                </Box>
                             </TabPanel>
 
                             <TabPanel value="3" sx={{ px: 0 }}>
-                                <div style={{ height: "450px", overflow: "auto", }} >
+                                <Box sx={{ height: "450px", overflow: "auto" }}>
                                     <TableContainer sx={{ maxHeight: "450px" }}>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
@@ -344,13 +353,13 @@ const AttendanceToday = () => {
                                             )}
                                         </Table>
 
-                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
+                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={filteredAttendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                     </TableContainer>
-                                </div>
+                                </Box>
                             </TabPanel>
 
                             <TabPanel value="4" sx={{ px: 0 }}>
-                                <div style={{ height: "450px", overflow: "auto", }} >
+                                <Box sx={{ height: "450px", overflow: "auto" }}>
                                     <TableContainer sx={{ maxHeight: "450px" }}>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
@@ -395,57 +404,12 @@ const AttendanceToday = () => {
                                                 </TableBody>
                                             )}
                                         </Table>
-                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={attendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
+                                        <TablePagination rowsPerPageOptions={[5, 10, 20]} component="div" count={filteredAttendance.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} sx={{ alignItems: "center" }} />
                                     </TableContainer>
-                                </div>
+                                </Box>
                             </TabPanel>
                         </TabContext>
                     </Box>
-
-                    {/* <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
-                        ) : (
-                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                <Table aria-label="simple table">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell align="center">Name</TableCell>
-                                            <TableCell align="center">Branch</TableCell>
-                                            <TableCell align="center">Department</TableCell>
-                                            <TableCell align="center">Role</TableCell>
-                                            <TableCell align="center">Timestamp</TableCell>
-                                            <TableCell align="center">Action</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-
-                                    <TableBody>
-                                        {!Array.isArray(attendances) || attendances.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={6} align="center">
-                                                    No attendance records found.
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            attendances.map((attendance) => (
-                                                <TableRow key={attendance.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
-                                                    <TableCell align="left">{attendance.name || '-'}</TableCell>
-                                                    <TableCell align="center">{attendance.branch || '-'}</TableCell>
-                                                    <TableCell align="center">{attendance.department || '-'}</TableCell>
-                                                    <TableCell align="center">{attendance.role || '-'}</TableCell>
-                                                    <TableCell align="center">{attendance.timeStamp || '-'}</TableCell>
-                                                    <TableCell align="center">{attendance.action || '-'}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        )}
-                    </Box> */}
-
                 </Box>
             </Box>
         </Layout>

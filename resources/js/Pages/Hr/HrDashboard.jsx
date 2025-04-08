@@ -431,7 +431,7 @@ const HrDashboard = () => {
                 <div className="row">
                     <div className="col-lg-12 col-sm-12" style={{ marginBottom: 10 }}>
                         <Box sx={{ p: 3, backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "10px" }}>
-                            <h5 className="block-title">Present Employees</h5>
+                            <h5 className="block-title">Today</h5>
                             <TableContainer sx={{ mt: 2, maxHeight: "450px" }}>
                                 <Table stickyHeader className="table table-md table-striped table-vcenter">
                                     <TableHead>
