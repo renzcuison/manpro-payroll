@@ -48,7 +48,6 @@ use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
@@ -84,15 +83,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     // 
-    Route::prefix('admin')->group(function () {
-        
-        Route::prefix('documents')->group(function () {
-            Route::get('/', [DocumentController::class, 'index']);
-            Route::post('/store', [DocumentController::class, 'store']);
-            Route::post('/edit', [DocumentController::class, 'edit']);
-            Route::delete('/{id}', [DocumentController::class, 'destroy']);
-        });
+    Route::prefix('admin/documents')->group(function () {
+        Route::get('/', [DocumentController::class, 'index']); // GET /admin/documents
+        Route::post('/store', [DocumentController::class, 'store']);
+        Route::post('/edit', [DocumentController::class, 'edit']);
+        Route::delete('/{id}', [DocumentController::class, 'destroy']);
     });
+
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
@@ -190,14 +187,23 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/savePayroll', [PayrollController::class, 'savePayroll']);
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
+
+        Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
+
     });
 
     Route::prefix('loans')->group(function () {
         Route::get('/getLoanApplications', [LoanApplicationsController::class, 'getLoanApplications']);
         Route::post('/saveLoanApplication', [LoanApplicationsController::class, 'saveLoanApplication']);
+        Route::post('/cancelLoanApplication/{id}', [LoanApplicationsController::class, 'cancelLoanApplication']);
+        Route::post('/editLoanApplication', [LoanApplicationsController::class, 'editLoanApplication']);
         Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
         Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
         Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
+        Route::get('/getAllLoanApplications', [LoanApplicationsController::class, 'getAllLoanApplications']);
+        Route::post('/updateLoanStatus', [LoanApplicationsController::class, 'updateLoanStatus']);
+        Route::post('/createProposal/{id}', [LoanApplicationsController::class, 'createProposal']);
+        Route::post('/respondToProposal/{id}', [LoanApplicationsController::class, 'respondToProposal']);
     });
 
     Route::prefix('applications')->group(function () {
@@ -205,7 +211,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getApplicationTypes', [ApplicationsController::class, 'getApplicationTypes']);
         Route::post('/editApplicationType', [ApplicationsController::class, 'editApplicationType']);
-        
+
         Route::get('/getFullLeaveDays', [ApplicationsController::class, 'getFullLeaveDays']);
         Route::get('/getNagerHolidays', [ApplicationsController::class, 'getNagerHolidays']);
         Route::get('/getTenureship', [ApplicationsController::class, 'getTenureship']);
@@ -221,13 +227,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/cancelApplication/{id}', [ApplicationsController::class, 'cancelApplication']);
         Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
-        Route::get('/getLeaveCredits/{id}', [ApplicationsController::class, 'getLeaveCredits']);
+        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
 
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
 
-        Route::get('/getLeaveCreditLogs/{id}', [ApplicationsController::class, 'getLeaveCreditLogs']);
+        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
     });
 
     Route::prefix('announcements')->group(function () {
@@ -262,8 +268,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('trainings')->group(function () {
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
-        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
         Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
+        Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
         Route::get('/getContentDetails/{id}', [TrainingsController::class, 'getContentDetails']);
 
         Route::get('/getEmployeeTrainings', [TrainingsController::class, 'getEmployeeTrainings']);
@@ -272,7 +278,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeContentDetails/{id}', [TrainingsController::class, 'getEmployeeContentDetails']);
 
         Route::get('/getSource/{id}', [TrainingsController::class, 'getSource']);
-        Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
+        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
 
         Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);
         Route::post('/editTraining', [TrainingsController::class, 'editTraining']);
@@ -283,6 +289,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/removeContent', [TrainingsController::class, 'removeContent']);
         Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
+        Route::get('/getTrainingViews/{id}', [TrainingsController::class, 'getTrainingViews']);
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
 
         Route::get('/getFormItems/{id}', [TrainingsController::class, 'getFormItems']);
@@ -291,7 +298,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
         Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
 
+        Route::get('/getFormAnalytics/{id}', [TrainingsController::class, 'getFormAnalytics']);
+
         Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
+        Route::post('/saveEmployeeFormSubmission', [TrainingsController::class, 'saveEmployeeFormSubmission']);
     });
 
 

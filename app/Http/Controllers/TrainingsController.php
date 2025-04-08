@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\UsersModel;
 use App\Models\TrainingsModel;
 use App\Models\TrainingContentModel;
+use App\Models\TrainingFormAnswersModel;
 use App\Models\TrainingViewsModel;
 use App\Models\TrainingMediaModel;
 use App\Models\TrainingFormsModel;
 use App\Models\TrainingFormItemsModel;
 use App\Models\TrainingFormChoicesModel;
-
+use App\Models\TrainingFormResponsesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -113,20 +114,28 @@ class TrainingsController extends Controller
                 ])
                 ->get()
                 ->map(function ($training) use ($user) {
-                    // Debug logging for is_completed
                     $totalContents = TrainingContentModel::where('training_id', $training->id)->count();
+
+                    // View Trackers
+                    $hasViews = TrainingContentModel::where('training_id', $training->id)
+                        ->whereHas('views', function ($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->exists();
                     $completedContents = TrainingContentModel::where('training_id', $training->id)
                         ->whereHas('views', function ($query) use ($user) {
                             $query->where('user_id', $user->id)->where('status', 'Finished');
                         })
                         ->count();
 
+                    // Appended Data
                     $contentTypes = json_decode($training->content_types, true);
                     $training->video = (bool) ($contentTypes['has_video'] ?? 0);
                     $training->image = (bool) ($contentTypes['has_image'] ?? 0);
                     $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
                     $training->form = (bool) ($contentTypes['has_form'] ?? 0);
                     $training->completed = $totalContents == $completedContents;
+                    $training->viewed = $hasViews;
 
                     unset($training->content_types);
 
@@ -692,7 +701,18 @@ class TrainingsController extends Controller
                 ->whereNotIn('id', $viewedUserIds)
                 ->count();
 
-            unset($content->views);
+            // Add latest views with user details
+            $content->latest_views = $content->views()
+                ->with('user')
+                ->orderBy('updated_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($view) {
+                    $view->user_first_name = $view->user->first_name ?? 'N/A';
+                    $view->user_last_name = $view->user->last_name ?? 'N/A';
+                    unset($view->user);
+                    return $view;
+                });
 
             // Content Constructor
             if ($content->training_media_id) {
@@ -792,6 +812,7 @@ class TrainingsController extends Controller
                 $view = $contentItem->views->first();
 
                 $contentItem->has_viewed = !is_null($view);
+                $contentItem->viewed_at = $view ? $view->created_at : null;
 
                 $contentItem->is_finished = false;
                 $contentItem->completed_at = null;
@@ -947,8 +968,8 @@ class TrainingsController extends Controller
     // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
-        //Log::info("TrainingsController:handleTrainingViews");
-        //Log::info($request);
+        // Log::info("TrainingsController:handleTrainingViews");
+        // Log::info($request);
 
         $user = Auth::user();
 
@@ -964,7 +985,7 @@ class TrainingsController extends Controller
                 ->exists();
 
             if ($request->input("finished")) {
-                if ($content->media->type == "Image") {
+                if ($content->media && $content->media->type == "Image") {
                     if (!$existing) {
                         TrainingViewsModel::create([
                             'user_id' => $user->id,
@@ -999,6 +1020,57 @@ class TrainingsController extends Controller
             DB::rollBack();
 
             return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
+        }
+    }
+
+    public function getTrainingViews($id)
+    {
+        // Log::info("TrainingsController:getTrainingViews");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $views = TrainingViewsModel::with('user')
+                ->where('training_content_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $viewedIds = $views->pluck('user_id')->toArray();
+
+            $views = $views->map(function ($view) {
+                $emp = $view->user;
+                return [
+                    'emp_id' => $emp->id,
+                    'emp_first_name' => $emp->first_name,
+                    'emp_middle_name' => $emp->middle_name ?? '',
+                    'emp_last_name' => $emp->last_name,
+                    'emp_suffix' => $emp->suffix ?? '',
+                    'emp_profile_pic' => $emp->profile_pic ?? null,
+                    'status' => $view->status,
+                    'viewed_at' => $view->created_at,
+                    'completed_at' => $view->completed_at ?? null,
+                ];
+            })->all();
+
+            $noViews = UsersModel::where('client_id', $user->client_id)
+                ->where('user_type', 'Employee')
+                ->whereNotIn('id', $viewedIds)
+                ->get()
+                ->map(function ($emp) {
+                    return [
+                        'emp_id' => $emp->id,
+                        'emp_first_name' => $emp->first_name,
+                        'emp_middle_name' => $emp->middle_name ?? '',
+                        'emp_last_name' => $emp->last_name,
+                        'emp_suffix' => $emp->suffix ?? '',
+                        'emp_profile_pic' => $emp->profile_pic ?? null,
+                    ];
+                })->all();
+
+            return response()->json(['status' => 200, 'views' => $views, 'no_views' => $noViews]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -1197,7 +1269,7 @@ class TrainingsController extends Controller
                 ->orderBy('order', 'asc')
                 ->get();
 
-            return response()->json(['status' => 403, 'items' => $itemData]);
+            return response()->json(['status' => 200, 'items' => $itemData]);
         } else {
             return response()->json(['status' => 403, 'items' => null]);
         }
@@ -1241,13 +1313,31 @@ class TrainingsController extends Controller
         }
     }
 
+    public function getFormAnalytics($id)
+    {
+        //Log::info("TrainingsController:getFormAnalytics");
+        //Log::info($id);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $analytics = null;
+
+            return response()->json(['status' => 200, 'analytics' => $analytics]);
+        } else {
+            return response()->json(['status' => 403, 'analytics' => null]);
+        }
+    }
+
     // Training Forms (Employee) ---------------------------------------------------- /
     public function getEmployeeFormDetails($id)
     {
         //Log::info("TrainingsController:getFormDetails");
         //Log::info($id);
 
+        $user = Auth::user();
         $content = TrainingContentModel::with([
+            'form',
             'form.items' => function ($query) {
                 $query->orderBy('order', 'ASC');
             },
@@ -1278,13 +1368,206 @@ class TrainingsController extends Controller
             ];
         })->toArray();
 
+        $totalPoints = array_sum(array_column($items, 'value'));
+
+        // Form Responses
+        $view = TrainingViewsModel::with('responses')
+            ->where('training_content_id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($view) {
+            $responses = $view->responses;
+            $responseCount = $responses->count();
+
+            $view->average_duration = $responseCount > 0 ? $responses->avg('duration') : 0;
+            $view->average_score = $responseCount > 0 ? $responses->avg('score') : 0;
+            $view->response_count = $responseCount;
+
+            foreach ($responses as $response) {
+                $scorePercentage = ($response->score / $totalPoints) * 100;
+                $response->passed = $scorePercentage >= $content->form->passing_score;
+            }
+        }
+
+        $attemptData = $view;
+
         return response()->json([
-            'form' => $content,
+            'status' => 200,
             'items' => $items,
-            'attempt_data' => null,
+            'attempt_data' => $attemptData ? $attemptData->toArray() : null,
         ]);
     }
 
+    public function saveEmployeeFormSubmission(Request $request)
+    {
+        // Log::info("TrainingsController:saveEmployeeFormSubmission");
+        // Log::info($request);
+
+        $user = Auth::user();
+
+        try {
+            DB::beginTransaction();
+
+            // Validate and decode answers
+            $answersJson = $request->input('answers');
+            $answers = json_decode($answersJson, true);
+            if (!is_array($answers)) {
+                Log::error("Failed to decode answers JSON: " . $answersJson);
+                throw new \Exception("Invalid answers format");
+            }
+            // Log::info("Decoded Answers: ", $answers);
+
+            // Attempt Data
+            $contentId = $request->input('content_id');
+            $formId = $request->input('form_id');
+            $duration = ($request->input('duration') * 60) - $request->input('remaining_time');
+
+            // Evaluate responses
+            $evaluation = $this->evaluateFormResponse($formId, $answers);
+            $totalScore = array_sum(array_map(fn($itemScores) => array_sum($itemScores), $evaluation['scores']));
+            $passingScore = $evaluation['passing_score'];
+            $totalPoints = $evaluation['total_points'];
+
+            // Log::info($totalScore);
+            // Log::info($passingScore);
+            // Log::info($totalPoints);
+
+            $scorePercentage = ($totalScore / $totalPoints) * 100;
+            $passed = $scorePercentage >= $passingScore;
+
+            // Log::info("Your Score:      " . $scorePercentage . "%");
+            // Log::info("Passing Score:   " . $passingScore . "%");
+            // Log::info($passed);
+
+            // Training View
+            $view = TrainingViewsModel::where('user_id', $user->id)
+                ->where('training_content_id', $contentId)->first();
+
+            // Response Data
+            $response = TrainingFormResponsesModel::create([
+                'training_view_id' => $view->id,
+                'score' => $totalScore,
+                'start_time' => Carbon::parse($request->input('attempt_start_time')),
+                'duration' => $duration,
+            ]);
+
+            // Answer Processing
+            foreach ($answers as $itemId => $answer) {
+                if (is_string($answer)) { // Fill In The Blank Items
+                    TrainingFormAnswersModel::create([
+                        'form_response_id' => $response->id,
+                        'form_item_id' => $itemId,
+                        'form_choice_id' => null,
+                        'description' => $answer,
+                        'score' => $evaluation['scores'][$itemId][null] ?? 0,
+                    ]);
+                } elseif (is_array($answer)) { // Choice, Multiple Select Items
+                    foreach ($answer as $choiceId) {
+                        TrainingFormAnswersModel::create([
+                            'form_response_id' => $response->id,
+                            'form_item_id' => $itemId,
+                            'form_choice_id' => $choiceId,
+                            'description' => null,
+                            'score' => $evaluation['scores'][$itemId][$choiceId] ?? 0,
+                        ]);
+                    }
+                } else {
+                    Log::warning("Unexpected answer type for item {$itemId}: " . json_encode($answer));
+                }
+            }
+
+            DB::commit();
+            return response()->json(['status' => 200, 'message' => 'Form submitted successfully', 'passed' => $passed]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving form response: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error saving form response: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function evaluateFormResponse($formId, $answers)
+    {
+        // Log::info("TrainingsController:evaluateFormResponse");
+        // Log::info([
+        //     'form_id' => $formId,
+        //     'answers' => $answers,
+        // ]);
+
+        // Items
+        $items = TrainingFormItemsModel::with('choices')
+            ->where('form_id', $formId)
+            ->get()
+            ->keyBy('id');
+
+        $evaluation = [];
+        $totalPoints = $items->sum('value');
+        $passingScore = TrainingFormsModel::where('id', $formId)->value('passing_score');
+
+        // Evaluators
+        foreach ($answers as $itemId => $userAnswer) {
+            $item = $items[$itemId] ?? null;
+
+            if (!$item) {
+                Log::warning("Item {$itemId} not found in form {$formId}");
+                $evaluation[$itemId] = [null => 0];
+                continue;
+            }
+
+            switch ($item->type) {
+                case 'FillInTheBlank':
+                    $correctChoice = $item->choices->first();
+                    $evaluation[$itemId] = [
+                        null => ($correctChoice && is_string($userAnswer) &&
+                            trim(strtolower($userAnswer)) === trim(strtolower($correctChoice->description)))
+                            ? $item->value : 0
+                    ];
+                    break;
+
+                case 'Choice':
+                    $choiceId = is_array($userAnswer) && count($userAnswer) === 1 ? $userAnswer[0] : null;
+                    $selectedChoice = $choiceId ? $item->choices->firstWhere('id', $choiceId) : null;
+                    $evaluation[$itemId] = [
+                        $choiceId => $selectedChoice && $selectedChoice->is_correct ? $item->value : 0
+                    ];
+                    break;
+
+                case 'MultiSelect':
+                    if (!is_array($userAnswer)) {
+                        $evaluation[$itemId] = [$userAnswer => 0];
+                        break;
+                    }
+                    $choicesById = $item->choices->pluck('is_correct', 'id')->all();
+                    $scores = array_map(
+                        fn($choiceId) => isset($choicesById[$choiceId]) && $choicesById[$choiceId] ? 1 : 0,
+                        $userAnswer
+                    );
+                    $evaluation[$itemId] = array_combine($userAnswer, $scores);
+                    break;
+
+                default:
+                    Log::warning("Unknown item type for item {$itemId}: " . $item->type);
+                    $evaluation[$itemId] = [null => 0];
+                    break;
+            }
+        }
+
+        // Unanswered Items
+        foreach ($items as $itemId => $item) {
+            if (!isset($answers[$itemId])) {
+                $evaluation[$itemId] = [null => 0];
+            }
+        }
+
+        // Log::info("Evaluated Responses: ", $evaluation);
+        return [
+            'total_points' => (int) $totalPoints,
+            'passing_score' => (int) $passingScore,
+            'scores' => $evaluation,
+        ];
+    }
+
+    // Others ----------------------------------------------------------------------- /
     function generateRandomCode($length)
     {
         // log::info("TrainingsController::generateRandomCode");

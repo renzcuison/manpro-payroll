@@ -92,6 +92,7 @@ const LeaveCreditAdd = ({ open, close, empId }) => {
             credit_count: creditCount,
         };
 
+        console.log(data);
         axiosInstance.post('/applications/saveLeaveCredits', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {

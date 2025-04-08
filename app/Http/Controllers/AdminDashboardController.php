@@ -201,14 +201,52 @@ class AdminDashboardController extends Controller
 
             $result = [];
 
-            if ($type == 1) {
+
+            if ($type == 1) { // Present
                 $result = $attendances->groupBy('user_id')
                     ->sortKeysDesc()
                     ->map(function ($logs) {
-                        $timeIn = $logs->firstWhere('action', 'Duty In');
-                        $timeOut = $logs->last(function ($log) {
-                            return $log->action === 'Duty Out';
-                        });
+
+                        $firstTimeIn = null;
+                        $firstTimeOut = null;
+                        $secondTimeIn = null;
+                        $secondTimeOut = null;
+
+                        $workHours = $logs->first()->workHour;
+                        if ($workHours->shift_type == "Regular") {
+                            $firstTimeIn = $logs->firstWhere('action', 'Duty In');
+                            $firstTimeOut = $logs->last(function ($log) {
+                                return $log->action === 'Duty Out';
+                            });
+                        } else {
+                            // Date Normalizers
+                            $date = Carbon::parse($logs->first()->timestamp)->toDateString();
+                            $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
+                            $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
+                            $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
+
+                            // First Shift -> First Time In
+                            $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
+                                return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
+                            });
+
+                            // Second Shift -> First Time In
+                            $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
+                                return $log->action === 'Duty In' &&
+                                    Carbon::parse($log->timestamp)->gt($firstOut) &&
+                                    Carbon::parse($log->timestamp)->lt($secondOut);
+                            });
+
+                            // First Shift -> Last Time Out 
+                            $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
+                                return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
+                            });
+
+                            // Second Shift -> Last Time Out
+                            $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
+                                return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
+                            });
+                        }
                         $user = $logs->first()->user;
 
                         return [
@@ -217,35 +255,81 @@ class AdminDashboardController extends Controller
                             'last_name' => $user->last_name ?? null,
                             'middle_name' => $user->middle_name ?? null,
                             'suffix' => $user->suffix ?? null,
-                            'time_in' => $timeIn ? $timeIn->timestamp : null,
-                            'time_out' => $timeOut ? $timeOut->timestamp : null,
+                            'shift_type' => $workHours->shift_type ?? null,
+                            'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                            'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
+                            'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                            'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
                         ];
                     })
                     ->values()
                     ->all();
 
                 usort($result, function ($a, $b) {
-                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                    return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
-            } elseif ($type == 2) {
+            } elseif ($type == 2) { // Late
                 $result = $attendances->groupBy('user_id')
                     ->map(function ($logs) {
-                        $timeIn = $logs->firstWhere('action', 'Duty In');
+                        $firstTimeIn = null;
+                        $firstTimeOut = null;
+                        $secondTimeIn = null;
+                        $secondTimeOut = null;
+
+                        $workHours = $logs->first()->workHour;
+                        if ($workHours->shift_type == "Regular") {
+                            $firstTimeIn = $logs->firstWhere('action', 'Duty In');
+                            $firstTimeOut = $logs->last(function ($log) {
+                                return $log->action === 'Duty Out';
+                            });
+                        } else {
+                            // Date Normalizers
+                            $date = Carbon::parse($logs->first()->timestamp)->toDateString();
+                            $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
+                            $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
+                            $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
+
+                            // First Shift -> First Time In
+                            $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
+                                return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
+                            });
+
+                            // Second Shift -> First Time In
+                            $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
+                                return $log->action === 'Duty In' &&
+                                    Carbon::parse($log->timestamp)->gt($firstOut) &&
+                                    Carbon::parse($log->timestamp)->lt($secondOut);
+                            });
+
+                            // First Shift -> Last Time Out 
+                            $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
+                                return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
+                            });
+
+                            // Second Shift -> Last Time Out
+                            $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
+                                return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
+                            });
+                        }
                         $user = $logs->first()->user;
-                        $workStart = $logs->first()->workHour->first_time_in;
+                        $workStart = $workHours->first_time_in;
                         $expectedStart = Carbon::parse($workStart);
 
                         $lateThreshold = $expectedStart->copy()->addMinute();
 
-                        if ($timeIn && $workStart && Carbon::parse($timeIn->timestamp)->gt($lateThreshold)) {
-                            $lateBy = Carbon::parse($timeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                        if ($firstTimeIn && $workStart && Carbon::parse($firstTimeIn->timestamp)->gt($lateThreshold)) {
+                            $lateBy = Carbon::parse($firstTimeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
                             return [
                                 'id' => $user->id,
                                 'first_name' => $user->first_name ?? null,
                                 'last_name' => $user->last_name ?? null,
                                 'middle_name' => $user->middle_name ?? null,
                                 'suffix' => $user->suffix ?? null,
-                                'time_in' => $timeIn->timestamp,
+                                'shift_type' => $workHours->shift_type ?? null,
+                                'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                                'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
+                                'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                                'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
                                 'start_time' => $expectedStart,
                                 'late_by' => $lateBy,
                             ];
@@ -257,9 +341,9 @@ class AdminDashboardController extends Controller
                     ->all();
 
                 usort($result, function ($a, $b) {
-                    return $b['time_in'] <=> $a['time_in'] ?: 0;
+                    return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
-            } elseif ($type == 3) {
+            } elseif ($type == 3) { // Absent
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
                 $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
@@ -292,7 +376,7 @@ class AdminDashboardController extends Controller
                     })
                     ->values()
                     ->all();
-            } elseif ($type == 4) {
+            } elseif ($type == 4) { // On Leave
                 $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
                 })

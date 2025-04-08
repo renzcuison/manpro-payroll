@@ -36,7 +36,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, Lock } from "@mui/icons-material";
+import { OndemandVideo, Image, Description, Quiz, Lock, CheckCircle, CheckCircleOutline, HourglassBottom } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -62,6 +62,7 @@ import { first } from "lodash";
 import PDFImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
 import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.png';
+import InfoBox from "../../../components/General/InfoBox";
 
 const TrainingView = () => {
     const { code } = useParams();
@@ -256,12 +257,29 @@ const TrainingView = () => {
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training
-                        </Typography>
+                        <Box display="flex" sx={{ alignItems: "center" }}>
+                            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                                {training?.title ?? "Training"}
+                            </Typography>
+                            {trainingComplete && (
+                                <Tooltip title="You have completed this training">
+                                    <CheckCircle
+                                        sx={{
+                                            ml: 1,
+                                            fontSize: 36,
+                                            color: '#177604',
+                                            transition: 'color 0.2s ease-in-out',
+                                            '&:hover': {
+                                                color: '#1A8F07',
+                                            },
+                                        }}
+                                    />
+                                </Tooltip>
+                            )}
+                        </Box>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "white", borderRadius: "8px", mb: 5 }} >
+                    <Box sx={{ mt: 4, p: 3, bgcolor: "white", borderRadius: "8px", mb: 5 }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
@@ -269,89 +287,10 @@ const TrainingView = () => {
                         ) : (
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
-                                    {/* Core Information */}
-                                    <Grid item container xs={8} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                        <Grid item container spacing={1} sx={{ mb: 1 }}>
-                                            {/* Title */}
-                                            <Grid item xs={12}>
-                                                <Typography variant="h5">
-                                                    {training.title || "-"}
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
-                                                <Divider />
-                                            </Grid>
-                                            {/* Posting Date */}
-                                            <Grid item xs={5} align="left">
-                                                Created
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
-                                                </Typography>
-                                            </Grid>
-                                            {/* Author Information */}
-                                            <Grid item xs={5} align="left">
-                                                Prepared by
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Stack>
-                                                    <Typography sx={{ fontWeight: "bold", }}>
-                                                        {training.author_name || "-"}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {training.author_title || "-"}
-                                                    </Typography>
-                                                </Stack>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
-                                                <Divider />
-                                            </Grid>
-                                            {/* Opens */}
-                                            <Grid item xs={5} align="left">
-                                                Opens
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
-                                                </Typography>
-                                            </Grid>
-                                            {/* Closes */}
-                                            <Grid item xs={5} align="left">
-                                                Closes
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
-                                                </Typography>
-                                            </Grid>
-                                            {/* Duration */}
-                                            <Grid item xs={5} align="left">
-                                                Duration
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {formatTime(training.duration)}
-                                                </Typography>
-                                            </Grid>
-                                            {/* Completion Date */}
-                                            {trainingComplete != null ? (
-                                                <>
-                                                    <Grid item xs={5} align="left">
-                                                        Completed On
-                                                    </Grid>
-                                                    <Grid item xs={7} align="left">
-                                                        <Typography sx={{ fontWeight: "bold", }}>
-                                                            {dayjs(trainingComplete).format("MMM D, YYYY    h:mm A")}
-                                                        </Typography>
-                                                    </Grid>
-                                                </>
-                                            ) : null}
-                                        </Grid>
-                                    </Grid>
                                     {/* Thumbnail */}
-                                    <Grid item xs={4}>
+                                    <Grid item xs={12}>
                                         <Box sx={{
+                                            mb: 1,
                                             position: 'relative',
                                             width: '100%',
                                             aspectRatio: '2 / 1',
@@ -376,14 +315,101 @@ const TrainingView = () => {
                                             }
                                         </Box>
                                     </Grid>
+                                    {/* Core Information */}
+                                    <Grid item container xs={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                        {/* Header */}
+                                        <Grid item xs={12}>
+                                            <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary", }}>
+                                                About This Training:
+                                            </Typography>
+                                        </Grid>
+                                        {/* Posting Date */}
+                                        <Grid item xs={6}>
+                                            <InfoBox
+                                                title="Created"
+                                                info={dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                        {/* Author Information */}
+                                        <Grid item xs={6}>
+                                            <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', }} >
+                                                <Typography
+                                                    sx={{
+                                                        color: 'text.secondary',
+                                                        fontWeight: 500,
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        flex: '0 0 40%',
+                                                    }}
+                                                >
+                                                    Prepared by
+                                                </Typography>
+                                                <Stack sx={{ flex: '0 0 60%', textAlign: 'left', }} >
+                                                    <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                                        {training.author_name || '-'}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                        {training.author_title || '-'}
+                                                    </Typography>
+                                                </Stack>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                            <Divider />
+                                        </Grid>
+                                        {/* Opens */}
+                                        <Grid item xs={6}>
+                                            <InfoBox
+                                                title="Opens"
+                                                info={dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                        {/* Duration */}
+                                        <Grid item xs={6}>
+                                            <InfoBox
+                                                title="Duration"
+                                                info={formatTime(training.duration)}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                        {/* Closes */}
+                                        <Grid item xs={6}>
+                                            <InfoBox
+                                                title="Closes"
+                                                info={dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                        {/* Completion Date */}
+                                        {trainingComplete != null ? (
+                                            <Grid item xs={6}>
+                                                <InfoBox
+                                                    title="Completed On"
+                                                    info={dayjs(trainingComplete).format("MMM D, YYYY    h:mm A")}
+                                                    compact
+                                                    clean
+                                                />
+                                            </Grid>
+                                        ) : null}
+                                    </Grid>
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Description */}
-                                    <Grid item xs={12} >
-                                        <div
-                                            id="description"
-                                            style={{
+                                    <Grid item xs={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                            Description
+                                        </Typography>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
                                                 wordWrap: 'break-word',
                                                 wordBreak: 'break-word',
                                                 overflowWrap: 'break-word',
@@ -395,38 +421,31 @@ const TrainingView = () => {
                                     <Grid item xs={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
-                                    <Grid container item xs={12} spacing={2}>
-                                        <Grid item xs={2}>
-                                            <Typography>
-                                                Your Progress
-                                            </Typography>
+                                    {/* Progress Tracker */}
+                                    <Grid container item xs={12} spacing={3}>
+                                        {/* Progress Info */}
+                                        <Grid item xs={3}>
+                                            <InfoBox
+                                                title="Your Progress"
+                                                info={`${content.filter(item => item.is_finished).length} of ${content.length} Completed`}
+                                                clean
+                                            />
                                         </Grid>
-                                        <Grid
-                                            item
-                                            xs={10}
-                                            sx={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <Typography sx={{ fontWeight: "bold" }}>
-                                                {`${content.filter(item => item.is_finished).length} of ${content.length} Completed`}
-                                            </Typography>
+                                        {/* Progress Bar */}
+                                        <Grid item xs={9}>
                                             <LinearProgress
                                                 variant="determinate"
                                                 value={contentProgress}
                                                 sx={{
-                                                    ml: 3,
-                                                    width: "100%",
-                                                    height: 15,
+                                                    width: '100%',
+                                                    height: 18,
                                                     borderRadius: 5,
-                                                    backgroundColor: "#e0e0e0",
+                                                    backgroundColor: '#e0e0e0',
                                                     boxShadow: 2,
                                                     [`& .${linearProgressClasses.bar}`]: {
                                                         borderRadius: 5,
                                                         backgroundImage: `linear-gradient(90deg, #e9ae20 ${100 - contentProgress}%, #177604 ${200 - contentProgress}%)`,
-                                                        transition: "transform 2s cubic-bezier(0.4, 0, 0.2, 1)",
+                                                        transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
                                                     },
                                                 }}
                                             />
@@ -436,8 +455,8 @@ const TrainingView = () => {
                                         <Divider />
                                     </Grid>
                                     {/* Content Header */}
-                                    <Grid item xs={12} align="left">
-                                        <Typography>
+                                    <Grid item xs={12}>
+                                        <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary", }}>
                                             {`Content${content.length > 1 ? 's' : ''}`}
                                         </Typography>
                                     </Grid>
@@ -445,24 +464,25 @@ const TrainingView = () => {
                                     {content.map((cont) => {
                                         const locked = training.sequential && content.find(item => item.order === cont.order - 1)?.is_finished === false;
                                         return (
-                                            <Grid item xs={3} key={cont.id}>
-                                                <CardActionArea title={cont.title || 'Content Item'} onClick={() => handleContentViewer(cont, locked)}
+                                            <Grid item xs={4} key={cont.id}>
+                                                <CardActionArea onClick={() => handleContentViewer(cont, locked)}
                                                     sx={{
                                                         "&:hover": {
-                                                            transform: "scale(0.97)",
+                                                            transform: "scale(0.98)",
                                                             transition: "transform 0.2s ease-in-out",
                                                         },
                                                     }}
                                                 >
-                                                    <Card sx={{ boxShadow: 3, position: 'relative' }}>
+                                                    <Card sx={{ boxShadow: 2, position: 'relative', borderRadius: "8px" }}>
                                                         {/* Card Content */}
                                                         <CardMedia
                                                             sx={{
-                                                                height: '180px',
                                                                 backgroundColor: 'transparent',
                                                                 width: '100%',
+                                                                height: '200px',
                                                                 display: 'flex',
                                                                 placeSelf: 'center',
+                                                                borderBottom: `solid 1px #e0e0e0`,
                                                                 ...(["Document", "PowerPoint"].includes(cont.content.type)
                                                                     ? {
                                                                         objectFit: "contain",
@@ -485,7 +505,7 @@ const TrainingView = () => {
                                                                         {cont.order}
                                                                     </Typography>
                                                                 </Box>
-                                                                <Typography variant="body1" noWrap>
+                                                                <Typography variant="h6" noWrap sx={{ textOverflow: 'ellipsis' }}>
                                                                     {cont.title || 'Content Item'}
                                                                 </Typography>
                                                             </Stack>
@@ -505,31 +525,37 @@ const TrainingView = () => {
                                                         </CardActions>
                                                         {/* Status Chips */}
                                                         {cont.is_finished ? (
-                                                            <Chip
-                                                                label="COMPLETED"
-                                                                sx={{
-                                                                    position: "absolute",
-                                                                    top: 8,
-                                                                    left: 8,
-                                                                    backgroundColor: "#177604",
-                                                                    color: "white",
-                                                                    fontWeight: "bold",
-                                                                    boxShadow: 2,
-                                                                }}
-                                                            />
+                                                            <Tooltip title={`Completed ${dayjs(cont.completed_at).format('MMM DD, YYYY hh:mm A')}`}>
+                                                                <Chip
+                                                                    icon={<CheckCircleOutline sx={{ color: 'white !important', fontSize: '18px' }} />}
+                                                                    label="COMPLETED"
+                                                                    sx={{
+                                                                        position: 'absolute',
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: '#177604',
+                                                                        color: 'white',
+                                                                        fontWeight: 'bold',
+                                                                        boxShadow: 2,
+                                                                    }}
+                                                                />
+                                                            </Tooltip>
                                                         ) : cont.has_viewed ? (
-                                                            <Chip
-                                                                label="PENDING"
-                                                                sx={{
-                                                                    position: "absolute",
-                                                                    top: 8,
-                                                                    left: 8,
-                                                                    backgroundColor: "#f57c00",
-                                                                    color: "white",
-                                                                    fontWeight: "bold",
-                                                                    boxShadow: 2,
-                                                                }}
-                                                            />
+                                                            <Tooltip title={`Viewed ${dayjs(cont.viewed_at).format('MMM DD, YYYY hh:mm A')}`}>
+                                                                <Chip
+                                                                    icon={<HourglassBottom sx={{ color: 'white !important', fontSize: '18px' }} />}
+                                                                    label="IN PROGRESS"
+                                                                    sx={{
+                                                                        position: 'absolute',
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: '#f57c00',
+                                                                        color: 'white',
+                                                                        fontWeight: 'bold',
+                                                                        boxShadow: 2,
+                                                                    }}
+                                                                />
+                                                            </Tooltip>
                                                         ) : null}
                                                         {/* Lock Overlays */}
                                                         {locked ? (

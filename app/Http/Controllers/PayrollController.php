@@ -9,7 +9,6 @@ use App\Models\PayslipBenefitsModel;
 use App\Models\PayslipEarningsModel;
 use App\Models\PayslipDeductionsModel;
 
-
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
@@ -21,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
 
@@ -547,7 +547,7 @@ class PayrollController extends Controller
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $deductions = [
-            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} min)", 'amount' => $absents],
+            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} day)", 'amount' => $absents],
             ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} min)", 'amount' => $tardiness],
             ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
@@ -762,6 +762,7 @@ class PayrollController extends Controller
                 'rate_monthly' => $record->rate_monthly,
                 'rate_daily' => $record->rate_daily,
                 'rate_hourly' => $record->rate_hourly,
+                'signature' => $record->signature,
             ];
 
             $benefits = [];
@@ -920,4 +921,60 @@ class PayrollController extends Controller
 
         return $logs->sum('late_time');
     }
+
+    public function storeSignature(Request $request, $id)
+{
+    Log::info("PayrollController::storeSignature - Processing signature for payslip ID: {$id}");
+
+    try {
+        $request->validate([
+            'signature' => 'required|string',
+        ]);
+
+        if (!$this->checkUserEmployee() && !$this->checkUserAdmin()) {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+
+        $decryptedId = decrypt($id);
+        $payslip = PayslipsModel::findOrFail($decryptedId);
+
+        // Check if signature already exists
+        if ($payslip->signature) {
+            Log::info("PayrollController::storeSignature - Signature already exists for payslip ID: {$decryptedId}");
+            return response()->json([
+                'message' => 'This payslip already has a signature.',
+            ], 400);
+        }
+
+        $base64Image = $request->input('signature');
+        $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+        $imageData = base64_decode($base64Image);
+
+        if ($imageData === false) {
+            throw new \Exception("Invalid base64 signature data.");
+        }
+
+        $directory = 'payroll/signature';
+        $filename = 'payslip_signature_' . $decryptedId . '_' . time() . '.png';
+        $filePath = "{$directory}/{$filename}";
+
+        Storage::disk('public')->put($filePath, $imageData);
+
+        $payslip->signature = $filePath;
+        $payslip->save();
+
+        Log::info("PayrollController::storeSignature - Signature saved successfully for payslip ID: {$decryptedId}, Filepath: {$filePath}");
+
+        return response()->json([
+            'message' => 'Signature uploaded and linked to payslip successfully.',
+            'filename' => $filePath,
+        ], 200);
+    } catch (\Exception $e) {
+        Log::error("PayrollController::storeSignature - Error: " . $e->getMessage(), ['payslip_id' => $id]);
+        return response()->json([
+            'error' => $e->getMessage(),
+            'message' => 'An error occurred while storing the signature.',
+        ], 500);
+    }
+}
 }

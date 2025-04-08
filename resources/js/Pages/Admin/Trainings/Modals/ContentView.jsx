@@ -22,7 +22,12 @@ import {
     Radio,
     CardMedia,
     Divider,
-    Menu
+    Menu,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell
 } from "@mui/material";
 import { Cancel, ExpandMore, ExpandLess, MoreVert } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -50,6 +55,10 @@ import ContentEdit from "./ContentEdit";
 import FormItemAdd from "./FormItemAdd";
 import FormItemSettings from "./FormItemSettings";
 import FormItemEdit from "./FormItemEdit";
+import { PieChart } from "@mui/x-charts";
+import InfoBox from "../../../../components/General/InfoBox";
+import ContentProgressView from "./ContentProgressView";
+import FormAnalytics from "./FormAnalytics";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -133,6 +142,14 @@ const ContentView = ({ open, close, contentId, status }) => {
 
         return null;
     };
+
+    useEffect(() => {
+        return () => {
+            if (file && file.startsWith('blob:')) {
+                URL.revokeObjectURL(file);
+            }
+        };
+    }, [file]);
 
     // Edit Content
     const [openContentEditModal, setOpenContentEditModal] = useState(false);
@@ -268,7 +285,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         }
     };
 
-    // ---------------- Item Menu
+    // Item Menu
     const [itemMenuStates, setItemMenuStates] = useState({});
     const handleItemMenuOpen = (event, id) => {
         setItemMenuStates((prevStates) => ({
@@ -354,21 +371,31 @@ const ContentView = ({ open, close, contentId, status }) => {
         });
     }
 
-    // File Cleanup
-    useEffect(() => {
-        return () => {
-            if (file && file.startsWith('blob:')) {
-                URL.revokeObjectURL(file);
-            }
-        };
-    }, [file]);
+    // CONTENT PROGRESSION ------------------------------------- /
+    // Progress Viewer
+    const [openProgressViewModal, setOpenProgressViewModal] = useState(false);
+    const handleOpenProgressViewModal = () => {
+        setOpenProgressViewModal(true);
+    }
+    const handleCloseProgressViewModal = () => {
+        setOpenProgressViewModal(false);
+    }
+
+    // Form Analytics
+    const [openFormAnalyticsModal, setOpenFormAnalyticsModal] = useState(false)
+    const handleOpenFormAnalyticsModal = () => {
+        setOpenFormAnalyticsModal(true);
+    }
+    const handleCloseFormAnalyticsModal = () => {
+        setOpenFormAnalyticsModal(false);
+    }
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Content Details </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> {content?.title ?? "Content"} </Typography>
                         <IconButton onClick={() => close(exitReload)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
@@ -383,7 +410,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                             <Grid container spacing={2} sx={{ mt: 2 }}>
                                 {/* Media Display for Non-Forms */}
                                 {content.content.type !== "Form" && (
-                                    <Grid item xs={["Document", "PowerPoint"].includes(content.content.type) ? 3 : 12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                                    <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                                         {content.content.type === "Video" ? (
                                             <Box
                                                 sx={{
@@ -440,25 +467,21 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     </Grid>
                                 )}
                                 {/* Content Information */}
-                                <Grid container item spacing={1} xs={["Document", "PowerPoint"].includes(content.content.type) ? 9 : 12}>
-                                    {/* Content Title and Options */}
+                                <Grid container item spacing={2} xs={12}>
+                                    {/* Header and Options */}
                                     <Grid item xs={12}>
-                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                {content.title}
+                                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                                Content Details
                                             </Typography>
-                                            {/* Options */}
                                             <IconButton
                                                 id="basic-button"
                                                 size="small"
-                                                aria-controls={menuOpen ? "basic-menu" : undefined}
+                                                aria-controls={menuOpen ? 'basic-menu' : undefined}
                                                 aria-haspopup="true"
-                                                aria-expanded={menuOpen ? "true" : undefined}
+                                                aria-expanded={menuOpen ? 'true' : undefined}
                                                 onClick={handleMenuClick}
-                                                sx={{
-                                                    color: "text.secondary",
-                                                    "&:hover": { color: "primary.main" },
-                                                }}
+                                                sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
                                             >
                                                 <MoreVert />
                                             </IconButton>
@@ -467,12 +490,9 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 anchorEl={anchorEl}
                                                 open={menuOpen}
                                                 onClose={handleMenuClose}
-                                                MenuListProps={{
-                                                    "aria-labelledby": "basic-button",
-                                                }}
+                                                MenuListProps={{ 'aria-labelledby': 'basic-button' }}
                                             >
-                                                {/* Edit Content */}
-                                                {status === "Pending" && (
+                                                {status === 'Pending' && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -483,8 +503,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Edit
                                                     </MenuItem>
                                                 )}
-                                                {/* Remove Content */}
-                                                {status === "Pending" && (
+                                                {status === 'Pending' && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -495,20 +514,18 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Remove
                                                     </MenuItem>
                                                 )}
-                                                {/* Progress Monitoring */}
-                                                {status !== "Pending" && (
+                                                {status !== 'Pending' && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            console.log("Viewing Employee Progress");
+                                                            handleOpenProgressViewModal();
                                                             handleMenuClose();
                                                         }}
                                                     >
-                                                        Remove
+                                                        View Employee Progress
                                                     </MenuItem>
                                                 )}
-                                                {/* Form Options */}
-                                                {status === "Pending" && content.content.type === "Form" && (
+                                                {status === 'Pending' && content.content.type === 'Form' && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -519,7 +536,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Add Item
                                                     </MenuItem>
                                                 )}
-                                                {status === "Pending" && content.content.type === "Form" && (
+                                                {status === 'Pending' && content.content.type === 'Form' && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -530,136 +547,142 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                         Item Settings
                                                     </MenuItem>
                                                 )}
+                                                {status !== 'Pending' && content.content.type === 'Form' && (
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenFormAnalyticsModal();
+                                                            handleMenuClose();
+                                                        }}
+                                                    >
+                                                        View Form Analytics
+                                                    </MenuItem>
+                                                )}
                                             </Menu>
                                         </Stack>
-                                    </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
                                     {/* Additional Form Information */}
-                                    {content.content.type === "Form" && (
+                                    {content.content.type === 'Form' && (
                                         <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={12}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                    Form Details
-                                                </Typography>
+                                            <Grid item xs={4}>
+                                                <InfoBox
+                                                    title={content.content.require_pass ? 'Availability' : 'Attempt Limit'}
+                                                    info={content.content.require_pass ? 'Until Passed' : content.content.attempts_allowed ?? 'N/A'}
+                                                />
                                             </Grid>
                                             <Grid item xs={4}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {content.content.require_pass ? "Availability" : "Attempt Limit"}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.content.require_pass ? "Until Passed" : content.content.attempts_allowed ?? "N/A"}
-                                                    </Typography>
-                                                </Box>
+                                                <InfoBox
+                                                    title="Passing Score"
+                                                    info={`${content.content.passing_score ?? 'N/A'} %`}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Passing Score
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.content.passing_score ?? "N/A"} %`}
-                                                    </Typography>
-                                                </Box>
+                                            <Grid item xs={4}>
+                                                <InfoBox
+                                                    title="Duration Per Attempt"
+                                                    info={`${content.duration ?? 'N/A'} min`}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Duration Per Attempt
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.duration ?? "N/A"} min`}
-                                                    </Typography>
-                                                </Box>
+                                            <Grid item xs={6}>
+                                                <InfoBox
+                                                    title="Item Count"
+                                                    info={content.item_count}
+                                                />
                                             </Grid>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Item Count
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.item_count}
-                                                    </Typography>
-                                                </Box>
+                                            <Grid item xs={6}>
+                                                <InfoBox
+                                                    title="Total Points"
+                                                    info={`${content.total_points} pts`}
+                                                />
                                             </Grid>
-                                            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Total Points
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {`${content.total_points} pts`}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }}>
+                                            <Grid item xs={12}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Progress Viewer */}
-                                    {status !== "Pending" && (
-                                        <Grid container item xs={12} spacing={1}>
-                                            <Grid item xs={12}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    {status !== 'Pending' && (
+                                        <Grid container item xs={12} spacing={2}>
+                                            <Grid item xs={7}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                                     Progress Statistics
                                                 </Typography>
+                                                <PieChart
+                                                    series={[
+                                                        {
+                                                            data: [
+                                                                { id: 0, value: content.no_view_count ?? 0, label: 'Not Yet Viewed', color: '#545457' },
+                                                                { id: 1, value: content.view_count ?? 0, label: 'Viewed', color: '#f57c00' },
+                                                                { id: 2, value: content.finished_count ?? 0, label: 'Completed', color: '#177604' },
+                                                            ],
+                                                            innerRadius: 30,
+                                                            outerRadius: 100,
+                                                            startAngle: 0,
+                                                            endAngle: -360,
+                                                        },
+                                                    ]}
+                                                    height={200}
+                                                />
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Not Yet Viewed
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.no_view_count ?? 0}
-                                                    </Typography>
+                                            <Grid item xs={5}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                                    Employee Progress (Recent)
+                                                </Typography>
+                                                <Box sx={{ width: '100%', height: 200, border: 'solid 1px #e0e0e0', overflow: 'auto' }}>
+                                                    {content.latest_views && content.latest_views.length > 0 ? (
+                                                        <Table stickyHeader size="small">
+                                                            <TableHead>
+                                                                <TableRow>
+                                                                    <TableCell sx={{ width: '75%', fontWeight: 'bold' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                            Name
+                                                                        </Typography>
+                                                                    </TableCell>
+                                                                    <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                            Status
+                                                                        </Typography>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {content.latest_views.map((view, index) => (
+                                                                    <TableRow key={index}>
+                                                                        <TableCell sx={{ width: '75%' }}>
+                                                                            {`${view.user_first_name} ${view.user_last_name}`}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{ width: '25%' }}>{view.status}</TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    ) : (
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{ color: 'text.secondary', textAlign: 'center', lineHeight: '200px' }}
+                                                        >
+                                                            No views available
+                                                        </Typography>
+                                                    )}
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Viewers
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.view_count ?? 0}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
-                                                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center", p: 1, borderRadius: "4px", backgroundColor: "#f5f5f5" }}>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        Completers
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        {content.finished_count ?? 0}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }}>
-                                                <Divider sx={{ my: 1 }} />
+                                            <Grid item xs={12}>
+                                                <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Description */}
                                     <Grid item xs={12}>
-                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                             Description
                                         </Typography>
-                                        <div
-                                            id="description"
-                                            style={{
-                                                wordWrap: "break-word",
-                                                wordBreak: "break-word",
-                                                overflowWrap: "break-word",
-                                                whiteSpace: "pre-wrap",
-                                                backgroundColor: "#f5f5f5",
-                                                borderRadius: "4px",
-                                                p: 2,
-                                                minHeight: "60px",
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                wordWrap: 'break-word',
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'break-word',
+                                                whiteSpace: 'pre-wrap',
                                             }}
                                             dangerouslySetInnerHTML={{ __html: content.description }}
                                         />
@@ -911,6 +934,20 @@ const ContentView = ({ open, close, contentId, status }) => {
                         open={openFormItemEditModal}
                         close={handleCloseFormItemEditModal}
                         itemInfo={loadItem}
+                    />
+                )}
+                {openProgressViewModal && (
+                    <ContentProgressView
+                        open={openProgressViewModal}
+                        close={handleCloseProgressViewModal}
+                        contentId={content.id}
+                    />
+                )}
+                {openFormAnalyticsModal && (
+                    <FormAnalytics
+                        open={openFormAnalyticsModal}
+                        close={handleCloseFormAnalyticsModal}
+                        formData={content}
                     />
                 )}
             </Dialog>

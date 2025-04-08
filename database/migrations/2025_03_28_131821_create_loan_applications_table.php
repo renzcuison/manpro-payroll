@@ -13,7 +13,7 @@ class CreateLoanApplicationsTable extends Migration
             $table->unsignedBigInteger('employee_id');
             $table->decimal('loan_amount', 10, 2);
             $table->string('reason', 256);
-            $table->enum('status', ['Pending', 'Approved', 'Paid', 'Declined', 'Released'])->default('Pending');
+            $table->enum('status', ['Pending', 'Approved', 'Paid', 'Declined', 'Released', 'Cancelled'])->default('Pending');
             $table->integer('payment_term');
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->timestamps();

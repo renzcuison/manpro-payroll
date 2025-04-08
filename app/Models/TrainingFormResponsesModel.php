@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingFormResponsesModel extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'training_form_responses';
 
@@ -16,6 +18,8 @@ class TrainingFormResponsesModel extends Model
     protected $fillable = [
         'training_view_id',
         'score',
+        'start_time',
+        'duration',
     ];
 
     public function view()

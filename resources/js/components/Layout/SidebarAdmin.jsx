@@ -111,11 +111,11 @@ const Sidebar = ({ children, closeMini }) => {
             children: [
                 {
                     href: `/admin/employees?`,
-                    text: "List of Employees",
+                    text: "Employees",
                 },
                 {
                     href: `/admin/employees/benefits?`,
-                    text: "List of Benefits",
+                    text: "Benefits",
                 },
                 // {
                 // href: `/hr/employees-deductions?`,
@@ -132,6 +132,11 @@ const Sidebar = ({ children, closeMini }) => {
             text: "Attendance",
             icon: "fa fa-calendar-check-o",
             children: [
+                {
+                    href: `/admin/attendance/today?`,
+                    text: "Today",
+                    icon: "fa fa-cogs",
+                },
                 {
                     href: `/admin/attendance/summary?`,
                     text: "Summary",
@@ -402,13 +407,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
-                                {applicationsItems.map((items, index) => {
-                                    return <SideItem key={index} items={items} />
-                                })}
+                                    {applicationsItems.map((items, index) => {
+                                        return <SideItem key={index} items={items} />
+                                    })}
 
-                                <StyledNav to={`/admin/loan-management`} >
-                                    <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                                </StyledNav>
+                                    <StyledNav to={`/admin/loan-management`} >
+                                        <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i

@@ -46,7 +46,7 @@ import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 
-const FormItem = ({ itemData, handleAnswer, storedAnswer }) => {
+const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
     // Answer Data
     const [fillAnswer, setFillAnswer] = useState('');
     const [selectedChoices, setSelectedChoices] = useState([]);
@@ -107,8 +107,8 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer }) => {
             >
                 {/* Question No. */}
                 <Box
+                    display="flex"
                     sx={{
-                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         minWidth: { xs: 28, sm: 32 },
@@ -124,147 +124,164 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer }) => {
                 </Box>
 
                 {/* Main Content */}
-                <Box
-                    sx={{
-                        mt: 0.5,
-                        width: "100%",
-                        overflow: 'hidden',
-                    }}
-                >
-                    {/* Description */}
-                    <Typography
-                        variant="body1"
-                        component="div"
+                {submissionView ? (
+                    <Box
+                        display="flex"
                         sx={{
-                            mb: 3,
-                            color: 'text.primary',
-                            fontSize: { xs: '0.95rem', sm: '1rem' },
-                            lineHeight: 1.5,
-                            wordBreak: 'break-word',
-                            overflowWrap: 'break-word',
-                            whiteSpace: 'normal',
+                            py: 1, px: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '5px',
+                            bgcolor: storedAnswer && storedAnswer.length > 0 ? "#177604" : "#f44336"
+                        }}>
+                        <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                            {storedAnswer && storedAnswer.length > 0 ? "Answer Saved" : "No Answer"}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Box
+                        sx={{
+                            mt: 0.5,
+                            width: "100%",
+                            overflow: 'hidden',
                         }}
-                        id={`description-${itemData.id}`}
-                        aria-label={`Question ${itemData.order}: ${itemData.description.replace(/<[^>]+>/g, '')}`}
                     >
-                        <div
-                            style={{
+                        {/* Description */}
+                        <Typography
+                            variant="body1"
+                            component="div"
+                            sx={{
+                                mb: 3,
+                                color: 'text.primary',
+                                fontSize: { xs: '0.95rem', sm: '1rem' },
+                                lineHeight: 1.5,
                                 wordBreak: 'break-word',
                                 overflowWrap: 'break-word',
                                 whiteSpace: 'normal',
-                                '& *': {
-                                    whiteSpace: 'normal !important',
-                                    wordBreak: 'break-word !important',
-                                    overflowWrap: 'break-word !important',
-                                },
                             }}
-                            dangerouslySetInnerHTML={{ __html: itemData.description }}
-                        />
-                        {itemData.type === 'MultiSelect' && (
-                            <Typography
-                                variant="body2"
-                                component="span"
-                                sx={{
-                                    display: 'block',
-                                    mt: 1,
-                                    fontStyle: 'italic',
-                                    color: 'text.secondary',
-                                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                                }}
-                            >
-                                Select up to {itemData.value} option{itemData.value !== 1 ? 's' : ''}.
-                            </Typography>
-                        )}
-                    </Typography>
-
-                    {/* Answer Field */}
-                    {itemData.type == "FillInTheBlank" ? (
-                        <TextField
-                            fullWidth
-                            required
-                            id={`item-${itemData.id}-answer-field`}
-                            placeholder="Enter Your Answer"
-                            variant="outlined"
-                            value={fillAnswer}
-                            onChange={(e) => setFillAnswer(e.target.value)}
-                            onBlur={() => handleAnswer(itemData.id, fillAnswer)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.target.blur();
-                                }
-                            }}
-                        />
-                    ) : ['Choice', 'MultiSelect'].includes(itemData.type) ? (
-                        itemData.choices.map((choice) => (
-                            <Box
-                                key={choice.id}
-                                display="flex"
-                                alignItems="center"
-                                sx={{
-                                    p: 1,
-                                    mb: 1,
-                                    borderRadius: '8px',
-                                    backgroundColor: '#f9f9f9',
-                                    transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        backgroundColor: '#f1f1f1',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            id={`description-${itemData.id}`}
+                            aria-label={`Question ${itemData.order}: ${itemData.description.replace(/<[^>]+>/g, '')}`}
+                        >
+                            <div
+                                style={{
+                                    wordBreak: 'break-word',
+                                    overflowWrap: 'break-word',
+                                    whiteSpace: 'normal',
+                                    '& *': {
+                                        whiteSpace: 'normal !important',
+                                        wordBreak: 'break-word !important',
+                                        overflowWrap: 'break-word !important',
                                     },
                                 }}
-                                role="option"
-                                aria-selected={selectedChoices.includes(choice.id)}
-                                onClick={() => handleSelectionChange(choice.id)}
-                            >
-                                <FormControlLabel
-                                    control={
-                                        itemData.type === 'Choice' ? (
-                                            <Radio
-                                                checked={selectedChoices.includes(choice.id)}
-                                                onChange={(e) => {
-                                                    e.stopPropagation();
-                                                    handleSelectionChange(choice.id);
-                                                }}
-                                                value={choice.id}
-                                                name={`item-${itemData.id}-choice`}
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    '&.Mui-checked': {
-                                                        color: 'primary.main',
-                                                    },
-                                                }}
-                                            />
-                                        ) : (
-                                            <Checkbox
-                                                checked={selectedChoices.includes(choice.id)}
-                                                onChange={(e) => {
-                                                    e.stopPropagation();
-                                                    handleSelectionChange(choice.id);
-                                                }}
-                                                value={choice.id}
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    '&.Mui-checked': {
-                                                        color: 'primary.main',
-                                                    },
-                                                }}
-                                            />
-                                        )
-                                    }
-                                    label={
-                                        <Typography sx={{ color: 'text.primary', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                                            {choice.description}
-                                        </Typography>
-                                    }
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSelectionChange(choice.id);
+                                dangerouslySetInnerHTML={{ __html: itemData.description }}
+                            />
+                            {itemData.type === 'MultiSelect' && (
+                                <Typography
+                                    variant="body2"
+                                    component="span"
+                                    sx={{
+                                        display: 'block',
+                                        mt: 1,
+                                        fontStyle: 'italic',
+                                        color: 'text.secondary',
+                                        fontSize: { xs: '0.85rem', sm: '0.9rem' },
                                     }}
-                                />
-                            </Box>
-                        ))
-                    ) : null}
-                </Box>
+                                >
+                                    Select up to {itemData.value} option{itemData.value !== 1 ? 's' : ''}.
+                                </Typography>
+                            )}
+                        </Typography>
+
+                        {/* Answer Field */}
+                        {itemData.type == "FillInTheBlank" ? (
+                            <TextField
+                                fullWidth
+                                required
+                                id={`item-${itemData.id}-answer-field`}
+                                placeholder="Enter Your Answer"
+                                variant="outlined"
+                                value={fillAnswer}
+                                onChange={(e) => setFillAnswer(e.target.value)}
+                                onBlur={() => handleAnswer(itemData.id, fillAnswer)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.target.blur();
+                                    }
+                                }}
+                            />
+                        ) : ['Choice', 'MultiSelect'].includes(itemData.type) ? (
+                            itemData.choices.map((choice) => (
+                                <Box
+                                    key={choice.id}
+                                    display="flex"
+                                    alignItems="center"
+                                    sx={{
+                                        p: 1,
+                                        mb: 1,
+                                        borderRadius: '8px',
+                                        backgroundColor: '#f9f9f9',
+                                        transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            backgroundColor: '#f1f1f1',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        },
+                                    }}
+                                    role="option"
+                                    aria-selected={selectedChoices.includes(choice.id)}
+                                    onClick={() => handleSelectionChange(choice.id)}
+                                >
+                                    <FormControlLabel
+                                        control={
+                                            itemData.type === 'Choice' ? (
+                                                <Radio
+                                                    checked={selectedChoices.includes(choice.id)}
+                                                    onChange={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSelectionChange(choice.id);
+                                                    }}
+                                                    value={choice.id}
+                                                    name={`item-${itemData.id}-choice`}
+                                                    sx={{
+                                                        color: 'text.secondary',
+                                                        '&.Mui-checked': {
+                                                            color: 'primary.main',
+                                                        },
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Checkbox
+                                                    checked={selectedChoices.includes(choice.id)}
+                                                    onChange={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSelectionChange(choice.id);
+                                                    }}
+                                                    value={choice.id}
+                                                    sx={{
+                                                        color: 'text.secondary',
+                                                        '&.Mui-checked': {
+                                                            color: 'primary.main',
+                                                        },
+                                                    }}
+                                                />
+                                            )
+                                        }
+                                        label={
+                                            <Typography sx={{ color: 'text.primary', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                                {choice.description}
+                                            </Typography>
+                                        }
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSelectionChange(choice.id);
+                                        }}
+                                    />
+                                </Box>
+                            ))
+                        ) : null}
+                    </Box>
+                )}
+
             </Box>
         </Grid>
     );

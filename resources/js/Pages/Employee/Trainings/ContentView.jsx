@@ -34,7 +34,7 @@ import {
     Tooltip,
     CardActionArea
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending, CheckBox } from "@mui/icons-material";
+import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, Lock, Pending, CheckBox, ArrowBackIos, ArrowForwardIos, HourglassBottom } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -167,6 +167,10 @@ const ContentView = () => {
                 console.error('Error fetching training content:', error);
             });
     }
+    const [contentListOn, setContentListOn] = useState(true);
+    const toggleContentList = () => {
+        setContentListOn((prev) => !prev);
+    };
 
     // Content Selection
     const handleContentChange = (id, unlocked) => {
@@ -278,10 +282,11 @@ const ContentView = () => {
                                             if (intervalId) clearInterval(intervalId);
                                         }
                                     });
-
-                                    // Seek Event Listener (blocked by YT, alternative needed)
-                                    // iframe.contentWindow.addEventListener('seeked', restrictSeeking);
                                 },
+                                onError: (event) => { // Video Removed, Privated, Restricted, etc.
+                                    // Automatically Clear (TEMPORARY FIX, Implement Alternative Actions Later)
+                                    onVideoClear();
+                                }
                             },
                         });
                     }}
@@ -354,18 +359,20 @@ const ContentView = () => {
     }
 
     // Form Functions
-    const [viewType, setViewType] = useState('Overview');
     const [formItems, setFormItems] = useState([]);
     const [attemptData, setAttemptData] = useState(null);
 
     const getFormDetails = (id) => {
+        setIsLoading(true);
         axiosInstance.get(`/trainings/getEmployeeFormDetails/${id}`, { headers })
             .then((response) => {
                 setFormItems(response.data.items);
                 setAttemptData(response.data.attempt_data);
+                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching form details:', error);
+                setIsLoading(false);
             });
     }
 
@@ -375,7 +382,7 @@ const ContentView = () => {
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Training Content
+                            {title}
                         </Typography>
                         <Link to={`/employee/training/${code}`}>
                             <Button
@@ -392,107 +399,166 @@ const ContentView = () => {
                     <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "hidden" }} >
                         <>
                             {/* Content List */}
-                            <Box sx={{ width: "20%", my: 2, mb: 2, p: 3, borderRight: "solid 1px #e0e0e0" }}>
-                                <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }} >
-                                    {title}
-                                </Typography>
-                                <Box sx={{ height: "95%" }}>
-                                    {contentList.length > 0 && (
-                                        contentList.map((cont) => {
-                                            const locked = sequential && contentList.find(item => item.order === cont.order - 1)?.is_finished === false;
-                                            return (
-                                                <Box
-                                                    key={cont.id}
-                                                    sx={{
-                                                        position: 'relative',
-                                                        borderRadius: "8px",
-                                                    }}
-                                                    onClick={() =>
-                                                        handleContentChange(
-                                                            cont.id,
-                                                            !locked
-                                                        )
-                                                    }
-                                                >
+                            {contentListOn && (
+                                <Box
+                                    sx={{
+                                        width: '20%',
+                                        borderRight: '1px solid #e0e0e0',
+                                        bgcolor: '#fafafa',
+                                        transition: 'width 0.3s ease',
+                                    }}
+                                >
+                                    <Box sx={{ width: "100%", p: 3, pb: 1, mb: 1, bgcolor: "#f5f5f5", borderBottom: "solid 1px #e0e0e0", }}>
+                                        <Typography sx={{ fontWeight: 600, color: '#177604' }}>
+                                            Content List
+                                        </Typography>
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            maxHeight: 'calc(100% - 32px)',
+                                            overflowY: 'auto',
+                                            pr: 3,
+                                            pl: 2,
+                                            scrollbarWidth: 'thin',
+                                            scrollbarColor: '#e9ae20 #fafafa',
+                                            '&::-webkit-scrollbar': { width: '6px' },
+                                            '&::-webkit-scrollbar-thumb': { backgroundColor: '#e9ae20', borderRadius: '3px' },
+                                            '&::-webkit-scrollbar-track': { backgroundColor: '#fafafa' },
+                                        }}
+                                    >
+                                        {contentList.length > 0 ? (
+                                            contentList.map((cont) => {
+                                                const locked = sequential && contentList.find((item) => item.order === cont.order - 1)?.is_finished === false;
+                                                return (
                                                     <Box
-                                                        display="flex"
-                                                        sx={{
-                                                            pl: 1,
-                                                            mt: 0.5,
-                                                            py: 1.5,
-                                                            borderRadius: "8px",
-                                                            justifyContent: "space-between",
-                                                            transition: "background-color 0.3s ease, padding 0.3s ease",
-                                                            ...(cont.id == contentId
-                                                                ? {
-                                                                    backgroundColor: "#e9ae20",
-                                                                    pl: 1.5,
-                                                                }
-                                                                : {
-                                                                    "&:hover": {
-                                                                        backgroundColor: "#e0e0e0",
-                                                                        pl: 1.5,
-                                                                    },
-                                                                }),
-                                                        }}
+                                                        key={cont.id}
+                                                        sx={{ position: 'relative', mb: 1 }}
+                                                        onClick={() => handleContentChange(cont.id, !locked)}
                                                     >
-                                                        <Box display="flex">
-                                                            {cont.content.type === 'Video' && <OndemandVideo sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                            {cont.content.type === 'Image' && <Image sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                            {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && <Description sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                            {!cont.content.type && <Quiz sx={{ color: cont.id == contentId ? "white" : 'text.secondary' }} />}
-                                                            <Typography
-                                                                sx={{
-                                                                    ml: 1,
-                                                                    color: "text.secondary",
-                                                                    whiteSpace: "nowrap",
-                                                                    overflow: "hidden",
-                                                                    textOverflow: "ellipsis",
-                                                                    transition: "color 0.3s ease",
-                                                                    ...(cont.id == contentId && { color: "white", fontWeight: "bold" }),
-                                                                }}
-                                                            >
-                                                                {cont.title}
-                                                            </Typography>
-                                                        </Box>
-                                                        {cont.is_finished ? (
-                                                            <CheckBox sx={{ mr: 1, color: cont.id == contentId ? "white" : "#177604", transition: "color 0.3s ease" }} />
-                                                        ) : cont.has_viewed ? (
-                                                            <Pending sx={{ mr: 1, color: cont.id == contentId ? "white" : "#f57c00", transition: "color 0.3s ease" }} />
-                                                        ) : null}
-                                                    </Box>
-                                                    {/* Locked Overlay */}
-                                                    {locked ? (
                                                         <Box
+                                                            display="flex"
                                                             sx={{
-                                                                position: 'absolute',
-                                                                top: 0,
-                                                                left: 0,
-                                                                width: '100%',
-                                                                height: '100%',
-                                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                                                borderRadius: "8px",
-                                                                zIndex: 1,
+                                                                py: 1,
+                                                                px: 1.5,
+                                                                borderRadius: '6px',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                cursor: locked ? 'not-allowed' : 'pointer',
+                                                                transition: 'background-color 0.2s ease',
+                                                                ...(cont.id == contentId
+                                                                    ? { background: 'linear-gradient(135deg, #177604 0%, #e9ae20 100%)', color: 'white' }
+                                                                    : {
+                                                                        '&:hover': !locked && {
+                                                                            backgroundColor: '#f0f0f0',
+                                                                        },
+                                                                        opacity: locked ? 0.5 : 1,
+                                                                    }),
                                                             }}
-                                                        />
-                                                    ) : null}
-                                                </Box>
-                                            );
-                                        })
-                                    )}
+                                                        >
+                                                            <Box display="flex" sx={{ alignItems: 'center' }}>
+                                                                {cont.content.type === 'Video' && (
+                                                                    <OndemandVideo sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
+                                                                )}
+                                                                {cont.content.type === 'Image' && (
+                                                                    <Image sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
+                                                                )}
+                                                                {(cont.content.type === 'Document' || cont.content.type == 'PowerPoint') && (
+                                                                    <Description sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
+                                                                )}
+                                                                {!cont.content.type && (
+                                                                    <Quiz sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#757575' }} />
+                                                                )}
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        ml: 1,
+                                                                        color: cont.id == contentId ? 'white' : 'text.primary',
+                                                                        fontWeight: cont.id == contentId ? 600 : 400,
+                                                                        whiteSpace: 'nowrap',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis',
+                                                                    }}
+                                                                >
+                                                                    {cont.title}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Box display="flex" sx={{ alignItems: 'center' }}>
+                                                                {cont.is_finished ? (
+                                                                    <CheckBox sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#177604' }} />
+                                                                ) : cont.has_viewed ? (
+                                                                    <HourglassBottom sx={{ fontSize: 18, color: cont.id == contentId ? 'white' : '#f57c00' }} />
+                                                                ) : null}
+                                                            </Box>
+                                                        </Box>
+                                                        {locked && (
+                                                            <Box
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    borderRadius: '6px',
+                                                                    bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                                    zIndex: 1,
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Box>
+                                                );
+                                            })
+                                        ) : (
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 2 }}>
+                                                No content available
+                                            </Typography>
+                                        )}
+                                    </Box>
                                 </Box>
-                            </Box>
+                            )}
                             {/* Content Display */}
-                            <Box sx={{ width: "80%", mt: 6, mb: 2, p: 3 }}>
+                            <Box
+                                sx={{
+                                    width: contentListOn ? '80%' : '100%',
+                                    mt: 2,
+                                    mb: 2,
+                                    p: 3,
+                                    position: 'relative',
+                                }}
+                            >
+
+                                {/* Content List Toggle */}
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        backgroundColor: '#177604',
+                                        height: 40,
+                                        borderRadius: contentListOn ? { borderTopRightRadius: '8px', borderBottomRightRadius: '8px' } : '8px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        ml: contentListOn ? 0 : 1,
+                                    }}
+                                >
+                                    <Tooltip title={contentListOn ? 'Hide Content List' : 'Show Content List'}>
+                                        <IconButton
+                                            onClick={toggleContentList}
+                                            sx={{ color: 'white' }}
+                                        >
+                                            {contentListOn ? <ArrowBackIos /> : <ArrowForwardIos />}
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                         <CircularProgress />
                                     </Box>
                                 ) : (
-                                    <Grid container spacing={2}>
+                                    <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
                                         {/* Title */}
                                         <Grid item xs={12}>
-                                            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
+                                            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
                                         </Grid>
@@ -500,11 +566,11 @@ const ContentView = () => {
                                             <>
                                                 <FormViews
                                                     content={content}
-                                                    viewType={viewType}
-                                                    setViewType={setViewType}
                                                     updateProgress={handleTrainingViews}
                                                     formItems={formItems}
                                                     attemptData={attemptData}
+                                                    handleFormFinished={handleTrainingViews}
+                                                    contentReload={getContentDetails}
                                                 />
                                             </>
                                         ) :
@@ -514,6 +580,7 @@ const ContentView = () => {
                                                     {content.content.type === "Video" ? (
                                                         <Box
                                                             sx={{
+                                                                maxWidth: '720px',
                                                                 width: "90%",
                                                                 aspectRatio: "16 / 9",
                                                                 placeSelf: "center",
@@ -526,6 +593,7 @@ const ContentView = () => {
                                                         <CardMedia
                                                             component="img"
                                                             sx={{
+                                                                maxWidth: '640px',
                                                                 width: "80%",
                                                                 aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
                                                                 objectFit: "contain",
@@ -593,9 +661,9 @@ const ContentView = () => {
                                                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                                         Description
                                                     </Typography>
-                                                    <div
-                                                        id="description"
-                                                        style={{
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{
                                                             wordWrap: 'break-word',
                                                             wordBreak: 'break-word',
                                                             overflowWrap: 'break-word',
@@ -613,7 +681,7 @@ const ContentView = () => {
                     </Box>
                 </Box>
             </Box>
-        </Layout>
+        </Layout >
     );
 };
 

@@ -15,7 +15,12 @@ use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\LoanLimitHistoryModel;
+use App\Models\EmployeeTaxesModel;
 
+// use App\Models\NewModel;
+// use App\Models\NewModel;
+// use App\Models\NewModel;
+// use App\Models\NewModel;
 // use App\Models\NewModel;
 
 use Carbon\Carbon;
@@ -114,7 +119,7 @@ class EmployeesController extends Controller
         }
     
         unset(
-            $employee->id,
+            // $employee->id,
             $employee->verify_code,
             $employee->code_expiration,
             $employee->is_verified,
@@ -125,6 +130,16 @@ class EmployeesController extends Controller
             $employee->job_title_id,
             $employee->work_group_id
         );
+
+        $employee->tin_number = "";
+        $employee->tax_percentage = "";
+        $employee->tax_amount = "";
+        $employee->tax_status = 0;
+
+        // log::info("================================================");
+        // log::info("Employee Tax:");
+        // log::info($employee->tax);
+        // log::info("================================================");
     
         return $employee;
     }    
@@ -142,7 +157,7 @@ class EmployeesController extends Controller
                 $employee = $this->enrichEmployeeDetails($employee);
     
                 unset(
-                    $employee->id,
+                    // $employee->id,
                     $employee->verify_code,
                     $employee->code_expiration,
                     $employee->is_verified,
@@ -409,7 +424,7 @@ class EmployeesController extends Controller
         // dd("Stopper");
 
         $user = Auth::user();
-        $employee = UsersModel::find($request->id);
+        $employee = UsersModel::where('user_name', $request->userName)->first();
 
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
 
@@ -426,6 +441,7 @@ class EmployeesController extends Controller
                 $employee->address = $request->address;
 
                 $employee->salary = $request->salary;
+                $employee->salary_type = $request->salaryType;
 
                 $employee->role_id = $request->selectedRole;
                 $employee->branch_id = $request->selectedBranch;
@@ -441,20 +457,30 @@ class EmployeesController extends Controller
 
                 $existingLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
 
-                if ( $existingLoanLimit ) {
+                if ( $existingLoanLimit && ($existingLoanLimit->new_limit != $request->creditLimit) ) {
                     LoanLimitHistoryModel::create([
-                        "employee_id" => $request->id,
+                        "employee_id" => $employee->id,
                         "old_limit" => $existingLoanLimit->new_limit,
                         "new_limit" => $request->creditLimit,
                         "user_id" => $user->id,
                     ]);
-                } else {
+                }
+
+                if ( !$existingLoanLimit && $request->creditLimit != 0) {
                     LoanLimitHistoryModel::create([
-                        "employee_id" => $request->id,
+                        "employee_id" => $employee->id,
                         "old_limit" => 0,
                         "new_limit" => $request->creditLimit,
                         "user_id" => $user->id,
                     ]);
+                }
+
+                $employeeTax = EmployeeTaxesModel::where('employee_id', $employee->id)->first();
+
+                if ( $employeeTax ) {
+                    log::info($employeeTax);
+                } else {
+
                 }
 
                 DB::commit();

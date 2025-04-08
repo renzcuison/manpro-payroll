@@ -29,7 +29,7 @@ import {
     CardActionArea,
     Chip
 } from "@mui/material";
-import { OndemandVideo, Image, Description, Quiz } from "@mui/icons-material";
+import { OndemandVideo, Image, Description, Quiz, HourglassBottom, CheckCircleOutline } from "@mui/icons-material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -220,8 +220,7 @@ const TrainingList = () => {
                                                         <Card sx={{
                                                             position: "relative",
                                                             borderRadius: 2,
-                                                            boxShadow: 3,
-                                                            height: "300px",
+                                                            boxShadow: 2,
                                                             display: "flex",
                                                             flexDirection: "column"
                                                         }}>
@@ -232,28 +231,36 @@ const TrainingList = () => {
                                                                         display: 'flex',
                                                                         justifyContent: 'center',
                                                                         alignItems: 'center',
-                                                                        height: '180px'
+                                                                        height: '210px'
                                                                     }}
                                                                 >
                                                                     <CircularProgress />
                                                                 </Box>
                                                             ) : (
                                                                 <CardMedia
-                                                                    sx={{ height: '180px' }}
+                                                                    sx={{ height: '210px' }}
                                                                     image={training.cover ? training.cover : "../../../images/ManProTab.png"}
                                                                     title={`${training.title}_Cover`}
                                                                 />
                                                             )}
                                                             {/* Training Info */}
-                                                            <CardContent sx={{ pb: "5px", flexGrow: 1 }}>
-                                                                <Typography
-                                                                    variant="h6"
-                                                                    component="div"
-                                                                    noWrap
-                                                                    sx={{ textOverflow: 'ellipsis' }}
-                                                                >
-                                                                    {training.title}
-                                                                </Typography>
+                                                            <CardContent sx={{ pb: "5px" }}>
+                                                                <Box sx={{ height: "60px" }}>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                        component="div"
+                                                                        sx={{
+                                                                            display: '-webkit-box',
+                                                                            WebkitBoxOrient: 'vertical',
+                                                                            WebkitLineClamp: 2,
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            whiteSpace: 'normal',
+                                                                        }}
+                                                                    >
+                                                                        {training.title}
+                                                                    </Typography>
+                                                                </Box>
                                                                 {/* Details */}
                                                                 <Grid container item key={index} sx={{ my: 1 }}>
                                                                     <Grid item xs={3}>
@@ -308,12 +315,27 @@ const TrainingList = () => {
                                                             {/* Training Completed Indicator */}
                                                             {training.completed ? (
                                                                 <Chip
+                                                                    icon={<CheckCircleOutline sx={{ color: 'white !important', fontSize: '18px' }} />}
                                                                     label="COMPLETED"
                                                                     sx={{
                                                                         position: "absolute",
                                                                         top: 8,
                                                                         left: 8,
                                                                         backgroundColor: "#177604",
+                                                                        color: "white",
+                                                                        fontWeight: "bold",
+                                                                        boxShadow: 3,
+                                                                    }}
+                                                                />
+                                                            ) : training.viewed ? (
+                                                                <Chip
+                                                                    icon={<HourglassBottom sx={{ color: 'white !important', fontSize: '18px' }} />}
+                                                                    label="IN PROGRESS"
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: "#f57c00",
                                                                         color: "white",
                                                                         fontWeight: "bold",
                                                                         boxShadow: 3,

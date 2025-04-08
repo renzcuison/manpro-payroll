@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Box,
@@ -15,6 +15,7 @@ import DocumentCard from "./DocumentCard";
 import EditDocumentDialog from "./Modals/Edit";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
 function Documents() {
     const { documents, isFetching, deleteDoc } = useDocuments();
