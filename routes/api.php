@@ -198,7 +198,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
 
         Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
-
     });
 
     Route::prefix('loans')->group(function () {
@@ -310,6 +309,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getFormAnalytics/{id}', [TrainingsController::class, 'getFormAnalytics']);
 
         Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
+        Route::get('/getEmployeeFormReviewer', [TrainingsController::class, 'getEmployeeFormReviewer']);
         Route::post('/saveEmployeeFormSubmission', [TrainingsController::class, 'saveEmployeeFormSubmission']);
     });
 

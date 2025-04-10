@@ -1517,7 +1517,7 @@ class TrainingsController extends Controller
 
             return response()->json(['status' => 200, 'analytics' => $analytics]);
         } else {
-            return response()->json(['status' => 403, 'analytics' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
     // Training Forms (Employee) ---------------------------------------------------- /
@@ -1549,11 +1549,11 @@ class TrainingsController extends Controller
                 'value' => $item->value,
                 'form_id' => $item->form_id,
                 'description' => $item->description,
-                'choices' => $item->choices->map(function ($choice) {
+                'choices' => $item->choices->map(function ($choice) use ($item) {
                     return [
                         'id' => $choice->id,
                         'item_id' => $choice->form_item_id,
-                        'description' => $choice->description,
+                        'description' => $item->type != 'FillInTheBlank' ? $choice->description : '',
                     ];
                 })->toArray(),
             ];
@@ -1619,6 +1619,7 @@ class TrainingsController extends Controller
             $totalScore = array_sum(array_map(fn($itemScores) => array_sum($itemScores), $evaluation['scores']));
             $passingScore = $evaluation['passing_score'];
             $totalPoints = $evaluation['total_points'];
+            Log::info($evaluation);
 
             // Log::info($totalScore);
             // Log::info($passingScore);
@@ -1675,6 +1676,8 @@ class TrainingsController extends Controller
             $results->passed = $passed;
             $results->duration = $duration;
             $results->submission_date = $response->created_at;
+            $results->empty_answers = $evaluation['empty_answers'];
+            $results->reviewer_num = $response->id;
 
             DB::commit();
             return response()->json(['status' => 200, 'message' => 'Form submitted successfully', 'results' => $results]);
@@ -1752,9 +1755,11 @@ class TrainingsController extends Controller
         }
 
         // Unanswered Items
+        $emptyAnswers = 0;
         foreach ($items as $itemId => $item) {
             if (!isset($answers[$itemId])) {
                 $evaluation[$itemId] = [null => 0];
+                $emptyAnswers++;
             }
         }
 
@@ -1763,7 +1768,59 @@ class TrainingsController extends Controller
             'total_points' => (int) $totalPoints,
             'passing_score' => (int) $passingScore,
             'scores' => $evaluation,
+            'empty_answers' => $emptyAnswers,
         ];
+    }
+
+    public function getEmployeeFormReviewer(Request $request)
+    {
+        //Log::info("TrainingsController:getEmployeeFormReviewer");
+        //Log::info($request);
+
+        $user = Auth::user();
+        $reviewData = new \stdClass();
+        $formInfo = TrainingFormsModel::with(['items' => function ($query) {
+            $query->orderBy('order', 'asc');
+        }, 'items.choices'])->find($request->input('form_id'));
+        $attemptInfo = TrainingFormResponsesModel::with('answers.choice', 'view')->find($request->input('attempt_id'));
+
+        if (!$formInfo) {
+            return response()->json(['error' => 'Form not found'], 404);
+        }
+        if (!$attemptInfo) {
+            return response()->json(['error' => 'Form Response not found'], 404);
+        }
+        if ($attemptInfo->view->user_id != $user->id) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        unset($attemptInfo->view);
+
+        $itemAnswers = collect($attemptInfo->answers)->groupBy('form_item_id');
+
+        $reviewData->score = $attemptInfo->score;
+        $reviewData->submit_time = $attemptInfo->created_at;
+        $reviewData->duration = $attemptInfo->duration;
+        $reviewData->items = $formInfo->items->map(function ($item) use ($itemAnswers) {
+            $itemData = $item->toArray();
+
+            $answers = $itemAnswers->get($item->id);
+            if (!$answers) {
+                $itemData['answer'] = $item->type == 'FillInTheBlank' ? null : [];
+                return $itemData;
+            }
+
+            if ($item->type == 'FillInTheBlank') {
+                $description = $answers->firstWhere('description')->description ?? null;
+                $itemData['answer'] = $description;
+            } else {
+                $itemData['answer'] = $answers->pluck('form_choice_id')->toArray();
+            }
+
+            return $itemData;
+        })->values()->toArray();
+
+        return response()->json(['status' => 200, 'review_data' => $reviewData]);
     }
 
     // Others ----------------------------------------------------------------------- /

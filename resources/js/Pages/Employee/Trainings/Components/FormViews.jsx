@@ -47,6 +47,7 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import FormItem from "./FormItem";
 import InfoBox from "../../../../components/General/InfoBox";
+import ReviewItem from "./ReviewItem";
 
 
 const FormViews = ({ content, formItems, attemptData, handleFormFinished, contentReload }) => {
@@ -64,6 +65,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
 
     const [overviewReload, setOverviewReload] = useState(false);
     const [resultData, setResultData] = useState(null);
+    const [reviewData, setReviewData] = useState(null);
 
     // Local Storage
     let attemptedQuiz = null;
@@ -153,7 +155,6 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
 
     // Record Answer
     const handleAnswer = (id, answer) => {
-        console.log(`Received Answer for Item ${id}: ${answer}`);
         const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
         storedAnswers[id] = answer;
         localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
@@ -247,7 +248,6 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         setViewType('Results');
                         setOverviewReload(true);
                         setResultData(resData);
-                        console.log(resData);
 
                         // Form Clear Conditions
                         const allAttempts = !formInfo.require_pass && (((attemptData?.response_count ?? 0) + 1) == formInfo.attempts_allowed);
@@ -255,6 +255,26 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             handleFormFinished(content.id, true);
                         }
                     });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    };
+
+    // Attempt Review
+    const handleAttemptReview = (id, attemptNo) => {
+        axiosInstance.get(`/trainings/getEmployeeFormReviewer`, { headers, params: { attempt_id: id, form_id: content.training_form_id } })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const revData = response.data.review_data;
+                    const newRevData = {
+                        ...revData,
+                        attempt_number: attemptNo
+                    };
+                    setReviewData(newRevData);
+                    setViewType('Review');
                 }
             })
             .catch((error) => {
@@ -529,6 +549,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                         attemptData.responses.map((response, index) => (
                                                             <Box
                                                                 key={index}
+                                                                onClick={() => handleAttemptReview(response.id, (index + 1))}
                                                                 sx={{
                                                                     mb: 1,
                                                                     p: '8px',
@@ -790,7 +811,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     <Grid item container xs={12} spacing={2}>
+                        {/* Score Meter, Interactions*/}
                         <Grid container item xs={5}>
+                            {/* Score Meter */}
                             <Grid item xs={12}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Result
@@ -822,20 +845,19 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                     />
                                 </Box>
                             </Grid>
+                            {/* Score Information and Interactions */}
                             <Grid item xs={12}>
                                 <Box sx={{ width: "100%", placeContent: "center", placeItems: "center", mb: 5 }}>
                                     <Typography variant="h6">
                                         {`You scored ${resultData.total_score} out of ${resultData.total_points}`}
                                     </Typography>
-                                    {!resultData.passed && (
-                                        <Typography variant="h6">
-                                            {`The passing score is ${formInfo.passing_score}%`}
-                                        </Typography>
-                                    )}
+                                    <Typography variant="h6">
+                                        {`The passing score is ${formInfo.passing_score}%`}
+                                    </Typography>
                                     <Box display="flex" sx={{ mt: 2, alignItems: "center" }}>
                                         <Button
                                             variant="contained"
-                                            onClick={() => setViewType('Review')}
+                                            onClick={() => handleAttemptReview(resultData.reviewer_num, ((attemptData?.response_count ?? 0) + 1))}
                                             sx={{ ml: 1, backgroundColor: "#177604" }}
                                             startIcon={<Grading />}
                                         >
@@ -853,7 +875,35 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Box>
                             </Grid>
                         </Grid>
-                        <Grid container item xs={7}>
+                        {/* Attempt Data */}
+                        <Grid container item xs={7} spacing={1}>
+                            {/* Current Attempt */}
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Attempt Data
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between" }}>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Attempt No."
+                                            info={((attemptData?.response_count ?? 0) + 1)}
+                                        />
+                                    </Box>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Duration"
+                                            info={formatDuration(resultData.duration)}
+                                        />
+                                    </Box>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Unanswered Items"
+                                            info={resultData.empty_answers}
+                                        />
+                                    </Box>
+                                </Box>
+                            </Grid>
+                            {/* Attempt History */}
                             <Grid item xs={12}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Attempt History
@@ -891,23 +941,29 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         ]}
                                         series={[
                                             {
-                                                curve: "linear",
+                                                curve: "monotoneX",
                                                 data: [
                                                     0,
                                                     ...attemptData.responses.map(response => response.score),
                                                     resultData.total_score,
                                                 ],
                                                 color: '#177604',
-                                                area: true
+                                                area: true,
+                                                valueFormatter: (value) => {
+                                                    return `${value} pt${value > 1 ? 's' : ''}`;
+                                                },
                                             },
                                         ]}
                                         grid={{ horizontal: true }}
                                         width={700}
-                                        height={350}
-                                        margin={{ left: 50, top: 20, bottom: 50, right: 50 }}
+                                        height={300}
+                                        margin={{ left: 50, top: 10, bottom: 50, right: 50 }}
                                         sx={{
                                             [`& .${areaElementClasses.root}`]: {
-                                                fill: 'rgba(23, 118, 4, 0.5)',
+                                                fill: 'rgba(23, 118, 4, 0.8)',
+                                            },
+                                            '& .MuiLineElement-root': {
+                                                strokeWidth: 3,
                                             },
                                         }}
                                     />
@@ -920,21 +976,88 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         case 'Review':
             return (
                 <>
-                    {/* Return Button (TEMPORARY, REMOVE LATER) */}
-                    <Button
-                        variant="contained"
-                        onClick={() => {
-                            if (overviewReload) {
-                                contentReload(content.id);
-                            } else {
-                                setViewType('Overview');
-                            }
-                        }}
-                        sx={{ ml: 1, backgroundColor: "#d32f2f" }}
-                        startIcon={<ExitToApp />}
-                    >
-                        Return to Overview
-                    </Button>
+                    <Grid item container xs={12} spacing={2}>
+                        <Grid item xs={12}>
+                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    Attempt Review
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => {
+                                        if (overviewReload) {
+                                            contentReload(content.id);
+                                        } else {
+                                            setViewType('Overview');
+                                        }
+                                    }}
+                                    sx={{ backgroundColor: "#f57c00" }}
+                                    startIcon={<ExitToApp />}
+                                >
+                                    Return to Overview
+                                </Button>
+                            </Box>
+                        </Grid>
+                        <Grid item xs={3}>
+                            <InfoBox
+                                title="Attempt No."
+                                info={reviewData.attempt_number}
+                            />
+                        </Grid>
+                        <Grid item xs={3}>
+                            <InfoBox
+                                title="Submitted On"
+                                info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
+                            />
+                        </Grid>
+                        <Grid item xs={3}>
+                            <InfoBox
+                                title="Score"
+                                info={reviewData.score}
+                            />
+                        </Grid>
+                        <Grid item xs={3}>
+                            <InfoBox
+                                title="Duration"
+                                info={formatDuration(reviewData.duration)}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                Answers
+                            </Typography>
+                            <Box
+                                sx={{
+                                    maxHeight: '690px',
+                                    overflowY: 'auto',
+                                    pr: 1,
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        background: '#f1f1f1',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        background: '#888',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb:hover': {
+                                        background: '#555',
+                                    },
+                                }}
+                            >
+                                <Grid container spacing={2}>
+                                    {reviewData.items.map((item, index) => (
+                                        <Grid item key={index} xs={12}>
+                                            <ReviewItem itemData={item} />
+                                        </Grid>
+                                    )
+                                    )}
+                                </Grid>
+                            </Box>
+                        </Grid>
+                    </Grid>
                 </>
             );
         default:
