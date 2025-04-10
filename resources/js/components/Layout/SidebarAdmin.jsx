@@ -65,15 +65,6 @@ const Sidebar = ({ children, closeMini }) => {
                 console.error("Error fetching work groups:", error);
             });
 
-        const storedAvatar = sessionStorage.getItem("avatar");
-        if (storedAvatar) {
-            setImagePath(storedAvatar);
-        } else {
-            getMyAvatar();
-        }
-    }, []);
-
-    const getMyAvatar = () => {
         axiosInstance
             .get(`/employee/getMyAvatar`, { headers })
             .then((response) => {
@@ -92,7 +83,6 @@ const Sidebar = ({ children, closeMini }) => {
 
                         const newBlob = URL.createObjectURL(blob);
                         setImagePath(newBlob);
-                        sessionStorage.setItem("avatar", newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -100,8 +90,17 @@ const Sidebar = ({ children, closeMini }) => {
             })
             .catch((error) => {
                 console.error("Error fetching avatar:", error);
+                setImagePath(null);
             });
-    };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, [imagePath]);
 
     const employeesItems = [
         {
