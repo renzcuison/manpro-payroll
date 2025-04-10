@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
+const storedUser = localStorage.getItem("nasya_user");
+const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 async function getPackages() {
     try {
-        const storedUser = localStorage.getItem("nasya_user");
-        const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
         const { data } = await axiosInstance.get("/super-admin/packages", {
             headers,
         });
@@ -68,5 +68,36 @@ export function usePackages() {
         store,
         update,
         assignFeature,
+    };
+}
+
+export function usePackage(id) {
+    const {
+        data: packageData,
+        isLoading,
+        error,
+    } = useQuery(
+        ["package", id],
+        async () => {
+            const response = await axiosInstance.get(
+                `/super-admin/packages/${id}`,
+                {
+                    headers,
+                }
+            );
+            return response.data;
+        },
+        {
+            retry: 3,
+            refetchOnWindowFocus: false,
+            keepPreviousData: true,
+            suspense: true,
+        }
+    );
+
+    return {
+        packageData,
+        isLoading,
+        error,
     };
 }

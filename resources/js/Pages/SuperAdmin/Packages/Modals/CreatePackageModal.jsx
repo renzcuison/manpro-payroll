@@ -5,30 +5,49 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    Divider,
     Grid,
+    Icon,
     Stack,
     Step,
     StepContent,
     StepLabel,
     Stepper,
+    Table,
+    TableBody,
+    TableCell,
+    TableRow,
     TextField,
     Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePackages } from "../../hooks/usePackages";
 import { FormProvider, useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SelectPackageFeatures from "../../../../sections/Packages/SelectPackageFeatures";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const steps = ["Package Details", "Select features", "Create"];
 
 function CreatePackageModal(props) {
-    const { onClose, selectedPackage, open } = props;
+    const {
+        onClose,
+        selectedPackage,
+        open,
+        setIsOpenSnackBar,
+        setSnackBarMsg,
+    } = props;
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
     const [packageData, setPackageData] = useState(null);
+    const { store, update, assignFeature } = usePackages();
+    const queryClient = useQueryClient();
+    const [isSuccess, setIsSuccess] = useState(false);
+    console.log(isSuccess);
+
+    console.log(packageData);
 
     const isStepOptional = (step) => {
         return step === 1;
@@ -71,7 +90,6 @@ function CreatePackageModal(props) {
         setActiveStep(0);
     };
 
-    const { store, update } = usePackages();
     const methods = useForm({
         defaultValues: {
             id: null,
@@ -80,7 +98,6 @@ function CreatePackageModal(props) {
             price: selectedPackage ? selectedPackage.price : null,
         },
     });
-    const queryClient = useQueryClient();
 
     const {
         register,
@@ -117,8 +134,15 @@ function CreatePackageModal(props) {
             const res = await action(formData, data.id);
             if (res.id) {
                 console.log(res);
-
+                queryClient.invalidateQueries(["packages"]);
                 setPackageData(res);
+                setIsSuccess(true);
+                setIsOpenSnackBar(true);
+                setSnackBarMsg(
+                    selectedPackage
+                        ? "Successfully updated package details."
+                        : "Successfully stored new package."
+                );
             } else {
             }
         } catch (error) {
@@ -138,6 +162,24 @@ function CreatePackageModal(props) {
     const handleClose = () => {
         reset();
         onClose();
+    };
+
+    const renderFeatures = useMemo(
+        () => (
+            <SelectPackageFeatures
+                pkg={packageData}
+                assignFeature={assignFeature}
+            />
+        ),
+        [packageData, selectedPackage]
+    );
+
+    const handleChange = async (id) => {
+        const res = await assignFeature(packageData.id, id);
+        if (res.success) {
+            console.log(res);
+            setPackageData(res.data);
+        }
     };
 
     return (
@@ -234,7 +276,7 @@ function CreatePackageModal(props) {
                                         <Box
                                             sx={{
                                                 display: "flex",
-                                                justifyContent: "flex-start",
+                                                justifyContent: "space-between",
                                             }}
                                         >
                                             <Button
@@ -272,31 +314,147 @@ function CreatePackageModal(props) {
                                                     </Typography>
                                                 </Box>
                                             )}
+                                            {isSuccess && (
+                                                <Box
+                                                    sx={{
+                                                        p: 1,
+                                                        color: "success",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="body2"
+                                                        color="success"
+                                                    >
+                                                        {selectedPackage
+                                                            ? "Updated"
+                                                            : "Saved"}{" "}
+                                                        Successfully!
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                         </Box>
                                     </Stack>
                                 </form>
                             </FormProvider>
                         </Box>
                     )}
-                    {activeStep === 1 && (
-                        <SelectPackageFeatures packageData={packageData} />
+                    {activeStep === 1 && packageData?.id && (
+                        <SelectPackageFeatures
+                            pkg={packageData}
+                            assignFeature={assignFeature}
+                            handleChange={handleChange}
+                        />
+                    )}
+
+                    {activeStep === steps.length - 1 && (
+                        <Stack
+                            sx={{
+                                mt: 3,
+                                border: "1px solid #ccc",
+                                p: 2,
+                                borderRadius: 2,
+                            }}
+                            spacing={2}
+                        >
+                            <Typography variant="h6" color="primary">
+                                Package Details
+                            </Typography>
+                            <Table size="small">
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>Name:</TableCell>
+                                        <TableCell>
+                                            {packageData?.name}
+                                        </TableCell>
+                                    </TableRow>
+
+                                    <TableRow>
+                                        <TableCell>Description:</TableCell>
+                                        <TableCell>
+                                            {packageData?.description}
+                                        </TableCell>
+                                    </TableRow>
+
+                                    <TableRow>
+                                        <TableCell>Price:</TableCell>
+                                        <TableCell>
+                                            {packageData?.price}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+
+                            <Divider sx={{ borderStyle: "dashed" }} />
+                            <Typography variant="h6" color="primary">
+                                Features:
+                            </Typography>
+                            <Stack spacing={1}>
+                                {packageData?.features?.map((f, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            p: 1,
+                                            px: 2,
+                                            border: "1px solid #ccc",
+                                            borderRadius: 2,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
+                                                fontWeight: "bold",
+                                            }}
+                                        >
+                                            {f.name}
+                                        </Typography>
+                                        <CheckCircleIcon
+                                            sx={{
+                                                color: "success.main",
+                                            }}
+                                        />
+                                    </Box>
+                                ))}
+                            </Stack>
+                        </Stack>
                     )}
                     {activeStep === steps.length ? (
-                        <React.Fragment>
-                            <Typography sx={{ mt: 2, mb: 1 }}>
-                                All steps completed - you&apos;re finished
+                        <Stack
+                            sx={{
+                                mt: 3,
+                                border: "1px solid #ccc",
+                                p: 2,
+                                borderRadius: 2,
+                            }}
+                            spacing={2}
+                        >
+                            <Typography
+                                sx={{ mt: 2, mb: 1, textAlign: "center" }}
+                                variant="h6"
+                            >
+                                All steps completed - you&apos;re finished!
                             </Typography>
                             <Box
                                 sx={{
                                     display: "flex",
                                     flexDirection: "row",
                                     pt: 2,
+                                    justifyContent: "center",
+                                    alignItems: "center",
                                 }}
                             >
-                                <Box sx={{ flex: "1 1 auto" }} />
-                                <Button onClick={handleReset}>Reset</Button>
+                                {/* <Button onClick={handleReset}>Reset</Button> */}
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleClose()}
+                                >
+                                    Close
+                                </Button>
                             </Box>
-                        </React.Fragment>
+                        </Stack>
                     ) : (
                         <React.Fragment>
                             <Box
@@ -315,7 +473,7 @@ function CreatePackageModal(props) {
                                     Back
                                 </Button>
                                 <Box sx={{ flex: "1 1 auto" }} />
-                                {isStepOptional(activeStep) && (
+                                {/* {isStepOptional(activeStep) && (
                                     <Button
                                         color="inherit"
                                         onClick={handleSkip}
@@ -323,7 +481,7 @@ function CreatePackageModal(props) {
                                     >
                                         Skip
                                     </Button>
-                                )}
+                                )} */}
                                 <Button
                                     onClick={handleNext}
                                     disabled={!packageData?.id}

@@ -1,13 +1,34 @@
 import React, { useState } from "react";
 import Layout from "../../../components/Layout/Layout";
-import { Box, Button, CircularProgress, Divider, Stack } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Divider,
+    IconButton,
+    Snackbar,
+    Stack,
+    Typography,
+} from "@mui/material";
 import { usePackages } from "../hooks/usePackages";
 import CreatePackageModal from "./Modals/CreatePackageModal";
+import { useFeatures } from "../hooks/useFeatures";
+import { MoreVerticalIcon } from "lucide-react";
 
 function Packages() {
     const { packages, isFetching } = usePackages();
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
+    const [snackBarOpen, setIsOpenSnackBar] = useState(false);
+    const [snackBarMsg, setSnackBarMsg] = useState(false);
+
+    const {
+        data: features,
+        isFetching: isFetchingFeatures,
+        isFetched,
+    } = useFeatures();
+    console.log(packages);
 
     const handlePackageClick = (item) => {
         setSelectedPackage(item);
@@ -16,6 +37,14 @@ function Packages() {
     const handleClose = () => {
         setOpenDialog(false);
         setSelectedPackage(null);
+    };
+
+    const handleCloseSnack = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+
+        setIsOpenSnackBar(false);
     };
 
     return (
@@ -31,7 +60,7 @@ function Packages() {
                     </Button>
                 </Box>
                 <Divider sx={{ borderStyle: "dashed" }} />
-                <Box>
+                <Stack spacing={2}>
                     {isFetching ? (
                         <Box
                             sx={{
@@ -43,25 +72,63 @@ function Packages() {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        packages?.map((packageItem) => (
+                        packages?.map((packageItem, index) => (
                             <Box
-                                key={packageItem.id}
-                                sx={{ p: 2, border: "1px solid #ccc" }}
+                                key={index}
+                                sx={{
+                                    p: 2,
+                                    px: 3,
+                                    border: "1px solid #ccc",
+                                    borderRadius: 2,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                }}
                                 onClick={() => handlePackageClick(packageItem)}
                             >
-                                <h2>{packageItem.name}</h2>
-                                <p>{packageItem.description}</p>
+                                <Stack>
+                                    <Typography variant="h6">
+                                        {packageItem.name}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        {packageItem.description}
+                                    </Typography>
+                                </Stack>
+                                <IconButton onClick={() => {}}>
+                                    <MoreVerticalIcon />
+                                </IconButton>
                             </Box>
                         ))
                     )}
-                </Box>
+                </Stack>
             </Stack>
             {openDialog && (
                 <CreatePackageModal
                     open={openDialog}
                     onClose={handleClose}
                     selectedPackage={selectedPackage}
+                    setSnackBarMsg={setSnackBarMsg}
+                    setIsOpenSnackBar={setIsOpenSnackBar}
                 />
+            )}
+
+            {snackBarOpen && (
+                <Snackbar
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                    open={snackBarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleCloseSnack}
+                    message={snackBarMsg}
+                >
+                    <Alert
+                        onClose={handleClose}
+                        severity="success"
+                        variant="filled"
+                        sx={{ width: "100%" }}
+                    >
+                        {snackBarMsg}
+                    </Alert>
+                </Snackbar>
             )}
         </Layout>
     );

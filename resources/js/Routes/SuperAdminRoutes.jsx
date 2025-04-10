@@ -7,6 +7,7 @@ import Error404 from "../Pages/Errors/Error404";
 import ClientsAdd from "../Pages/SuperAdmin/Clients/ClientsAdd";
 import ClientsList from "../Pages/SuperAdmin/Clients/ClientsList";
 import Packages from "../Pages/SuperAdmin/Packages";
+import SubscriptionList from "../Pages/SuperAdmin/Subscriptions";
 
 const SuperAdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -34,6 +35,15 @@ const SuperAdminRoutes = ({ user }) => {
             <Route
                 path="packages"
                 element={<ProtectedRoute element={<Packages />} user={user} />}
+            />
+            <Route
+                path="subscriptions"
+                element={
+                    <ProtectedRoute
+                        element={<SubscriptionList />}
+                        user={user}
+                    />
+                }
             />
         </Routes>
     );

@@ -40,9 +40,10 @@ class PackageController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Package $package): JsonResponse
+    public function show($id): JsonResponse
     {
-        //
+        $package = Package::with('features')->find($id);
+        return response()->json($package);
     }
 
     /**
@@ -88,11 +89,30 @@ class PackageController extends Controller
      */
     public function assignFeature(Request $request, $id): JsonResponse
     {
-        $package = Package::find($id);
-        $feature = Feature::find($request->feature_id);
+        try {
+            $package = Package::find($id);
+            $feature = Feature::find($request->feature_id);
 
-        $package->features()->attach($feature);
-        
-        return response()->json($package->load('features'), 200);
+            // Check if the feature is already attached to the package
+            if ($package->features()->where('feature_id', $feature->id)->exists()) {
+                
+                $package->features()->detach($feature);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Feature unassigned successfully',
+                    'data' => $package->load('features')
+                ], 200);
+                    
+            }
+
+            $package->features()->attach($feature);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Feature assigned successfully',
+                'data' => $package->load('features')], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], 400);
+        }
     }
 }

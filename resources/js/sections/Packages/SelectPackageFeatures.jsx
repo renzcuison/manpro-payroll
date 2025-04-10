@@ -8,14 +8,19 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useFeatures } from "../../Pages/SuperAdmin/hooks/useFeatures";
-import { usePackages } from "../../Pages/SuperAdmin/hooks/usePackages";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePackage } from "../../Pages/SuperAdmin/hooks/usePackages";
 
 function SelectPackageFeatures(props) {
-    const { packageData } = props;
-    console.log(packageData);
+    const { pkg, handleChange } = props;
+    const queryClient = useQueryClient();
 
+    // const { packageData, isLoading } = usePackage(pkg.id);
     const { data, isFetching, isFetched } = useFeatures();
-    const { assignFeature } = usePackages();
+
+    if (!pkg?.id || isFetching || !isFetched) {
+        return <Typography>Loading...</Typography>;
+    }
 
     return (
         <Stack sx={{ mt: 3, border: "1px solid #ccc", p: 2, borderRadius: 2 }}>
@@ -23,23 +28,12 @@ function SelectPackageFeatures(props) {
                 Select Package Features
             </Typography>
             <Divider sx={{ borderStyle: "dashed" }} />
-            <Box sx={{ pt: 2 }}>
+            <Stack spacing={1} sx={{ pt: 2 }}>
                 {isFetched &&
                     data?.map((feature, index) => {
-                        const [checked, setChecked] = React.useState(true);
-
                         const exists =
-                            packageData?.features?.filter(
-                                (f) => f.id === feature.id
-                            ).length > 0;
-
-                        const handleChange = async (event) => {
-                            const res = await assignFeature(
-                                packageData.id,
-                                feature.id
-                            );
-                            console.log(res);
-                        };
+                            pkg?.features?.filter((f) => f.id === feature.id)
+                                .length > 0;
 
                         return (
                             <Box
@@ -59,13 +53,13 @@ function SelectPackageFeatures(props) {
                                 </Typography>
                                 <Switch
                                     checked={exists}
-                                    onChange={handleChange}
+                                    onChange={() => handleChange(feature.id)}
                                     size="small"
                                 />
                             </Box>
                         );
                     })}
-            </Box>
+            </Stack>
         </Stack>
     );
 }

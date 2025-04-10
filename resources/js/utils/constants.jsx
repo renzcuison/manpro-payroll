@@ -36,6 +36,11 @@ export const superAdminSidebarMenu = [
         path: "/dashboard",
     },
     {
+        title: "Subscriptions",
+        icon: <ImageIcon size={24} />,
+        path: "/super-admin/subscriptions",
+    },
+    {
         title: "Users",
         icon: <ImageIcon size={24} />,
         path: "/super-admin/clients",
