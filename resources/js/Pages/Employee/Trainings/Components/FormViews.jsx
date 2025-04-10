@@ -66,6 +66,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
     const [overviewReload, setOverviewReload] = useState(false);
     const [resultData, setResultData] = useState(null);
     const [reviewData, setReviewData] = useState(null);
+    const totalPoints = formItems.reduce((sum, item) => sum + (item.value || 0), 0);
 
     // Local Storage
     let attemptedQuiz = null;
@@ -361,7 +362,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         <Grid item xs={3}>
                             <InfoBox
                                 title="Total Points"
-                                info={formItems.reduce((sum, item) => sum + (item.value || 0), 0)}
+                                info={totalPoints}
                             />
                         </Grid>
                         {/* Passing Score */}
@@ -447,16 +448,42 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             }}
                                         >
                                             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
-                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }} >
                                                     <Assessment sx={{ mr: 1, color: 'text.secondary', width: 28, height: 28 }} />
                                                     <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: '0.5px', }} >
                                                         Avg. Score
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
-                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px', }} >
-                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : `${(attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')} pt${(attemptData?.average_score ?? 0).toFixed(2) > 1 ? 's' : ''}`}
-                                                    </Typography>
+                                                    <Gauge
+                                                        value={(attemptData?.response_count ?? 0) === 0 ? 0 : Number((attemptData?.average_score ?? 0).toFixed(1))}
+                                                        valueMax={totalPoints}
+                                                        height={140}
+                                                        width={140}
+                                                        cornerRadius="8px"
+                                                        sx={(theme) => ({
+                                                            [`& .${gaugeClasses.valueText}`]: {
+                                                                fontSize: 20,
+                                                                fontWeight: "bold",
+                                                                fill: "text.secondary"
+                                                            },
+                                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                                fill: (attemptData?.average_score ?? 0) >= (totalPoints * 0.75) ? '#177604'
+                                                                    : (attemptData?.average_score ?? 0) >= (totalPoints * 0.50) ? '#e9ae20'
+                                                                        : (attemptData?.average_score ?? 0) >= (totalPoints * 0.25) ? '#f57c00'
+                                                                            : '#f44336'
+                                                            },
+                                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                                fill: `#e0e0e0`
+                                                            },
+                                                        })}
+                                                        margin={{ top: 0 }}
+                                                        startAngle={-110}
+                                                        endAngle={110}
+                                                        innerRadius="70%"
+                                                        outerRadius="100%"
+                                                        text={({ value }) => `${value}pt${value > 1 ? 's' : ''}`}
+                                                    />
                                                 </Box>
                                             </Box>
                                         </Paper>
@@ -495,113 +522,108 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                     </Grid>
                                     {/* Attempt History */}
                                     <Grid item xs={3}>
-                                        {/* Header */}
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
-                                            Attempt History
-                                        </Typography>
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', height: 150, border: "solid 1px #e0e0e0" }}>
-                                            {/* Attempt List  */}
-                                            <Box
-                                                sx={{
-                                                    flexGrow: 1,
-                                                    maxHeight: 140,
-                                                    overflowY: 'auto',
-                                                    overflowX: 'hidden',
-                                                    scrollbarWidth: 'thin',
-                                                    scrollbarColor: '#777 #f5f5f5',
-                                                    '&::-webkit-scrollbar': {
-                                                        width: '6px',
-                                                    },
-                                                    '&::-webkit-scrollbar-thumb': {
-                                                        backgroundColor: '#777',
-                                                        borderRadius: '3px',
-                                                    },
-                                                    '&::-webkit-scrollbar-track': {
-                                                        backgroundColor: '#f5f5f5',
-                                                    },
-                                                }}
-                                            >
-                                                {attemptData?.responses?.length > 0 ? (
-                                                    <Table
-                                                        stickyHeader
-                                                        size="small"
-                                                        sx={{
-                                                            tableLayout: 'fixed', // Enforce column widths
-                                                            width: '100%',
-                                                        }}
-                                                    >
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                <TableCell sx={{ pl: 1, width: '65%', fontWeight: 'bold' }}>
-                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                        Attempt Date
-                                                                    </Typography>
-                                                                </TableCell>
-                                                                <TableCell align="center" sx={{ width: '35%', fontWeight: 'bold' }}>
-                                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                                        Score
-                                                                    </Typography>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        <TableBody>
-                                                            {attemptData.responses.map((response, index) => (
-                                                                <TableRow
-                                                                    key={index}
-                                                                    onClick={() => handleAttemptReview(response.id, (index + 1))}
+                                        <Box
+                                            sx={{
+                                                height: 180,
+                                                border: "solid 1px #e0e0e0",
+                                                borderRadius: "8px",
+                                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+                                                overflowY: 'auto',
+                                                overflowX: 'hidden',
+                                                scrollbarWidth: 'thin',
+                                                scrollbarColor: '#777 #f5f5f5',
+                                                '&::-webkit-scrollbar': {
+                                                    width: '6px',
+                                                },
+                                                '&::-webkit-scrollbar-thumb': {
+                                                    backgroundColor: '#777',
+                                                    borderRadius: '3px',
+                                                },
+                                                '&::-webkit-scrollbar-track': {
+                                                    backgroundColor: '#f5f5f5',
+                                                },
+                                            }}
+                                        >
+                                            {attemptData?.responses?.length > 0 ? (
+                                                <Table
+                                                    stickyHeader
+                                                    size="small"
+                                                    sx={{
+                                                        tableLayout: 'fixed',
+                                                        width: '100%',
+                                                    }}
+                                                >
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell sx={{ pl: 1, width: '65%', fontWeight: 'bold' }}>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                    Attempt Date
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center" sx={{ width: '35%', fontWeight: 'bold' }}>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                    Score
+                                                                </Typography>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {attemptData.responses.map((response, index) => (
+                                                            <TableRow
+                                                                key={index}
+                                                                onClick={() => handleAttemptReview(response.id, (index + 1))}
+                                                                sx={{
+                                                                    cursor: 'pointer',
+                                                                    transition: "background-color 0.3s ease",
+                                                                    '&:hover': {
+                                                                        backgroundColor: "#f5f5f5"
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <TableCell
                                                                     sx={{
-                                                                        cursor: 'pointer',
-                                                                        transition: "background-color 0.3s ease",
-                                                                        '&:hover': {
-                                                                            backgroundColor: "#f5f5f5"
-                                                                        }
+                                                                        width: '65%',
+                                                                        whiteSpace: 'normal',
+                                                                        wordBreak: 'break-word',
+                                                                        p: 1,
                                                                     }}
                                                                 >
-                                                                    <TableCell
+                                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                                        {dayjs(response.created_at).format('MM/DD/YYYY hh:mm A')}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                                <TableCell
+                                                                    sx={{
+                                                                        width: '35%',
+                                                                        whiteSpace: 'normal',
+                                                                        wordBreak: 'break-word',
+                                                                        p: 1,
+                                                                    }}
+                                                                >
+                                                                    <Box
                                                                         sx={{
-                                                                            width: '65%',
-                                                                            whiteSpace: 'normal',
-                                                                            wordBreak: 'break-word',
-                                                                            p: 1,
+                                                                            px: 1,
+                                                                            py: 0.5,
+                                                                            borderRadius: '12px',
+                                                                            backgroundColor: response.passed ? '#e8f5e9' : "#ffebee",
+                                                                            color: response.passed ? '#2e7d32' : "#d32f2f",
+                                                                            fontSize: '0.875rem',
+                                                                            fontWeight: 'bold',
+                                                                            textAlign: 'center',
                                                                         }}
                                                                     >
-                                                                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                                                                            {dayjs(response.created_at).format('MM/DD/YYYY hh:mm A')}
-                                                                        </Typography>
-                                                                    </TableCell>
-                                                                    <TableCell
-                                                                        sx={{
-                                                                            width: '35%',
-                                                                            whiteSpace: 'normal',
-                                                                            wordBreak: 'break-word',
-                                                                            p: 1,
-                                                                        }}
-                                                                    >
-                                                                        <Box
-                                                                            sx={{
-                                                                                px: 1,
-                                                                                py: 0.5,
-                                                                                borderRadius: '12px',
-                                                                                backgroundColor: response.passed ? '#e8f5e9' : "#ffebee",
-                                                                                color: response.passed ? '#2e7d32' : "#d32f2f",
-                                                                                fontSize: '0.875rem',
-                                                                                fontWeight: 'bold',
-                                                                                textAlign: 'center',
-                                                                            }}
-                                                                        >
-                                                                            {`${response.score} pt${response.score > 1 ? 's' : ''}`}
-                                                                        </Box>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                ) : (
-                                                    <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', lineHeight: 'calc(180px - 48px)' }}>
-                                                        No attempts recorded
-                                                    </Typography>
-                                                )}
-                                            </Box>
+                                                                        {`${response.score} pt${response.score > 1 ? 's' : ''}`}
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            ) : (
+                                                <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', lineHeight: 'calc(180px - 48px)' }}>
+                                                    No attempts recorded
+                                                </Typography>
+                                            )}
                                         </Box>
                                     </Grid>
                                 </Grid>
@@ -1008,22 +1030,101 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Button>
                             </Box>
                         </Grid>
-                        <Grid item xs={3}>
-                            <InfoBox
-                                title="Attempt No."
-                                info={reviewData.attempt_number}
-                            />
+                        <Grid item xs={1}>
+                            <Box
+                                display="flex"
+                                sx={{
+                                    p: 1, width: "100%", height: 100,
+                                    flexDirection: "column", alignItems: "center",
+                                    border: "solid 1px #e0e0e0", borderRadius: "8px"
+                                }}>
+                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1 }}>
+                                    Attempt
+                                </Typography>
+                                <Typography variant="h3" sx={{ fontWeight: "bold", color: "#177604" }}>
+                                    {reviewData.attempt_number}
+                                </Typography>
+                            </Box>
+                        </Grid>
+                        <Grid item xs={5}>
+                            <Box
+                                display="flex"
+                                sx={{
+                                    position: "relative",
+                                    width: "100%", height: 100, alignItems: "center",
+                                    border: "solid 1px #e0e0e0", borderRadius: "8px"
+                                }}>
+                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, position: "absolute", top: 7, left: 10 }}>
+                                    Score
+                                </Typography>
+                                <Box sx={{ width: "32%", borderRight: "solid 1px #e0e0e0", placeContent: "center", placeItems: "center" }}>
+                                    <Gauge
+                                        value={reviewData.score}
+                                        valueMax={totalPoints}
+                                        height={100}
+                                        width={100}
+                                        cornerRadius="8px"
+                                        sx={(theme) => ({
+                                            [`& .${gaugeClasses.valueText}`]: {
+                                                fontSize: 18,
+                                                fontWeight: "bold",
+                                                fill: "text.secondary"
+                                            },
+                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                fill: reviewData.score >= (totalPoints * (formInfo.passing_score / 100)) ? '#177604' : '#f44336'
+                                            },
+                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                fill: `#e0e0e0`
+                                            },
+                                        })}
+                                        margin={{ top: 10, bottom: 0 }}
+                                        startAngle={-110}
+                                        endAngle={110}
+                                        innerRadius="80%"
+                                        outerRadius="120%"
+                                        text={({ value }) => `${value}pt${value > 1 ? 's' : ''}`}
+                                    />
+                                </Box>
+                                <Box display="flex" sx={{ p: 1, width: "68%", flexDirection: "column" }}>
+                                    <Box display="flex">
+                                        <Box sx={{ width: "50%" }}>
+                                            <InfoBox
+                                                title="text"
+                                                info={1}
+                                                clean
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: "50%" }}>
+                                            <InfoBox
+                                                title="text"
+                                                info={1}
+                                                clean
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box display="flex">
+                                        <Box sx={{ width: "50%" }}>
+                                            <InfoBox
+                                                title="text"
+                                                info={1}
+                                                clean
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: "50%" }}>
+                                            <InfoBox
+                                                title="text"
+                                                info={1}
+                                                clean
+                                            />
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Box>
                         </Grid>
                         <Grid item xs={3}>
                             <InfoBox
                                 title="Submitted On"
                                 info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
-                            />
-                        </Grid>
-                        <Grid item xs={3}>
-                            <InfoBox
-                                title="Score"
-                                info={reviewData.score}
                             />
                         </Grid>
                         <Grid item xs={3}>
