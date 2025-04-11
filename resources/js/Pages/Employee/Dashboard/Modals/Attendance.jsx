@@ -7,19 +7,12 @@ import {
     Grid,
     Typography,
     Divider,
-    TableContainer,
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import AttendanceButton from "./Components/AttendanceButton";
 import Swal from "sweetalert2";
 import moment from "moment";
-import { AccessTime } from "@mui/icons-material";
 import dayjs from "dayjs";
 import AttendanceTable from "./Components/AttendanceTable";
 
@@ -282,27 +275,27 @@ const Attendance = ({ open, close }) => {
                             sx={{ pb: 1, borderBottom: "1px solid #e0e0e0" }}
                             rowSpacing={1}
                         >
-                            <Grid item xs={12} sm={4}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 Date:
                             </Grid>
-                            <Grid item xs={12} sm={8}>
+                            <Grid size={{ xs: 12, sm: 8 }}>
                                 <Typography sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" }, }}>
                                     {formattedDate}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 Time:
                             </Grid>
-                            <Grid item xs={12} sm={8}>
+                            <Grid size={{ xs: 12, sm: 8 }}>
                                 <Typography
                                     sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" } }}>
                                     {formattedTime}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={7}>
+                            <Grid size={{ xs: 7 }}>
                                 Status:
                             </Grid>
-                            <Grid item xs={5}>
+                            <Grid size={{ xs: 5 }}>
                                 <Typography
                                     sx={{
                                         fontWeight: "bold",
