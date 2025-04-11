@@ -241,22 +241,22 @@ class PayrollController extends Controller
         $withholdingTax = 0;
         $compensationLevel = 0;
 
-        if ( $taxableIncome < 20833 )  {
+        if ($taxableIncome < 20833) {
             $withholdingTax = 0;
             $compensationLevel = 0;
-        } else if ( $taxableIncome >= 20833 && $taxableIncome <= 33332) {
+        } else if ($taxableIncome >= 20833 && $taxableIncome <= 33332) {
             $withholdingTax = 15;
             $compensationLevel = 20833;
-        } else if ( $taxableIncome >= 33333 && $taxableIncome <= 66666) {
+        } else if ($taxableIncome >= 33333 && $taxableIncome <= 66666) {
             $withholdingTax = 20;
             $compensationLevel = 33333;
-        } else if ( $taxableIncome >= 66667 && $taxableIncome <= 16666) {
+        } else if ($taxableIncome >= 66667 && $taxableIncome <= 16666) {
             $withholdingTax = 25;
             $compensationLevel = 66667;
-        } else if ( $taxableIncome >= 166667 && $taxableIncome <= 666666) {
+        } else if ($taxableIncome >= 166667 && $taxableIncome <= 666666) {
             $withholdingTax = 30;
             $compensationLevel = 166667;
-        } else if ( $taxableIncome >= 666667) {
+        } else if ($taxableIncome >= 666667) {
             $withholdingTax = 35;
             $compensationLevel = 666667;
         }
@@ -391,165 +391,29 @@ class PayrollController extends Controller
         $absents = $perDay * $numberOfAbsentDays;
 
         // ============== LEAVES ==============
-        $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $employee->client_id)->get();
-
         $paidLeaves = [];
         $unpaidLeaves = [];
         $leaveEarnings = 0;
 
-        $applicationIds = $applicationTypes->pluck('id')->all();
-        $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
-            ->where('user_id', $employee->id)
-            ->whereIn('type_id', $applicationIds)
-            ->where('status', 'Approved')
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->where('duration_start', '<=', $endDate)->where('duration_end', '>=', $startDate);
-            })
-            ->get()
-            ->groupBy('type_id');
+        $leaveParams = [
+            'employee_id' => $employee->id,
+            'client_id' => $employee->id,
+            'start' => $start,
+            'end' => $end,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'day_start' => $dayStart,
+            'day_end' => $dayEnd,
+            'gap_start' => $gapStart,
+            'gap_end' => $gapEnd,
+            'total_hours' => $totalWorkHours,
+            'per_hour' => $perHour,
+        ];
 
-        foreach ($applicationTypes as $applicationType) {
-
-            $apps = $applications->get($applicationType->id, collect());
-
-            $days = 0;
-            $totalHours = 0;
-
-            foreach ($apps as $app) {
-                $fromDate = Carbon::parse($app->duration_start);
-                $toDate = Carbon::parse($app->duration_end);
-                Log::info("================================");
-                Log::info("App Starts     :" . $fromDate);
-                Log::info("App Ends       :" . $toDate);
-
-                $overlapStart = max($fromDate->startOfDay(), $start);
-                $overlapEnd = min($toDate->startOfDay(), $end);
-
-                $lastStart = $dayStart->copy()->setDateFrom($overlapEnd);
-                $lastEnd = $dayEnd->copy()->setDateFrom($overlapEnd);
-                $lastGapStart = $gapStart->copy()->setDateFrom($overlapEnd);
-                $lastGapEnd = $gapEnd->copy()->setDateFrom($overlapEnd);
-
-                if ($overlapStart <= $overlapEnd) {
-                    $currentDate = $overlapStart->copy();
-                    if ($overlapStart->isSameDay($overlapEnd)) {
-                        Log::info("================================");
-                        Log::info("Same Day Leave");
-                        Log::info("Current Date   :" . $currentDate);
-                        $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
-                        $appEnd = Carbon::parse($app->duration_end)->setDateFrom(now());
-                        $skipDay = true;
-                        if (!$skipDay) {
-                            $totalHours = 0;
-                        } else {
-                            if ($appStart->isAfter($dayEnd) || $appEnd->isBefore($dayStart)) {
-                                // No Affected Hours within day, exclude from count
-                                $totalHours = 0;
-                            } else {
-                                $affectedStart = max($appStart, $dayStart);
-                                $affectedEnd = min($appEnd, $dayEnd);
-                                $affectedTime = $affectedEnd->diffInSeconds($affectedStart) / 3600;
-
-                                if ($affectedStart->lessThanOrEqualTo($gapStart)) {
-                                    if ($affectedEnd->greaterThanOrEqualTo($gapEnd)) {
-                                        $affectedTime -= $gapEnd->diffInSeconds($gapStart) / 3600;
-                                    } elseif ($affectedEnd->greaterThan($gapStart)) {
-                                        $affectedTime -= $affectedEnd->diffInSeconds($gapStart) / 3600;
-                                    }
-                                } elseif ($affectedStart->between($gapStart, $gapEnd)) {
-                                    if ($affectedEnd->greaterThan($gapEnd)) {
-                                        $affectedTime -= $affectedEnd->diffInSeconds($gapEnd) / 3600;
-                                    } elseif ($affectedEnd->between($gapStart, $gapEnd)) {
-                                        $affectedTime = 0;
-                                    }
-                                }
-                                $totalHours = max(0, $affectedTime);
-                            }
-                        }
-                    } else {
-                        // Log::info("================================");
-                        // Log::info("Multi Day Leave");
-                        while ($currentDate->lessThanOrEqualTo($overlapEnd)) {
-                            //Log::info("Current Date   :" . $currentDate);
-                            $affectedTime = 0;
-
-                            $skipDay = true;
-                            if (!$skipDay) {
-                                $totalHours = 0;
-                            } else {
-                                $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
-                                $appEnd = Carbon::parse($app->duration_end);
-                                if ($currentDate->greaterThan($fromDate) && $currentDate->lessThan($toDate)) {
-                                    //Log::info("Full Day");
-                                    $affectedTime = $totalWorkHours;
-                                } elseif ($currentDate->isSameDay($fromDate) && !$appStart->isAfter($dayEnd)) {
-                                    $affectedStart = max($appStart, $dayStart);
-                                    $affectedTime = $dayEnd->diffInSeconds($affectedStart) / 3600;
-
-                                    if ($affectedStart->lessThan($gapStart)) {
-                                        $affectedTime -= $gapEnd->diffInSeconds($gapStart) / 3600;
-                                    } elseif ($affectedStart->lessThan($gapEnd)) {
-                                        $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
-                                    }
-                                    //Log::info("First Day:           {$affectedTime}");
-                                } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
-                                    $affectedEnd = min($appEnd, $lastEnd);
-                                    $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
-
-                                    if ($affectedEnd->greaterThan($lastGapEnd)) {
-                                        $affectedTime -= $lastGapEnd->diffInSeconds($lastGapStart) / 3600;
-                                    } elseif ($affectedEnd->greaterThan($lastGapStart)) {
-                                        $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
-                                    }
-                                    //Log::info("Last Day:            {$affectedTime}");
-                                }
-                                $affectedTime = max(0, $affectedTime);
-                            }
-
-                            $totalHours += $affectedTime;
-                            $currentDate->addDay();
-                        }
-                    }
-
-                    Log::info("================================");
-                    $days = floor($totalHours / $totalWorkHours);
-                    $remainderHours = $totalHours % $totalWorkHours;
-
-                    if ($applicationType->is_paid_leave) {
-                        Log::info("Paid Leave");
-                        Log::info("Leave Percentage:    {$applicationType->percentage}%");
-                        $earningPerHour = $perHour * ($applicationType->percentage / 100);
-                        $totalEarning = $totalHours * $earningPerHour;
-                        $leaveEarnings += $totalEarning;
-
-                        $paidLeaves[] = [
-                            'application' => encrypt($applicationType->id),
-                            'name' => $applicationType->name,
-                            'days' => $days,
-                            'hours' => $remainderHours,
-                            'amount' => $totalEarning,
-                        ];
-                    } else {
-                        Log::info("Unpaid Leave");
-                        $earningPerHour = $perHour;
-                        $totalEarning = $totalHours * $earningPerHour;
-                        $leaveEarnings += $totalEarning;
-
-                        $unpaidLeaves[] = [
-                            'application' => encrypt($applicationType->id),
-                            'name' => $applicationType->name,
-                            'days' => $days,
-                            'hours' => $remainderHours,
-                            'amount' => $totalEarning,
-                        ];
-                    }
-                    Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
-                    Log::info("Earning Per Hour:    {$earningPerHour}");
-                    Log::info("Total Earning:       {$totalEarning}");
-                    Log::info("Total Leave Earnings:{$leaveEarnings}");
-                }
-            }
-        }
+        $leaveDeductions = $this->getLeaveDeductions($leaveParams);
+        $paidLeaves = $leaveDeductions['paid_leaves'];
+        $unpaidLeaves = $leaveDeductions['unpaid_leaves'];
+        $leaveEarnings = $leaveDeductions['leave_earnings'];
 
         // ============== RESPONSE PREP ==============
         $basicPay = $perCutOff - $leaveEarnings;
@@ -892,6 +756,7 @@ class PayrollController extends Controller
 
     public function getTardiness($start_date, $end_date, $employeeId)
     {
+        Log::info("Retrieving Tardiness");
         $user = Auth::user();
 
         $logs = AttendanceLogsModel::with('workHour')
@@ -1037,5 +902,190 @@ class PayrollController extends Controller
                 'message' => 'An error occurred while storing the signature.',
             ], 500);
         }
+    }
+
+    public function getLeaveDeductions(array $params)
+    {
+        Log::info("Retrieving Leave Deductions");
+
+        $employeeId = $params['employee_id'];
+        $clientId = $params['client_id'];
+        $start = $params['start'];
+        $end = $params['end'];
+        $startDate = $params['start_date'];
+        $endDate = $params['end_date'];
+        $dayStart = $params['day_start'];
+        $dayEnd = $params['day_end'];
+        $gapStart = $params['gap_start'];
+        $gapEnd = $params['gap_end'];
+        $totalWorkHours = $params['total_hours'];
+        $perHour = $params['per_hour'];
+
+        $paidLeaves = [];
+        $unpaidLeaves = [];
+        $leaveEarnings = 0;
+
+        $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $clientId)->get();
+
+
+        $applicationIds = $applicationTypes->pluck('id')->all();
+        $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
+            ->where('user_id', $employeeId)
+            ->whereIn('type_id', $applicationIds)
+            ->where('status', 'Approved')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->where('duration_start', '<=', $endDate)->where('duration_end', '>=', $startDate);
+            })
+            ->get()
+            ->groupBy('type_id');
+
+        foreach ($applicationTypes as $applicationType) {
+
+            $apps = $applications->get($applicationType->id, collect());
+
+            $days = 0;
+            $totalHours = 0;
+
+            foreach ($apps as $app) {
+                $fromDate = Carbon::parse($app->duration_start);
+                $toDate = Carbon::parse($app->duration_end);
+                Log::info("================================");
+                Log::info("App Starts     :" . $fromDate);
+                Log::info("App Ends       :" . $toDate);
+
+                $overlapStart = max($fromDate->startOfDay(), $start);
+                $overlapEnd = min($toDate->startOfDay(), $end);
+
+                $lastStart = $dayStart->copy()->setDateFrom($overlapEnd);
+                $lastEnd = $dayEnd->copy()->setDateFrom($overlapEnd);
+                $lastGapStart = $gapStart->copy()->setDateFrom($overlapEnd);
+                $lastGapEnd = $gapEnd->copy()->setDateFrom($overlapEnd);
+
+                if ($overlapStart <= $overlapEnd) {
+                    $currentDate = $overlapStart->copy();
+                    if ($overlapStart->isSameDay($overlapEnd)) {
+                        Log::info("================================");
+                        Log::info("Same Day Leave");
+                        Log::info("Current Date   :" . $currentDate);
+                        $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
+                        $appEnd = Carbon::parse($app->duration_end)->setDateFrom(now());
+                        $skipDay = true;
+                        if (!$skipDay) {
+                            $totalHours = 0;
+                        } else {
+                            if ($appStart->isAfter($dayEnd) || $appEnd->isBefore($dayStart)) {
+                                // No Affected Hours within day, exclude from count
+                                $totalHours = 0;
+                            } else {
+                                $affectedStart = max($appStart, $dayStart);
+                                $affectedEnd = min($appEnd, $dayEnd);
+                                $affectedTime = $affectedEnd->diffInSeconds($affectedStart) / 3600;
+
+                                if ($affectedStart->lessThanOrEqualTo($gapStart)) {
+                                    if ($affectedEnd->greaterThanOrEqualTo($gapEnd)) {
+                                        $affectedTime -= $gapEnd->diffInSeconds($gapStart) / 3600;
+                                    } elseif ($affectedEnd->greaterThan($gapStart)) {
+                                        $affectedTime -= $affectedEnd->diffInSeconds($gapStart) / 3600;
+                                    }
+                                } elseif ($affectedStart->between($gapStart, $gapEnd)) {
+                                    if ($affectedEnd->greaterThan($gapEnd)) {
+                                        $affectedTime -= $affectedEnd->diffInSeconds($gapEnd) / 3600;
+                                    } elseif ($affectedEnd->between($gapStart, $gapEnd)) {
+                                        $affectedTime = 0;
+                                    }
+                                }
+                                $totalHours = max(0, $affectedTime);
+                            }
+                        }
+                    } else {
+                        // Log::info("================================");
+                        // Log::info("Multi Day Leave");
+                        while ($currentDate->lessThanOrEqualTo($overlapEnd)) {
+                            //Log::info("Current Date   :" . $currentDate);
+                            $affectedTime = 0;
+
+                            $skipDay = true;
+                            if (!$skipDay) {
+                                $totalHours = 0;
+                            } else {
+                                $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
+                                $appEnd = Carbon::parse($app->duration_end);
+                                if ($currentDate->greaterThan($fromDate) && $currentDate->lessThan($toDate)) {
+                                    //Log::info("Full Day");
+                                    $affectedTime = $totalWorkHours;
+                                } elseif ($currentDate->isSameDay($fromDate) && !$appStart->isAfter($dayEnd)) {
+                                    $affectedStart = max($appStart, $dayStart);
+                                    $affectedTime = $dayEnd->diffInSeconds($affectedStart) / 3600;
+
+                                    if ($affectedStart->lessThan($gapStart)) {
+                                        $affectedTime -= $gapEnd->diffInSeconds($gapStart) / 3600;
+                                    } elseif ($affectedStart->lessThan($gapEnd)) {
+                                        $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
+                                    }
+                                    //Log::info("First Day:           {$affectedTime}");
+                                } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
+                                    $affectedEnd = min($appEnd, $lastEnd);
+                                    $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
+
+                                    if ($affectedEnd->greaterThan($lastGapEnd)) {
+                                        $affectedTime -= $lastGapEnd->diffInSeconds($lastGapStart) / 3600;
+                                    } elseif ($affectedEnd->greaterThan($lastGapStart)) {
+                                        $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
+                                    }
+                                    //Log::info("Last Day:            {$affectedTime}");
+                                }
+                                $affectedTime = max(0, $affectedTime);
+                            }
+
+                            $totalHours += $affectedTime;
+                            $currentDate->addDay();
+                        }
+                    }
+
+                    Log::info("================================");
+                    $days = floor($totalHours / $totalWorkHours);
+                    $remainderHours = $totalHours % $totalWorkHours;
+
+                    if ($applicationType->is_paid_leave) {
+                        Log::info("Paid Leave");
+                        Log::info("Leave Percentage:    {$applicationType->percentage}%");
+                        $earningPerHour = $perHour * ($applicationType->percentage / 100);
+                        $totalEarning = $totalHours * $earningPerHour;
+                        $leaveEarnings += $totalEarning;
+
+                        $paidLeaves[] = [
+                            'application' => encrypt($applicationType->id),
+                            'name' => $applicationType->name,
+                            'days' => $days,
+                            'hours' => $remainderHours,
+                            'amount' => $totalEarning,
+                        ];
+                    } else {
+                        Log::info("Unpaid Leave");
+                        $earningPerHour = $perHour;
+                        $totalEarning = $totalHours * $earningPerHour;
+                        $leaveEarnings += $totalEarning;
+
+                        $unpaidLeaves[] = [
+                            'application' => encrypt($applicationType->id),
+                            'name' => $applicationType->name,
+                            'days' => $days,
+                            'hours' => $remainderHours,
+                            'amount' => $totalEarning,
+                        ];
+                    }
+                    Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
+                    Log::info("Earning Per Hour:    {$earningPerHour}");
+                    Log::info("Total Earning:       {$totalEarning}");
+                    Log::info("Total Leave Earnings:{$leaveEarnings}");
+                }
+            }
+        }
+
+        return [
+            'paid_leaves' => $paidLeaves,
+            'unpaid_leaves' => $unpaidLeaves,
+            'leave_earnings' => $leaveEarnings,
+        ];
     }
 }
