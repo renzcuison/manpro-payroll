@@ -199,7 +199,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3} sx={{ mt: 1 }}>
                             {/* Title Field */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -221,7 +221,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Cover Image */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -267,7 +267,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Start Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -292,7 +292,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* End Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -312,8 +312,8 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* Duration */}
-                            <Grid item container xs={4} spacing={1}>
-                                <Grid item xs={6}>
+                            <Grid container size={{ xs: 4 }} spacing={1}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
                                             type="number"
@@ -346,7 +346,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         />
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
                                             type="number"
@@ -384,7 +384,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </Grid>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -427,7 +427,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

@@ -58,7 +58,7 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
     }, [itemData.id, itemData.type]);
 
     return (
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
             <Box
                 display="flex"
                 sx={{

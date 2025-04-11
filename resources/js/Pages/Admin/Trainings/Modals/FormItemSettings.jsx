@@ -235,7 +235,7 @@ const FormItemSettings = ({ open, close, formId, formItems }) => {
                 <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
-                            <Grid item xs={12} display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                            <Grid size={{ xs: 12 }} display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Box display="flex" sx={{ alignItems: "center" }}>
                                     <Typography>Items</Typography>
                                     <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
@@ -257,7 +257,7 @@ const FormItemSettings = ({ open, close, formId, formItems }) => {
                                     </p>
                                 </Button>
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Box
                                     sx={{
                                         maxHeight: "450px",
@@ -277,12 +277,12 @@ const FormItemSettings = ({ open, close, formId, formItems }) => {
                                         },
                                     }}
                                 >
-                                    <Grid container item xs={12} spacing={1}>
+                                    <Grid container size={{ xs: 12 }} spacing={1}>
                                         {items && items.length > 0 && items.every((item) => item && item.id) ? (
                                             items.map((item, index) => (
                                                 <Grid
                                                     item
-                                                    xs={12}
+                                                    size={{ xs: 12 }}
                                                     key={item.id}
                                                     draggable
                                                     onDragStart={(e) => handleDragStart(e, index)}
@@ -422,7 +422,7 @@ const FormItemSettings = ({ open, close, formId, formItems }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center",

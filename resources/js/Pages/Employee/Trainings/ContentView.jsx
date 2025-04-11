@@ -140,8 +140,9 @@ const ContentView = () => {
                 // Training Form Details
                 if (resContent?.content?.type == "Form") {
                     getFormDetails(resContent.id);
+                } else {
+                    setIsLoading(false); // End Form Loading after form details are retrieved
                 }
-                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching content details', error);
@@ -516,15 +517,7 @@ const ContentView = () => {
                                 </Box>
                             )}
                             {/* Content Display */}
-                            <Box
-                                sx={{
-                                    width: contentListOn ? '80%' : '100%',
-                                    mt: 2,
-                                    mb: 2,
-                                    p: 3,
-                                    position: 'relative',
-                                }}
-                            >
+                            <Box sx={{ width: contentListOn ? '80%' : '100%', mt: 2, mb: 2, p: 3, position: 'relative', }} >
 
                                 {/* Content List Toggle */}
                                 <Box
@@ -542,14 +535,12 @@ const ContentView = () => {
                                     }}
                                 >
                                     <Tooltip title={contentListOn ? 'Hide Content List' : 'Show Content List'}>
-                                        <IconButton
-                                            onClick={toggleContentList}
-                                            sx={{ color: 'white' }}
-                                        >
+                                        <IconButton onClick={toggleContentList} sx={{ color: 'white' }} >
                                             {contentListOn ? <ArrowBackIos /> : <ArrowForwardIos />}
                                         </IconButton>
                                     </Tooltip>
                                 </Box>
+                                {/* Content Details */}
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                         <CircularProgress />
@@ -557,7 +548,7 @@ const ContentView = () => {
                                 ) : (
                                     <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
                                         {/* Title */}
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
                                                 {content.title || "-"}
                                             </Typography>
@@ -576,7 +567,7 @@ const ContentView = () => {
                                         ) :
                                             <>
                                                 {/* Primary Content */}
-                                                <Grid item xs={12} sx={{ placeContent: "center", placeItems: "center" }}>
+                                                <Grid size={{ xs: 12 }} sx={{ placeContent: "center", placeItems: "center" }}>
                                                     {content.content.type === "Video" ? (
                                                         <Box
                                                             sx={{
@@ -653,11 +644,11 @@ const ContentView = () => {
                                                         </Box>
                                                     )}
                                                 </Grid>
-                                                <Grid item xs={12}>
+                                                <Grid size={{ xs: 12 }}>
                                                     <Divider />
                                                 </Grid>
                                                 {/* Description */}
-                                                <Grid item xs={12} >
+                                                <Grid size={{ xs: 12 }} >
                                                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                                         Description
                                                     </Typography>

@@ -215,7 +215,7 @@ const TrainingList = () => {
                                     {pageTrainings.length > 0 ? (
                                         pageTrainings.map(
                                             (training, index) => (
-                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea component={Link} to={`/employee/training/${training.unique_code}`}>
                                                         <Card sx={{
                                                             position: "relative",
@@ -263,22 +263,22 @@ const TrainingList = () => {
                                                                 </Box>
                                                                 {/* Details */}
                                                                 <Grid container item key={index} sx={{ my: 1 }}>
-                                                                    <Grid item xs={3}>
+                                                                    <Grid size={{ xs: 3 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
                                                                             Closes
                                                                         </Typography>
                                                                     </Grid>
-                                                                    <Grid item xs={9}>
+                                                                    <Grid size={{ xs: 9 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                                                                             {dayjs(training.end_date).format('MMM DD YYYY, hh:mm A')}
                                                                         </Typography>
                                                                     </Grid>
-                                                                    <Grid item xs={3}>
+                                                                    <Grid size={{ xs: 3 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
                                                                             Duration
                                                                         </Typography>
                                                                     </Grid>
-                                                                    <Grid item xs={9}>
+                                                                    <Grid size={{ xs: 9 }}>
                                                                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                                                                             {formatTime(training.duration)}
                                                                         </Typography>

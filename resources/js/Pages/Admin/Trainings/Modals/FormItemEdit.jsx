@@ -265,7 +265,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
                             {/* Item Type */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <InputLabel id="item-type-select-label"> Type </InputLabel>
                                     <Select
@@ -282,7 +282,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Item Value */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -321,7 +321,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -363,7 +363,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                             </Grid>
                             {/* Choices/Answers */}
                             {itemType == "FillInTheBlank" ? (
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Typography noWrap>
                                         Answer
                                     </Typography>
@@ -383,7 +383,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                                     />
                                 </Grid>
                             ) : (
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <FormControl fullWidth>
                                         <Box sx={{ width: "100%" }}>
                                             <Stack direction="row" spacing={1}
@@ -491,7 +491,7 @@ const FormItemEdit = ({ open, close, itemInfo }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

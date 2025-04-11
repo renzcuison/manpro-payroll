@@ -313,7 +313,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
                             {/* Content Type */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Box
                                     display="flex"
                                     sx={{
@@ -375,10 +375,10 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                     />
                                 </Box>
                             </Grid>
-                            <Grid item xs={12} sx={{ my: 0 }}>
+                            <Grid size={{ xs: 12 }} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            <Grid item xs={12} display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                            <Grid size={{ xs: 12 }} display="flex" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Box display="flex" sx={{ alignItems: "center" }}>
                                     <Typography>Content Order</Typography>
                                     <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>(Drag and Drop to Reorder)</Typography>
@@ -398,7 +398,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                     </p>
                                 </Button>
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Box
                                     sx={{
                                         maxHeight: "450px",
@@ -418,12 +418,12 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                         },
                                     }}
                                 >
-                                    <Grid container item xs={12} spacing={1}>
+                                    <Grid container size={{ xs: 12 }} spacing={1}>
                                         {content && content.length > 0 && content.every((cont) => cont && cont.id) ? (
                                             content.map((cont, index) => (
                                                 <Grid
                                                     item
-                                                    xs={12}
+                                                    size={{ xs: 12 }}
                                                     key={cont.id}
                                                     draggable
                                                     onDragStart={(e) => handleDragStart(e, index)}
@@ -522,7 +522,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center",

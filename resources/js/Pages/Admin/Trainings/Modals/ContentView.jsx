@@ -410,7 +410,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                             <Grid container spacing={2} sx={{ mt: 2 }}>
                                 {/* Media Display for Non-Forms */}
                                 {content.content.type !== "Form" && (
-                                    <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                                    <Grid size={{ xs: 12 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                                         {content.content.type === "Video" ? (
                                             <Box
                                                 sx={{
@@ -467,9 +467,9 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     </Grid>
                                 )}
                                 {/* Content Information */}
-                                <Grid container item spacing={2} xs={12}>
+                                <Grid container spacing={2} size={{ xs: 12 }}>
                                     {/* Header and Options */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                                             <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                                 Content Details
@@ -564,46 +564,46 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     </Grid>
                                     {/* Additional Form Information */}
                                     {content.content.type === 'Form' && (
-                                        <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={4}>
+                                        <Grid container size={{ xs: 12 }} spacing={2}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title={content.content.require_pass ? 'Availability' : 'Attempt Limit'}
                                                     info={content.content.require_pass ? 'Until Passed' : content.content.attempts_allowed ?? 'N/A'}
                                                 />
                                             </Grid>
-                                            <Grid item xs={4}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title="Passing Score"
                                                     info={`${content.content.passing_score ?? 'N/A'} %`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={4}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title="Duration Per Attempt"
                                                     info={`${content.duration ?? 'N/A'} min`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <InfoBox
                                                     title="Item Count"
                                                     info={content.item_count}
                                                 />
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <InfoBox
                                                     title="Total Points"
                                                     info={`${content.total_points} pts`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid size={{ xs: 12 }}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Progress Viewer */}
                                     {status !== 'Pending' && (
-                                        <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={7}>
+                                        <Grid container size={{ xs: 12 }} spacing={2}>
+                                            <Grid size={{ xs: 7 }}>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                                     Progress Statistics
                                                 </Typography>
@@ -624,7 +624,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     height={200}
                                                 />
                                             </Grid>
-                                            <Grid item xs={5}>
+                                            <Grid size={{ xs: 5 }}>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                                     Employee Progress (Recent)
                                                 </Typography>
@@ -666,13 +666,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     )}
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid size={{ xs: 12 }}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Description */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                             Description
                                         </Typography>
@@ -690,11 +690,11 @@ const ContentView = ({ open, close, contentId, status }) => {
                                 </Grid>
                                 {/* Form Items */}
                                 {content.content.type == "Form" && (
-                                    <Grid container item xs={12} spacing={2}>
-                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid container size={{ xs: 12 }} spacing={2}>
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                             <Divider />
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             {formItems.length == 0 ? (
                                                 <Typography sx={{ pb: 1, placeSelf: "center", color: "text.secondary" }}>
                                                     No Items Found
@@ -727,7 +727,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                 </Box>
                                             )}
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             {formItems.length > 0 ? (
                                                 formItems.map((item, index) => {
 
