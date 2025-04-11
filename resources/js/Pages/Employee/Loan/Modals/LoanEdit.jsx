@@ -345,7 +345,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Reason */}
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -362,7 +362,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Attachment Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             {fileError && (
                                 <Typography variant="caption" color="error" sx={{ pb: 3 }}>
                                     You must include at least one supporting file!
@@ -483,7 +483,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Image Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <FormControl fullWidth>
                                 <Box sx={{ width: "100%" }}>
                                     <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>

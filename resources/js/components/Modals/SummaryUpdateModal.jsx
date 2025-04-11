@@ -256,7 +256,7 @@ const SummaryUpdateModal = ({ open, close, cutoff, from, to }) => {
                                     />
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl
                                     fullWidth
                                     sx={{

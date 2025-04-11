@@ -289,7 +289,7 @@ const AnnouncementView = () => {
                                     <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                         <Grid item container spacing={1} sx={{ mb: 1 }}>
                                             {/* Title and Action Menu */}
-                                            <Grid item xs={12}>
+                                            <Grid item size={12}>
                                                 <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                                     <Typography variant="h5">
                                                         {announcement.title}

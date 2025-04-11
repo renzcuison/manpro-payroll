@@ -107,7 +107,7 @@ const MemberApplicationSubmit = ({ open, close }) => {
                     <form id="add_applications" onSubmit={handleAddApplication} encType="multipart/form-data">
                         <Grid container spacing={2}>
                             
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth variant="outlined">
                                     <InputLabel htmlFor="leave_type">Type of Application</InputLabel>
                                     <Select label="Type of Application" name="leave_type_val" id="leave_type_val" value={applicationData.leave_type_val} onChange={handleChange}>

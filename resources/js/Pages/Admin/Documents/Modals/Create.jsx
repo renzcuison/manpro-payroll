@@ -140,7 +140,7 @@ const CreateDocumentDialog = ({ open, close }) => {
                             </Typography>
                         </Box>
                         <Grid container spacing={2} sx={{ mt: 1 }}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <TextField
                                     fullWidth
                                     label="Title"
@@ -149,7 +149,7 @@ const CreateDocumentDialog = ({ open, close }) => {
                                     helperText={errors.title?.message}
                                 />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <TextField
                                     fullWidth
                                     label="Description"
@@ -175,7 +175,7 @@ const CreateDocumentDialog = ({ open, close }) => {
                                     multiple
                                 />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <Box
                                     sx={{
                                         display: "flex",

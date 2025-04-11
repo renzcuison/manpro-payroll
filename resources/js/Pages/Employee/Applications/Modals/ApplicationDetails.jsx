@@ -238,7 +238,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         {/* Description */}
                         <Grid container item xs={12}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <div
                                     style={{
                                         textDecoration: "underline",
@@ -256,10 +256,10 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         </Grid>
                         {/* Attachments */}
                         <Grid container item xs={12}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 Attached Files
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 {files ? (
                                     <Stack direction="column" sx={{ width: '100%' }}>
                                         {files.map((file, index) => {

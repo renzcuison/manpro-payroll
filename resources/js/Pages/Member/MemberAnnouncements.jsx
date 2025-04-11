@@ -81,7 +81,7 @@ export default function MemberAnnouncements() {
 
                 {announcementsList.map((item, index) => (
                     <Grid container sx={{ marginBottom: 2, cursor: 'pointer' }} key={index}>
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <div className='block'>
                                 <div className="block-content col-lg-12 col-sm-12">
                                     <Grid container>
