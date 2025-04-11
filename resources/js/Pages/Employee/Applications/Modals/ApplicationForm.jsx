@@ -670,7 +670,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -697,7 +697,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 {/* File Requirement */}
                                 {fileError && <Typography variant="caption" color="error" sx={{ mb: 2 }}>
                                     You must include supporting files for this type of application!
@@ -781,7 +781,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}

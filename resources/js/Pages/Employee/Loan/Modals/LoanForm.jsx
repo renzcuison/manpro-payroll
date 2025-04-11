@@ -298,7 +298,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Reason */}
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -343,7 +343,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Documents and Images in one row */}
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <Grid container spacing={2} sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                 <Grid item xs={12} sm={6}>
                                     <FormControl fullWidth>

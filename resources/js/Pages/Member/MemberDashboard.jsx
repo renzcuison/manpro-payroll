@@ -428,7 +428,7 @@ const MemberDashboard = () => {
                 <>
                     <Box sx={{ mx: 1, mt: 2 }}>
                         <Grid container spacing={4} sx={{ marginBottom: 4 }}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px' }}>
                                     <Link onClick={checkAttendance} sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -441,7 +441,7 @@ const MemberDashboard = () => {
                                 </Box>
                             </Grid>
 
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
                                     <Link to="/member/announcements" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -454,7 +454,7 @@ const MemberDashboard = () => {
                                 </Box>
                             </Grid>
 
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <Box sx={{ backgroundColor: 'white', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', padding: 4, borderRadius: '16px'}}>
                                     <Link to="/member/trainings" sx={{ color: '#777777', textDecoration: 'none', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>

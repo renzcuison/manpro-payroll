@@ -293,7 +293,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
                                 {/* Description */}
                                 <Grid container item xs={12}>
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         <div style={{ textDecoration: "underline" }} >
                                             Description
                                         </div>
@@ -307,10 +307,10 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 </Grid>
                                 {/* Attachments */}
                                 <Grid container item xs={12}>
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         Attached Files
                                     </Grid>
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         {files ? (
                                             <Stack direction="column" sx={{ width: '100%' }}>
                                                 {files.map((file, index) => {
@@ -414,11 +414,11 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
                                 {/* Leave Credits */}
                                 <Grid container item xs={12}>
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         <div style={{ textDecoration: "underline", }} > Leave Credits </div>
                                     </Grid>
 
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         <TableContainer>
                                             <Table size="small">
                                                 <TableHead>

@@ -392,7 +392,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                 <Grid item container spacing={1} sx={{ mb: 1 }}>
                                     {/* Title and Action Menu */}
-                                    <Grid item xs={12}>
+                                    <Grid item size={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                             <Typography variant="h6" component="div">
                                                 {announcement.title}
@@ -561,7 +561,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             <Grid item xs={12} sx={{ mb: 1 }} align="left">
                                 Description
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <div
                                     id="description"
                                     style={{

@@ -225,7 +225,7 @@ const LoanApplication = ({ selectedLoan }) => {
 
 
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid item size={12}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>
             Employee Information
           </Typography>
