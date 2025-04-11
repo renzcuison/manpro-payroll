@@ -1,29 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
     Box,
     Typography,
-    Button,
     Menu,
     MenuItem,
-    TextField,
     Stack,
     Grid,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
-    Card,
-    CardMedia,
-    CardContent,
-    Pagination,
     IconButton,
     Divider,
     ImageList,
@@ -31,29 +14,13 @@ import {
     ImageListItemBar,
     Tooltip
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
 import Swal from "sweetalert2";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
-import { first } from "lodash";
-import { CardActions } from "@material-ui/core";
+import InfoBox from "../../../components/General/InfoBox";
+import { useNavigate, useParams, } from "react-router-dom";
 
 import PdfImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
@@ -272,9 +239,26 @@ const AnnouncementView = () => {
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Announcement
-                        </Typography>
+                        <Box display="flex" sx={{ alignItems: "center" }}>
+                            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                                {announcement.title || "Announcement"}
+                            </Typography>
+                            {announcement.acknowledged && (
+                                <Tooltip title="You have acknowledged this announcement">
+                                    <CheckCircle
+                                        sx={{
+                                            ml: 1,
+                                            fontSize: 36,
+                                            color: '#177604',
+                                            transition: 'color 0.2s ease-in-out',
+                                            '&:hover': {
+                                                color: '#1A8F07',
+                                            },
+                                        }}
+                                    />
+                                </Tooltip>
+                            )}
+                        </Box>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
@@ -285,108 +269,10 @@ const AnnouncementView = () => {
                         ) : (
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
-                                    {/* Core Information */}
-                                    <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                        <Grid item container spacing={1} sx={{ mb: 1 }}>
-                                            {/* Title and Action Menu */}
-                                            <Grid item size={12}>
-                                                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                                    <Typography variant="h5">
-                                                        {announcement.title}
-                                                    </Typography>
-                                                    {/* Acknowledgement */}
-                                                    {!announcement.acknowledged && (
-                                                        <>
-                                                            <IconButton
-                                                                id="basic-button"
-                                                                size="small"
-                                                                aria-controls={open ? 'basic-menu' : undefined}
-                                                                aria-haspopup="true"
-                                                                aria-expanded={open ? 'true' : undefined}
-                                                                onClick={handleMenuClick}
-                                                            >
-                                                                <MoreVert />
-                                                            </IconButton>
-                                                            <Menu
-                                                                id="basic-menu"
-                                                                anchorEl={anchorEl}
-                                                                open={menuOpen}
-                                                                onClose={handleMenuClose}
-                                                                MenuListProps={{
-                                                                    'aria-labelledby': 'basic-button',
-                                                                }}
-                                                            >
-                                                                {/* Acknowledgement */}
-                                                                {!announcement.acknowledged && (
-                                                                    <MenuItem
-                                                                        onClick={(event) => {
-                                                                            event.stopPropagation();
-                                                                            handleAcknowledgeAnnouncement();
-                                                                            handleMenuClose();
-                                                                        }}>
-                                                                        Acknowledge Announcement
-                                                                    </MenuItem>
-                                                                )}
-                                                            </Menu>
-                                                        </>
-                                                    )}
-                                                </Stack>
-                                            </Grid>
-                                            <Grid item xs={12} sx={{ my: 0 }} >
-                                                <Divider />
-                                            </Grid>
-                                            {/* Posting Date */}
-                                            <Grid item xs={5} align="left">
-                                                Posted
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
-                                                </Typography>
-                                            </Grid>
-                                            {/* Author Information */}
-                                            <Grid item xs={5} align="left">
-                                                Posted by
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Stack>
-                                                    <Typography sx={{ fontWeight: "bold", }}>
-                                                        {announcement.author_name}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {announcement.author_title}
-                                                    </Typography>
-                                                </Stack>
-                                            </Grid>
-                                            {/* Acknowledgement Status */}
-                                            {announcement.acknowledged ? (
-                                                <>
-                                                    <Grid item xs={5} align="left">
-                                                        Acknowledged on
-                                                    </Grid>
-                                                    <Grid item xs={7} align="left">
-                                                        <Typography sx={{ fontWeight: "bold", }}>
-                                                            {dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A")}
-                                                        </Typography>
-                                                    </Grid>
-                                                </>
-                                            )
-                                                : <Grid item xs={12} align="left">
-                                                    You have not acknowledged this announcement yet
-                                                </Grid>}
-                                            {/* Recipient Branch/Department */}
-                                            <Grid item xs={12} align="left">
-                                                {`This announcement is posted for your ${announcement.department_matched && announcement.branch_matched
-                                                    ? "branch and department"
-                                                    : announcement.department_matched ? "department"
-                                                        : "branch"
-                                                    } `}
-                                            </Grid>
-                                        </Grid>
-                                    </Grid>
                                     {/* Thumbnail */}
-                                    <Grid item xs={5}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Box sx={{
+                                            mb: 1,
                                             position: 'relative',
                                             width: '100%',
                                             aspectRatio: '2 / 1',
@@ -412,14 +298,124 @@ const AnnouncementView = () => {
 
                                         </Box>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    {/* Core Information */}
+                                    <Grid container size={{ xs: 12 }} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                        {/* Title and Action Menu */}
+                                        <Grid size={12}>
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary" }}>
+                                                    About This Announcement:
+                                                </Typography>
+                                                {/* Acknowledgement */}
+                                                {!announcement.acknowledged && (
+                                                    <>
+                                                        <IconButton
+                                                            id="basic-button"
+                                                            size="small"
+                                                            aria-controls={open ? 'basic-menu' : undefined}
+                                                            aria-haspopup="true"
+                                                            aria-expanded={open ? 'true' : undefined}
+                                                            onClick={handleMenuClick}
+                                                        >
+                                                            <MoreVert />
+                                                        </IconButton>
+                                                        <Menu
+                                                            id="basic-menu"
+                                                            anchorEl={anchorEl}
+                                                            open={menuOpen}
+                                                            onClose={handleMenuClose}
+                                                            MenuListProps={{
+                                                                'aria-labelledby': 'basic-button',
+                                                            }}
+                                                        >
+                                                            {/* Acknowledgement */}
+                                                            {!announcement.acknowledged && (
+                                                                <MenuItem
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        handleAcknowledgeAnnouncement();
+                                                                        handleMenuClose();
+                                                                    }}>
+                                                                    Acknowledge Announcement
+                                                                </MenuItem>
+                                                            )}
+                                                        </Menu>
+                                                    </>
+                                                )}
+                                            </Stack>
+                                        </Grid>
+                                        {/* Posting Date */}
+                                        <Grid size={6}>
+                                            <InfoBox
+                                                title="Date Posted"
+                                                info={dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                        {/* Author Information */}
+                                        <Grid size={6}>
+                                            <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', }} >
+                                                <Typography
+                                                    sx={{
+                                                        color: 'text.secondary',
+                                                        fontWeight: 500,
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        flex: '0 0 40%',
+                                                    }}
+                                                >
+                                                    Posted by
+                                                </Typography>
+                                                <Stack sx={{ flex: '0 0 60%', textAlign: 'left', }} >
+                                                    <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                                        {announcement.author_name || '-'}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                        {announcement.author_title || '-'}
+                                                    </Typography>
+                                                </Stack>
+                                            </Box>
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0, mb: 1 }} >
+                                            <Divider />
+                                        </Grid>
+                                        {/* Acknowledgement Status */}
+                                        {announcement.acknowledged ? (
+                                            <Grid size={6}>
+                                                <InfoBox
+                                                    title="Acknowledged On"
+                                                    info={dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A")}
+                                                    compact
+                                                    clean
+                                                />
+                                            </Grid>
+                                        ) : <Grid size={{ xs: 6 }} align="left">
+                                            You have not acknowledged this announcement yet
+                                        </Grid>}
+                                        {/* Recipient Branch/Department */}
+                                        <Grid size={{ xs: 6 }} align="left">
+                                            <Typography>
+                                                {`This announcement is posted for your ${announcement.department_matched && announcement.branch_matched
+                                                    ? "branch and department"
+                                                    : announcement.department_matched ? "department"
+                                                        : "branch"
+                                                    } `}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                    <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Description */}
-                                    <Grid item xs={12} >
-                                        <div
-                                            id="description"
-                                            style={{
+                                    <Grid size={{ xs: 12 }} >
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                            Description
+                                        </Typography>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
                                                 wordWrap: 'break-word',
                                                 wordBreak: 'break-word',
                                                 overflowWrap: 'break-word',
@@ -430,18 +426,20 @@ const AnnouncementView = () => {
                                     </Grid>
                                     {/* Divider for Media if Present */}
                                     {(images.length > 0 || attachments.length > 0) &&
-                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                             <Divider />
                                         </Grid>
                                     }
                                     {/* Images */}
                                     {images.length > 0 ? (
-                                        <Grid item container xs={12} md={12} spacing={2}>
-                                            <Grid item xs={12} align="left">
-                                                Images
+                                        <Grid container spacing={2} size={{ xs: 12 }}>
+                                            <Grid size={{ xs: 12 }} align="left">
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                    Images
+                                                </Typography>
                                             </Grid>
-                                            <Grid item md={12} align="left">
-                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                            <Grid size={{ md: 12 }} align="left">
+                                                <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                                     {images.map((image) => (
                                                         <ImageListItem
                                                             key={image.id}
@@ -481,12 +479,14 @@ const AnnouncementView = () => {
                                     }
                                     {/* Documents */}
                                     {attachments.length > 0 ? (
-                                        <Grid item container xs={12} md={12} spacing={2}>
-                                            <Grid item xs={12} align="left">
-                                                Documents
+                                        <Grid container size={{ xs: 12 }} spacing={2}>
+                                            <Grid size={{ xs: 12 }} align="left">
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                    Documents
+                                                </Typography>
                                             </Grid>
-                                            <Grid item md={12} align="left">
-                                                <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                            <Grid size={{ md: 12 }} align="left">
+                                                <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                                     {attachments.map((attachment) => {
                                                         const fileIcon = getFileIcon(attachment.filename);
                                                         return (

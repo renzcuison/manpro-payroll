@@ -103,7 +103,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
-        
+
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
@@ -187,7 +187,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editLoanApplication', [LoanApplicationsController::class, 'editLoanApplication']);
         Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class, 'getLoanApplicationFiles']);
         Route::get('/downloadFile/{id}', [LoanApplicationsController::class, 'downloadFile']);
-        
+
         Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class, 'getLoanDetails']);
         Route::get('/getAllLoanApplications', [LoanApplicationsController::class, 'getAllLoanApplications']);
 
@@ -229,7 +229,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('announcements')->group(function () {
         Route::get('/getAnnouncements', [AnnouncementsController::class, 'getAnnouncements']);
-        Route::get('/getMyAnnouncements', [AnnouncementsController::class, 'getMyAnnouncements']);
+        Route::get('/getEmployeeAnnouncements', [AnnouncementsController::class, 'getEmployeeAnnouncements']);
 
         Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
