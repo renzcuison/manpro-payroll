@@ -233,7 +233,8 @@ class PayrollController extends Controller
         return response()->json(['status' => 200, 'payrolls' => null]);
     }
 
-    public function calculateTax($salary, $contribution) {
+    public function calculateTax($salary, $contribution)
+    {
         log::info("PayrollController::calculateTax");
         log::info("salary       :" . $salary);
         log::info("contribution :" . $contribution);
@@ -306,7 +307,7 @@ class PayrollController extends Controller
         $end = Carbon::parse($endDate)->endOfDay();
 
         $workHours = $employee->workHours;
-        
+
         try {
             $firstIn = Carbon::createFromFormat('H:i:s', $workHours->first_time_in);
             $firstOut = Carbon::createFromFormat('H:i:s', $workHours->first_time_out);
@@ -672,16 +673,16 @@ class PayrollController extends Controller
     public function savePayrolls(Request $request)
     {
         // Log::info("PayrollController::savePayrolls");
-    
+
         $currentStartDate = $request->currentStartDate;
         $currentEndDate = $request->currentEndDate;
-    
+
         foreach ($request->selectedPayrolls as $selectedPayroll) {
-            $payrollRequest = new Request([ 'selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate ]);
+            $payrollRequest = new Request(['selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate]);
 
             $this->savePayroll($payrollRequest);
         }
-    
+
         return response()->json(['status' => 200]);
     }
 
@@ -851,12 +852,10 @@ class PayrollController extends Controller
     {
         $user = Auth::user();
 
-        $logs = DB::table('attendance_logs as al')
-            ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
-            ->where('al.user_id', $employeeId)
-            ->whereBetween('al.timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
-            ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
-            ->orderBy('al.timestamp', 'asc')
+        $logs = AttendanceLogsModel::with('workHour')
+            ->where('user_id', $employeeId)
+            ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->orderBy('timestamp', 'asc')
             ->get()
             ->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'))
             ->sortKeysDesc()
@@ -866,17 +865,17 @@ class PayrollController extends Controller
                 $totalRendered = 0;
 
                 // Calculate total shift duration
-                if ($shift->shift_type == "Regular") {
-                    $shiftStart = Carbon::parse($shift->first_time_in);
-                    $shiftEnd = Carbon::parse($shift->first_time_out);
-                    $gapStart = Carbon::parse($shift->break_start);
-                    $gapEnd = Carbon::parse($shift->break_end);
+                if ($shift->workHour->shift_type == "Regular") {
+                    $shiftStart = Carbon::parse($shift->workHour->first_time_in);
+                    $shiftEnd = Carbon::parse($shift->workHour->first_time_out);
+                    $gapStart = Carbon::parse($shift->workHour->break_start);
+                    $gapEnd = Carbon::parse($shift->workHour->break_end);
                     $totalShiftDuration = max($shiftStart->diffInMinutes($shiftEnd) - $gapStart->diffInMinutes($gapEnd), 0);
-                } elseif ($shift->shift_type == "Split") {
-                    $firstStart = Carbon::parse($shift->first_time_in);
-                    $firstEnd = Carbon::parse($shift->first_time_out);
-                    $secondStart = Carbon::parse($shift->second_time_in);
-                    $secondEnd = Carbon::parse($shift->second_time_out);
+                } elseif ($shift->workHour->shift_type == "Split") {
+                    $firstStart = Carbon::parse($shift->workHour->first_time_in);
+                    $firstEnd = Carbon::parse($shift->workHour->first_time_out);
+                    $secondStart = Carbon::parse($shift->workHour->second_time_in);
+                    $secondEnd = Carbon::parse($shift->workHour->second_time_out);
                     $totalShiftDuration = $firstStart->diffInMinutes($firstEnd) + $secondStart->diffInMinutes($secondEnd);
                 }
 
@@ -890,8 +889,20 @@ class PayrollController extends Controller
                         $isDuty = $log->action == "Duty Out";
 
                         // Determine shift boundaries
-                        $shiftStart = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_in) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_in) : ($isDuty ? Carbon::parse($shift->second_time_in) : Carbon::parse($shift->over_time_in)));
-                        $shiftEnd = $isDuty && $shift->shift_type == 'Regular' ? Carbon::parse($shift->first_time_out) : ($isDuty && $shift->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->first_time_out)->format('H:i:s') ? Carbon::parse($shift->first_time_out) : ($isDuty ? Carbon::parse($shift->second_time_out) : Carbon::parse($shift->over_time_out)));
+                        $shiftStart = $isDuty && $shift->workHour->shift_type == 'Regular'
+                            ? Carbon::parse($shift->workHour->first_time_in)
+                            : ($isDuty && $shift->workHour->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->workHour->first_time_out)->format('H:i:s')
+                                ? Carbon::parse($shift->workHour->first_time_in)
+                                : ($isDuty
+                                    ? Carbon::parse($shift->workHour->second_time_in)
+                                    : Carbon::parse($shift->workHour->over_time_in)));
+                        $shiftEnd = $isDuty && $shift->workHour->shift_type == 'Regular'
+                            ? Carbon::parse($shift->workHour->first_time_out)
+                            : ($isDuty && $shift->workHour->shift_type == 'Split' && $start->format('H:i:s') < Carbon::parse($shift->workHour->first_time_out)->format('H:i:s')
+                                ? Carbon::parse($shift->workHour->first_time_out)
+                                : ($isDuty
+                                    ? Carbon::parse($shift->workHour->second_time_out)
+                                    : Carbon::parse($shift->workHour->over_time_out)));
 
                         // Normalize dates for time comparison
                         $today = Carbon::today();
@@ -906,9 +917,9 @@ class PayrollController extends Controller
                             $minutes = $renderedEnd->diffInMinutes($renderedStart);
 
                             // Adjust for break in Regular shift
-                            if ($isDuty && $shift->shift_type == 'Regular') {
-                                $gapStart = Carbon::parse($shift->break_start)->setDate($today->year, $today->month, $today->day);
-                                $gapEnd = Carbon::parse($shift->break_end)->setDate($today->year, $today->month, $today->day);
+                            if ($isDuty && $shift->workHour->shift_type == 'Regular') {
+                                $gapStart = Carbon::parse($shift->workHour->break_start)->setDate($today->year, $today->month, $today->day);
+                                $gapEnd = Carbon::parse($shift->workHour->break_end)->setDate($today->year, $today->month, $today->day);
                                 $breakStart = max($renderedStart, $gapStart);
                                 $breakEnd = min($renderedEnd, $gapEnd);
                                 if ($breakStart->format('H:i:s') < $breakEnd->format('H:i:s')) {
@@ -931,58 +942,58 @@ class PayrollController extends Controller
     }
 
     public function storeSignature(Request $request, $id)
-{
-    Log::info("PayrollController::storeSignature - Processing signature for payslip ID: {$id}");
+    {
+        Log::info("PayrollController::storeSignature - Processing signature for payslip ID: {$id}");
 
-    try {
-        $request->validate([
-            'signature' => 'required|string',
-        ]);
+        try {
+            $request->validate([
+                'signature' => 'required|string',
+            ]);
 
-        if (!$this->checkUserEmployee() && !$this->checkUserAdmin()) {
-            return response()->json(['message' => 'Unauthorized access.'], 403);
-        }
+            if (!$this->checkUserEmployee() && !$this->checkUserAdmin()) {
+                return response()->json(['message' => 'Unauthorized access.'], 403);
+            }
 
-        $decryptedId = decrypt($id);
-        $payslip = PayslipsModel::findOrFail($decryptedId);
+            $decryptedId = decrypt($id);
+            $payslip = PayslipsModel::findOrFail($decryptedId);
 
-        // Check if signature already exists
-        if ($payslip->signature) {
-            Log::info("PayrollController::storeSignature - Signature already exists for payslip ID: {$decryptedId}");
+            // Check if signature already exists
+            if ($payslip->signature) {
+                Log::info("PayrollController::storeSignature - Signature already exists for payslip ID: {$decryptedId}");
+                return response()->json([
+                    'message' => 'This payslip already has a signature.',
+                ], 400);
+            }
+
+            $base64Image = $request->input('signature');
+            $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+            $imageData = base64_decode($base64Image);
+
+            if ($imageData === false) {
+                throw new \Exception("Invalid base64 signature data.");
+            }
+
+            $directory = 'payroll/signature';
+            $filename = 'payslip_signature_' . $decryptedId . '_' . time() . '.png';
+            $filePath = "{$directory}/{$filename}";
+
+            Storage::disk('public')->put($filePath, $imageData);
+
+            $payslip->signature = $filePath;
+            $payslip->save();
+
+            Log::info("PayrollController::storeSignature - Signature saved successfully for payslip ID: {$decryptedId}, Filepath: {$filePath}");
+
             return response()->json([
-                'message' => 'This payslip already has a signature.',
-            ], 400);
+                'message' => 'Signature uploaded and linked to payslip successfully.',
+                'filename' => $filePath,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("PayrollController::storeSignature - Error: " . $e->getMessage(), ['payslip_id' => $id]);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'message' => 'An error occurred while storing the signature.',
+            ], 500);
         }
-
-        $base64Image = $request->input('signature');
-        $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
-        $imageData = base64_decode($base64Image);
-
-        if ($imageData === false) {
-            throw new \Exception("Invalid base64 signature data.");
-        }
-
-        $directory = 'payroll/signature';
-        $filename = 'payslip_signature_' . $decryptedId . '_' . time() . '.png';
-        $filePath = "{$directory}/{$filename}";
-
-        Storage::disk('public')->put($filePath, $imageData);
-
-        $payslip->signature = $filePath;
-        $payslip->save();
-
-        Log::info("PayrollController::storeSignature - Signature saved successfully for payslip ID: {$decryptedId}, Filepath: {$filePath}");
-
-        return response()->json([
-            'message' => 'Signature uploaded and linked to payslip successfully.',
-            'filename' => $filePath,
-        ], 200);
-    } catch (\Exception $e) {
-        Log::error("PayrollController::storeSignature - Error: " . $e->getMessage(), ['payslip_id' => $id]);
-        return response()->json([
-            'error' => $e->getMessage(),
-            'message' => 'An error occurred while storing the signature.',
-        ], 500);
     }
-}
 }
