@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -91,54 +92,9 @@ class User extends Authenticatable
         return $this->hasMany(EvaluationForm::class, 'employee_id', 'user_id');
     }
 
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class, 'package_id');
+    }
+
 }
-/*
-namespace App\Models;
-
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-
-class User extends Authenticatable
-{
-    use HasApiTokens, HasFactory, Notifiable;
-    
-    protected $table = 'user';
-
-    protected $primaryKey = 'user_id';
-
-    const CREATED_AT = 'date_created';
-
-    public $timestamps = false;
-    protected $fillable = [
-        'user_id',
-        'fname',
-        'mname',
-        'lname',
-        'contact_number',
-        'bdate',
-        'address',
-        'user_type',
-        'status',
-        'date_hired',
-        'work_days',
-        'category',
-        'department',
-        'hourly_rate',
-        'daily_rate',
-        'monthly_rate',
-        'work_days',
-        'is_verified',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-}*/

@@ -65,15 +65,6 @@ const Sidebar = ({ children, closeMini }) => {
                 console.error("Error fetching work groups:", error);
             });
 
-        const storedAvatar = sessionStorage.getItem("avatar");
-        if (storedAvatar) {
-            setImagePath(storedAvatar);
-        } else {
-            getMyAvatar();
-        }
-    }, []);
-
-    const getMyAvatar = () => {
         axiosInstance
             .get(`/employee/getMyAvatar`, { headers })
             .then((response) => {
@@ -92,7 +83,6 @@ const Sidebar = ({ children, closeMini }) => {
 
                         const newBlob = URL.createObjectURL(blob);
                         setImagePath(newBlob);
-                        sessionStorage.setItem("avatar", newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -100,8 +90,17 @@ const Sidebar = ({ children, closeMini }) => {
             })
             .catch((error) => {
                 console.error("Error fetching avatar:", error);
+                setImagePath(null);
             });
-    };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, [imagePath]);
 
     const employeesItems = [
         {
@@ -111,11 +110,15 @@ const Sidebar = ({ children, closeMini }) => {
             children: [
                 {
                     href: `/admin/employees?`,
-                    text: "List of Employees",
+                    text: "Employees",
                 },
                 {
                     href: `/admin/employees/benefits?`,
-                    text: "List of Benefits",
+                    text: "Benefits",
+                },
+                {
+                    href: `/admin/employees/leave-credits?`,
+                    text: "Leave Credits",
                 },
                 // {
                 // href: `/hr/employees-deductions?`,
@@ -132,6 +135,11 @@ const Sidebar = ({ children, closeMini }) => {
             text: "Attendance",
             icon: "fa fa-calendar-check-o",
             children: [
+                {
+                    href: `/admin/attendance/today?`,
+                    text: "Today",
+                    icon: "fa fa-cogs",
+                },
                 {
                     href: `/admin/attendance/summary?`,
                     text: "Summary",

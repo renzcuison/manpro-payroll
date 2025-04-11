@@ -21,6 +21,8 @@ const AttendanceSummary = () => {
     const [month, setMonth] = useState(dayjs().month());
     const [year, setYear] = useState(dayjs());
 
+    const [searchName, setSearchName] = useState('');
+
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState(0);
@@ -79,6 +81,12 @@ const AttendanceSummary = () => {
             return `${minutes}m`;
         }
     }
+
+    // Filtering the attendance summary by search name
+    const filteredAttendance = attendanceSummary.filter((attendance) => {
+        const fullName = `${attendance.emp_first_name} ${attendance.emp_middle_name || ''} ${attendance.emp_last_name} ${attendance.emp_suffix || ''}`.toLowerCase();
+        return fullName.includes(searchName.toLowerCase());
+    });
 
     return (
         <Layout title={"AttendanceLogs"}>
@@ -161,47 +169,8 @@ const AttendanceSummary = () => {
                             </Grid>
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{ width: "100%" }}>
-                                        <InputLabel id="branch-select-label"> Branch </InputLabel>
-                                        <Select
-                                            labelId="branch-select-label"
-                                            id="branch-select"
-                                            value={selectedBranch}
-                                            label="Branch"
-                                            onChange={(event) => setSelectedBranch(event.target.value)}
-                                        >
-                                            <MenuItem value="0"> All </MenuItem>
-                                            {branches.map((branch, index) => (
-                                                <MenuItem
-                                                    key={index}
-                                                    value={branch.id}
-                                                >
-                                                    {`${branch.name} (${branch.acronym})`}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: "100%" }}>
-                                        <InputLabel id="department-select-label"> Department </InputLabel>
-                                        <Select
-                                            labelId="department-select-label"
-                                            id="department-select"
-                                            value={selectedDepartment}
-                                            label="Department"
-                                            onChange={(event) => setSelectedDepartment(event.target.value)}
-                                        >
-                                            <MenuItem value="0"> All </MenuItem>
-                                            {departments.map((department, index) => (
-                                                <MenuItem
-                                                    key={index}
-                                                    value={department.id}
-                                                >
-                                                    {`${department.name} (${department.acronym})`}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
@@ -226,14 +195,14 @@ const AttendanceSummary = () => {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {!Array.isArray(attendanceSummary) || attendanceSummary.length === 0 ? (
+                                        {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={7} align="center">
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            attendanceSummary.map((attendance) => (
+                                            filteredAttendance.map((attendance) => (
                                                 <TableRow
                                                     key={attendance.emp_id}
                                                     onClick={() => navigate(`/admin/attendance/${attendance.emp_user_name}`)}
@@ -268,4 +237,4 @@ const AttendanceSummary = () => {
     )
 }
 
-export default AttendanceSummary
+export default AttendanceSummary;

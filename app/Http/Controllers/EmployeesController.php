@@ -136,10 +136,10 @@ class EmployeesController extends Controller
         $employee->tax_amount = "";
         $employee->tax_status = 0;
 
-        log::info("================================================");
-        log::info("Employee Tax:");
-        log::info($employee->tax);
-        log::info("================================================");
+        // log::info("================================================");
+        // log::info("Employee Tax:");
+        // log::info($employee->tax);
+        // log::info("================================================");
     
         return $employee;
     }    
