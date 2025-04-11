@@ -274,6 +274,7 @@ const Attendance = ({ open, close }) => {
                             alignItems={{ xs: "flex-start", sm: "flex-start" }}
                             sx={{ pb: 1, borderBottom: "1px solid #e0e0e0" }}
                             rowSpacing={1}
+                            size={{ xs: 12 }}
                         >
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 Date:

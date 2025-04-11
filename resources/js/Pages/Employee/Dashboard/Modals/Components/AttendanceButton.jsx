@@ -14,6 +14,7 @@ const AttendanceButtons = ({
                 container
                 direction="row"
                 sx={{ justifyContent: "flex-start", alignItems: "center", pt: 1.5 }}
+                size={{ xs: 12 }}
             >
                 <Grid size={{ xs: 8 }}>
                     {label}
