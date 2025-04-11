@@ -108,9 +108,7 @@ const EmployeeView = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
 
-                        <Button variant="contained" color="primary" onClick={handleOpenActions} >
-                            Actions
-                        </Button>
+                        <Button variant="contained" color="primary" onClick={handleOpenActions} > Actions </Button>
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenProfileEditModal}> Edit Profile </MenuItem>
@@ -120,80 +118,74 @@ const EmployeeView = () => {
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
 
-                        <Grid item xs={4}>
+                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
                                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
                                     <Avatar
                                         alt={`${employee.user_name} Profile Pic`}
                                         src={imagePath}
-                                        sx={{
-                                            width: '50%',
-                                            height: 'auto',
-                                            aspectRatio: '1 / 1',
-                                            objectFit: 'cover',
-                                            boxShadow: 3,
-                                        }}
+                                        sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
                                     />
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-id-card"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-envelope"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         <Typography> {employee.email} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-mobile"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         <Typography> {employee.contact_number || ''} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-globe"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         <Typography> {employee.address || ''} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         <Typography> {employee.birth_date ? `${formattedBirthDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                    <Grid item xs={1}>
+                                    <Grid item size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
                                         <Typography> <i className="fa fa-venus-mars"></i> </Typography>
                                     </Grid>
-                                    <Grid item xs={11}>
+                                    <Grid item size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
                                         <Typography> {employee.gender || 'Not Indicated'} </Typography>
                                     </Grid>
                                 </Grid>
                             </Box>
                         </Grid>
 
-                        <Grid item xs={8}>
+                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8}}>
                             {employee.user_type == "Employee" ?
                                 <Box sx={{ mb: 3, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
@@ -245,65 +237,65 @@ const EmployeeView = () => {
                             <Box sx={{ py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employment Details </Typography>
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Role </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.role || '-'} </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Job Title </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.jobTitle || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Department </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.department || '-'} </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Branch </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.branch || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Type </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.employment_type || '-'} </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Status </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.employment_status || '-'} </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Work Group </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.work_group || '-'} </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2}}>
                                         <Typography variant="h6"> Employment Date </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography sx={{ fontWeight: "bold" }}> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
                                     </Grid>
                                 </Grid>
@@ -312,13 +304,10 @@ const EmployeeView = () => {
                     </Grid>
                 </Box>
 
+
                 {openProfileEditModal &&
-                    <ProfileEdit
-                        open={openProfileEditModal}
-                        close={handleCloseProfileEditModal}
-                        employee={employee}
-                        avatar={imagePath}
-                    />}
+                    <ProfileEdit open={openProfileEditModal} close={handleCloseProfileEditModal} employee={employee} avatar={imagePath} />
+                }
 
             </Box>
         </Layout >
