@@ -478,7 +478,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                 {contentType === "Video" ? (
                                     <Grid container direction="row" alignItems="center" spacing={2}>
                                         {/* Upload Field */}
-                                        <Grid sm={9}>
+                                        <Grid size={{ xs: 9 }}>
                                             <FormControl fullWidth sx={{ display: "flex" }}>
                                                 <TextField
                                                     fullWidth
@@ -503,7 +503,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                             </FormControl>
                                         </Grid>
                                         {/* Video Thumbnail */}
-                                        <Grid sm={3}>
+                                        <Grid size={{ xs: 3 }}>
                                             <Stack sx={{ placeContent: "center", placeItems: "center" }}>
                                                 <Box
                                                     sx={{

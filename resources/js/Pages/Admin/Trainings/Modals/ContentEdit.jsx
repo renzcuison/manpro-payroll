@@ -489,7 +489,7 @@ const ContentEdit = ({ open, close, content }) => {
                             <Grid size={{ xs: 12 }}>
                                 {contentType === "Video" ? (
                                     <Grid container direction="row" alignItems="center" spacing={2}>
-                                        <Grid sm={9}>
+                                        <Grid size={{ xs: 9 }}>
                                             <FormControl fullWidth sx={{ display: "flex" }}>
                                                 <TextField
                                                     fullWidth
@@ -513,7 +513,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                 />
                                             </FormControl>
                                         </Grid>
-                                        <Grid sm={3}>
+                                        <Grid size={{ xs: 3 }}>
                                             <Stack sx={{ placeContent: "center", placeItems: "center" }}>
                                                 <Box
                                                     sx={{
