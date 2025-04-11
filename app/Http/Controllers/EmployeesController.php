@@ -178,6 +178,40 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
+    public function getEmployeeLeaveCredits()
+    {
+        // log::info("EmployeesController::getEmployeeLeaveCredits");
+
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
+
+            $enrichedEmployees = $employees->map(function ($employee) {
+                $employee = $this->enrichEmployeeDetails($employee);
+    
+                unset(
+                    // $employee->id,
+                    $employee->verify_code,
+                    $employee->code_expiration,
+                    $employee->is_verified,
+                    $employee->client_id,
+                    $employee->branch_id,
+                    $employee->department_id,
+                    $employee->role_id,
+                    $employee->job_title_id,
+                    $employee->work_group_id
+                );
+    
+                return $employee;
+            });
+
+            return response()->json(['status' => 200, 'employees' => $enrichedEmployees]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
+
     public function saveEmployee(Request $request)
     {
         // log::info("EmployeesController::saveEmployee");
