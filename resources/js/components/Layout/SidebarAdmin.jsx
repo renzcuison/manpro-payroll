@@ -414,9 +414,9 @@ const Sidebar = ({ children, closeMini }) => {
                                         return <SideItem key={index} items={items} />
                                     })}
 
-                                    {/* <StyledNav to={`/admin/loan-management`} >
+                                     <StyledNav to={`/admin/loan-management`} >
                                         <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                                    </StyledNav> */}
+                                    </StyledNav> 
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i

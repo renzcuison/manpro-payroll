@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, IconButton, Dialog, DialogTitle, DialogContent, Grid, Typography,
-    CircularProgress, Divider, Stack, Tooltip, Button
+    CircularProgress, Divider, Stack, Tooltip, Button, Table, TableBody, TableCell,
+    TableContainer, TableHead, TableRow, Paper
 } from "@mui/material";
 import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
@@ -23,6 +24,7 @@ const LoanDetails = ({ open, close, loanId }) => {
     const [error, setError] = useState(null);
     const [openPreview, setOpenPreview] = useState(false);
     const [pendingProposal, setPendingProposal] = useState(null);
+    const [amortizationSchedule, setAmortizationSchedule] = useState([]);
 
     useEffect(() => {
         if (loanId && open) {
@@ -37,6 +39,11 @@ const LoanDetails = ({ open, close, loanId }) => {
             const response = await axiosInstance.get(`/loans/getLoanDetails/${loanId}`, { headers });
             if (response.data.status === 200) {
                 setLoan(response.data.loan);
+                // If the loan has an approved proposal, calculate the amortization schedule
+                if (response.data.loan.status === 'Approved' && response.data.loan.proposal) {
+                    const schedule = calculateAmortizationSchedule(response.data.loan.proposal);
+                    setAmortizationSchedule(schedule);
+                }
             } else {
                 setError(response.data.message || 'Failed to fetch loan details');
             }
@@ -69,6 +76,36 @@ const LoanDetails = ({ open, close, loanId }) => {
             console.error('Error fetching proposal:', err);
             setPendingProposal(null);
         }
+    };
+
+    const calculateAmortizationSchedule = (proposal) => {
+        const loanAmount = proposal?.proposed_loan_amount || 0;
+        const paymentTerm = proposal?.proposed_payment_term || 0;
+        const interestRate = proposal?.monthly_interest_rate || 0;
+
+        if (!loanAmount || !paymentTerm || !interestRate) return [];
+
+        const r = interestRate / 100;
+        const pv = parseFloat(loanAmount);
+        const n = parseInt(paymentTerm);
+        const monthlyPayment = (r * pv) / (1 - Math.pow(1 + r, -n));
+
+        let balance = pv;
+        const schedule = [];
+        for (let month = 1; month <= n; month++) {
+            const interest = balance * r;
+            const principal = monthlyPayment - interest;
+            balance -= principal;
+            schedule.push({
+                month,
+                payment: monthlyPayment.toFixed(2),
+                principal: principal.toFixed(2),
+                interest: interest.toFixed(2),
+                balance: balance > 0 ? balance.toFixed(2) : '0.00',
+                status: 'Unpaid', // Default status as "Unpaid"
+            });
+        }
+        return schedule;
     };
 
     const getFileIcon = (filename) => {
@@ -206,10 +243,20 @@ const LoanDetails = ({ open, close, loanId }) => {
                             <Typography sx={{ fontWeight: "bold", width: "50%" }}>{dayjs(loan.created_at).format("h:mm A")}</Typography>
                         </Stack>
                     </Grid>
+                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid item xs={5} align="left">Payment Term</Grid>
                     <Grid item xs={7} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>{loan.payment_term ? `${loan.payment_term} months` : '-'}</Typography>
                     </Grid>
+                    {isApprovedProposal && (
+                        <>
+                            <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
+                            <Grid item xs={5} align="left">Monthly Interest</Grid>
+                            <Grid item xs={7} align="left">
+                                <Typography sx={{ fontWeight: "bold" }}>{pendingProposal.monthly_interest_rate ? `${pendingProposal.monthly_interest_rate}%` : '-'}</Typography>
+                            </Grid>
+                        </>
+                    )}
                     <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid item xs={5} align="left">Paid Amount</Grid>
                     <Grid item xs={7} align="left">
@@ -244,9 +291,13 @@ const LoanDetails = ({ open, close, loanId }) => {
                     </Grid>
                     <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
-                        <Grid item xs={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
-                        <Grid item xs={12} sx={{ mt: 1 }}>{loan.reason || '-'}</Grid>
+                    <Grid item xs={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
+                    <Grid item xs={12} sx={{ mt: 1 }}>
+                        <Typography sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                            {loan.reason || '-'}
+                        </Typography>
                     </Grid>
+                </Grid>
                     <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
                         <Grid item xs={12}>Attached Files</Grid>
@@ -290,14 +341,49 @@ const LoanDetails = ({ open, close, loanId }) => {
                             )}
                         </Grid>
                     </Grid>
-                    {pendingProposal && (
+                    {/* Add Monthly Payment Schedule Table for Approved Loans */}
+                    {loan.status === 'Approved' && amortizationSchedule.length > 0 && (
+                        <Grid item xs={12} sx={{ mt: 2 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 1, textDecoration: "underline" }}>
+                                Monthly Payment Schedule
+                            </Typography>
+                            <TableContainer component={Paper} sx={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                <Table stickyHeader>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Month</TableCell>
+                                            <TableCell>Payment</TableCell>
+                                            <TableCell>Principal</TableCell>
+                                            <TableCell>Interest</TableCell>
+                                            <TableCell>Expected Balance</TableCell>
+                                            <TableCell>Status</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {amortizationSchedule.map((row) => (
+                                            <TableRow key={row.month}>
+                                                <TableCell>{row.month}</TableCell>
+                                                <TableCell>₱{row.payment}</TableCell>
+                                                <TableCell>₱{row.principal}</TableCell>
+                                                <TableCell>₱{row.interest}</TableCell>
+                                                <TableCell>₱{row.balance}</TableCell>
+                                                <TableCell>{row.status}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Grid>
+                    )}
+                    {/* Show Preview Proposal Button only if the proposal is not Approved */}
+                    {pendingProposal && !isApprovedProposal && (
                         <Grid item xs={12} sx={{ mt: 2 }}>
                             <Button
                                 variant="contained"
                                 color="primary"
                                 onClick={() => setOpenPreview(true)}
                             >
-                                {isApprovedProposal ? "Preview Loan" : "Preview Proposal"}
+                                Preview Proposal
                             </Button>
                         </Grid>
                     )}

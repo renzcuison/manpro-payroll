@@ -1,14 +1,13 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, istItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, List, ListItem } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react'
-import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
-import moment from 'moment';
-import 'react-quill/dist/quill.snow.css';
+import {
+    Box,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    Typography,
+} from "@mui/material";
+import React from "react";
+import "react-quill/dist/quill.snow.css";
 
 import LoanApplication from '../../components/Loan/LoanApplication';    
 
