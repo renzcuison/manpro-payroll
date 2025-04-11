@@ -35,6 +35,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [birthdate, setBirthdate] = React.useState(dayjs(employee.birth_date));
 
     const [salary, setSalary] = useState(employee.salary);
+    const [fixedSalary, setFixedSalary] = useState(employee.is_fixed_salary);
     const [salaryType, setSalaryType] = useState(employee.salary_type);
     const [creditLimit, setCreditLimit] = useState(employee.credit_limit);
 
@@ -462,7 +463,22 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    select
+                                    id="salaryFixed"
+                                    label="Fixed Salary"
+                                    value={fixedSalary}
+                                    onChange={(event) => setFixedSalary(event.target.value)}
+                                >
+                                    <MenuItem key="0" value="0"> No </MenuItem>
+                                    <MenuItem key="0" value="1"> Yes </MenuItem>
+                                </TextField>
+                            </FormControl>
+
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -480,7 +496,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -491,7 +507,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
