@@ -236,10 +236,50 @@ class PayrollController extends Controller
     public function calculateTax($salary, $contribution)
     {
         log::info("PayrollController::calculateTax");
-        log::info("salary       :" . $salary);
-        log::info("contribution :" . $contribution);
 
         $taxableIncome = $salary - $contribution;
+        $withholdingTax = 0;
+        $compensationLevel = 0;
+
+        if ( $taxableIncome < 20833 )  {
+            $withholdingTax = 0;
+            $compensationLevel = 0;
+        } else if ( $taxableIncome >= 20833 && $taxableIncome <= 33332) {
+            $withholdingTax = 15;
+            $compensationLevel = 20833;
+        } else if ( $taxableIncome >= 33333 && $taxableIncome <= 66666) {
+            $withholdingTax = 20;
+            $compensationLevel = 33333;
+        } else if ( $taxableIncome >= 66667 && $taxableIncome <= 16666) {
+            $withholdingTax = 25;
+            $compensationLevel = 66667;
+        } else if ( $taxableIncome >= 166667 && $taxableIncome <= 666666) {
+            $withholdingTax = 30;
+            $compensationLevel = 166667;
+        } else if ( $taxableIncome >= 666667) {
+            $withholdingTax = 35;
+            $compensationLevel = 666667;
+        }
+
+        log::info("==================================");
+        log::info("salary               :" . $salary);
+        log::info("contribution         :" . $contribution);
+        log::info("withholdingTax       :" . $withholdingTax);
+        log::info("==================================");
+
+        log::info("==================================");
+        log::info("taxableIncome        :" . $taxableIncome);
+        log::info("compensationLevel    :" . $compensationLevel);
+        log::info("==================================");
+
+        $percentage = $withholdingTax / 100;
+        $incomeTax = ($taxableIncome - $compensationLevel) * $percentage;
+        log::info("==================================");
+        log::info("percentage           :" . $salary);
+        log::info("incomeTax            :" . $incomeTax);
+        log::info("==================================");
+
+        return $incomeTax;
     }
 
     public function payrollDetails(Request $request)
@@ -512,25 +552,6 @@ class PayrollController extends Controller
         }
 
         // ============== RESPONSE PREP ==============
-        $payroll = [
-            'employeeId' => $employee->user_name,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'numberOfPresent' => $numberOfPresent,
-            'numberOfAbsentDays' => $numberOfAbsentDays,
-            'numberOfWorkingDays' => $numberOfWorkingDays,
-            'numberOfDays' => $numberOfDays,
-            'numberOfSaturday' => $numberOfSaturday,
-            'numberOfSunday' => $numberOfSunday,
-            'numberOfHoliday' => $numberOfHoliday,
-            'perMonth' => $employee->salary,
-            'perDay' => $perDay,
-            'perHour' => $perHour,
-            'perMin' => $perMin,
-            'employeeShare' => $employeeShare,
-            'employerShare' => $employerShare,
-        ];
-
         $basicPay = $perCutOff - $leaveEarnings;
         $overTimePay = 0;
         $holidayPay = 0;
@@ -548,12 +569,33 @@ class PayrollController extends Controller
         $loans = 0;
 
         $tax = $this->calculateTax($employee->salary, $employeeShare);
+        log::info("Returned Tax: " . $tax);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
         $tardiness = $perMin * $tardinessTime;
 
         $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
+
+        $payroll = [
+            'employeeId' => $employee->user_name,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'numberOfPresent' => $numberOfPresent,
+            'numberOfAbsentDays' => $numberOfAbsentDays,
+            'numberOfWorkingDays' => $numberOfWorkingDays,
+            'numberOfDays' => $numberOfDays,
+            'numberOfSaturday' => $numberOfSaturday,
+            'numberOfSunday' => $numberOfSunday,
+            'numberOfHoliday' => $numberOfHoliday,
+            'perMonth' => $employee->salary,
+            'perDay' => $perDay,
+            'perHour' => $perHour,
+            'perMin' => $perMin,
+            'employeeShare' => $employeeShare,
+            'employerShare' => $employerShare,
+            'tax' => $tax,
+        ];
 
         $deductions = [
             ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} day)", 'amount' => $absents],
@@ -575,7 +617,7 @@ class PayrollController extends Controller
             'deductions' => $deductions,
             'summaries' => $summaries,
             'paid_leaves' => $paidLeaves,
-            'unpaid_leaves' => $unpaidLeaves
+            'unpaid_leaves' => $unpaidLeaves,
         ]);
     }
 
