@@ -32,6 +32,8 @@ class UsersModel extends Authenticatable
         'user_type',
         'salary_type',
         'salary',
+        'tin_number',
+        'deduct_tax',
 
         'profile_pic',
         'verify_code',
@@ -80,11 +82,6 @@ class UsersModel extends Authenticatable
     public function attendanceLogs()
     {
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
-    }
-
-    public function tax()
-    {
-        return $this->hasOne(EmployeeTaxesModel::class, 'employee_id');
     }
 
     public function workShift()

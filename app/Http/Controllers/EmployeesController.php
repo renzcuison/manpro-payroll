@@ -15,7 +15,6 @@ use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\LoanLimitHistoryModel;
-use App\Models\EmployeeTaxesModel;
 
 // use App\Models\NewModel;
 // use App\Models\NewModel;
@@ -130,17 +129,7 @@ class EmployeesController extends Controller
             $employee->job_title_id,
             $employee->work_group_id
         );
-
-        $employee->tin_number = "";
-        $employee->tax_percentage = "";
-        $employee->tax_amount = "";
-        $employee->tax_status = 0;
-
-        // log::info("================================================");
-        // log::info("Employee Tax:");
-        // log::info($employee->tax);
-        // log::info("================================================");
-    
+        
         return $employee;
     }    
 
@@ -343,8 +332,10 @@ class EmployeesController extends Controller
             $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
 
             $latestLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
-    
+
             $employee = $this->enrichEmployeeDetails($employee);
+
+            log::info($employee->tin_number);
  
             $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
             $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;
@@ -477,6 +468,9 @@ class EmployeesController extends Controller
                 $employee->salary = $request->salary;
                 $employee->salary_type = $request->salaryType;
 
+                $employee->tin_number = $request->tinNumber;
+                $employee->deduct_tax = $request->taxStatus;
+
                 $employee->role_id = $request->selectedRole;
                 $employee->branch_id = $request->selectedBranch;
                 $employee->job_title_id = $request->selectedJobTitle;
@@ -509,13 +503,7 @@ class EmployeesController extends Controller
                     ]);
                 }
 
-                $employeeTax = EmployeeTaxesModel::where('employee_id', $employee->id)->first();
-
-                if ( $employeeTax ) {
-                    log::info($employeeTax);
-                } else {
-
-                }
+                // Taxes
 
                 DB::commit();
 
