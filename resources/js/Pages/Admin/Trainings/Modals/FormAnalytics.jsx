@@ -164,58 +164,58 @@ const FormAnalytics = ({ open, close, contentId }) => {
                         <Box>
                             <Grid container spacing={2}>
                                 {/* Attempt Summary */}
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                         Attempts
                                     </Typography>
                                 </Grid>
                                 {/* Respondend Count */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Total Respondents"
                                         info={responseAnalytics.respondent_count}
                                     />
                                 </Grid>
                                 {/* Total Attempts */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Total Attempts"
                                         info={responseAnalytics.total_attempts}
                                     />
                                 </Grid>
                                 {/* Avg. Attempt Count */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Avg. Attempt Count"
                                         info={responseAnalytics.avg_attempt_count}
                                     />
                                 </Grid>
                                 {/* Avg. Attempt Duration */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Avg. Attempt Duration"
                                         info={formatDuration(responseAnalytics.avg_duration)}
                                     />
                                 </Grid>
                                 {/* Fastest Attempt */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Fastest Attempt"
                                         info={formatDuration(responseAnalytics.fastest_attempt)}
                                     />
                                 </Grid>
                                 {/* Slowest Attempt */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <InfoBox
                                         title="Slowest Attempt"
                                         info={formatDuration(responseAnalytics.slowest_attempt)}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }}>
+                                <Grid size={{ xs: 12 }} sx={{ my: 0 }}>
                                     <Divider />
                                 </Grid>
                                 {/* Score Summary */}
-                                <Grid item xs={8}>
+                                <Grid size={{ xs: 8 }}>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                         Score Summary
                                     </Typography>
@@ -248,7 +248,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                     />
                                 </Grid>
                                 {/* Passing Rate */}
-                                <Grid item xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <Box display="flex" sx={{ alignItems: "center" }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                             Passing Rate
@@ -285,11 +285,11 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                         />
                                     </Box>
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }}>
+                                <Grid size={{ xs: 12 }} sx={{ my: 0 }}>
                                     <Divider />
                                 </Grid>
                                 {/* Item Statistics */}
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Box display="flex" justifyContent="space-between" alignItems="center">
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                             Item Statistics
@@ -316,7 +316,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                         </Button>
                                     </Box>
                                 </Grid>
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     {responseAnalytics.items.map((item, index) => (
                                         <Box
                                             key={index}
