@@ -22,7 +22,7 @@ const LeaveCreditList = () => {
     const [searchName, setSearchName] = useState('');
 
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
+        axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
             .then((response) => {
                 setEmployees(response.data.employees);
                 setIsLoading(false);
@@ -42,15 +42,6 @@ const LeaveCreditList = () => {
                 setIsLoading(false);
             });
     }, []);
-
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
 
     const [blobMap, setBlobMap] = useState({});
 
@@ -96,14 +87,6 @@ const LeaveCreditList = () => {
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Leave Credits </Typography>
-
-                        {/* <Button id="employee-menu" variant="contained" color="primary" aria-controls={open ? 'emp-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleMenuOpen} > */}
-                            {/* <p className='m-0'><i className="fa fa-plus"></i> Add </p> */}
-                        {/* </Button> */}
-                        {/* <Menu id="emp-menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'employee_menu' }} > */}
-                            {/* <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose}> Add Employee </MenuItem> */}
-                            {/* <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose}> Employee Form Links </MenuItem> */}
-                        {/* </Menu> */}
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -136,7 +119,7 @@ const LeaveCreditList = () => {
                                             <TableRow>
                                                 <TableCell align="center">Name</TableCell>
                                                 {applicationTypes.map((appType) => (
-                                                    <TableCell align="center">{appType.name}</TableCell>
+                                                    <TableCell key={appType.name} align="center">{appType.name}</TableCell>
                                                 ))}
                                             </TableRow>
                                         </TableHead>

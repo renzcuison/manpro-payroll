@@ -39,10 +39,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [creditLimit, setCreditLimit] = useState(employee.credit_limit);
 
     const [tinNumber, setTinNumber] = useState(employee.tin_number);
-    const [taxAmount, setTaxAmount] = useState(employee.tax_amount);
-    const [taxStatus, setTaxStatus] = useState(employee.tax_status);
-    const [taxPercentage, setTaxPercentage] = useState(employee.tax_percentage);
-
+    const [taxStatus, setTaxStatus] = useState(employee.deduct_tax);
 
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -121,6 +118,9 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
             salary: salary,
             salaryType: salaryType,
             creditLimit: creditLimit,
+
+            tinNumber: tinNumber,
+            taxStatus: taxStatus,
 
             selectedRole: selectedRole,
             selectedBranch: selectedBranch,
@@ -472,10 +472,10 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                     value={salaryType}
                                     onChange={(event) => setSalaryType(event.target.value)}
                                 >
-                                    <MenuItem key="Hourly" value="Hourly"> Hourly </MenuItem>
-                                    <MenuItem key="Daily" value="Daily"> Daily </MenuItem>
-                                    <MenuItem key="Weekly" value="Weekly"> Weekly </MenuItem>
-                                    <MenuItem key="Bi-Monthly" value="Bi-Monthly"> Bi-Monthly </MenuItem>
+                                    {/* <MenuItem key="Hourly" value="Hourly"> Hourly </MenuItem> */}
+                                    {/* <MenuItem key="Daily" value="Daily"> Daily </MenuItem> */}
+                                    {/* <MenuItem key="Weekly" value="Weekly"> Weekly </MenuItem> */}
+                                    {/* <MenuItem key="Bi-Monthly" value="Bi-Monthly"> Bi-Monthly </MenuItem> */}
                                     <MenuItem key="Monthly" value="Monthly"> Monthly </MenuItem>
                                 </TextField>
                             </FormControl>
@@ -507,7 +507,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>                            
-                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '77%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -519,31 +519,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
-                                <TextField
-                                    id="taxPercentage"
-                                    label="Tax Percentage"
-                                    variant="outlined"
-                                    value={taxPercentage}
-                                    onChange={(e) => setTaxPercentage(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
-                                <TextField
-                                    id="taxAmount"
-                                    label="Tax Amount"
-                                    variant="outlined"
-                                    value={taxAmount}
-                                    onChange={(e) => setTaxAmount(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{ marginBottom: 3, width: '13%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField

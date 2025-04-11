@@ -274,6 +274,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         ...revData,
                         attempt_number: attemptNo
                     };
+                    console.log(revData);
                     setReviewData(newRevData);
                     setViewType('Review');
                 }
@@ -1030,6 +1031,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Button>
                             </Box>
                         </Grid>
+                        {/* Attempt No. */}
                         <Grid size={{ xs: 1 }}>
                             <Box
                                 display="flex"
@@ -1046,18 +1048,51 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Typography>
                             </Box>
                         </Grid>
-                        <Grid size={{ xs: 5 }}>
-                            <Box
-                                display="flex"
-                                sx={{
-                                    position: "relative",
-                                    width: "100%", height: 100, alignItems: "center",
-                                    border: "solid 1px #e0e0e0", borderRadius: "8px"
-                                }}>
-                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, position: "absolute", top: 7, left: 10 }}>
-                                    Score
-                                </Typography>
-                                <Box sx={{ width: "32%", borderRight: "solid 1px #e0e0e0", placeContent: "center", placeItems: "center" }}>
+                        <Grid container size={{ xs: 4 }}>
+                            <Box display="flex" sx={{ width: "100%", height: 100, alignItems: "center", border: "solid 1px #e0e0e0", borderRadius: "8px", }} >
+                                <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", }} >
+                                    <Box sx={{ px: 2, py: 0.5, width: "100%", borderBottom: "solid 1px #e0e0e0", }} >
+                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                            Submission Details
+                                        </Typography>
+                                    </Box>
+                                    <Grid container columnSpacing={2} rowSpacing={1} sx={{ flexGrow: 1, p: 2, pt: 1 }} >
+                                        <Grid size={{ xs: 12 }}>
+                                            <InfoBox
+                                                title="Submitted On"
+                                                info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
+                                                clean
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <InfoBox
+                                                title="Time Taken"
+                                                info={formatDuration(reviewData.duration)}
+                                                clean
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            </Box>
+                        </Grid>
+                        {/* Score, Tally */}
+                        <Grid size={{ xs: 7 }}>
+                            <Box display="flex" sx={{ width: "100%", height: 100, alignItems: "center", border: "solid 1px #e0e0e0", borderRadius: "8px", }} >
+                                {/* Score Gauge */}
+                                <Box
+                                    sx={{
+                                        position: "relative",
+                                        width: "32%",
+                                        height: "100%",
+                                        borderRight: "solid 1px #e0e0e0",
+                                        display: "grid",
+                                        placeContent: "center",
+                                        placeItems: "center",
+                                    }}
+                                >
+                                    <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, position: "absolute", top: 7, left: 10, }} >
+                                        Score
+                                    </Typography>
                                     <Gauge
                                         value={reviewData.score}
                                         valueMax={totalPoints}
@@ -1068,13 +1103,15 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             [`& .${gaugeClasses.valueText}`]: {
                                                 fontSize: 18,
                                                 fontWeight: "bold",
-                                                fill: "text.secondary"
+                                                fill: "text.secondary",
                                             },
                                             [`& .${gaugeClasses.valueArc}`]: {
-                                                fill: reviewData.score >= (totalPoints * (formInfo.passing_score / 100)) ? '#177604' : '#f44336'
+                                                fill: reviewData.score >= (totalPoints * (formInfo.passing_score / 100))
+                                                    ? '#177604'
+                                                    : '#f44336',
                                             },
                                             [`& .${gaugeClasses.referenceArc}`]: {
-                                                fill: `#e0e0e0`
+                                                fill: "#e0e0e0",
                                             },
                                         })}
                                         margin={{ top: 10, bottom: 0 }}
@@ -1085,54 +1122,29 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         text={({ value }) => `${value}pt${value > 1 ? 's' : ''}`}
                                     />
                                 </Box>
-                                <Box display="flex" sx={{ p: 1, width: "68%", flexDirection: "column" }}>
-                                    <Box display="flex">
-                                        <Box sx={{ width: "50%" }}>
-                                            <InfoBox
-                                                title="text"
-                                                info={1}
-                                                clean
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: "50%" }}>
-                                            <InfoBox
-                                                title="text"
-                                                info={1}
-                                                clean
-                                            />
-                                        </Box>
+                                {/* Answer Tally */}
+                                <Box sx={{ width: "68%", height: "100%", display: "flex", flexDirection: "column", }} >
+                                    <Box sx={{ px: 2, py: 0.5, width: "100%", borderBottom: "solid 1px #e0e0e0", }} >
+                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                            Answer Tally
+                                        </Typography>
                                     </Box>
-                                    <Box display="flex">
-                                        <Box sx={{ width: "50%" }}>
-                                            <InfoBox
-                                                title="text"
-                                                info={1}
-                                                clean
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: "50%" }}>
-                                            <InfoBox
-                                                title="text"
-                                                info={1}
-                                                clean
-                                            />
-                                        </Box>
-                                    </Box>
+                                    <Grid container columnSpacing={2} rowSpacing={1} sx={{ flexGrow: 1, p: 2, pt: 1 }} >
+                                        {[
+                                            { title: "Correct", info: reviewData.correct_items },
+                                            { title: "Incorrect", info: reviewData.incorrect_items },
+                                            { title: "Partial", info: reviewData.partial_items },
+                                            { title: "Missed", info: reviewData.incorrect_items },
+                                        ].map((item, index) => (
+                                            <Grid key={index} size={{ xs: 6 }}>
+                                                <InfoBox title={item.title} info={item.info} clean />
+                                            </Grid>
+                                        ))}
+                                    </Grid>
                                 </Box>
                             </Box>
                         </Grid>
-                        <Grid size={{ xs: 3 }}>
-                            <InfoBox
-                                title="Submitted On"
-                                info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 3 }}>
-                            <InfoBox
-                                title="Duration"
-                                info={formatDuration(reviewData.duration)}
-                            />
-                        </Grid>
+                        {/* Answers */}
                         <Grid size={{ xs: 12 }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                 Answers
@@ -1142,6 +1154,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                     maxHeight: '690px',
                                     overflowY: 'auto',
                                     pr: 1,
+                                    mb: 10,
                                     '&::-webkit-scrollbar': {
                                         width: '8px',
                                     },

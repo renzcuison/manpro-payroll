@@ -756,27 +756,57 @@ class TrainingFormsController extends Controller
 
         $itemAnswers = collect($attemptInfo->answers)->groupBy('form_item_id');
 
+        $correctCount = 0;
+        $incorrectCount = 0;
+        $partialCount = 0; // Partially Correct Multiple Select items
+        $missedCount = 0;
+
         $reviewData->score = $attemptInfo->score;
         $reviewData->submit_time = $attemptInfo->created_at;
         $reviewData->duration = $attemptInfo->duration;
-        $reviewData->items = $formInfo->items->map(function ($item) use ($itemAnswers) {
+        $reviewData->items = $formInfo->items->map(function ($item) use (&$correctCount, &$incorrectCount, &$partialCount, &$missedCount, $itemAnswers) {
             $itemData = $item->toArray();
 
             $answers = $itemAnswers->get($item->id);
             if (!$answers) {
                 $itemData['answer'] = $item->type == 'FillInTheBlank' ? null : [];
+                $missedCount++;
                 return $itemData;
             }
 
             if ($item->type == 'FillInTheBlank') {
                 $description = $answers->firstWhere('description')->description ?? null;
+                if ($description == $item->choices[0]->description) {
+                    $correctCount++;
+                } else {
+                    $incorrectCount++;
+                }
                 $itemData['answer'] = $description;
             } else {
-                $itemData['answer'] = $answers->pluck('form_choice_id')->toArray();
+                $selectedChoiceIds = $answers->pluck('form_choice_id')->toArray();
+                $itemData['answer'] = $selectedChoiceIds;
+
+                $correctChoices = $item->choices->where('is_correct', true)->pluck('id')->toArray();
+                $correctChoiceCount = count($correctChoices);
+                $selectedCorrectChoices = array_intersect($selectedChoiceIds, $correctChoices);
+                $selectedCorrectCount = count($selectedCorrectChoices);
+
+                if ($selectedCorrectCount === $correctChoiceCount) {
+                    $correctCount++;
+                } elseif ($selectedCorrectCount > 0 && $selectedCorrectCount < $correctChoiceCount) {
+                    $partialCount++;
+                } else {
+                    $incorrectCount++;
+                }
             }
 
             return $itemData;
         })->values()->toArray();
+
+        $reviewData->correct_items = $correctCount;
+        $reviewData->incorrect_items = $incorrectCount;
+        $reviewData->partial_items = $partialCount;
+        $reviewData->missed_items = $missedCount;
 
         return response()->json(['status' => 200, 'review_data' => $reviewData]);
     }

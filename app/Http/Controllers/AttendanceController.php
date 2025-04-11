@@ -492,13 +492,12 @@ class AttendanceController extends Controller
         if ($this->checkUser() && $request->input('employee')) {
             $employeeId = $request->input('employee');
         }
+
         // Fetch and process attendance logs for summary
-        $summaryData = DB::table('attendance_logs as al')
-            ->join('work_hours as wh', 'al.work_hour_id', '=', 'wh.id')
-            ->where('al.user_id', $employeeId)
-            ->whereBetween('al.timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
-            ->select('al.*', 'wh.shift_type', 'wh.first_time_in', 'wh.first_time_out', 'wh.second_time_in', 'wh.second_time_out', 'wh.over_time_in', 'wh.over_time_out', 'wh.break_start', 'wh.break_end')
-            ->orderBy('al.timestamp', 'asc')
+        $summaryData = AttendanceLogsModel::with('workHour')
+            ->where('user_id', $employeeId)
+            ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
+            ->orderBy('timestamp', 'asc')
             ->get()
             ->groupBy(function ($log) {
                 return Carbon::parse($log->timestamp)->format('Y-m-d');
@@ -531,19 +530,19 @@ class AttendanceController extends Controller
                 $dutyEnd = Carbon::now();
 
                 // Total Shift Duration Reader
-                if ($logs->first()->shift_type == "Regular") {
-                    $shiftStart = Carbon::parse($logs->first()->first_time_in);
-                    $shiftEnd = Carbon::parse($logs->first()->first_time_out);
-                    $gapStart = Carbon::parse($logs->first()->break_start);
-                    $gapEnd = Carbon::parse($logs->first()->break_end);
+                if ($logs->first()->workHour->shift_type == "Regular") {
+                    $shiftStart = Carbon::parse($logs->first()->workHour->first_time_in);
+                    $shiftEnd = Carbon::parse($logs->first()->workHour->first_time_out);
+                    $gapStart = Carbon::parse($logs->first()->workHour->break_start);
+                    $gapEnd = Carbon::parse($logs->first()->workHour->break_end);
 
                     $totalShiftDuration = $shiftStart->diffInMinutes($shiftEnd) - $gapStart->diffInMinutes($gapEnd);
                     $totalShiftDuration = max($totalShiftDuration, 0);
-                } elseif ($logs->first()->shift_type == "Split") {
-                    $shiftFirstStart = Carbon::parse($logs->first()->first_time_in);
-                    $shiftFirstEnd = Carbon::parse($logs->first()->first_time_out);
-                    $shiftSecondStart = Carbon::parse($logs->first()->second_time_in);
-                    $shiftSecondEnd = Carbon::parse($logs->first()->second_time_out);
+                } elseif ($logs->first()->workHour->shift_type == "Split") {
+                    $shiftFirstStart = Carbon::parse($logs->first()->workHour->first_time_in);
+                    $shiftFirstEnd = Carbon::parse($logs->first()->workHour->first_time_out);
+                    $shiftSecondStart = Carbon::parse($logs->first()->workHour->second_time_in);
+                    $shiftSecondEnd = Carbon::parse($logs->first()->workHour->second_time_out);
 
                     $shiftFirstTime = $shiftFirstStart->diffInMinutes($shiftFirstEnd);
                     $shiftSecondTime = $shiftSecondStart->diffInMinutes($shiftSecondEnd);
@@ -575,22 +574,22 @@ class AttendanceController extends Controller
                         $gapStart = null;
                         $gapEnd = null;
                         if ($log->action == "Duty Out") {
-                            switch ($log->shift_type) {
+                            switch ($log->workHour->shift_type) {
                                 case 'Regular':
-                                    $actualStart = Carbon::parse($log->first_time_in);
-                                    $actualEnd = Carbon::parse($log->first_time_out);
-                                    $gapStart = Carbon::parse($log->break_start);
-                                    $gapEnd = Carbon::parse($log->break_end);
+                                    $actualStart = Carbon::parse($log->workHour->first_time_in);
+                                    $actualEnd = Carbon::parse($log->workHour->first_time_out);
+                                    $gapStart = Carbon::parse($log->workHour->break_start);
+                                    $gapEnd = Carbon::parse($log->workHour->break_end);
                                     break;
                                 case 'Split':
-                                    $firstPartEnd = Carbon::parse($log->first_time_out);
-                                    $secondPartStart = Carbon::parse($log->second_time_in);
+                                    $firstPartEnd = Carbon::parse($log->workHour->first_time_out);
+                                    $secondPartStart = Carbon::parse($log->workHour->second_time_in);
                                     if ($dutyStart->format('H:i:s') < $firstPartEnd->format('H:i:s')) {
-                                        $actualStart = Carbon::parse($log->first_time_in);
+                                        $actualStart = Carbon::parse($log->workHour->first_time_in);
                                         $actualEnd = $firstPartEnd;
                                     } else {
                                         $actualStart = $secondPartStart;
-                                        $actualEnd = Carbon::parse($log->second_time_out);
+                                        $actualEnd = Carbon::parse($log->workHour->second_time_out);
                                     }
                                     break;
                                 default:
@@ -598,8 +597,8 @@ class AttendanceController extends Controller
                                     $actualEnd = $dutyEnd;
                             }
                         } else {
-                            $actualStart = Carbon::parse($log->over_time_in);
-                            $actualEnd = Carbon::parse($log->over_time_out);
+                            $actualStart = Carbon::parse($log->workHour->over_time_in);
+                            $actualEnd = Carbon::parse($log->workHour->over_time_out);
                         }
 
                         // Total Hours Calculation [MAIN]
@@ -622,7 +621,7 @@ class AttendanceController extends Controller
                             $minutesRendered = $renderedEnd->diffInMinutes($renderedStart);
 
                             // Remove Rendered Time during Break
-                            if ($log->action == "Duty Out" && $log->shift_type == 'Regular' && $fixedGapStart && $fixedGapEnd) {
+                            if ($log->action == "Duty Out" && $log->workHour->shift_type == 'Regular' && $fixedGapStart && $fixedGapEnd) {
                                 $breakOverlapStart = max($renderedStart, $fixedGapStart);
                                 $breakOverlapEnd = min($renderedEnd, $fixedGapEnd);
 

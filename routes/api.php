@@ -37,13 +37,6 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\PreviousFilterController;
 
-
-
-// Mobile Controllers
-use App\Http\Controllers\Mobile\UserAuthMobileController;
-
-
-
 // Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
@@ -62,13 +55,6 @@ Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword'
 Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
 
 Route::post('/employeeList', [EmployeesController::class, 'employeeList']);
-
-//Unprotected
-Route::prefix('mobile')->group(function () {
-    // Route::post('/checkUser', [UserAuthMobileController::class, 'checkUser']);
-    // Route::post('/login', [UserAuthMobileController::class, 'login']);
-});
-
 
 
 // Protected routes
@@ -117,6 +103,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+        
+        Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);

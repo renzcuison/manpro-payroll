@@ -140,8 +140,9 @@ const ContentView = () => {
                 // Training Form Details
                 if (resContent?.content?.type == "Form") {
                     getFormDetails(resContent.id);
+                } else {
+                    setIsLoading(false); // End Form Loading after form details are retrieved
                 }
-                setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching content details', error);
@@ -516,15 +517,7 @@ const ContentView = () => {
                                 </Box>
                             )}
                             {/* Content Display */}
-                            <Box
-                                sx={{
-                                    width: contentListOn ? '80%' : '100%',
-                                    mt: 2,
-                                    mb: 2,
-                                    p: 3,
-                                    position: 'relative',
-                                }}
-                            >
+                            <Box sx={{ width: contentListOn ? '80%' : '100%', mt: 2, mb: 2, p: 3, position: 'relative', }} >
 
                                 {/* Content List Toggle */}
                                 <Box
@@ -542,14 +535,12 @@ const ContentView = () => {
                                     }}
                                 >
                                     <Tooltip title={contentListOn ? 'Hide Content List' : 'Show Content List'}>
-                                        <IconButton
-                                            onClick={toggleContentList}
-                                            sx={{ color: 'white' }}
-                                        >
+                                        <IconButton onClick={toggleContentList} sx={{ color: 'white' }} >
                                             {contentListOn ? <ArrowBackIos /> : <ArrowForwardIos />}
                                         </IconButton>
                                     </Tooltip>
                                 </Box>
+                                {/* Content Details */}
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                         <CircularProgress />
