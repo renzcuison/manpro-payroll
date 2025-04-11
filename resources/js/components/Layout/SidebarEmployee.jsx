@@ -190,15 +190,6 @@ const Sidebar = ({ children, closeMini }) => {
 
     // Load Session Data
     useEffect(() => {
-        const storedAvatar = sessionStorage.getItem('avatar');
-        if (storedAvatar) {
-            setImagePath(storedAvatar);
-        } else {
-            getMyAvatar();
-        }
-    }, []);
-
-    const getMyAvatar = () => {
         axiosInstance.get(`/employee/getMyAvatar`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
@@ -214,7 +205,6 @@ const Sidebar = ({ children, closeMini }) => {
 
                         const newBlob = URL.createObjectURL(blob)
                         setImagePath(newBlob);
-                        sessionStorage.setItem('avatar', newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -222,8 +212,17 @@ const Sidebar = ({ children, closeMini }) => {
             })
             .catch((error) => {
                 console.error('Error fetching avatar:', error);
+                setImagePath(null);
             });
-    }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, [imagePath]);
 
     return (
         <nav

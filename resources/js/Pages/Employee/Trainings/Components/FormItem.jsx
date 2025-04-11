@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
     Box,
     Typography,
     Button,
@@ -15,36 +8,10 @@ import {
     TextField,
     Stack,
     Grid,
-    Chip,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
-    Card,
-    CardMedia,
-    CardContent,
-    CardActions,
-    Pagination,
-    IconButton,
-    Divider,
-    ImageList,
-    ImageListItem,
-    ImageListItemBar,
-    Tooltip,
-    CardActionArea,
     Checkbox,
     FormControlLabel,
     Radio
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, SwapHoriz, CheckCircle, Visibility, Pending, CheckBox } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
-import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import Swal from "sweetalert2";
 
 const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
     // Answer Data
@@ -187,7 +154,7 @@ const FormItem = ({ itemData, handleAnswer, storedAnswer, submissionView }) => {
                                         fontSize: { xs: '0.85rem', sm: '0.9rem' },
                                     }}
                                 >
-                                    Select up to {itemData.value} option{itemData.value !== 1 ? 's' : ''}.
+                                    {`Select up to ${itemData.value} option${itemData.value !== 1 ? 's' : ''}.`}
                                 </Typography>
                             )}
                         </Typography>

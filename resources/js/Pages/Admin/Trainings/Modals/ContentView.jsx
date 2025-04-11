@@ -700,9 +700,31 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     No Items Found
                                                 </Typography>
                                             ) : (
-                                                <Typography>
-                                                    Items
-                                                </Typography>
+                                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                                        Items
+                                                    </Typography>
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+
+                                                        onClick={() => {
+                                                            if (expanded.length === formItems.length) {
+                                                                setExpanded([]);
+                                                            } else {
+                                                                setExpanded(formItems.map((_, index) => index));
+                                                            }
+                                                        }}
+                                                        endIcon={
+                                                            expanded.length === formItems.length ?
+                                                                <ExpandLess /> :
+                                                                <ExpandMore />
+                                                        }
+                                                        sx={{ textTransform: 'none', fontSize: '0.875rem', color: "white" }}
+                                                    >
+                                                        {expanded.length === formItems.length ? "Collapse All" : "Expand All"}
+                                                    </Button>
+                                                </Box>
                                             )}
                                         </Grid>
                                         <Grid item xs={12}>
@@ -859,21 +881,28 @@ const ContentView = ({ open, close, contentId, status }) => {
 
                                                             {/* Expanded Content */}
                                                             {expanded.includes(index) && (
-                                                                <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
-                                                                    <Typography
-                                                                        variant="body2"
-                                                                        color="text.secondary"
-                                                                        sx={{
-                                                                            mb: 2,
-                                                                            whiteSpace: "pre-wrap",
-                                                                            "& *": { margin: 0, padding: 0 },
-                                                                        }}
-                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
-                                                                    />
+                                                                <Box sx={{ mt: 2, p: 2, border: "1px solid #e0e0e0", backgroundColor: "#fafafa", borderRadius: "8px" }}>
+                                                                    {/* Full Description */}
+                                                                    <Box sx={{ mb: 2 }}>
+                                                                        <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "text.primary", mb: 0.5 }}>
+                                                                            Full Description
+                                                                        </Typography>
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            color="text.secondary"
+                                                                            sx={{
+                                                                                whiteSpace: "pre-wrap",
+                                                                                "& *": { margin: 0, padding: 0 },
+                                                                            }}
+                                                                            dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                        />
+                                                                    </Box>
+
+                                                                    {/* Choices/Answer Section */}
                                                                     {item.choices.length > 0 && (
-                                                                        <>
-                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
-                                                                                {item.type == "FillInTheBlank" ? "Answer" : "Choices"}
+                                                                        <Box>
+                                                                            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                                                {item.type === "FillInTheBlank" ? "Answer" : "Choices"}
                                                                             </Typography>
                                                                             {item.choices.map((choice, index) => (
                                                                                 <Box
@@ -882,16 +911,24 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                                         mt: 1,
                                                                                         p: 1,
                                                                                         width: "100%",
-                                                                                        border: item.type != "FillInTheBlank" && choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        border: "1px solid #e0e0e0",
                                                                                         borderRadius: "4px",
+                                                                                        backgroundColor: item.type !== "FillInTheBlank" && choice.is_correct ? "#e8f5e9" : "white",
+                                                                                        borderColor: item.type !== "FillInTheBlank" && choice.is_correct ? "#2e7d32" : "#e0e0e0",
                                                                                     }}
                                                                                 >
-                                                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                                    <Typography
+                                                                                        variant="body2"
+                                                                                        sx={{
+                                                                                            color: item.type !== "FillInTheBlank" && choice.is_correct ? "#2e7d32" : "text.primary",
+                                                                                            fontWeight: item.type !== "FillInTheBlank" && choice.is_correct ? "medium" : "normal",
+                                                                                        }}
+                                                                                    >
                                                                                         {choice.description}
                                                                                     </Typography>
                                                                                 </Box>
                                                                             ))}
-                                                                        </>
+                                                                        </Box>
                                                                     )}
                                                                 </Box>
                                                             )}
@@ -947,7 +984,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                     <FormAnalytics
                         open={openFormAnalyticsModal}
                         close={handleCloseFormAnalyticsModal}
-                        formData={content}
+                        contentId={content.id}
                     />
                 )}
             </Dialog>

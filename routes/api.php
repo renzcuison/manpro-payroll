@@ -12,6 +12,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\LoanApplicationsController;
 
 
@@ -198,7 +199,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
 
         Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
-
     });
 
     Route::prefix('loans')->group(function () {
@@ -276,6 +276,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('trainings')->group(function () {
+        // Trainings, Training Content
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
         Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
         Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
@@ -301,16 +302,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getTrainingViews/{id}', [TrainingsController::class, 'getTrainingViews']);
         Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
 
-        Route::get('/getFormItems/{id}', [TrainingsController::class, 'getFormItems']);
-        Route::post('/saveFormItem', [TrainingsController::class, 'saveFormItem']);
-        Route::post('/editFormItem', [TrainingsController::class, 'editFormItem']);
-        Route::post('/removeFormItem', [TrainingsController::class, 'removeFormItem']);
-        Route::post('/saveFormItemSettings', [TrainingsController::class, 'saveFormItemSettings']);
+        // Training Forms
+        Route::get('/getFormItems/{id}', [TrainingFormsController::class, 'getFormItems']);
+        Route::post('/saveFormItem', [TrainingFormsController::class, 'saveFormItem']);
+        Route::post('/editFormItem', [TrainingFormsController::class, 'editFormItem']);
+        Route::post('/removeFormItem', [TrainingFormsController::class, 'removeFormItem']);
+        Route::post('/saveFormItemSettings', [TrainingFormsController::class, 'saveFormItemSettings']);
 
-        Route::get('/getFormAnalytics/{id}', [TrainingsController::class, 'getFormAnalytics']);
+        Route::get('/getFormAnalytics/{id}', [TrainingFormsController::class, 'getFormAnalytics']);
 
-        Route::get('/getEmployeeFormDetails/{id}', [TrainingsController::class, 'getEmployeeFormDetails']);
-        Route::post('/saveEmployeeFormSubmission', [TrainingsController::class, 'saveEmployeeFormSubmission']);
+        Route::get('/getEmployeeFormDetails/{id}', [TrainingFormsController::class, 'getEmployeeFormDetails']);
+        Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
+        Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
     });
 
 
