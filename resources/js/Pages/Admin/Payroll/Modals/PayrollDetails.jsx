@@ -139,75 +139,23 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                         </Box>
 
                         <Grid container spacing={4} sx={{ px: 8, mt: 4 }}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
 
                                 <PayrollInformation payroll={payroll} employee={employee} />
 
                                 <PayrollBreakdown payroll={payroll} employee={employee} paidLeaves={paidLeaves} unpaidLeaves={unpaidLeaves} earnings={earnings} deductions={deductions} benefits={benefits} />
 
-                                <div
-                                    className="row"
-                                    style={{ marginTop: "10px" }}
-                                >
+                                <div className="row" style={{ marginTop: "10px" }}>
                                     {summaries.map((summary) => (
-                                        <div
-                                            key={summary.name}
-                                            className="col-4 d-flex justify-content-center"
-                                        >
-                                            <FormControl
-                                                sx={{
-                                                    marginBottom: 2,
-                                                    width: "100%",
-                                                    "& label.Mui-focused": {
-                                                        color: "#97a5ba",
-                                                    },
-                                                    "& .MuiOutlinedInput-root":
-                                                        {
-                                                            "&.Mui-focused fieldset":
-                                                                {
-                                                                    borderColor:
-                                                                        "#97a5ba",
-                                                                },
-                                                        },
-                                                }}
-                                            >
-                                                <InputLabel
-                                                    id="demo-simple-select-label"
-                                                    shrink={true}
-                                                    sx={{
-                                                        backgroundColor:
-                                                            "white",
-                                                        paddingLeft: 1,
-                                                        paddingRight: 1,
-                                                        borderColor: "#97a5ba",
-                                                    }}
-                                                >
-                                                    {" "}
-                                                    {summary.name}{" "}
-                                                </InputLabel>
-                                                <input
-                                                    id="demo-simple-select"
-                                                    className="form-control"
-                                                    type="text"
-                                                    value={new Intl.NumberFormat(
-                                                        "en-US",
-                                                        {
-                                                            style: "currency",
-                                                            currency: "PHP",
-                                                            minimumFractionDigits: 2,
-                                                        }
-                                                    ).format(summary.amount)}
-                                                    style={{
-                                                        height: 40,
-                                                        backgroundColor: "#fff",
-                                                        textAlign: "right",
-                                                    }}
-                                                    readOnly
-                                                />
+                                        <div key={summary.name} className="col-4 d-flex justify-content-center">
+                                            <FormControl sx={{ marginBottom: 2, width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}}>
+                                                <InputLabel id="demo-simple-select-label" shrink={true} sx={{ backgroundColor: "white", paddingLeft: 1, paddingRight: 1, borderColor: "#97a5ba" }}> {summary.name} </InputLabel>
+                                                <input id="demo-simple-select" className='form-control' type="text" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(summary.amount)} style={{ height: 40, backgroundColor: '#fff', textAlign: 'right' }} readOnly />
                                             </FormControl>
                                         </div>
                                     ))}
                                 </div>
+                                
                             </Grid>
                         </Grid>
                     </Box>
