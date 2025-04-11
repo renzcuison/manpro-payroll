@@ -334,8 +334,6 @@ class EmployeesController extends Controller
             $latestLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
 
             $employee = $this->enrichEmployeeDetails($employee);
-
-            log::info($employee->tin_number);
  
             $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
             $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;
