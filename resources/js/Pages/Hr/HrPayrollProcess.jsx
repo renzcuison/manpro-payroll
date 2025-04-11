@@ -140,7 +140,7 @@ const HrPayrollProcess = () => {
                             <Grid container spacing={5} maxWidth={700} >
                                 {extended ?
                                     <>
-                                        <Grid item xs={12}>
+                                        <Grid item size={12}>
                                             <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                                 '& .MuiOutlinedInput-root': {
                                                     '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
@@ -154,12 +154,12 @@ const HrPayrollProcess = () => {
                                                 </Select>
                                             </FormControl>
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid item size={12}>
                                             <FormControl variant="outlined" fullWidth>
                                                 <Input type='date' value={multiDate.fromDate} sx={{ fontSize: 16, border: 1, borderColor: '#c4c4c4', padding: 1, paddingLeft: 2, paddingRight: 2 }} onChange={(e) => setMultiDate({ ...multiDate, fromDate: e.target.value })} />
                                             </FormControl>
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid item size={12}>
                                             <FormControl variant="outlined" fullWidth>
                                                 <Input type='date' value={multiDate.toDate} sx={{ fontSize: 16, border: 1, borderColor: '#c4c4c4', padding: 1, paddingLeft: 2, paddingRight: 2 }} onChange={(e) => setMultiDate({ ...multiDate, toDate: e.target.value })} />
                                             </FormControl>
@@ -176,7 +176,7 @@ const HrPayrollProcess = () => {
                                     </>
                                     :
                                     <>
-                                        <Grid item xs={12}>
+                                        <Grid item size={12}>
                                             <FormControl sx={{
                                                 width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                                 '& .MuiOutlinedInput-root': {
@@ -190,7 +190,7 @@ const HrPayrollProcess = () => {
                                                     ))}
                                                 </Select>
                                             </FormControl></Grid>
-                                        <Grid item xs={12}>
+                                        <Grid item size={12}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="select-month" sx={{ backgroundColor: 'white', paddingX: 1 }}>Select Month</InputLabel>
                                                 <Select labelId="select-month" id="select-month" label="Month" value={singleDate.month} onChange={(e) => setSingleDate({ ...singleDate, month: e.target.value })} >

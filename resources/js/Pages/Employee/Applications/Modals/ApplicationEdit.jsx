@@ -741,7 +741,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -766,7 +766,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 {/* File Requirement */}
                                 {fileError && <Typography variant="caption" color="error" sx={{ pb: 3 }}>
                                     You must include supporting files for this type of application!
@@ -919,7 +919,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}

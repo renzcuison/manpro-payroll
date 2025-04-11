@@ -283,7 +283,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl error={descriptionError} sx={{ width: '100%' }}>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -324,7 +324,7 @@ const AnnouncementAdd = ({ open, close }) => {
 
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}
@@ -403,7 +403,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}

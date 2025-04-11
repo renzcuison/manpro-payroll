@@ -367,7 +367,7 @@ const EmployeeView = () => {
 
                     {/*
                     <Grid container spacing={4} sx={{ mt: 1, mb: 12 }}>
-                        <Grid item xs={12}>
+                        <Grid item size={12}>
                             <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 <Tabs value={activeTab} onChange={handleTabChange}>
                                     <Tab label="Attendance" value="1" />

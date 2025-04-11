@@ -291,7 +291,7 @@ const LoanDetails = ({ open, close, loanId }) => {
                     </Grid>
                     <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
-                    <Grid item xs={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
+                    <Grid item size={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
                     <Grid item xs={12} sx={{ mt: 1 }}>
                         <Typography sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                             {loan.reason || '-'}
@@ -300,8 +300,8 @@ const LoanDetails = ({ open, close, loanId }) => {
                 </Grid>
                     <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
                     <Grid container item xs={12}>
-                        <Grid item xs={12}>Attached Files</Grid>
-                        <Grid item xs={12}>
+                        <Grid item size={12}>Attached Files</Grid>
+                        <Grid item size={12}>
                             {files && files.length > 0 ? (
                                 <Stack direction="column" sx={{ width: '100%' }}>
                                     {files.map((file, index) => {

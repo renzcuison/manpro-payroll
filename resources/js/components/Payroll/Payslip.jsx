@@ -132,7 +132,7 @@ const Payslip = ({ selectedPayroll }) => {
                         </Box>
 
                         <Grid container spacing={4} sx={{ px: 8, mt: 4 }}>
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <div className="row">
                                     <div className="col-6">
                                         <FormControl
