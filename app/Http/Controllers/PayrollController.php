@@ -233,6 +233,14 @@ class PayrollController extends Controller
         return response()->json(['status' => 200, 'payrolls' => null]);
     }
 
+    public function calculateTax($salary, $contribution) {
+        log::info("PayrollController::calculateTax");
+        log::info("salary       :" . $salary);
+        log::info("contribution :" . $contribution);
+
+        $taxableIncome = $salary - $contribution;
+    }
+
     public function payrollDetails(Request $request)
     {
         // log::info("PayrollController::payrollDetails");
@@ -298,6 +306,7 @@ class PayrollController extends Controller
         $end = Carbon::parse($endDate)->endOfDay();
 
         $workHours = $employee->workHours;
+        
         try {
             $firstIn = Carbon::createFromFormat('H:i:s', $workHours->first_time_in);
             $firstOut = Carbon::createFromFormat('H:i:s', $workHours->first_time_out);
@@ -339,8 +348,6 @@ class PayrollController extends Controller
         $perMin = $perHour / 60;
 
         $absents = $perDay * $numberOfAbsentDays;
-
-
 
         // ============== LEAVES ==============
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $employee->client_id)->get();
@@ -538,7 +545,8 @@ class PayrollController extends Controller
         $tardiness = 0;
         $cashAdvance = 0;
         $loans = 0;
-        $tax = 0;
+
+        $tax = $this->calculateTax($employee->salary, $employeeShare);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
         $tardiness = $perMin * $tardinessTime;

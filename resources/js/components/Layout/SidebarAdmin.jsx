@@ -116,14 +116,14 @@ const Sidebar = ({ children, closeMini }) => {
                     href: `/admin/employees/benefits?`,
                     text: "Benefits",
                 },
-                {
-                    href: `/admin/employees/leave-credits?`,
-                    text: "Leave Credits",
-                },
                 // {
-                // href: `/hr/employees-deductions?`,
-                // text: 'List of Deductions',
-                // icon: 'si si-user',
+                    // href: `/admin/employees/leave-credits?`,
+                    // text: "Leave Credits",
+                // },
+                // {
+                    // href: `/hr/employees-deductions?`,
+                    // text: 'List of Deductions',
+                    // icon: 'si si-user',
                 // },
             ],
         },
