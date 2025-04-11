@@ -1,23 +1,11 @@
 import {
     Box,
-    Button,
     IconButton,
     Dialog,
     DialogTitle,
     DialogContent,
-    Grid,
-    TextField,
     Typography,
     CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
-    MenuItem,
-    Stack,
-    Divider,
     TableContainer,
     Table,
     TableHead,
@@ -27,12 +15,7 @@ import {
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import Swal from "sweetalert2";
-import moment from "moment";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 
 const AttendanceSummaryDetails = ({ open, close, date }) => {

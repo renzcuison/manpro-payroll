@@ -6,43 +6,20 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    TablePagination,
     Box,
     Typography,
     Button,
     IconButton,
     Menu,
     MenuItem,
-    TextField,
-    Stack,
-    Grid,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
 } from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
 
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
 import Swal from "sweetalert2";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
+import { useNavigate } from "react-router-dom";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -60,10 +37,6 @@ const ApplicationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
-
-    // ---------------- Dates
-    const [fromDate, setFromDate] = useState(dayjs());
-    const [toDate, setToDate] = useState(dayjs());
 
     // ---------------- Application Form
     const [openApplicationForm, setOpenApplicationForm] = useState(false);
