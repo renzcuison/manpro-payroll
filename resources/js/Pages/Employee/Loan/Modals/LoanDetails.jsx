@@ -224,56 +224,57 @@ const LoanDetails = ({ open, close, loanId }) => {
                     </Typography>
                     <IconButton onClick={close}>
                         <i className="si si-close"></i>
-                    </IconButton>
+                    </IconButton>                        
+
                 </Box>
             </DialogTitle>
             <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                 <Grid container rowSpacing={2}>
-                    <Grid item xs={5} align="left">Loan Amount</Grid>
-                    <Grid item xs={7} align="left">
+                <Grid item size={{ xs: 5 }} align="left">Loan Amount</Grid>
+                <Grid item size={{ xs: 7 }} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid item xs={5} align="left">Requested</Grid>
-                    <Grid item xs={7} align="left">
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item size={{ xs: 5 }} align="left">Requested</Grid>
+                    <Grid item size={{ xs: 7 }} align="left">
                         <Stack direction="row">
                             <Typography sx={{ fontWeight: "bold", width: "50%" }}>{dayjs(loan.created_at).format("MMM D, YYYY")}</Typography>
                             <Typography sx={{ fontWeight: "bold", width: "50%" }}>{dayjs(loan.created_at).format("h:mm A")}</Typography>
                         </Stack>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid item xs={5} align="left">Payment Term</Grid>
-                    <Grid item xs={7} align="left">
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item size={{ xs: 5 }} align="left">Payment Term</Grid>
+                    <Grid item size={{ xs: 7 }} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>{loan.payment_term ? `${loan.payment_term} months` : '-'}</Typography>
                     </Grid>
                     {isApprovedProposal && (
                         <>
-                            <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                            <Grid item xs={5} align="left">Monthly Interest</Grid>
-                            <Grid item xs={7} align="left">
+                            <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                            <Grid item size={{ xs: 5 }} align="left">Monthly Interest</Grid>
+                            <Grid item size={{ xs: 7 }} align="left">
                                 <Typography sx={{ fontWeight: "bold" }}>{pendingProposal.monthly_interest_rate ? `${pendingProposal.monthly_interest_rate}%` : '-'}</Typography>
                             </Grid>
                         </>
                     )}
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid item xs={5} align="left">Paid Amount</Grid>
-                    <Grid item xs={7} align="left">
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item size={{ xs: 5 }} align="left">Paid Amount</Grid>
+                    <Grid item size={{ xs: 7 }} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat(loan.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid item xs={5} align="left">Remaining Amount</Grid>
-                    <Grid item xs={7} align="left">
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item size={{ xs: 5 }} align="left">Remaining Amount</Grid>
+                    <Grid item size={{ xs: 7 }} align="left">
                         <Typography sx={{ fontWeight: "bold" }}>
                             ₱{parseFloat((loan.loan_amount - (loan.paid_amount || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid item xs={5} align="left">Status</Grid>
-                    <Grid item xs={7} align="left">
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid item size={{ xs: 5 }} align="left">Status</Grid>
+                    <Grid item size={{ xs: 7 }} align="left">
                         <Typography
                             sx={{
                                 fontWeight: "bold",
@@ -289,19 +290,19 @@ const LoanDetails = ({ open, close, loanId }) => {
                             {loan.status.toUpperCase()}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid container item xs={12}>
-                    <Grid item size={12}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
-                    <Grid item xs={12} sx={{ mt: 1 }}>
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid container  item size={{ xs: 12}}>
+                    <Grid item size={{ xs: 12 }}><div style={{ textDecoration: "underline" }}>Reason</div></Grid>
+                    <Grid item size={{ xs: 12 }} sx={{ mt: 1 }}>
                         <Typography sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                             {loan.reason || '-'}
                         </Typography>
                     </Grid>
                 </Grid>
-                    <Grid item xs={12} sx={{ my: 0 }}><Divider /></Grid>
-                    <Grid container item xs={12}>
-                        <Grid item size={12}>Attached Files</Grid>
-                        <Grid item size={12}>
+                    <Grid item size={{ xs: 12 }} sx={{ my: 0 }}><Divider /></Grid>
+                    <Grid container item size={{ xs: 12 }}>
+                    <Grid item size={{ xs: 12 }}>Attached Files</Grid>
+                    <Grid item size={{ xs: 12 }}>
                             {files && files.length > 0 ? (
                                 <Stack direction="column" sx={{ width: '100%' }}>
                                     {files.map((file, index) => {
