@@ -95,7 +95,7 @@ const ContentView = () => {
             setSequential(true);
         }
         getContentDetails(storedContentId);
-        getTrainingContent();
+        getTrainingContent(storedContentId);
     }, []);
 
     // Content Details
@@ -159,15 +159,25 @@ const ContentView = () => {
     }, [file]);
 
     // Content List
-    const getTrainingContent = () => {
+    const [currentIndex, setCurrentIndex] = useState(-1)
+    const [nextContentId, setNextContentId] = useState(null);
+    const [prevContentId, setPrevContentId] = useState(null);
+    const getTrainingContent = (id) => {
         axiosInstance.get(`/trainings/getEmployeeTrainingContent/${code}`, { headers })
             .then((response) => {
-                setContentList(response.data.content || []);
+                const contList = response.data.content;
+                setContentList(contList || []);
+
+                const cIndex = contList.findIndex(item => item.id == id);
+                setCurrentIndex(cIndex);
+                setNextContentId(cIndex < contList.length - 1 ? contList[cIndex + 1].id : null);
+                setPrevContentId(cIndex > 0 ? contList[cIndex - 1].id : null);
             })
             .catch((error) => {
                 console.error('Error fetching training content:', error);
             });
     }
+
     const [contentListOn, setContentListOn] = useState(true);
     const toggleContentList = () => {
         setContentListOn((prev) => !prev);
@@ -178,7 +188,14 @@ const ContentView = () => {
         if (unlocked) {
             setContentId(id);
             getContentDetails(id);
+
             sessionStorage.setItem('contentId', id);
+
+            const cIndex = contentList.findIndex(item => item.id === id);
+            setCurrentIndex(cIndex);
+            setNextContentId(cIndex < contentList.length - 1 ? contentList[cIndex + 1].id : null);
+            setPrevContentId(cIndex > 0 ? contentList[cIndex - 1].id : null);
+
         } else {
             document.activeElement.blur();
             Swal.fire({
@@ -351,7 +368,7 @@ const ContentView = () => {
                 headers,
             })
             .then((response) => {
-                getTrainingContent();
+                getTrainingContent(id);
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -568,58 +585,26 @@ const ContentView = () => {
                                             <>
                                                 {/* Primary Content */}
                                                 <Grid size={{ xs: 12 }} sx={{ placeContent: "center", placeItems: "center" }}>
-                                                    {content.content.type === "Video" ? (
-                                                        <Box
-                                                            sx={{
-                                                                maxWidth: '720px',
-                                                                width: "90%",
-                                                                aspectRatio: "16 / 9",
-                                                                placeSelf: "center",
-                                                                mb: 1,
-                                                            }}
-                                                        >
-                                                            {renderVideo(content.content.source)}
-                                                        </Box>
-                                                    ) : content.content.type == "Image" ? (
-                                                        <CardMedia
-                                                            component="img"
-                                                            sx={{
-                                                                maxWidth: '640px',
-                                                                width: "80%",
-                                                                aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
-                                                                objectFit: "contain",
-                                                                borderRadius: "4px",
-                                                                backgroundColor: "transparent",
-                                                                placeSelf: "center",
-                                                                mb: 1,
-                                                            }}
-                                                            image={renderImage(content.content.source, content.content.type)}
-                                                            title={content.title || "Content Item"}
-                                                            alt={content.title || "Content Item"}
-                                                        />
-                                                    ) : (
-                                                        <Box display="flex"
-                                                            sx={{
-                                                                p: 2, width: "50%",
-                                                                border: "solid 1px #e0e0e0", borderRadius: "4px",
-                                                                alignItems: "center",
-                                                                "&:hover": {
-                                                                    backgroundColor: "#e0e0e0",
-                                                                    transform: "scale(0.97)",
-                                                                    transition: "background-color 0.3s ease, transform 0.2s ease-in-out",
-                                                                },
-
-                                                            }}
-                                                            onClick={() => {
-                                                                window.open(file.url, "_blank");
-                                                                handleTrainingViews(content.id, true);
-                                                            }}
-                                                        >
+                                                    <Box sx={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                                                        {content.content.type === "Video" ? (
+                                                            <Box
+                                                                sx={{
+                                                                    maxWidth: '720px',
+                                                                    width: "90%",
+                                                                    aspectRatio: "16 / 9",
+                                                                    placeSelf: "center",
+                                                                    mb: 1,
+                                                                }}
+                                                            >
+                                                                {renderVideo(content.content.source)}
+                                                            </Box>
+                                                        ) : content.content.type === "Image" ? (
                                                             <CardMedia
                                                                 component="img"
                                                                 sx={{
-                                                                    width: "25%",
-                                                                    aspectRatio: "4 / 3",
+                                                                    maxWidth: '640px',
+                                                                    width: "80%",
+                                                                    aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
                                                                     objectFit: "contain",
                                                                     borderRadius: "4px",
                                                                     backgroundColor: "transparent",
@@ -630,19 +615,61 @@ const ContentView = () => {
                                                                 title={content.title || "Content Item"}
                                                                 alt={content.title || "Content Item"}
                                                             />
-                                                            <Stack sx={{ ml: 1.5 }}>
-                                                                <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                                                                    {file.name}
-                                                                </Typography>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 2 }}>
-                                                                    {getFileSize(content.file_size)}
-                                                                </Typography>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                                    Click to Open Document
-                                                                </Typography>
-                                                            </Stack>
-                                                        </Box>
-                                                    )}
+                                                        ) : (
+                                                            <Box
+                                                                display="flex"
+                                                                sx={{
+                                                                    p: 2,
+                                                                    width: "50%",
+                                                                    border: "solid 1px #e0e0e0",
+                                                                    borderRadius: "4px",
+                                                                    alignItems: "center",
+                                                                    "&:hover": {
+                                                                        backgroundColor: "#e0e0e0",
+                                                                        transform: "scale(0.97)",
+                                                                        transition: "background-color 0.3s ease, transform 0.2s ease-in-out",
+                                                                    },
+                                                                }}
+                                                                onClick={() => {
+                                                                    window.open(file.url, "_blank");
+                                                                    handleTrainingViews(content.id, true);
+                                                                }}
+                                                            >
+                                                                <CardMedia
+                                                                    component="img"
+                                                                    sx={{
+                                                                        width: "25%",
+                                                                        aspectRatio: "4 / 3",
+                                                                        objectFit: "contain",
+                                                                        borderRadius: "4px",
+                                                                        backgroundColor: "transparent",
+                                                                        placeSelf: "center",
+                                                                        mb: 1,
+                                                                    }}
+                                                                    image={renderImage(content.content.source, content.content.type)}
+                                                                    title={content.title || "Content Item"}
+                                                                    alt={content.title || "Content Item"}
+                                                                />
+                                                                <Stack sx={{ ml: 1.5 }}>
+                                                                    <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                                                                        {file.name}
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ color: "text.secondary", mb: 2 }}>
+                                                                        {getFileSize(content.file_size)}
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                        Click to Open Document
+                                                                    </Typography>
+                                                                </Stack>
+                                                            </Box>
+                                                        )}
+                                                        {prevContentId && (
+                                                            <Box sx={{ position: "absolute", height: "20%", top: "40%", left: 0 }}>Previous</Box>
+                                                        )}
+                                                        {nextContentId && (
+                                                            <Box sx={{ position: "absolute", height: "20%", top: "40%", right: 0 }}>Next</Box>
+                                                        )}
+                                                    </Box>
                                                 </Grid>
                                                 <Grid size={{ xs: 12 }}>
                                                     <Divider />
