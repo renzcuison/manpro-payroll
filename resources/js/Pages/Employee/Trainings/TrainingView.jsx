@@ -288,7 +288,7 @@ const TrainingView = () => {
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
                                     {/* Thumbnail */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Box sx={{
                                             mb: 1,
                                             position: 'relative',
@@ -316,15 +316,15 @@ const TrainingView = () => {
                                         </Box>
                                     </Grid>
                                     {/* Core Information */}
-                                    <Grid item container xs={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                    <Grid container size={{ xs: 12 }} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                         {/* Header */}
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary", }}>
                                                 About This Training:
                                             </Typography>
                                         </Grid>
                                         {/* Posting Date */}
-                                        <Grid item xs={6}>
+                                        <Grid size={{ xs: 6 }}>
                                             <InfoBox
                                                 title="Created"
                                                 info={dayjs(training.created_at).format("MMM D, YYYY    h:mm A") || "-"}
@@ -333,7 +333,7 @@ const TrainingView = () => {
                                             />
                                         </Grid>
                                         {/* Author Information */}
-                                        <Grid item xs={6}>
+                                        <Grid size={{ xs: 6 }}>
                                             <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', }} >
                                                 <Typography
                                                     sx={{
@@ -357,11 +357,11 @@ const TrainingView = () => {
                                                 </Stack>
                                             </Box>
                                         </Grid>
-                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                             <Divider />
                                         </Grid>
                                         {/* Opens */}
-                                        <Grid item xs={6}>
+                                        <Grid size={{ xs: 6 }}>
                                             <InfoBox
                                                 title="Opens"
                                                 info={dayjs(training.start_date).format("MMM D, YYYY    h:mm A")}
@@ -370,7 +370,7 @@ const TrainingView = () => {
                                             />
                                         </Grid>
                                         {/* Duration */}
-                                        <Grid item xs={6}>
+                                        <Grid size={{ xs: 6 }}>
                                             <InfoBox
                                                 title="Duration"
                                                 info={formatTime(training.duration)}
@@ -379,7 +379,7 @@ const TrainingView = () => {
                                             />
                                         </Grid>
                                         {/* Closes */}
-                                        <Grid item xs={6}>
+                                        <Grid size={{ xs: 6 }}>
                                             <InfoBox
                                                 title="Closes"
                                                 info={dayjs(training.end_date).format("MMM D, YYYY    h:mm A")}
@@ -389,7 +389,7 @@ const TrainingView = () => {
                                         </Grid>
                                         {/* Completion Date */}
                                         {trainingComplete != null ? (
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <InfoBox
                                                     title="Completed On"
                                                     info={dayjs(trainingComplete).format("MMM D, YYYY    h:mm A")}
@@ -399,11 +399,11 @@ const TrainingView = () => {
                                             </Grid>
                                         ) : null}
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Description */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                             Description
                                         </Typography>
@@ -418,13 +418,13 @@ const TrainingView = () => {
                                             dangerouslySetInnerHTML={{ __html: training.description }}
                                         />
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Progress Tracker */}
-                                    <Grid container item xs={12} spacing={3}>
+                                    <Grid container item size={{ xs: 12 }} spacing={3}>
                                         {/* Progress Info */}
-                                        <Grid item xs={3}>
+                                        <Grid size={{ xs: 3 }}>
                                             <InfoBox
                                                 title="Your Progress"
                                                 info={`${content.filter(item => item.is_finished).length} of ${content.length} Completed`}
@@ -432,7 +432,7 @@ const TrainingView = () => {
                                             />
                                         </Grid>
                                         {/* Progress Bar */}
-                                        <Grid item xs={9}>
+                                        <Grid size={{ xs: 9 }}>
                                             <LinearProgress
                                                 variant="determinate"
                                                 value={contentProgress}
@@ -451,11 +451,11 @@ const TrainingView = () => {
                                             />
                                         </Grid>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Content Header */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary", }}>
                                             {`Content${content.length > 1 ? 's' : ''}`}
                                         </Typography>
@@ -464,7 +464,7 @@ const TrainingView = () => {
                                     {content.map((cont) => {
                                         const locked = training.sequential && content.find(item => item.order === cont.order - 1)?.is_finished === false;
                                         return (
-                                            <Grid item xs={4} key={cont.id}>
+                                            <Grid size={{ xs: 4 }} key={cont.id}>
                                                 <CardActionArea onClick={() => handleContentViewer(cont, locked)}
                                                     sx={{
                                                         "&:hover": {

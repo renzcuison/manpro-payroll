@@ -299,7 +299,7 @@ const TrainingsList = () => {
                                     {pageTrainings.length > 0 ? (
                                         pageTrainings.map(
                                             (training, index) => (
-                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea component={Link} to={`/admin/training/${training.unique_code}`}>
                                                         <Card sx={{
                                                             borderRadius: 2,
@@ -347,18 +347,18 @@ const TrainingsList = () => {
                                                                             </Typography>
                                                                             <Grid container sx={{ my: 1 }}>
                                                                                 {fields.map((field, index) => (
-                                                                                    <Grid container item key={index}>
-                                                                                        <Grid item xs={3}>
+                                                                                    <React.Fragment key={index}>
+                                                                                        <Grid size={{ xs: 3 }}>
                                                                                             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
                                                                                                 {field.label}
                                                                                             </Typography>
                                                                                         </Grid>
-                                                                                        <Grid item xs={9}>
+                                                                                        <Grid size={{ xs: 9 }}>
                                                                                             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                                                                                                 {field.value}
                                                                                             </Typography>
                                                                                         </Grid>
-                                                                                    </Grid>
+                                                                                    </React.Fragment>
                                                                                 ))}
                                                                             </Grid>
                                                                         </>

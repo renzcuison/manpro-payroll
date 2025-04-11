@@ -332,9 +332,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     {/* Primary Details */}
-                    <Grid item container xs={12} spacing={2}>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
                         {/* Availability */}
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <InfoBox
                                 title={formInfo.require_pass ? 'Availability' : 'Attempt Limit'}
                                 info={
@@ -345,35 +345,35 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             />
                         </Grid>
                         {/* Duration */}
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <InfoBox
                                 title="Attempt Duration"
                                 info={`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
                             />
                         </Grid>
                         {/* Item Count */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Item Count"
                                 info={formItems.length}
                             />
                         </Grid>
                         {/* Total Points */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Total Points"
                                 info={totalPoints}
                             />
                         </Grid>
                         {/* Passing Score */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Passing Score"
                                 info={`${formInfo.passing_score}%`}
                             />
                         </Grid>
                         {/* Button */}
-                        <Grid item xs={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Grid size={{ xs: 3 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -388,12 +388,12 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         {/* Analytics */}
                         {analyticView && (
                             <>
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Divider />
                                 </Grid>
-                                <Grid item container xs={12} spacing={2}>
+                                <Grid container size={{ xs: 12 }} spacing={2}>
                                     {/* Attempt Count */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -431,7 +431,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         </Paper>
                                     </Grid>
                                     {/* Average Score */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -489,7 +489,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         </Paper>
                                     </Grid>
                                     {/* Average Duration */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -521,7 +521,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         </Paper>
                                     </Grid>
                                     {/* Attempt History */}
-                                    <Grid item xs={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Box
                                             sx={{
                                                 height: 180,
@@ -630,11 +630,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             </>
                         )}
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider />
                     </Grid>
                     {/* Description */}
-                    <Grid item xs={12} >
+                    <Grid size={{ xs: 12 }} >
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Description
                         </Typography>
@@ -649,11 +649,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             dangerouslySetInnerHTML={{ __html: content.description }}
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider />
                     </Grid>
                     {/* Form Result Summary / Form Start Prompt */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Answer Form
                         </Typography>
@@ -701,28 +701,28 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     {/* Attempt Count */}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title="Attempt No."
                             info={`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                         />
                     </Grid>
                     {/* Item Count */}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title='No. of Items'
                             info={formItems.length}
                         />
                     </Grid>
                     {/* Passing Score*/}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title='Passing Score'
                             info={`${formInfo.passing_score}%`}
                         />
                     </Grid>
                     {/* Timer */}
-                    <Grid item xs={3} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
+                    <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
                         <Box
                             display="flex"
                             sx={{
@@ -746,11 +746,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             </Typography>
                         </Box>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider sx={{ mt: 1 }} />
                     </Grid>
                     {/* Form Items and Submission */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Box
                             sx={{
                                 maxHeight: '690px',
@@ -775,7 +775,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             {/* Form Items */}
                             <Grid container spacing={2}>
                                 {formItems.map((item, index) => (
-                                    <Grid item xs={12} key={index}>
+                                    <Grid size={{ xs: 12 }} key={index}>
                                         <FormItem
                                             itemData={item}
                                             handleAnswer={handleAnswer}
@@ -842,11 +842,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         case 'Results':
             return (
                 <>
-                    <Grid item container xs={12} spacing={2}>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
                         {/* Score Meter, Interactions*/}
-                        <Grid container item xs={5}>
+                        <Grid container size={{ xs: 5 }}>
                             {/* Score Meter */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Result
                                 </Typography>
@@ -878,7 +878,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Box>
                             </Grid>
                             {/* Score Information and Interactions */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Box sx={{ width: "100%", placeContent: "center", placeItems: "center", mb: 5 }}>
                                     <Typography variant="h6">
                                         {`You scored ${resultData.total_score} out of ${resultData.total_points}`}
@@ -908,9 +908,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             </Grid>
                         </Grid>
                         {/* Attempt Data */}
-                        <Grid container item xs={7} spacing={1}>
+                        <Grid container size={{ xs: 7 }} spacing={1}>
                             {/* Current Attempt */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Attempt Data
                                 </Typography>
@@ -936,7 +936,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Box>
                             </Grid>
                             {/* Attempt History */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                     Attempt History
                                 </Typography>
@@ -1008,8 +1008,8 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         case 'Review':
             return (
                 <>
-                    <Grid item container xs={12} spacing={2}>
-                        <Grid item xs={12}>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
+                        <Grid size={{ xs: 12 }}>
                             <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                     Attempt Review
@@ -1030,7 +1030,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Button>
                             </Box>
                         </Grid>
-                        <Grid item xs={1}>
+                        <Grid size={{ xs: 1 }}>
                             <Box
                                 display="flex"
                                 sx={{
@@ -1046,7 +1046,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Typography>
                             </Box>
                         </Grid>
-                        <Grid item xs={5}>
+                        <Grid size={{ xs: 5 }}>
                             <Box
                                 display="flex"
                                 sx={{
@@ -1121,19 +1121,19 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Box>
                             </Box>
                         </Grid>
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Submitted On"
                                 info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
                             />
                         </Grid>
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Duration"
                                 info={formatDuration(reviewData.duration)}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                 Answers
                             </Typography>
@@ -1160,7 +1160,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             >
                                 <Grid container spacing={2}>
                                     {reviewData.items.map((item, index) => (
-                                        <Grid item key={index} xs={12}>
+                                        <Grid key={index} size={{ xs: 12 }}>
                                             <ReviewItem itemData={item} />
                                         </Grid>
                                     )
