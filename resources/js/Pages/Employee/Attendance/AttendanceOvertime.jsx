@@ -29,6 +29,15 @@ const AttendanceSummary = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        axiosInstance.get('/attendance/getAttendanceOvertime', { headers })
+            .then((response) => {
+                console.log(response);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching clients:', error);
+                setIsLoading(false);
+            });
 
     }, []);
 

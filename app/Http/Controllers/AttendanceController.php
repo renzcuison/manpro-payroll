@@ -26,14 +26,29 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function checkUser()
+    public function checkUserAdmin()
     {
-        // Log::info("AttendanceController::checkUser");
+        // Log::info("AttendanceController::checkUserAdmin");
 
         if (Auth::check()) {
             $user = Auth::user();
 
             if ($user->user_type == 'Admin') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function checkUserEmployee()
+    {
+        // Log::info("AttendanceController::checkUserEmployee");
+
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user->user_type == 'Employee') {
                 return true;
             }
         }
@@ -60,7 +75,7 @@ class AttendanceController extends Controller
         $user = Auth::user();
 
         $employeeId = $user->id;
-        if ($this->checkUser() && $request->input('employee')) {
+        if ($this->checkUserAdminAdmin() && $request->input('employee')) {
             $employeeId = $request->input('employee');
         }
 
@@ -152,7 +167,7 @@ class AttendanceController extends Controller
 
         $user = Auth::user();
 
-        if ($this->checkUser() && $validated) {
+        if ($this->checkUserAdmin() && $validated) {
             $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
             try {
                 DB::beginTransaction();
@@ -182,7 +197,7 @@ class AttendanceController extends Controller
     {
         // Log::info("AttendanceController::getAttendanceLogs");
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
             $user = Auth::user();
             $clientId = $user->client_id;
 
@@ -239,7 +254,7 @@ class AttendanceController extends Controller
         //Log::info($request);
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        if ($this->checkUserAdmin()) {
             $clientId = $user->client_id;
             $month = $request->input('month', Carbon::now()->month);
             $year = $request->input('year', Carbon::now()->year);
@@ -480,6 +495,79 @@ class AttendanceController extends Controller
         }
     }
 
+    public function getAttendanceOvertime()
+    {
+        Log::info("\n");
+        Log::info("AttendanceController::getAttendanceOvertime");
+    
+        $user = Auth::user();
+        $overtime = [];
+    
+        if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
+            $employee = UsersModel::find($user->id);
+            Log::info($employee);
+    
+            // Get all relevant logs
+            $logs = AttendanceLogsModel::where('user_id', $user->id)->whereIn('action', ['Overtime In', 'Overtime Out'])->orderBy('timestamp')->get();
+
+            // Log::info("\n");
+            // Log::info("Raw Attendance Logs for User {$user->id}:");
+            // Log::info($logs);
+            // Log::info("\n");
+    
+            // Group logs by date (based on timestamp)
+            $groupedLogs = [];
+            foreach ($logs as $log) {
+                Log::info("Log action: {$log->action} | timestamp: {$log->timestamp}");
+                $date = \Carbon\Carbon::parse($log->timestamp)->format('Y-m-d');
+                $groupedLogs[$date][] = $log;
+            }
+            
+    
+            // Process each day's logs
+            foreach ($groupedLogs as $date => $dailyLogs) {
+                $in = null;
+                $out = null;
+    
+                foreach ($dailyLogs as $log) {
+                    if ($log->action === 'Overtime In' && !$in) {
+                        $in = $log;
+                    } elseif ($log->action === 'Overtime Out' && !$out) {
+                        $out = $log;
+                    }
+                }
+
+                log::info($in);
+                log::info($out);
+    
+                if ($in && $out) {
+                    $timeIn = \Carbon\Carbon::parse($in->timestamp);
+                    $timeOut = \Carbon\Carbon::parse($out->timestamp);
+                    $minutes = $timeIn->diffInMinutes($timeOut);
+
+                    log::info($date);
+                    log::info($timeIn);
+                    log::info($timeOut);
+                    log::info($minutes);
+    
+                    $overtime[] = [
+                        'date' => $date,
+                        'timeIn' => $timeIn->format('H:i:s'),
+                        'timeOut' => $timeOut->format('H:i:s'),
+                        'minutes' => $minutes,
+                    ];
+                }
+            }
+
+            // log::info($overtime);
+    
+            return response()->json(['status' => 200, 'overtime' => $overtime]);
+        } else {
+            return response()->json(['status' => 200, 'summary' => null]);
+        }
+    }
+    
+
     public function getEmployeeAttendanceSummary(Request $request)
     {
         //Log::info("WorkScheduleController::getEmployeeAttendanceSummary");
@@ -489,7 +577,7 @@ class AttendanceController extends Controller
         $toDate = $request->input('summary_to_date');
 
         $employeeId = $user->id;
-        if ($this->checkUser() && $request->input('employee')) {
+        if ($this->checkUserAdmin() && $request->input('employee')) {
             $employeeId = $request->input('employee');
         }
 
