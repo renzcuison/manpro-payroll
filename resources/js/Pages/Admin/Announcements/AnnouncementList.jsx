@@ -10,6 +10,7 @@ import AnnouncementAdd from './Modals/AnnouncementAdd';
 import AnnouncementPublish from './Modals/AnnouncementPublish';
 import AnnouncementEdit from './Modals/AnnouncementEdit';
 import AnnouncementManage from './Modals/AnnouncementManage';
+import { Person } from "@mui/icons-material";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -188,7 +189,7 @@ const AnnouncementList = () => {
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
-                                                <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4}}>
+                                                <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
                                                         <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                                                             {/* Card Thumbnail */}
@@ -198,21 +199,21 @@ const AnnouncementList = () => {
                                                                         display: 'flex',
                                                                         justifyContent: 'center',
                                                                         alignItems: 'center',
-                                                                        height: '180px'
+                                                                        height: '210px'
                                                                     }}
                                                                 >
                                                                     <CircularProgress />
                                                                 </Box>
                                                             ) : (
                                                                 <CardMedia
-                                                                    sx={{ height: '180px' }}
+                                                                    sx={{ height: '210px' }}
                                                                     image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
                                                                     title={`${announcement.title}_Thumbnail`}
                                                                 />
                                                             )}
                                                             {/* Card Content */}
                                                             <CardContent>
-                                                                
+
                                                                 {/* Announcement Title */}
                                                                 <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
                                                                     {announcement.title}
@@ -226,9 +227,18 @@ const AnnouncementList = () => {
                                                             {/* Acknowledgement and Options */}
                                                             <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
                                                                 <Box display="flex" sx={{ mt: 2, alignItems: 'center' }}>
-                                                                    <Typography variant="body2" color="text.secondary">
-                                                                        {announcement.status == "Pending" ? "Not Yet Published" : `${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
-                                                                    </Typography>
+                                                                    {announcement.status == "Pending" ? (
+                                                                        <Typography variant="body2" color="text.secondary">
+                                                                            Not Yet Published
+                                                                        </Typography>
+                                                                    ) : (
+                                                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                            <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                                                            <Typography variant="body2" color="text.secondary">
+                                                                                {`${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                    )}
                                                                 </Box>
                                                             </CardActions>
                                                         </Card>
