@@ -159,7 +159,6 @@ const ContentView = () => {
     }, [file]);
 
     // Content List
-    const [currentIndex, setCurrentIndex] = useState(-1)
     const [nextContentId, setNextContentId] = useState(null);
     const [prevContentId, setPrevContentId] = useState(null);
     const getTrainingContent = (id) => {
@@ -169,7 +168,6 @@ const ContentView = () => {
                 setContentList(contList || []);
 
                 const cIndex = contList.findIndex(item => item.id == id);
-                setCurrentIndex(cIndex);
                 setNextContentId(cIndex < contList.length - 1 ? contList[cIndex + 1].id : null);
                 setPrevContentId(cIndex > 0 ? contList[cIndex - 1].id : null);
             })
@@ -192,7 +190,6 @@ const ContentView = () => {
             sessionStorage.setItem('contentId', id);
 
             const cIndex = contentList.findIndex(item => item.id === id);
-            setCurrentIndex(cIndex);
             setNextContentId(cIndex < contentList.length - 1 ? contentList[cIndex + 1].id : null);
             setPrevContentId(cIndex > 0 ? contentList[cIndex - 1].id : null);
 
