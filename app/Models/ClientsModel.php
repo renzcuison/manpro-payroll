@@ -22,6 +22,6 @@ class ClientsModel extends Model
 
     public function employees()
     {
-        return $this->hasMany(UsersModel::class, 'client_id')->where('user_type', 'Employee');
+        return $this->hasMany(UsersModel::class, 'client_id')->where('user_type', 'Employee')->whereNull('deleted_at');
     }
 }
