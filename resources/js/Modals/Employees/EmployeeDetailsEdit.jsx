@@ -152,6 +152,16 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
             })
             .catch(error => {
                 console.error('Error:', error);
+                close(true);
+                Swal.fire({
+                    customClass: { container: 'swal2-zindex-fix' },
+                    title: 'Error',
+                    text: "An Error occured while updating!",
+                    icon: 'error',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Okay',
+                    confirmButtonColor: '#177604',
+                });
             });
     };
 
