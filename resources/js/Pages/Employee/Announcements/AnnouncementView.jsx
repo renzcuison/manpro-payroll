@@ -280,7 +280,7 @@ const AnnouncementView = () => {
                                             border: '2px solid #e0e0e0',
                                         }}>
                                             {imageLoading ?
-                                                <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                                <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', height: "100%" }} >
                                                     <CircularProgress />
                                                 </Box>
                                                 :
