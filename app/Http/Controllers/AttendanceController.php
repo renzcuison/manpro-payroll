@@ -75,7 +75,7 @@ class AttendanceController extends Controller
         $user = Auth::user();
 
         $employeeId = $user->id;
-        if ($this->checkUserAdminAdmin() && $request->input('employee')) {
+        if ($this->checkUserAdmin() && $request->input('employee')) {
             $employeeId = $request->input('employee');
         }
 
