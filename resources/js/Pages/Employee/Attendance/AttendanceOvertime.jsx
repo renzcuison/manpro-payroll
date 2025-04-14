@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
+import OvertimeApplication from "./Modals/OvertimeApplication";
 
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -17,19 +18,46 @@ const AttendanceSummary = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [overtimeData, setOvertimeData] = useState([]);
 
     useEffect(() => {
+        getAttendanceOvertime();
+    }, []);
+
+    const getAttendanceOvertime = () => {
         axiosInstance.get('/attendance/getAttendanceOvertime', { headers })
             .then((response) => {
-                console.log(response);
+                setOvertimeData(response.data.overtime);
                 setIsLoading(false);
             })
             .catch((error) => {
                 console.error('Error fetching clients:', error);
                 setIsLoading(false);
             });
+    }
 
-    }, []);
+    const formatMinutes = (minutes) => {
+        const roundedMinutes = Math.round(minutes);
+        const hours = Math.floor(roundedMinutes / 60);
+        const min = roundedMinutes % 60;
+        let result = '';
+        if (hours > 0) result += `${hours}h `;
+        if (min > 0 || hours > 0) result += `${min}m `;
+        return result.trim();
+    };
+
+    const [openOTAppModal, setOpenOTAppModal] = useState(false);
+    const [loadOvertime, setLoadOvertime] = useState(false);
+    const handleOpenOTAppModal = (overtime) => {
+        setLoadOvertime(overtime);
+        setOpenOTAppModal(true);
+    }
+    const handleCloseOTAppModal = (reload) => {
+        setOpenOTAppModal(false);
+        if (reload) {
+            getAttendanceOvertime();
+        }
+    }
 
     return (
         <Layout title={"AttendanceSummary"}>
@@ -50,7 +78,6 @@ const AttendanceSummary = () => {
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center"></TableCell>
                                                 <TableCell align="left">Date</TableCell>
                                                 <TableCell align="center">Overtime In</TableCell>
                                                 <TableCell align="center">Overtime Out</TableCell>
@@ -59,7 +86,51 @@ const AttendanceSummary = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-
+                                            {overtimeData.length > 0 ? (
+                                                overtimeData.map((overtime, index) => (
+                                                    <TableRow
+                                                        key={index}
+                                                        onClick={() => handleOpenOTAppModal(overtime)}
+                                                        sx={{
+                                                            backgroundColor:
+                                                                index % 2 === 0
+                                                                    ? "#f8f8f8"
+                                                                    : "#ffffff",
+                                                            "&:hover": {
+                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                                cursor: "pointer",
+                                                            },
+                                                        }}
+                                                    >
+                                                        <TableCell align="left">
+                                                            {dayjs(overtime.date).format('MMMM D, YYYY')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {dayjs(`${overtime.date}T${overtime.timeIn}`).format('hh:mm:ss A')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {dayjs(`${overtime.date}T${overtime.timeOut}`).format('hh:mm:ss A')}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {formatMinutes(overtime.minutes)}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            <Typography>
+                                                                {`[insert status]`}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={5}
+                                                        align="center"
+                                                        sx={{ color: "text.secondary", p: 1, }}>
+                                                        No Overtime Found
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -68,7 +139,14 @@ const AttendanceSummary = () => {
                     </Box>
                 </Box>
             </Box>
-        </Layout >
+            {openOTAppModal && (
+                <OvertimeApplication
+                    open={openOTAppModal}
+                    close={handleCloseOTAppModal}
+                    overtime={loadOvertime}
+                />
+            )}
+        </Layout>
     );
 };
 

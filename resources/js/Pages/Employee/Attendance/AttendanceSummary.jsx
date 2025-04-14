@@ -220,7 +220,7 @@ const AttendanceSummary = () => {
                                                                         : "-"}
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                {formatTime(summary.total_ot)}
+                                                                {formatTime(summary.total_overtime)}
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 <Typography
