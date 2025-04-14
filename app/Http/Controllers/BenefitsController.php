@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class BenefitsController extends Controller
 {
@@ -38,15 +39,22 @@ class BenefitsController extends Controller
 
     public function getBenefit(Request $request)
     {
-        // log::info("BenefitsController::getBenefit");
+        Log::info("BenefitsController::getBenefit");
+        log::info($request);
 
+        try {
+            $decryptedId = Crypt::decryptString($request->id);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 400, 'message' => 'Invalid ID']);
+        }
+    
         if ($this->checkUser()) {
             $user = Auth::user();
-            $benefit = BenefitsModel::where('client_id', $user->client_id)->where('name', $request->name)->first();
-
+            $benefit = BenefitsModel::where('client_id', $user->client_id)->where('id', $decryptedId)->first();
+    
             return response()->json(['status' => 200, 'benefit' => $benefit]);
         }
-
+    
         return response()->json(['status' => 200, 'benefit' => null]);
     }
 
@@ -57,10 +65,15 @@ class BenefitsController extends Controller
         if ($this->checkUser()) {
             $user = Auth::user();
             $benefits = BenefitsModel::where('client_id', $user->client_id)->get();
-
+    
+            $benefits->transform(function ($benefit) {
+                $benefit->uid = Crypt::encryptString($benefit->id);
+                return $benefit;
+            });
+    
             return response()->json(['status' => 200, 'benefits' => $benefits]);
         }
-
+    
         return response()->json(['status' => 200, 'benefits' => null]);
     }
 

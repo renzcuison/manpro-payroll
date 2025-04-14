@@ -13,9 +13,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import BenefitAdd from './Modals/BenefitAdd';
+import BenefitAdd from '../Benefits/Modals/BenefitAdd';
 
-const EmployeeBenefits = () => {
+const AllowanceList = () => {
     const { user } = useUser();
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
@@ -58,7 +58,7 @@ const EmployeeBenefits = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Benefits </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowance </Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenAddBenefitModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
@@ -87,9 +87,9 @@ const EmployeeBenefits = () => {
                                         <TableBody>
                                             {benefits.map((benefit) => (
                                                 <TableRow
-                                                    key={benefit.uid}
+                                                    key={benefit.id}
                                                     component={Link}
-                                                    to={`/admin/employees/benefits/${benefit.uid}`}
+                                                    to={`/admin/employees/benefits/${benefit.name}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
                                                     <TableCell align="left">{benefit.name}</TableCell>
@@ -129,4 +129,4 @@ const EmployeeBenefits = () => {
     )
 }
 
-export default EmployeeBenefits
+export default AllowanceList
