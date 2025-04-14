@@ -164,16 +164,6 @@ function CreatePackageModal(props) {
         onClose();
     };
 
-    const renderFeatures = useMemo(
-        () => (
-            <SelectPackageFeatures
-                pkg={packageData}
-                assignFeature={assignFeature}
-            />
-        ),
-        [packageData, selectedPackage]
-    );
-
     const handleChange = async (id) => {
         const res = await assignFeature(packageData.id, id);
         if (res.success) {

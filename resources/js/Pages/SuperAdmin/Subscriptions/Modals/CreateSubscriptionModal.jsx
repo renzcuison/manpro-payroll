@@ -66,7 +66,7 @@ function CreateSubscriptionModal({ open, onClose }) {
 
     return (
         <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
-            <DialogTitle>Create Package</DialogTitle>
+            <DialogTitle>Add New Client Subscription</DialogTitle>
             <DialogContent>
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)}>

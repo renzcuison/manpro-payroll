@@ -33,6 +33,7 @@ import {
 
 import ClientEditModal from "../Clients/Modals/ClientEditModal";
 import { usePackages } from "../hooks/usePackages";
+import { useClients } from "../hooks/useClients";
 
 const headCells = [
     {
@@ -42,7 +43,12 @@ const headCells = [
     },
     {
         id: "name",
-        label: "Name",
+        label: "Admin",
+        sortable: true,
+    },
+    {
+        id: "company",
+        label: "Company",
         sortable: true,
     },
     {
@@ -59,6 +65,9 @@ const headCells = [
 
 const ClientsList = () => {
     const { packages } = usePackages();
+    const { clients } = useClients();
+    const navigate = useNavigate();
+    console.log("Users: ", clients);
 
     console.log(packages);
     const storedUser = localStorage.getItem("nasya_user");
@@ -75,10 +84,11 @@ const ClientsList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [clients, setClients] = useState([]);
 
     const [openClientModal, setOpenClientModal] = useState(false);
     const [client, setClient] = useState([]);
+
+    console.log(clients);
 
     const handleRequestSort = (_event, property) => {
         const isAsc = orderBy === property && order === "asc";
@@ -112,7 +122,6 @@ const ClientsList = () => {
         axiosInstance
             .get("/clients/getClients", { headers })
             .then((response) => {
-                setClients(response.data.clients);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -136,168 +145,175 @@ const ClientsList = () => {
 
     return (
         <Layout title={"Clients"}>
-            <Box sx={{ mx: 12 }}>
+            <Box
+                sx={{
+                    mt: 5,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    px: 3,
+                    alignItems: "center",
+                }}
+            >
+                <Typography variant="h5" sx={{ pt: 3 }}>
+                    {" "}
+                    Clients{" "}
+                </Typography>
+
+                <Link to="/super-admin/clients-add">
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: "#177604", color: "white" }}
+                        className="m-1"
+                    >
+                        <p className="m-0">
+                            <i className="fa fa-plus"></i> Add{" "}
+                        </p>
+                    </Button>
+                </Link>
+            </Box>
+
+            <Box
+                sx={{
+                    mt: 6,
+                    p: 3,
+                    bgcolor: "#ffffff",
+                    borderRadius: "8px",
+                }}
+            >
                 <Box
                     sx={{
-                        mt: 5,
                         display: "flex",
-                        justifyContent: "space-between",
-                        px: 3,
-                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        mb: 2,
                     }}
                 >
-                    <Typography variant="h5" sx={{ pt: 3 }}>
-                        {" "}
-                        Clients{" "}
-                    </Typography>
-
-                    <Link to="/super-admin/clients-add">
-                        <Button
-                            variant="contained"
-                            sx={{ backgroundColor: "#177604", color: "white" }}
-                            className="m-1"
-                        >
-                            <p className="m-0">
-                                <i className="fa fa-plus"></i> Add{" "}
-                            </p>
-                        </Button>
-                    </Link>
+                    <PageToolbar handleSearch={handleFilter} />
                 </Box>
 
-                <Box
-                    sx={{
-                        mt: 6,
-                        p: 3,
-                        bgcolor: "#ffffff",
-                        borderRadius: "8px",
-                    }}
-                >
+                {isLoading ? (
                     <Box
                         sx={{
                             display: "flex",
-                            justifyContent: "flex-end",
-                            mb: 2,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            minHeight: 200,
                         }}
                     >
-                        <PageToolbar handleSearch={handleFilter} />
+                        <CircularProgress />
                     </Box>
-
-                    {isLoading ? (
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                minHeight: 200,
-                            }}
-                        >
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <>
-                            <TableContainer style={{ overflowX: "auto" }}>
-                                <Table
-                                    className="table table-md  table-striped  table-vcenter"
-                                    style={{ minWidth: "auto" }}
-                                >
-                                    <PageHead
-                                        style={{ whiteSpace: "nowrap" }}
-                                        order={order}
-                                        orderBy={orderBy}
-                                        onRequestSort={handleRequestSort}
-                                        headCells={headCells}
-                                    />
-                                    <TableBody>
-                                        {clients.length != 0 ? (
-                                            stableSort(
-                                                clients,
-                                                getComparator(order, orderBy)
+                ) : (
+                    <>
+                        <TableContainer style={{ overflowX: "auto" }}>
+                            <Table
+                                className="table table-md  table-striped  table-vcenter"
+                                style={{ minWidth: "auto" }}
+                            >
+                                <PageHead
+                                    style={{ whiteSpace: "nowrap" }}
+                                    order={order}
+                                    orderBy={orderBy}
+                                    onRequestSort={handleRequestSort}
+                                    headCells={headCells}
+                                />
+                                <TableBody>
+                                    {clients.length != 0 ? (
+                                        stableSort(
+                                            clients,
+                                            getComparator(order, orderBy)
+                                        )
+                                            .slice(
+                                                page * rowsPerPage,
+                                                page * rowsPerPage + rowsPerPage
                                             )
-                                                .slice(
-                                                    page * rowsPerPage,
-                                                    page * rowsPerPage +
-                                                        rowsPerPage
-                                                )
-                                                .map((client, index) => {
-                                                    return (
-                                                        <TableRow
-                                                            key={client.id}
-                                                            hover
-                                                            role="checkbox"
-                                                            tabIndex={-1}
-                                                            sx={{
-                                                                "&:hover": {
-                                                                    cursor: "pointer",
-                                                                },
-                                                            }}
-                                                            onClick={() =>
-                                                                handleOpenClient(
-                                                                    client
-                                                                )
+                                            .map((client, index) => {
+                                                return (
+                                                    <TableRow
+                                                        key={client.id}
+                                                        hover
+                                                        role="checkbox"
+                                                        tabIndex={-1}
+                                                        sx={{
+                                                            "&:hover": {
+                                                                cursor: "pointer",
+                                                            },
+                                                        }}
+                                                        component={Link}
+                                                        to={`/super-admin/clients-add`}
+                                                        state={client}
+                                                    >
+                                                        <TableCell>
+                                                            {client.id}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {client.first_name}{" "}
+                                                            {
+                                                                client
+                                                                    .middle_name?.[0]
                                                             }
-                                                        >
-                                                            <TableCell>
-                                                                {client.id}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {client.name}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {client.package}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {client.status}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                })
-                                        ) : (
-                                            <TableRow
-                                                hover
-                                                role="checkbox"
-                                                tabIndex={-1}
+                                                            {". "}
+                                                            {client.last_name}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {
+                                                                client.company
+                                                                    ?.name
+                                                            }
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {client.status}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {client.status}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                    ) : (
+                                        <TableRow
+                                            hover
+                                            role="checkbox"
+                                            tabIndex={-1}
+                                        >
+                                            <TableCell
+                                                colSpan={4}
+                                                className="text-center"
                                             >
-                                                <TableCell
-                                                    colSpan={4}
-                                                    className="text-center"
-                                                >
-                                                    No data Found
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                                No data Found
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
 
-                            <TablePagination
-                                rowsPerPageOptions={[5, 10, 25]}
-                                component="div"
-                                count={clients.length}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                onPageChange={handleChangePage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                sx={{
-                                    ".MuiTablePagination-actions": { mb: 2 },
-                                    ".MuiInputBase-root": { mb: 2 },
-                                    bgcolor: "#ffffff",
-                                    borderRadius: "8px",
-                                }}
-                            />
-                        </>
-                    )}
-                </Box>
-
-                {openClientModal && (
-                    <ClientEditModal
-                        open={openClientModal}
-                        close={handleCloseClient}
-                        client={client}
-                        type={2}
-                        packages={packages}
-                    />
+                        <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            component="div"
+                            count={clients.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            sx={{
+                                ".MuiTablePagination-actions": { mb: 2 },
+                                ".MuiInputBase-root": { mb: 2 },
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px",
+                            }}
+                        />
+                    </>
                 )}
             </Box>
+
+            {openClientModal && (
+                <ClientEditModal
+                    open={openClientModal}
+                    close={handleCloseClient}
+                    client={client}
+                    type={2}
+                    packages={packages}
+                />
+            )}
         </Layout>
     );
 };
