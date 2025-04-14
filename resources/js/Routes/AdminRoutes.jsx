@@ -106,8 +106,6 @@ const AdminRoutes = ({ user }) => {
             <Route path="payroll/records" element={<ProtectedRoute element={<PayrollRecords />} user={user} />} />
 
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
-
-            {/* <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} /> */}
         </Routes>
     );
 };

@@ -27,11 +27,7 @@ import HrPayrollSummary from "../Pages/Hr/HrPayrollSummary";
 import HrAnnouncements from "../Pages/Hr/HrAnnouncements";
 import HrAnnouncementView from "../Pages/Hr/HrAnnouncementView";
 import HrTrainings from "../Pages/Hr/HrTrainings";
-import HrEvaluation from "../Pages/Hr/HrEvaluation";
-import HrEvaluationAdd from "../Pages/Hr/HrEvaluationAdd";
-import HrEvaluationEdit from "../Pages/Hr/HrEvaluationEdit";
-import HrEvaluationCreateForm from "../Pages/Hr/HrEvaluationCreateForm";
-import HrEvaluationReview from "../Pages/Hr/HrEvaluationReview";
+
 import HrSummaryReports from "../Pages/Hr/HrSummaryReports";
 import HrTrainingsView from "../Pages/Hr/HrTrainingsView";
 import HrApplicationOvertime from "../Pages/Hr/HrApplicationOvertime";
@@ -77,11 +73,6 @@ const HrRoutes = ({ user }) => {
       <Route path="trainings" element={<ProtectedRoute element={<HrTrainings />} user={user} />} />
       <Route path="summary-reports" element={<ProtectedRoute element={<HrSummaryReports />} user={user} />} />
       <Route path="trainings-view" element={<ProtectedRoute element={<HrTrainingsView />} user={user} />} />
-      <Route path="performance-evaluation" element={<ProtectedRoute element={<HrEvaluation />} user={user} />} />
-      <Route path="performance-evaluation-add" element={<ProtectedRoute element={<HrEvaluationAdd />} user={user} />} />
-      <Route path="performance-evaluation-edit/:id" element={<ProtectedRoute element={<HrEvaluationEdit />} user={user} />} />
-      <Route path="performance-evaluation-create" element={<ProtectedRoute element={<HrEvaluationCreateForm />} user={user} />} />
-      <Route path="performance-evaluation-review/:id" element={<ProtectedRoute element={<HrEvaluationReview />} user={user} />} />
     </Routes>
   );
 };
