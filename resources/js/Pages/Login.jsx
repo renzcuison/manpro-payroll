@@ -58,11 +58,7 @@ export default function SignInCard() {
     useEffect(() => {
         if (!isFetching) {
             if (user) {
-                if (user.user_type === 'Admin') {
-                    navigate('/hr/dashboard');
-                } else if (user.user_type === 'Member') {
-                    navigate('/member/dashboard');
-                }
+                navigate('/dashboard');
             }
         }
     }, [isFetching, user, navigate]);

@@ -6,13 +6,6 @@ import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import { getComparator, stableSort } from "../../../components/utils/tableUtils";
-import LineGraph from "../../../components/utils/LineGraph";
-import VerticalBarGraph from "../../../components/utils/VerticalBarGraph";
-import HomeLogo from "../../../../images/ManProTab.png";
 
 import { Doughnut } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
@@ -26,12 +19,8 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
 const Dashboard = () => {
-
-    const queryParameters = new URLSearchParams(window.location.search);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
-    const colors = ["#2a800f", "#e9ab13"];
 
     const [headCount, setHeadCount] = useState();
     const [applicationCount, setApplicationCount] = useState();
@@ -89,13 +78,7 @@ const Dashboard = () => {
     }
 
     const getAttendance = (type) => {
-        /*
-        types:
-        1 - Present
-        2 - Late
-        3 - Absent
-        4 - On Leave
-        */
+        /* types: 1 - Present, 2 - Late, 3 - Absent, 4 - On Leave */
         setAttendanceLoading(true);
         axiosInstance
             .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
@@ -117,25 +100,17 @@ const Dashboard = () => {
         labels: ['Present', 'Absent', 'On Leave'],
         datasets: [
             {
-                data: [
-                    presentCount,
-                    headCount ? headCount - presentCount - onLeaveCount : 0,
-                    onLeaveCount,
-                ],
+                data: [ presentCount, headCount ? headCount - presentCount - onLeaveCount : 0, onLeaveCount ],
                 backgroundColor: ['#177604', '#E9AB13', '#1E90FF'],
                 hoverBackgroundColor: ['#1A8F07', '#F0B63D', '#56A9FF'],
             },
         ],
     };
+    
     const attendancePieOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { usePointStyle: true },
-            },
-        },
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true }}},
     };
 
     // Branch Bar Chart
