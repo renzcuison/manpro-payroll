@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('time_in_id');
             $table->unsignedBigInteger('time_out_id');
+            $table->string('reason', 512);
             $table->enum('status', ['Pending', 'Approved', 'Paid', 'Declined'])->default('Pending');
             $table->timestamps();
 

@@ -165,6 +165,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
         Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
+
+        Route::post('/saveOvertimeApplication', [AttendanceController::class, 'saveOvertimeApplication']);
     });
 
     Route::prefix('payroll')->group(function () {

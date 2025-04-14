@@ -17,6 +17,7 @@ class ApplicationsOvertimeModel extends Model
         'user_id',
         'time_in_id',
         'time_out_id',
+        'reason',
         'status',
     ];
 
