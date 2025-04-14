@@ -11,7 +11,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import EmploymentDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 
 const BenefitView = () => {
-    const { benefitName } = useParams();
+    const { benefitID } = useParams();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -25,7 +25,7 @@ const BenefitView = () => {
 
 
     useEffect(() => {
-        const data = { name: benefitName };
+        const data = { id: benefitID };
 
         axiosInstance.get(`/benefits/getBenefit`, { params: data, headers })
             .then((response) => {
@@ -71,7 +71,7 @@ const BenefitView = () => {
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
 
-                        <Grid item xs={4}>
+                        <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
 
                                 {isLoading ? (
@@ -81,30 +81,30 @@ const BenefitView = () => {
                                 ) : (
                                     <>
                                         <Grid container spacing={4} sx={{ p: 1 }}>
-                                            <Grid item xs={4}> Name </Grid>
-                                            <Grid item xs={8}> {benefit.name} </Grid>
+                                            <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Name </Grid>
+                                            <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.name} </Grid>
                                         </Grid>
 
                                         <Grid container spacing={4} sx={{ p: 1 }}>
-                                            <Grid item xs={4}> Type </Grid>
-                                            <Grid item xs={8}> {benefit.type} </Grid>
+                                            <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Type </Grid>
+                                            <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.type} </Grid>
                                         </Grid>
 
                                         {benefit?.type === "Percentage" && (
                                             <>
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Employee Share</Grid>
-                                                    <Grid item xs={8}> {benefit.employee_percentage}% </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employee Share</Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employee_percentage}% </Grid>
                                                 </Grid>
                                             
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Employeer Share</Grid>
-                                                    <Grid item xs={8}> {benefit.employer_percentage}% </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employeer Share</Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employer_percentage}% </Grid>
                                                 </Grid>
 
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Total </Grid>
-                                                    <Grid item xs={8}> {benefit.employee_percentage} + {benefit.employer_percentage}% </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Total </Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employee_percentage} + {benefit.employer_percentage}% </Grid>
                                                 </Grid>
                                             </>
                                         )}
@@ -112,35 +112,33 @@ const BenefitView = () => {
                                         {benefit?.type === "Amount" && (
                                             <>
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Employee Share</Grid>
-                                                    <Grid item xs={8}> ₱{benefit.employee_amount} </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employee Share</Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employee_amount} </Grid>
                                                 </Grid>
                                             
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Employeer Share</Grid>
-                                                    <Grid item xs={8}> ₱{benefit.employer_amount} </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employeer Share</Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employer_amount} </Grid>
                                                 </Grid>
 
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}> Total </Grid>
-                                                    <Grid item xs={8}> ₱{benefit.employee_amount} + {benefit.employer_amount} </Grid>
+                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Total </Grid>
+                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employee_amount} + {benefit.employer_amount} </Grid>
                                                 </Grid>
                                             </>
                                         )}
-
                                     </>
                                 )}
-
                             </Box>
                         </Grid>
 
-                        <Grid item xs={8}>
+                        <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
                                 <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
 
                                 <Grid container spacing={4}>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
@@ -151,7 +149,7 @@ const BenefitView = () => {
                                         </Box>
                                     </Grid>
 
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
@@ -162,7 +160,7 @@ const BenefitView = () => {
                                         </Box>
                                     </Grid>
 
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
                                             <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
                                                 <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
@@ -180,65 +178,65 @@ const BenefitView = () => {
                                 <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employement Details </Typography>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Role </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.role || '-' } </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Job Title </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.jobTitle || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Department </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.department || '-' } </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Branch </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.branch || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Type </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.employment_type || '-' } </Typography>
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Status </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.employment_status || '-' } </Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Work Group </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.work_group || '-' } </Typography>                                    
                                     </Grid>
 
-                                    <Grid item xs={2}>
+                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                                         <Typography> Employment Date </Typography>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
                                     </Grid>
                                 </Grid>
