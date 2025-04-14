@@ -5,15 +5,8 @@ import ProtectedRoute from './ProtectedRoute';
 import Error404 from "../Pages/Errors/Error404";
 
 import HrDashboard from "../Pages/Hr/HrDashboard";
-import HrEmployees from "../Pages/Admin/Employees/HrEmployees";
 
-import HrEmployeeCreate from "../Pages/Hr/HrEmployeeCreate";
 import HrProfile from "../Pages/Hr/HrProfile";
-import HrEmployeesBenefits from "../Pages/Hr/HrEmployeesBenefits";
-import HrEmployeesDeductions from "../Pages/Hr/HrEmployeesDeductions";
-import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
-// import Workshifts from "../Pages/Admin/Workshifts/Workshifts";
-// import Workshift from "../Pages/Admin/Workshifts/Workshift";
 
 import HrAttendance from "../Pages/Hr/HrAttendance";
 import HrAttendanceEmployee from "../Pages/Hr/HrAttendanceEmployee";
@@ -37,12 +30,7 @@ const HrRoutes = ({ user }) => {
   return (
     <Routes>
       <Route path="dashboard" element={<ProtectedRoute element={<HrDashboard />} user={user} />} />
-      <Route path="employees" element={<ProtectedRoute element={<HrEmployees />} user={user} />} />
-      <Route path="create-employee" element={<ProtectedRoute element={<HrEmployeeCreate />} user={user} />} />
       <Route path="profile" element={<ProtectedRoute element={<HrProfile />} user={user} />} />
-      <Route path="employees-benefits" element={<ProtectedRoute element={<HrEmployeesBenefits />} user={user} />} />
-      <Route path="employees-deductions" element={<ProtectedRoute element={<HrEmployeesDeductions />} user={user} />} />
-      <Route path="workdays" element={<ProtectedRoute element={<HrEmployeesCalendar />} user={user} />} />
 
       {/* <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} /> */}
       {/* <Route path="workshifts" element={<ProtectedRoute element={<Workshifts />} user={user} />} /> */}
