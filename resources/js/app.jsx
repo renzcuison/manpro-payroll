@@ -30,9 +30,6 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import VerifyLogin from "./Pages/VerifyLogin";
 
-import MemberPersonalDetails from "./Pages/Member/MemberPersonalDetails";
-import MemberChangePassword from "./Pages/Member/MemberChangePassword";
-
 import Profile from "./Pages/Users/Profile/Profile.jsx";
 
 import Reports from "./Pages/Reports/Reports.jsx";
@@ -190,15 +187,6 @@ function App() {
             <Route
                 path="/report-edit/:id"
                 element={user ? <ReportEdit /> : <CheckUser />}
-            />
-
-            <Route
-                path="/personal-details"
-                element={user ? <MemberPersonalDetails /> : <CheckUser />}
-            />
-            <Route
-                path="/change-password"
-                element={user ? <MemberChangePassword /> : <CheckUser />}
             />
 
             {/* OTHER ROUTES */}
