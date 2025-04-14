@@ -11,6 +11,7 @@ import {
     Typography,
     Stack,
     FormControl,
+    FormHelperText,
 } from '@mui/material';
 import { Cancel } from '@mui/icons-material';
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
@@ -185,80 +186,66 @@ const LoanForm = ({ open, close }) => {
             fullWidth
             maxWidth="md"
             PaperProps={{
-                sx: {
-                    backgroundColor: '#ffffff',
+                style: {
+                    backgroundColor: '#f8f9fa',
                     boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                    borderRadius: '10px',
+                    borderRadius: '20px',
                     minWidth: { xs: '100%', sm: '700px' },
                     maxWidth: '800px',
                     marginBottom: '5%',
                 },
             }}
         >
-            <DialogTitle sx={{ padding: 2, paddingBottom: 1 }}>
+            <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ ml: 1, fontWeight: 'bold' }}>
+                    <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: 'bold' }}>
                         Create Loan Application
                     </Typography>
                     <IconButton onClick={close}>
-                        <Cancel />
+                        <i className="si si-close"></i>
                     </IconButton>
                 </Box>
             </DialogTitle>
 
-            <DialogContent sx={{ padding: 2, mt: 1, mb: 2, overflowY: 'auto' }}>
-                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" className="loan-form-container">
-                    <Grid container spacing={1}>
-                        {/* Loan Amount and Payment Term in one row */}
-                        <Grid item xs={12} sm={8}>
+            <DialogContent sx={{ padding: 5, mt: 2, mb: 3, overflowY: 'auto' }}>
+                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" sx={{ mt: 1 }}>
+                    <Grid container columnSpacing={2} rowSpacing={3}>
+                        {/* Loan Amount */}
+                        <Grid item size={{ xs: 12 }} sm={6}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
-                                    variant="outlined"
-                                    placeholder="Loan Amount *"
+                                    label="Loan Amount"
                                     value={loanAmount}
                                     onChange={(e) => setLoanAmount(e.target.value)}
                                     error={loanAmountError}
                                     helperText={loanAmountError ? 'Please enter a valid loan amount' : ''}
                                     InputProps={{
-                                        startAdornment: <Typography sx={{ mr: 1, color: '#000' }}>₱</Typography>,
-                                        sx: {
-                                            backgroundColor: '#fff',
-                                            borderRadius: '5px',
-                                            '& .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#42a5f5',
-                                                borderWidth: '2px',
-                                            },
-                                        },
+                                        startAdornment: <Typography sx={{ mr: 1 }}>₱</Typography>,
+                                        inputProps: { min: 0, step: '0.01' },
                                     }}
                                     sx={{
                                         '& .MuiInputBase-root': {
-                                            height: '40px',
+                                            height: '45px', // Smaller height for the input
                                         },
                                         '& .MuiInputLabel-root': {
-                                            display: 'none', // Hide the floating label
+                                            transform: 'translate(14px, 12px) scale(1)', // Adjust label position
                                         },
-                                        '& .MuiFormHelperText-root': {
-                                            marginLeft: 0,
-                                            marginRight: 0,
+                                        '& .MuiInputLabel-shrink': {
+                                            transform: 'translate(14px, -6px) scale(0.75)', // Adjust label when focused/shrunk
                                         },
                                     }}
                                 />
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={4}>
+                        {/* Payment Term */}
+                        <Grid item size={{ xs: 12 }} sm={6}>
                             <FormControl fullWidth>
                                 <TextField
+                                
                                     required
-                                    variant="outlined"
-                                    placeholder="Payment Term (Months) *"
+                                    label="Payment Term (Months)"
                                     type="number"
                                     value={paymentTerm}
                                     onChange={(e) => setPaymentTerm(e.target.value)}
@@ -266,31 +253,16 @@ const LoanForm = ({ open, close }) => {
                                     helperText={paymentTermError ? 'Please enter a valid payment term' : ''}
                                     InputProps={{
                                         inputProps: { min: 1 },
-                                        sx: {
-                                            backgroundColor: '#fff',
-                                            borderRadius: '5px',
-                                            '& .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#42a5f5',
-                                                borderWidth: '2px',
-                                            },
-                                        },
                                     }}
                                     sx={{
                                         '& .MuiInputBase-root': {
-                                            height: '40px',
+                                            height: '45px', // Smaller height for the input
                                         },
                                         '& .MuiInputLabel-root': {
-                                            display: 'none', // Hide the floating label
+                                            transform: 'translate(14px, 12px) scale(1)', // Adjust label position
                                         },
-                                        '& .MuiFormHelperText-root': {
-                                            marginLeft: 0,
-                                            marginRight: 0,
+                                        '& .MuiInputLabel-shrink': {
+                                            transform: 'translate(14px, -6px) scale(0.75)', // Adjust label when focused/shrunk
                                         },
                                     }}
                                 />
@@ -298,204 +270,161 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Reason */}
-                        <Grid item size={12}>
+                        <Grid item size={{ xs: 12 }}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
-                                    variant="outlined"
                                     multiline
-                                    rows={3}
-                                    placeholder="Reason *"
+                                    rows={2} 
+                                    label="Reason"
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                     error={reasonError}
                                     helperText={reasonError ? 'Please provide a reason for the loan' : `${reason.length}/256`}
                                     inputProps={{ maxLength: 256 }}
-                                    InputProps={{
-                                        sx: {
-                                            backgroundColor: '#fff',
-                                            borderRadius: '5px',
-                                            '& .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#d3d3d3',
-                                            },
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#42a5f5',
-                                                borderWidth: '2px',
-                                            },
-                                        },
-                                    }}
-                                    sx={{
-                                        '& .MuiInputLabel-root': {
-                                            display: 'none', // Hide the floating label
-                                        },
-                                        '& .MuiFormHelperText-root': {
-                                            marginLeft: 0,
-                                            marginRight: 0,
-                                            textAlign: 'right',
-                                            fontSize: '0.75rem',
-                                        },
-                                    }}
                                 />
                             </FormControl>
                         </Grid>
 
-                        {/* Documents and Images in one row */}
-                        <Grid item size={12}>
-                            <Grid container spacing={2} sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                                <Grid item xs={12} sm={6}>
-                                    <FormControl fullWidth>
-                                        <Box sx={{ width: '100%' }}>
-                                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', width: '100%' }}>
-                                                <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.875rem' }}>
-                                                    Documents
-                                                </Typography>
-                                                <input
-                                                    accept=".doc,.docx,.pdf,.xls,.xlsx"
-                                                    id="attachment-upload"
-                                                    type="file"
-                                                    name="attachment"
-                                                    multiple
-                                                    style={{ display: 'none' }}
-                                                    onChange={handleAttachmentUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{
-                                                        backgroundColor: '#42a5f5',
-                                                        color: 'white',
-                                                        textTransform: 'uppercase',
-                                                        fontWeight: 'bold',
-                                                        borderRadius: '5px',
-                                                        padding: '4px 10px',
-                                                        fontSize: '0.75rem',
-                                                        '&:hover': {
-                                                            backgroundColor: '#2196f3',
-                                                        },
-                                                    }}
-                                                    onClick={() => document.getElementById('attachment-upload').click()}
-                                                >
-                                                    + Add
-                                                </Button>
-                                            </Stack>
-                                            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, fontSize: '0.75rem' }}>
-                                                Max Limit: 5 Files, 10 MB Each
-                                            </Typography>
-                                            {attachment.length > 0 && (
-                                                <Stack direction="column" spacing={0.5} sx={{ mt: 1, width: '100%' }}>
-                                                    {attachment.map((file, index) => (
-                                                        <Box
-                                                            key={index}
-                                                            sx={{
-                                                                display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                alignItems: 'center',
-                                                                border: '1px solid #e0e0e0',
-                                                                borderRadius: '4px',
-                                                                padding: '4px 8px',
-                                                            }}
-                                                        >
-                                                            <Typography noWrap sx={{ fontSize: '0.875rem' }}>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                            <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
-                                                                <Cancel fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    ))}
-                                                </Stack>
-                                            )}
+                        {/* Attachment Upload */}
+                        <Grid item size={{ xs: 12 }}>
+                            <FormControl fullWidth>
+                                <Box sx={{ width: '100%' }}>
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                            <Typography noWrap>Documents</Typography>
+                                            <input
+                                                accept=".doc,.docx,.pdf,.xls,.xlsx"
+                                                id="attachment-upload"
+                                                type="file"
+                                                name="attachment"
+                                                multiple
+                                                style={{ display: 'none' }}
+                                                onChange={handleAttachmentUpload}
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                sx={{ backgroundColor: '#42a5f5', color: 'white', marginLeft: 'auto' }}
+                                                onClick={() => document.getElementById('attachment-upload').click()}
+                                            >
+                                                <p className="m-0">
+                                                    <i className="fa fa-plus"></i> Add
+                                                </p>
+                                            </Button>
                                         </Box>
-                                    </FormControl>
-                                </Grid>
+                                    </Stack>
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%', mt: 1 }}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Max Limit: 5 Files, 10 MB Each
+                                        </Typography>
+                                        {attachment.length > 0 && (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                Remove
+                                            </Typography>
+                                        )}
+                                    </Stack>
+                                    {attachment.length > 0 && (
+                                        <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                            {attachment.map((file, index) => (
+                                                <Box
+                                                    key={index}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        border: '1px solid #e0e0e0',
+                                                        borderRadius: '4px',
+                                                        padding: '4px 8px',
+                                                    }}
+                                                >
+                                                    <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                    <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
+                                                        <Cancel />
+                                                    </IconButton>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    )}
+                                </Box>
+                            </FormControl>
+                        </Grid>
 
-                                <Grid item xs={12} sm={6}>
-                                    <FormControl fullWidth>
-                                        <Box sx={{ width: '100%' }}>
-                                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', width: '100%' }}>
-                                                <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.875rem' }}>
-                                                    Images
-                                                </Typography>
-                                                <input
-                                                    accept=".png,.jpg,.jpeg"
-                                                    id="image-upload"
-                                                    type="file"
-                                                    name="image"
-                                                    multiple
-                                                    style={{ display: 'none' }}
-                                                    onChange={handleImageUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{
-                                                        backgroundColor: '#42a5f5',
-                                                        color: 'white',
-                                                        textTransform: 'uppercase',
-                                                        fontWeight: 'bold',
-                                                        borderRadius: '5px',
-                                                        padding: '4px 10px',
-                                                        fontSize: '0.75rem',
-                                                        '&:hover': {
-                                                            backgroundColor: '#2196f3',
-                                                        },
-                                                    }}
-                                                    onClick={() => document.getElementById('image-upload').click()}
-                                                >
-                                                    + Add
-                                                </Button>
-                                            </Stack>
-                                            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, fontSize: '0.75rem' }}>
-                                                Max Limit: 10 Files, 5 MB Each
-                                            </Typography>
-                                            {image.length > 0 && (
-                                                <Stack direction="column" spacing={0.5} sx={{ mt: 1, width: '100%' }}>
-                                                    {image.map((file, index) => (
-                                                        <Box
-                                                            key={index}
-                                                            sx={{
-                                                                display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                alignItems: 'center',
-                                                                border: '1px solid #e0e0e0',
-                                                                borderRadius: '4px',
-                                                                padding: '4px 8px',
-                                                            }}
-                                                        >
-                                                            <Typography noWrap sx={{ fontSize: '0.875rem' }}>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                            <IconButton onClick={() => handleDeleteImage(index)} size="small">
-                                                                <Cancel fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    ))}
-                                                </Stack>
-                                            )}
+                        {/* Image Upload */}
+                        <Grid item size={{ xs: 12 }}>
+                            <FormControl fullWidth>
+                                <Box sx={{ width: '100%' }}>
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                            <Typography noWrap>Images</Typography>
+                                            <input
+                                                accept=".png,.jpg,.jpeg"
+                                                id="image-upload"
+                                                type="file"
+                                                name="image"
+                                                multiple
+                                                style={{ display: 'none' }}
+                                                onChange={handleImageUpload}
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                sx={{ backgroundColor: '#42a5f5', color: 'white', marginLeft: 'auto' }}
+                                                onClick={() => document.getElementById('image-upload').click()}
+                                            >
+                                                <p className="m-0">
+                                                    <i className="fa fa-plus"></i> Add
+                                                </p>
+                                            </Button>
                                         </Box>
-                                    </FormControl>
-                                </Grid>
-                            </Grid>
+                                    </Stack>
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%', mt: 1 }}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Max Limit: 10 Files, 5 MB Each
+                                        </Typography>
+                                        {image.length > 0 && (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                Remove
+                                            </Typography>
+                                        )}
+                                    </Stack>
+                                    {image.length > 0 && (
+                                        <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                            {image.map((file, index) => (
+                                                <Box
+                                                    key={index}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        border: '1px solid #e0e0e0',
+                                                        borderRadius: '4px',
+                                                        padding: '4px 8px',
+                                                    }}
+                                                >
+                                                    <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                    <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                        <Cancel />
+                                                    </IconButton>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    )}
+                                </Box>
+                            </FormControl>
                         </Grid>
 
                         {/* Submit Button */}
-                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                        <Grid item size={{ xs: 12 }} align="center">
                             <Button
                                 type="submit"
                                 variant="contained"
-                                sx={{
-                                    backgroundColor: '#177604',
-                                    color: 'white',
-                                    textTransform: 'uppercase',
-                                    fontWeight: 'bold',
-                                    borderRadius: '5px',
-                                    padding: '8px 16px',
-                                    fontSize: '0.875rem',
-                                    '&:hover': {
-                                        backgroundColor: '#145c03',
-                                    },
-                                }}
+                                sx={{ backgroundColor: '#177604', color: 'white' }}
+                                className="m-1"
                             >
-                                <i className="fa fa-floppy-disk mr-2"></i> Submit Loan Application
+                                <p className="m-0">
+                                    <i className="fa fa-floppy-o mr-2 mt-1"></i> Submit Loan Application
+                                </p>
                             </Button>
                         </Grid>
                     </Grid>
