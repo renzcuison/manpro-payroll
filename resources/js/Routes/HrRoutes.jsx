@@ -24,8 +24,6 @@ import HrPayrollProcessUnextended from "../Pages/Hr/HrPayrollProcessUnextended";
 import HrPayrollProcessExtended from "../Pages/Hr/HrPayrollProcessExtended";
 import HrPayrollRecords from "../Pages/Hr/HrPayrollRecords";
 import HrPayrollSummary from "../Pages/Hr/HrPayrollSummary";
-import HrAnnouncements from "../Pages/Hr/HrAnnouncements";
-import HrAnnouncementView from "../Pages/Hr/HrAnnouncementView";
 import HrTrainings from "../Pages/Hr/HrTrainings";
 
 import HrSummaryReports from "../Pages/Hr/HrSummaryReports";
@@ -68,8 +66,7 @@ const HrRoutes = ({ user }) => {
       <Route path="payroll-process/extended" element={<ProtectedRoute element={<HrPayrollProcessExtended />} user={user} />} />
       <Route path="payroll-records" element={<ProtectedRoute element={<HrPayrollRecords />} user={user} />} />
       <Route path="payroll-summary" element={<ProtectedRoute element={<HrPayrollSummary />} user={user} />} />
-      <Route path="announcements" element={<ProtectedRoute element={<HrAnnouncements />} user={user} />} />
-      <Route path="announcement-view" element={<ProtectedRoute element={<HrAnnouncementView />} user={user} />} />
+
       <Route path="trainings" element={<ProtectedRoute element={<HrTrainings />} user={user} />} />
       <Route path="summary-reports" element={<ProtectedRoute element={<HrSummaryReports />} user={user} />} />
       <Route path="trainings-view" element={<ProtectedRoute element={<HrTrainingsView />} user={user} />} />
