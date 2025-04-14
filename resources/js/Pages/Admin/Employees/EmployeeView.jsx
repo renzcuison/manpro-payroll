@@ -10,7 +10,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
-import EmployeeLeaveCredits from './Modals/EmployeeLeaveCredits';
+import EmployeeLeaveCredits from '../../../Modals/Employees/EmployeeLeaveCredits';
 
 const EmployeeView = () => {
     const { user } = useParams();

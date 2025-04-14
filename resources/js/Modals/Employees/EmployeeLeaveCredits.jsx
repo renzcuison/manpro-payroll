@@ -3,8 +3,8 @@ import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 
-import LeaveCreditAdd from "../../Pages/Admin/Employees/Modals/LeaveCreditAdd";
-import LeaveCreditEdit from "../../Pages/Admin/Employees/Modals/LeaveCreditEdit";
+import LeaveCreditAdd from "../Employees/LeaveCreditAdd";
+import LeaveCreditEdit from "../Employees/LeaveCreditEdit";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";

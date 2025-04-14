@@ -147,10 +147,10 @@ const AttendanceItems = [
                 href: `/employee/attendance-logs`,
                 text: "Logs",
             },
-            // {
-            //     href: `/employee/attendance-overtime`,
-            //     text: "Overtime",
-            // },
+            {
+                href: `/employee/attendance-overtime`,
+                text: "Overtime",
+            },
             {
                 href: `/employee/attendance-summary`,
                 text: "Summary",
