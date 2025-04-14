@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 use Carbon\Carbon;
 
@@ -180,8 +181,6 @@ class ApplicationsController extends Controller
 
     public function saveApplication(Request $request)
     {
-        //Log::info("ApplicationsController::saveApplication");
-
         $user = Auth::user();
 
         try {
@@ -198,31 +197,21 @@ class ApplicationsController extends Controller
                 "client_id" => $user->client_id,
             ]);
 
-            $dateTime = now()->format('YmdHis');
-
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                    $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
-                    ApplicationFilesModel::create([
-                        'application_id' => $application->id,
-                        'type' => "Document",
-                        'path' => $filePath,
-                    ]);
+                    $application->addMedia($file)
+                        ->withCustomProperties(['type' => 'Document'])
+                        ->toMediaCollection('documents');
                 }
             }
 
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $file) {
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                    $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
-                    ApplicationFilesModel::create([
-                        'application_id' => $application->id,
-                        'type' => "Image",
-                        'path' => $filePath,
-                    ]);
+                    $application->addMedia($file)
+                        ->withCustomProperties(['type' => 'Image'])
+                        ->toMediaCollection('images');
                 }
             }
 
@@ -240,13 +229,12 @@ class ApplicationsController extends Controller
 
     public function editApplication(Request $request)
     {
-        //Log::info("ApplicationsController::updateApplication");
         $user = Auth::user();
 
         try {
             DB::beginTransaction();
 
-            //Application Update
+            // Application Update
             $application = ApplicationsModel::find($request->input('id'));
 
             $application->type_id = $request->input('type_id');
@@ -263,37 +251,34 @@ class ApplicationsController extends Controller
             }
 
             // Remove Files
-            ApplicationFilesModel::whereIn('id', $deleteFiles)->delete();
-
-            $dateTime = now()->format('YmdHis');
+            if (!empty($deleteFiles)) {
+                $mediaItems = $application->getMedia('*')->whereIn('id', $deleteFiles);
+                foreach ($mediaItems as $media) {
+                    $media->delete(); // Deletes the media record and the file
+                }
+            }
 
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                    $filePath = $file->storeAs('applications/employees/attachments', $fileName, 'public');
-                    ApplicationFilesModel::create([
-                        'application_id' => $application->id,
-                        'type' => "Document",
-                        'path' => $filePath,
-                    ]);
+                    $application->addMedia($file)
+                        ->withCustomProperties(['type' => 'Document'])
+                        ->toMediaCollection('documents');
                 }
             }
 
             // Adding Files - Images
             if ($request->hasFile('image')) {
-                foreach ($request->file('image') as $index => $file) {
-                    $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                    $filePath = $file->storeAs('applications/employees/images', $fileName, 'public');
-                    ApplicationFilesModel::create([
-                        'application_id' => $application->id,
-                        'type' => "Image",
-                        'path' => $filePath,
-                    ]);
+                foreach ($request->file('image') as $file) {
+                    $application->addMedia($file)
+                        ->withCustomProperties(['type' => 'Image'])
+                        ->toMediaCollection('images');
                 }
             }
 
             DB::commit();
+
+            return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error saving: " . $e->getMessage());
@@ -382,43 +367,43 @@ class ApplicationsController extends Controller
 
     public function getApplicationFiles($id)
     {
-        //Log::info("AnnouncementsController::getFileNames");
+        //Log::info("AnnouncementsController::getApplicationFiles");
         $user = Auth::user();
 
-        $files = ApplicationFilesModel::where('application_id', $id)
-            ->select('id', 'path', 'type')
-            ->get();
+        $application = ApplicationsModel::find($id);
+        if (!$application) {
+            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+        }
 
         $filenames = [];
-        foreach ($files as $file) {
+        $mediaItems = $application->getMedia('*');
+
+        foreach ($mediaItems as $media) {
             $filenames[] = [
-                'id' => $file->id,
-                'filename' => basename($file->path),
-                'type' => $file->type
+                'id' => $media->id,
+                'filename' => $media->file_name,
+                'type' => $media->getCustomProperty('type'),
             ];
         }
 
-        return response()->json(['status' => 200, 'filenames' => $filenames ? $filenames : null]);
+        return response()->json(['status' => 200, 'filenames' => $filenames ?: null]);
     }
 
     public function downloadFile($id)
     {
-        //Log::info("ApplicationsController::downloadFile");
-        $file = ApplicationFilesModel::find($id);
+        //Log::info('ApplicationsController::downloadFile');
+        $media  = Media::find($id);
 
-        if (!$file) {
+        if (!$media) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        $filePath = storage_path('app/public/' . $file->path);
-
+        $filePath = $media->getPath();
         if (!file_exists($filePath)) {
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        $fileName = basename($file->path);
-
-        return response()->download($filePath, $fileName);
+        return response()->download($filePath, $media->file_name);
     }
 
     public function getLeaveCredits($userName)
