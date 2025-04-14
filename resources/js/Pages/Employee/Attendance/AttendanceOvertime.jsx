@@ -1,16 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    Box,
-    Typography,
-    TextField,
-    CircularProgress,
-} from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, TextField, CircularProgress } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -20,6 +9,7 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
 
 import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
+import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -53,9 +43,7 @@ const AttendanceSummary = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         {isLoading ? (
-                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
+                            <LoadingSpinner />
                         ) : (
                             <>
                                 <TableContainer>
