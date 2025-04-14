@@ -1,39 +1,10 @@
-import {
-    Box,
-    Button,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Grid,
-    TextField,
-    Typography,
-    CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
-    MenuItem,
-    Divider,
-    Stack,
-    Tooltip,
-    TableContainer,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell,
-    Table,
-} from "@mui/material";
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table, } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
-import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 
-import LeaveCreditAdd from "./LeaveCreditAdd";
-import LeaveCreditEdit from "./LeaveCreditEdit";
+import LeaveCreditAdd from "../../Pages/Admin/Employees/Modals/LeaveCreditAdd";
+import LeaveCreditEdit from "../../Pages/Admin/Employees/Modals/LeaveCreditEdit";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -43,15 +14,12 @@ dayjs.extend(localizedFormat);
 
 const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
-    const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [leaveCredits, setLeaveCredits] = useState([]);
     const [leaveCreditLogs, setLeaveCreditLogs] = useState([]);
     const [logsView, setLogsView] = useState(false);
-
-    console.log(employee);
 
     // ----------- Request Leave Credits
     useEffect(() => {
@@ -135,7 +103,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
-                            {`Leave Credit ${logsView ? "Logs" : "Details"}`}
+                            {`${logsView ? "Leave Credit Logs" : "Leave Credit Details"}`}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
