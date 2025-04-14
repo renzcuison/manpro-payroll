@@ -120,19 +120,15 @@ const Payslip = ({ selectedPayroll }) => {
                                 }}
                             />
                             <Typography sx={{ marginTop: "5px" }}>
-                                {" "}
-                                Online Payslip {payroll.total_earnings}{" "}
+                                {" "}Online Payslip{" "}
                             </Typography>
                             <Typography sx={{ marginTop: "5px" }}>
-                                {" "}
-                                Pay Period: {formatDate(
-                                    payroll.period_start
-                                )} - {formatDate(payroll.period_end)}
+                                {" "}Pay Period: {formatDate(payroll.period_start)} - {formatDate(payroll.period_end)}
                             </Typography>
                         </Box>
 
                         <Grid container spacing={4} sx={{ px: 8, mt: 4 }}>
-                            <Grid item size={12}>
+                            <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12}}>
                                 <div className="row">
                                     <div className="col-6">
                                         <FormControl

@@ -1,4 +1,4 @@
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
 import AccessTime from "@mui/icons-material/AccessTime";
 
 const AttendanceTable = ({ title, logs }) => {

@@ -6,20 +6,15 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    TablePagination,
     Box,
     Typography,
-    Button,
-    Menu,
     MenuItem,
     TextField,
-    Stack,
     Grid,
     CircularProgress,
     FormControl,
     InputLabel,
     Select,
-    breadcrumbsClasses,
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -216,7 +211,7 @@ const AttendanceLogs = () => {
                         ) : (
                             <>
                                 <Grid container direction="row" columnGap={1} justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                                    <Grid item xs={3}>
+                                    <Grid size={{ xs: 3 }}>
                                         <FormControl sx={{ mr: 2, width: "80%" }} >
                                             <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
                                             <Select
@@ -235,8 +230,8 @@ const AttendanceLogs = () => {
                                         </FormControl>
                                     </Grid>
 
-                                    <Grid container item xs={7} direction="row" justifyContent="flex-end" >
-                                        <Grid item xs={3} sx={{ mr: 2 }}>
+                                    <Grid container size={{ xs: 7 }} direction="row" justifyContent="flex-end" >
+                                        <Grid size={{ xs: 3 }} sx={{ mr: 2 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="date-range-select-label"> Date Range </InputLabel>
 
@@ -258,7 +253,7 @@ const AttendanceLogs = () => {
                                             </FormControl>
                                         </Grid>
 
-                                        <Grid item xs={7} sx={{ mr: 4 }}>
+                                        <Grid size={{ xs: 7 }} sx={{ mr: 4 }}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} >
                                                 <DatePicker
                                                     label="From Date"
@@ -287,7 +282,6 @@ const AttendanceLogs = () => {
                                             </LocalizationProvider>
                                         </Grid>
                                     </Grid>
-
                                 </Grid>
 
                                 <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }} >

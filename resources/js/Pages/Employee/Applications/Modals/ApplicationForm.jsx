@@ -8,28 +8,19 @@ import {
     Grid,
     TextField,
     Typography,
-    InputAdornment,
-    CircularProgress,
-    FormGroup,
     FormControl,
-    InputLabel,
-    FormControlLabel,
     FormHelperText,
-    Switch,
-    Select,
     MenuItem,
     Stack
 } from "@mui/material";
-import { Cancel, InfoOutlined } from "@mui/icons-material";
+import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { Form, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Swal from "sweetalert2";
-import moment from "moment";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -557,7 +548,7 @@ const ApplicationForm = ({ open, close }) => {
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
-                            <Grid item xs={12} sx={{ mt: 1 }}>
+                            <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -591,7 +582,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* From Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -615,7 +606,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* To Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -640,7 +631,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* Leave Credits */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         label="Credits Used/Available"
@@ -670,7 +661,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -697,7 +688,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 {/* File Requirement */}
                                 {fileError && <Typography variant="caption" color="error" sx={{ mb: 2 }}>
                                     You must include supporting files for this type of application!
@@ -781,7 +772,7 @@ const ApplicationForm = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}
@@ -862,7 +853,7 @@ const ApplicationForm = ({ open, close }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center",

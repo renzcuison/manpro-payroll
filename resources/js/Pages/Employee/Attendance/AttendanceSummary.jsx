@@ -6,40 +6,18 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    TablePagination,
     Box,
     Typography,
-    Button,
-    Menu,
-    MenuItem,
     TextField,
-    Stack,
-    Grid,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
 } from "@mui/material";
-import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
+import { useNavigate } from "react-router-dom";
 
 import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
 
@@ -136,7 +114,7 @@ const AttendanceSummary = () => {
                             </Box>
                         ) : (
                             <>
-                                <Grid container direction="row" justifyContent="flex-start" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                                <Box display="flex" sx={{ justifyContent: "flex-start", pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                                     <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="From Date"
@@ -164,7 +142,7 @@ const AttendanceSummary = () => {
                                             )}
                                         />
                                     </LocalizationProvider>
-                                </Grid>
+                                </Box>
                                 <TableContainer>
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
