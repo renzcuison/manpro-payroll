@@ -123,11 +123,11 @@ class EmployeesController extends Controller
             $employee->code_expiration,
             $employee->is_verified,
             $employee->client_id,
-            $employee->branch_id,
-            $employee->department_id,
-            $employee->role_id,
-            $employee->job_title_id,
-            $employee->work_group_id
+            // $employee->branch_id,
+            // $employee->department_id,
+            // $employee->role_id,
+            // $employee->job_title_id,
+            // $employee->work_group_id
         );
         
         return $employee;
@@ -151,11 +151,11 @@ class EmployeesController extends Controller
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
-                    $employee->branch_id,
-                    $employee->department_id,
-                    $employee->role_id,
-                    $employee->job_title_id,
-                    $employee->work_group_id
+                    // $employee->branch_id,
+                    // $employee->department_id,
+                    // $employee->role_id,
+                    // $employee->job_title_id,
+                    // $employee->work_group_id
                 );
     
                 return $employee;
