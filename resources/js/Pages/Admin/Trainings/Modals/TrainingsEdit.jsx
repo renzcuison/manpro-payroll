@@ -187,8 +187,8 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 2 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
@@ -284,6 +284,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         }}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: fromDateError,
                                                 readOnly: true,
                                             }
@@ -304,6 +305,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: toDateError,
                                                 readOnly: true,
                                             }
@@ -316,6 +318,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             label="Duration"
                                             value={trainingHours}
@@ -349,6 +352,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             value={trainingMinutes}
                                             onChange={(event) => {

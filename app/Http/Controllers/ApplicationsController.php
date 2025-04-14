@@ -66,7 +66,7 @@ class ApplicationsController extends Controller
                     'app_description' => $app->description,
                     'app_status' => $app->status,
                     'app_leave_used' => $app->leave_used,
-                    'emp_id' => $app->user_id,
+                    'emp_user_name' => $employee->user_name,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
@@ -328,41 +328,53 @@ class ApplicationsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $application = ApplicationsModel::find($request->input('app_id'));
+            try {
+                DB::beginTransaction();
 
-            if (!$application) {
-                //Log::error('Application not found for ID: ' . $id);
-                return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+                $application = ApplicationsModel::find($request->input('app_id'));
+
+                if (!$application) {
+                    //Log::error('Application not found for ID: ' . $id);
+                    return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+                }
+
+                switch ($request->input('app_response')) {
+                    case 'Approve':
+                        $emp = UsersModel::where('user_name', $request->input('app_emp_username'))->first();
+                        $leave = LeaveCreditsModel::where('user_id', $emp->id)->where('application_type_id', $request->input('app_type_id'))->first();
+
+                        $oldLeaveUsed = $leave->used;
+                        $usedCredits = number_format($request->input('app_leave_used'), 2, '.', '');
+                        $leave->used = $leave->used + $usedCredits;
+                        $leave->save();
+
+                        $newLeaveUsed = number_format($oldLeaveUsed + $usedCredits, 2, '.', '');
+
+                        LogsLeaveCreditsModel::create([
+                            'user_id' => $user->id,
+                            'leave_credit_id' => $leave->id,
+                            'action' => 'Approved ' . $usedCredits . ' Credits. ID: ' . $leave->id . ', Prev: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
+                        ]);
+
+                        $application->status = "Approved";
+                        $message = "Application Approved";
+                        break;
+                    case 'Decline':
+                        $application->status = "Declined";
+                        $message = "Application Declined";
+                        break;
+                }
+                $application->save();
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => $message], 200);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                //Log::error("Error managing application: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'An error occurred while managing the application'], 500);
+                throw $e;
             }
-
-            switch ($request->input('app_response')) {
-                case 'Approve':
-                    $leave = LeaveCreditsModel::where('user_id', $request->input('app_emp_id'))->where('application_type_id', $request->input('app_type_id'))->first();
-
-                    $oldLeaveUsed = $leave->used;
-                    $usedCredits = number_format($request->input('app_leave_used'), 2, '.', '');
-                    $leave->used = $leave->used + $usedCredits;
-                    $leave->save();
-
-                    $newLeaveUsed = number_format($oldLeaveUsed + $usedCredits, 2, '.', '');
-
-                    LogsLeaveCreditsModel::create([
-                        'user_id' => $user->id,
-                        'leave_credit_id' => $leave->id,
-                        'action' => 'Approved ' . $usedCredits . ' Credits. ID: ' . $leave->id . ', Prev: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
-                    ]);
-
-                    $application->status = "Approved";
-                    $message = "Application Approved";
-                    break;
-                case 'Decline':
-                    $application->status = "Declined";
-                    $message = "Application Declined";
-                    break;
-            }
-            $application->save();
-
-            return response()->json(['status' => 200, 'message' => $message], 200);
         } else {
             return response()->json(['status' => 200, 'message' => null], 200);
         }
@@ -412,6 +424,7 @@ class ApplicationsController extends Controller
     public function getLeaveCredits($userName)
     {
         //Log::info("ApplicationsController::getLeaveCredits");
+        Log::info($userName);
 
         $user = Auth::user();
 
