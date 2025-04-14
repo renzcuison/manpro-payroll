@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_fixed_salary', 128)->default(0)->after('salary');
-            $table->string('tin_number', 128)->nullable()->after('is_fixed_salary');
-            $table->boolean('deduct_tax')->default(0)->after('tin_number');
+            $table->softDeletes()->after('date_end');
         });
     }
 
@@ -24,9 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_fixed_salary');
-            $table->dropColumn('tin_number');
-            $table->dropColumn('deduct_tax');
+            $table->dropSoftDeletes();
         });
     }
 };

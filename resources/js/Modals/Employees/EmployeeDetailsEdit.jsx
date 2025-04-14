@@ -35,17 +35,18 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [birthdate, setBirthdate] = React.useState(dayjs(employee.birth_date));
 
     const [salary, setSalary] = useState(employee.salary);
+    const [fixedSalary, setFixedSalary] = useState(employee.is_fixed_salary);
     const [salaryType, setSalaryType] = useState(employee.salary_type);
     const [creditLimit, setCreditLimit] = useState(employee.credit_limit);
 
     const [tinNumber, setTinNumber] = useState(employee.tin_number);
     const [taxStatus, setTaxStatus] = useState(employee.deduct_tax);
 
-    const [selectedRole, setSelectedRole] = useState('');
-    const [selectedBranch, setSelectedBranch] = useState('');
-    const [selectedJobTitle, setSelectedJobTitle] = useState('');
-    const [selectedDepartment, setSelectedDepartment] = useState('');
-    const [selectedWorkGroup, setSelectedWorkGroup] = useState('');
+    const [selectedRole, setSelectedRole] = useState(employee.role_id);
+    const [selectedBranch, setSelectedBranch] = useState(employee.branch_id);
+    const [selectedJobTitle, setSelectedJobTitle] = useState(employee.job_title_id);
+    const [selectedDepartment, setSelectedDepartment] = useState(employee.department_id);
+    const [selectedWorkGroup, setSelectedWorkGroup] = useState(employee.work_group_id);
 
     const [startDate, setStartDate] = React.useState(dayjs(employee.date_start));
     const [endDate, setEndDate] = React.useState(dayjs(employee.date_end));
@@ -54,7 +55,6 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     useEffect(() => {
-        console.log(employee);
         populateDropdown();
     }, []);
 
@@ -140,7 +140,6 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                         customClass: { container: 'my-swal' },
                         text: "Employee Details updated successfully!",
                         icon: "success",
-                        timer: 1000,
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
@@ -151,6 +150,16 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
             })
             .catch(error => {
                 console.error('Error:', error);
+                close(true);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    title: 'Error',
+                    text: "An Error occured while updating!",
+                    icon: 'error',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Okay',
+                    confirmButtonColor: '#177604',
+                });
             });
     };
 
@@ -405,7 +414,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{ width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -422,7 +431,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -438,7 +447,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            {/* <FormControl sx={{ width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -453,7 +462,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                         slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
-                            </FormControl>
+                            </FormControl> */}
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />
@@ -462,7 +471,22 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
-                            <FormControl sx={{ marginBottom: 3, width: '21%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    select
+                                    id="salaryFixed"
+                                    label="Fixed Salary"
+                                    value={fixedSalary}
+                                    onChange={(event) => setFixedSalary(event.target.value)}
+                                >
+                                    <MenuItem key="0" value="0"> No </MenuItem>
+                                    <MenuItem key="0" value="1"> Yes </MenuItem>
+                                </TextField>
+                            </FormControl>
+
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -480,7 +504,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -491,7 +515,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField

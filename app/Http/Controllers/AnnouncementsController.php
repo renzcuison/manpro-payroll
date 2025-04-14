@@ -86,24 +86,45 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function getMyAnnouncements()
+    public function getEmployeeAnnouncements()
     {
-        //Log::info("AnnouncementsController::getMyAnnouncements");
+        //Log::info("AnnouncementsController::getEmployeeAnnouncements");
         $user = Auth::user();
 
-        // Branch Announcements
         $branches = AnnouncementsModel::whereHas('branches', function ($query) use ($user) {
             $query->where('branch_id', $user->branch_id);
-        })->where('status', 'Published')->get();
+        })
+            ->where('status', 'Published')
+            ->with(['branches', 'departments'])
+            ->get();
 
-        // Department Announcements
         $departments = AnnouncementsModel::whereHas('departments', function ($query) use ($user) {
             $query->where('department_id', $user->department_id);
-        })->where('status', 'Published')->get();
+        })
+            ->where('status', 'Published')
+            ->with(['branches', 'departments'])
+            ->get();
 
         $announcements = $branches->merge($departments)->unique('id');
 
-        return response()->json(['status' => 200, 'announcements' => $announcements]);
+        $announcementData = $announcements->map(function ($announcement) use ($user) {
+            $acknowledgement = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $announcement->acknowledged_on = $acknowledgement ? $acknowledgement->created_at : null;
+
+            $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
+            $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
+
+            $announcement->branch_matched = in_array($user->branch_id, $branches);
+            $announcement->department_matched = in_array($user->department_id, $departments);
+
+            unset($announcement['branches'], $announcement['departments']);
+            return $announcement;
+        });
+
+        return response()->json(['status' => 200, 'announcements' => $announcementData]);
     }
 
     public function getAnnouncementDetails($code)

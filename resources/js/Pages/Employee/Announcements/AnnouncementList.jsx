@@ -1,55 +1,22 @@
 import React, { useEffect, useState } from "react";
 import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
     Box,
     Typography,
-    Button,
-    Menu,
-    MenuItem,
-    TextField,
-    Stack,
     Grid,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
+    Chip,
     Card,
     CardMedia,
     CardContent,
+    CardActions,
     CardActionArea,
     Pagination,
-    IconButton
 } from "@mui/material";
-import { TaskAlt } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import Swal from "sweetalert2";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
-import { first } from "lodash";
-import { CardActions } from "@material-ui/core";
+import { Link, useNavigate } from "react-router-dom";
+import { Apartment, CheckCircleOutline, Groups } from "@mui/icons-material";
 
 const AnnouncementList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -77,7 +44,7 @@ const AnnouncementList = () => {
     }, []);
 
     const fetchAnnouncements = () => {
-        axiosInstance.get('/announcements/getMyAnnouncements', { headers })
+        axiosInstance.get('/announcements/getEmployeeAnnouncements', { headers })
             .then((response) => {
                 setAnnouncements(response.data.announcements);
                 setTotalAnnouncements(response.data.announcements.length);
@@ -144,46 +111,6 @@ const AnnouncementList = () => {
         }
     };
 
-    // ---------------- Acknowledge Announcement
-    const handleAcknowledgeAnnouncement = (unicode) => {
-        document.activeElement.blur();
-        Swal.fire({
-            customClass: { container: "my-swal" },
-            title: "Acknowledge Announcement?",
-            text: "Do you want to acknowledge this announcement?",
-            icon: "warning",
-            showConfirmButton: true,
-            confirmButtonText: "Yes",
-            confirmButtonColor: "#177604",
-            showCancelButton: true,
-            cancelButtonText: "No",
-        }).then((res) => {
-            if (res.isConfirmed) {
-                const data = {
-                    code: unicode
-                };
-                axiosInstance
-                    .post(`announcements/acknowledgeAnnouncement`, data, {
-                        headers,
-                    })
-                    .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Announcement Acknowledged`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error acknowledging announcment:", error);
-                    });
-            }
-        });
-    };
-
     // ---------------- Pagination Controls
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
@@ -231,9 +158,15 @@ const AnnouncementList = () => {
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
-                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea component={Link} to={`/employee/announcement/${announcement.unique_code}`}>
-                                                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                                        <Card sx={{
+                                                            position: "relative",
+                                                            borderRadius: 2,
+                                                            boxShadow: 2,
+                                                            display: "flex",
+                                                            flexDirection: "column"
+                                                        }}>
                                                             {/* Card Thumbnail */}
                                                             {imageLoading ? (
                                                                 <Box
@@ -241,14 +174,14 @@ const AnnouncementList = () => {
                                                                         display: 'flex',
                                                                         justifyContent: 'center',
                                                                         alignItems: 'center',
-                                                                        height: '180px'
+                                                                        height: '210px'
                                                                     }}
                                                                 >
                                                                     <CircularProgress />
                                                                 </Box>
                                                             ) : (
                                                                 <CardMedia
-                                                                    sx={{ height: '180px' }}
+                                                                    sx={{ height: '210px' }}
                                                                     image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
                                                                     title={`${announcement.title}_Thumbnail`}
                                                                 />
@@ -256,24 +189,74 @@ const AnnouncementList = () => {
                                                             {/* Card Content */}
                                                             <CardContent>
                                                                 {/* Announcement Title */}
-                                                                <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
-                                                                    {announcement.title}
-                                                                </Typography>
+                                                                <Box sx={{ height: "32px" }}>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                        component="div"
+                                                                        sx={{
+                                                                            display: '-webkit-box',
+                                                                            WebkitBoxOrient: 'vertical',
+                                                                            WebkitLineClamp: 1,
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            whiteSpace: 'normal',
+                                                                        }}
+                                                                    >
+                                                                        {announcement.title}
+                                                                    </Typography>
+                                                                </Box>
                                                                 {/* Announcement Details */}
-                                                                <Typography variant="body2" sx={{ my: 1, color: "text.secondary" }}>
-                                                                    {`Posted ${dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}`}
-                                                                </Typography>
+                                                                {/* Details */}
+                                                                <Grid container item key={index} sx={{ my: 1 }}>
+                                                                    <Grid size={{ xs: 3 }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                                                                            Posted
+                                                                        </Typography>
+                                                                    </Grid>
+                                                                    <Grid size={{ xs: 9 }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                            {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                                        </Typography>
+                                                                    </Grid>
+                                                                </Grid>
                                                             </CardContent>
-                                                            {/*
-                                                                <CardActions>
-                                                                <IconButton
-                                                                    onClick={() => handleAcknowledgeAnnouncement(announcement.unique_code)}
-                                                                >
-                                                                    <TaskAlt />
-                                                                </IconButton>
+                                                            {/* Announcement Branch/Department Indicators */}
+                                                            <CardActions sx={{ ml: "8px" }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                    {/* Media Icons */}
+                                                                    {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
+                                                                    {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
+                                                                    {/* Media Text */}
+                                                                    <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0 }}>
+                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                            {(() => {
+                                                                                const available = [
+                                                                                    announcement.branch_matched && 'Branch',
+                                                                                    announcement.department_matched && 'Department',
+                                                                                ].filter(Boolean);
+                                                                                return available.length > 0
+                                                                                    ? `Posted for your ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                    : '';
+                                                                            })()}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Box>
                                                             </CardActions>
-                                                            */}
-
+                                                            {announcement.acknowledged_on && (
+                                                                <Chip
+                                                                    icon={<CheckCircleOutline sx={{ color: 'white !important', fontSize: '18px' }} />}
+                                                                    label="ACKNOWLEDGED"
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        top: 8,
+                                                                        left: 8,
+                                                                        backgroundColor: "#177604",
+                                                                        color: "white",
+                                                                        fontWeight: "bold",
+                                                                        boxShadow: 3,
+                                                                    }}
+                                                                />
+                                                            )}
                                                         </Card>
                                                     </CardActionArea>
                                                 </Grid>

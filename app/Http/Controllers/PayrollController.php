@@ -420,8 +420,6 @@ class PayrollController extends Controller
         $overTimePay = 0;
         $holidayPay = 0;
 
-        $absents = $absents - $leaveEarnings;
-
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
@@ -436,7 +434,16 @@ class PayrollController extends Controller
         log::info("Returned Tax: " . $tax);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
-        $tardiness = $perMin * $tardinessTime;
+
+        if ( $employee->is_fixed_salary == 0 ) {
+            $absents = $absents - $leaveEarnings;
+            $tardiness = $perMin * $tardinessTime;
+        } else {
+            $absents = 0;
+            $tardiness = 0;
+            $numberOfAbsentDays = 0;
+            $tardinessTime = 0;
+        }
 
         $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;

@@ -316,7 +316,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                     >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Title Field */}
-                            <Grid item xs={12} sx={{ mt: 1 }}>
+                            <Grid size={12} sx={{ mt: 1 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -338,7 +338,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 <FormControl error={descriptionError} sx={{ width: '100%' }}>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -379,7 +379,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}
@@ -526,7 +526,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item size={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}
@@ -687,7 +687,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={12}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

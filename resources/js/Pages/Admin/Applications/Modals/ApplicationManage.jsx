@@ -6,14 +6,9 @@ import {
     DialogTitle,
     DialogContent,
     Grid,
-    TextField,
     Typography,
-    CircularProgress,
-    FormGroup,
     FormControl,
     InputLabel,
-    FormControlLabel,
-    Switch,
     Select,
     MenuItem,
     Divider,
@@ -29,18 +24,14 @@ import {
 import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import moment from "moment";
+import InfoBox from "../../../../components/General/InfoBox";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
-import { icon } from "@fortawesome/fontawesome-svg-core";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -66,7 +57,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                 console.error('Error fetching files:', error);
             });
 
-        axiosInstance.get(`/applications/getLeaveCredits/${appDetails.emp_id}`, { headers })
+        axiosInstance.get(`/applications/getLeaveCredits/${appDetails.emp_user_name}`, { headers })
             .then((response) => {
                 setLeaveCredits(response.data.leave_credits);
             })
@@ -176,7 +167,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
         const data = {
             app_id: appDetails.app_id,
             app_type_id: appDetails.app_type_id,
-            app_emp_id: appDetails.emp_id,
+            app_emp_username: appDetails.emp_user_name,
             app_response: appResponse,
             app_leave_used: appDetails.app_leave_used,
             app_start_date: dayjs(appDetails.app_duration_start).format("YYYY-MM-DD"),
@@ -233,84 +224,84 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                         {/* Application Details */}
                         <Box sx={{ width: "50%" }}>
                             <Grid container rowSpacing={2}>
-                                <Grid item xs={12} align="left">
-                                    <Typography variant="h6" sx={{ fontWeight: "bold" }}> Application Details </Typography>
+                                <Grid size={12} align="left">
+                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                        Application Details
+                                    </Typography>
                                 </Grid>
-
                                 {/* Application Type */}
-                                <Grid item xs={5} align="left">
-                                    Type
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Type"
+                                        info={appDetails.app_type_name}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold" }}> {appDetails.app_type_name} </Typography>
-                                </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
-
                                 {/* Request Date*/}
-                                <Grid item xs={5} align="left">
-                                    Requested
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Requested"
+                                        info={dayjs(appDetails.app_date_requested).format(`MMM D, YYYY   hh:mm A`)}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_date_requested).format("MMM D, YYYY")} </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_date_requested).format("h:mm A")} </Typography>
-                                    </Stack>
-                                </Grid>
-
                                 {/* Start Date */}
-                                <Grid item xs={5} align="left">
-                                    Starts
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Starts"
+                                        info={dayjs(appDetails.app_duration_start).format(`MMM D, YYYY   hh:mm A`)}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_duration_start).format("MMM D, YYYY")} </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_duration_start).format("h:mm A")} </Typography>
-                                    </Stack>
-                                </Grid>
-
                                 {/* End Date */}
-                                <Grid item xs={5} align="left">
-                                    Ends
-                                </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Stack direction="row">
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_duration_end).format("MMM D, YYYY")} </Typography>
-                                        <Typography sx={{ fontWeight: "bold", width: "50%" }}> {dayjs(appDetails.app_duration_end).format("h:mm A")} </Typography>
-                                    </Stack>
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Ends"
+                                        info={dayjs(appDetails.app_duration_end).format(`MMM D, YYYY   hh:mm A`)}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
                                 {/* Credits Used */}
-                                <Grid item xs={5} align="left">
-                                    Credits Required
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Credits Required"
+                                        info={appDetails.app_leave_used}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold", width: "50%" }}> {appDetails.app_leave_used} </Typography>
-                                </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
-
                                 {/* Description */}
-                                <Grid container item xs={12}>
-                                    <Grid item size={12}>
-                                        <div style={{ textDecoration: "underline" }} >
+                                <Grid container size={{ xs: 12 }}>
+                                    <Grid size={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                             Description
-                                        </div>
+                                        </Typography>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ mt: 1 }}>
+                                    <Grid size={12}>
                                         {appDetails.app_description}
                                     </Grid>
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
                                 {/* Attachments */}
-                                <Grid container item xs={12}>
-                                    <Grid item size={12}>
-                                        Attached Files
+                                <Grid container size={{ xs: 12 }}>
+                                    <Grid size={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                            Attached Files
+                                        </Typography>
                                     </Grid>
-                                    <Grid item size={12}>
+                                    <Grid size={12}>
                                         {files ? (
                                             <Stack direction="column" sx={{ width: '100%' }}>
                                                 {files.map((file, index) => {
@@ -337,15 +328,15 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                         )}
                                     </Grid>
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
                                 {/* Application Response */}
-                                <Grid container item xs={12} sx={{ alignItems: "center" }} >
-                                    <Grid item xs={5} align="left">
+                                <Grid container size={{ xs: 12 }} sx={{ alignItems: "center" }} >
+                                    <Grid size={{ xs: 5 }} align="left">
                                         Action
                                     </Grid>
-                                    <Grid item xs={7} align="left">
+                                    <Grid size={{ xs: 7 }} align="left">
                                         <FormControl fullWidth>
                                             <InputLabel id="app-response-label">
                                                 Select Action
@@ -359,7 +350,7 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 </Grid>
 
                                 {/* Submit Action */}
-                                <Grid item xs={12} align="center">
+                                <Grid size={12} align="center">
                                     <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={checkInput} >
                                         <p className="m-0">
                                             <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}Confirm Response{" "}
@@ -373,52 +364,62 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                         {/* Employee Details */}
                         <Box sx={{ width: "50%" }}>
                             <Grid container rowSpacing={2}>
-                                <Grid item xs={12} align="left">
-                                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                                <Grid size={12} align="left">
+                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                         Employee Information
                                     </Typography>
                                 </Grid>
-
                                 {/* Employee Name */}
-                                <Grid item xs={5} align="left"> Name </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold" }}> {" "} {appDetails.emp_first_name}{" "} {appDetails.emp_middle_name || ""}{" "} {appDetails.emp_last_name}{" "} {appDetails.emp_suffix || ""}{" "} </Typography>
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Name"
+                                        info={`${appDetails.emp_first_name} ${appDetails.emp_middle_name || ""} ${appDetails.emp_last_name || ""} ${appDetails.emp_suffix || ""}`}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
-
                                 {/* Employee Position */}
-                                <Grid item xs={5} align="left"> Position </Grid>
-
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}{appDetails.emp_job_title}{" "}
-                                    </Typography>
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Position"
+                                        info={appDetails.emp_job_title}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-
                                 {/* Employee Branch */}
-                                <Grid item xs={5} align="left"> Branch </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold" }}> {" "}{appDetails.emp_branch}{" "} </Typography>
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Branch"
+                                        info={appDetails.emp_branch}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-
                                 {/* Employee Department */}
-                                <Grid item xs={5} align="left"> Department </Grid>
-                                <Grid item xs={7} align="left">
-                                    <Typography sx={{ fontWeight: "bold" }}> {" "}{appDetails.emp_department}{" "} </Typography>
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Department"
+                                        info={appDetails.emp_department}
+                                        compact
+                                        clean
+                                    />
                                 </Grid>
-                                <Grid item xs={12} sx={{ my: 0 }} >
+                                <Grid size={12} sx={{ my: 0 }} >
                                     <Divider />
                                 </Grid>
-
                                 {/* Leave Credits */}
-                                <Grid container item xs={12}>
-                                    <Grid item size={12}>
-                                        <div style={{ textDecoration: "underline", }} > Leave Credits </div>
+                                <Grid container size={{ xs: 12 }}>
+                                    <Grid size={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                            Leave Credits
+                                        </Typography>
                                     </Grid>
 
-                                    <Grid item size={12}>
+                                    <Grid size={12}>
                                         <TableContainer>
                                             <Table size="small">
                                                 <TableHead>

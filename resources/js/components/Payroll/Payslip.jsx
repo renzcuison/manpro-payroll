@@ -102,23 +102,8 @@ const Payslip = ({ selectedPayroll }) => {
                     <LoadingSpinner />
                 ) : (
                     <>
-                        <Box
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="center"
-                            sx={{ mt: 1 }}
-                        >
-                            <Box
-                                component="div"
-                                sx={{
-                                    backgroundImage: `url(${HomeLogo})`,
-                                    backgroundSize: "contain",
-                                    backgroundRepeat: "no-repeat",
-                                    backgroundPosition: "center",
-                                    height: 105,
-                                    width: 300,
-                                }}
-                            />
+                        <Box display="flex" flexDirection="column" alignItems="center" sx={{ mt: 1 }} >
+                            <Box component="div" sx={{ backgroundImage: `url(${HomeLogo})`, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center", height: 105, width: 300 }} />
                             <Typography sx={{ marginTop: "5px" }}>
                                 {" "}Online Payslip{" "}
                             </Typography>

@@ -319,7 +319,7 @@ const TrainingView = () => {
                                     <Grid container size={{ xs: 12 }} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                                         {/* Header */}
                                         <Grid size={{ xs: 12 }}>
-                                            <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary", }}>
+                                            <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary" }}>
                                                 About This Training:
                                             </Typography>
                                         </Grid>
@@ -357,7 +357,7 @@ const TrainingView = () => {
                                                 </Stack>
                                             </Box>
                                         </Grid>
-                                        <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0, mb: 1 }} >
                                             <Divider />
                                         </Grid>
                                         {/* Opens */}

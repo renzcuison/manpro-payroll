@@ -137,7 +137,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={URL.createObjectURL(file)}
                     alt={`${contentType} Preview`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ width: "100%", objectFit: "contain" }}
                     onError={() => setFile(null)}
                 />
             );
@@ -150,7 +150,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                     <img
                         src={PDFImage}
                         alt="PDF Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             } else if (fileExtension.match(/\.docx?$/)) {
@@ -158,7 +158,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                     <img
                         src={DocImage}
                         alt="Document Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             }
@@ -166,7 +166,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={DocImage}
                     alt="Document Icon"
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -176,7 +176,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={PPTImage}
                     alt={`${contentType} Icon`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -421,7 +421,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Training Content </Typography>
@@ -432,27 +432,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
-                            {/* Content Type */}
-                            <Grid size={{ xs: 6 }}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="content-type-select-label"> Content Type </InputLabel>
-                                    <Select
-                                        labelId="content-type-select-label"
-                                        id="content-type-select"
-                                        value={contentType}
-                                        label="Content Type"
-                                        onChange={(event) => handleTypeChange(event)}
-                                    >
-                                        <MenuItem value="Video"> Video </MenuItem>
-                                        <MenuItem value="Image"> Image </MenuItem>
-                                        <MenuItem value="Document"> Document </MenuItem>
-                                        <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
-                                        <MenuItem value="Form"> Form </MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
                             {/* Title Field */}
-                            <Grid size={{ xs: 6 }}>
+                            <Grid size={{ xs: 9 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -471,6 +452,25 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                     <FormHelperText>
                                         {title.length}/{128}
                                     </FormHelperText>
+                                </FormControl>
+                            </Grid>
+                            {/* Content Type */}
+                            <Grid size={{ xs: 3 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="content-type-select-label"> Content Type </InputLabel>
+                                    <Select
+                                        labelId="content-type-select-label"
+                                        id="content-type-select"
+                                        value={contentType}
+                                        label="Content Type"
+                                        onChange={(event) => handleTypeChange(event)}
+                                    >
+                                        <MenuItem value="Video"> Video </MenuItem>
+                                        <MenuItem value="Image"> Image </MenuItem>
+                                        <MenuItem value="Document"> Document </MenuItem>
+                                        <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
+                                        <MenuItem value="Form"> Form </MenuItem>
+                                    </Select>
                                 </FormControl>
                             </Grid>
                             {/* Type-Specific Fields */}
@@ -513,8 +513,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         padding: thumbnailUrl ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: thumbnailUrl ? 0 : "4px",
-                                                        width: thumbnailUrl ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: thumbnailUrl ? "auto" : "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >
@@ -522,7 +522,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         <img
                                                             src={thumbnailUrl}
                                                             alt="Video Thumbnail"
-                                                            style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                                                            style={{ width: "100%", objectFit: "contain" }}
                                                             onError={() => setThumbnailUrl(null)}
                                                         />
                                                     ) : (
@@ -592,8 +592,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         padding: file ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: file ? 0 : "4px",
-                                                        width: file ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >

@@ -145,11 +145,15 @@ const AttendanceItems = [
         children: [
             {
                 href: `/employee/attendance-logs`,
-                text: "Attendance Logs",
+                text: "Logs",
             },
+            // {
+            //     href: `/employee/attendance-overtime`,
+            //     text: "Overtime",
+            // },
             {
                 href: `/employee/attendance-summary`,
-                text: "Attendance Summary",
+                text: "Summary",
             },
         ],
     },

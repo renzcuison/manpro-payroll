@@ -207,13 +207,9 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         {/* Description */}
                         <Grid container item xs={12}>
                             <Grid size={12}>
-                                <div
-                                    style={{
-                                        textDecoration: "underline",
-                                    }}
-                                >
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                     Description
-                                </div>
+                                </Typography>
                             </Grid>
                             <Grid size={12} sx={{ mt: 1 }}>
                                 {appDetails.description}
@@ -225,7 +221,9 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                         {/* Attachments */}
                         <Grid container item size={12}>
                             <Grid size={12}>
-                                Attached Files
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    Attached Files
+                                </Typography>
                             </Grid>
                             <Grid size={12}>
                                 {files ? (

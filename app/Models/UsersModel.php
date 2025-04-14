@@ -32,6 +32,7 @@ class UsersModel extends Authenticatable
         'user_type',
         'salary_type',
         'salary',
+        'is_fixed_salary',
         'tin_number',
         'deduct_tax',
 
