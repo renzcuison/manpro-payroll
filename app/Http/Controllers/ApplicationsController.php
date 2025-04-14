@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\ApplicationsModel;
 use App\Models\ApplicationTypesModel;
-use App\Models\ApplicationFilesModel;
 use App\Models\LeaveCreditsModel;
 use App\Models\LogsLeaveCreditsModel;
 use App\Models\UsersModel;
@@ -13,10 +12,8 @@ use App\Models\UsersModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 use Carbon\Carbon;
@@ -186,6 +183,7 @@ class ApplicationsController extends Controller
         try {
             DB::beginTransaction();
 
+            // Application Entry
             $application = ApplicationsModel::create([
                 "type_id" => $request->input('type_id'),
                 "duration_start" => $request->input('from_date'),
@@ -244,17 +242,17 @@ class ApplicationsController extends Controller
             $application->leave_used = $request->input('leave_used');
             $application->save();
 
-            // Get files to delete from deleteAttachments[] (array or null)
+            // File Removal Prep
             $deleteFiles = $request->input('deleteAttachments', []);
             if (!is_array($deleteFiles)) {
-                $deleteFiles = []; // Ensure it’s always an array
+                $deleteFiles = [];
             }
 
             // Remove Files
             if (!empty($deleteFiles)) {
                 $mediaItems = $application->getMedia('*')->whereIn('id', $deleteFiles);
                 foreach ($mediaItems as $media) {
-                    $media->delete(); // Deletes the media record and the file
+                    $media->delete();
                 }
             }
 

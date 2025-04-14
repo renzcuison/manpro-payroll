@@ -206,8 +206,8 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                         backgroundColor: '#f8f9fa',
                         boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
                         borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "850px" },
-                        maxWidth: '900px',
+                        minWidth: { xs: "100%", sm: "900px" },
+                        maxWidth: '1000px',
                         maxHeight: '750px',
                         marginBottom: '5%'
                     }
