@@ -203,7 +203,7 @@ class WorkScheduleController extends Controller
         // log::info("WorkScheduleController::getWorkShiftDetails");
 
         if ($this->checkUser()) {
-            $workShift = WorkShiftsModel::where('id', $request->shift)->first();
+            $workShift = WorkShiftsModel::where('id', $request->selectedShift)->where('client_id', $request->client)->first();
             $workHours = WorkHoursModel::find($workShift->work_hour_id);
             return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
         }
