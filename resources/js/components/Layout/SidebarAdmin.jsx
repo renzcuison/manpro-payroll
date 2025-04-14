@@ -186,7 +186,11 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 href: `/admin/applications?`,
                 text: 'Application Request',
-            }
+            },
+            {
+                href: `/admin/application/leave-credits?`,
+                text: "Leave Credits",
+            },
         ]
     }];
 

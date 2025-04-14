@@ -75,8 +75,6 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits" element={ <ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={ <ProtectedRoute element={<BenefitView />} user={user} /> } />
 
-            <Route path="employees/leave-credits" element={ <ProtectedRoute element={<LeaveCreditList />} user={user} /> } />
-
             <Route path="attendance/logs" element={ <ProtectedRoute element={<AttendanceLogs />} user={user} /> } />
             <Route path="attendance/:user" element={ <ProtectedRoute element={<AttendanceView />} user={user} /> } />
             <Route path="attendance/today" element={ <ProtectedRoute element={<AttendanceToday />} user={user} /> } />
@@ -84,6 +82,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
             <Route path="application/types" element={<ProtectedRoute element={<ApplicationTypes />} user={user} />} />
+            <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} />} />
 
             <Route path="announcements" element={ <ProtectedRoute element={<AnnouncementList />} user={user} /> } />
 

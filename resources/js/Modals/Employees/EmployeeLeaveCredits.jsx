@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table, } from "@mui/material";
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
@@ -13,7 +13,6 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
 const EmployeeLeaveCredits = ({ open, close, employee }) => {
-
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -35,7 +34,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
             .catch((error) => {
                 console.error('Error fetching credits:', error);
             });
-    }
+    };
 
     const getLeaveCreditLogs = () => {
         axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.user_name}`, { headers })
@@ -45,7 +44,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
             .catch((error) => {
                 console.error('Error fetching logs:', error);
             });
-    }
+    };
 
     // ----------- Edit Leave Credits Modal
     const [openEditLeaveCredit, setOpenEditLeaveCredit] = useState(false);
@@ -54,26 +53,26 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     const handleOpenEditLeaveCredit = (leaveInfo) => {
         setLeaveData(leaveInfo);
         setOpenEditLeaveCredit(true);
-    }
+    };
 
     const handleCloseEditLeaveCredit = () => {
         setOpenEditLeaveCredit(false);
         getLeaveCredits();
         getLeaveCreditLogs();
-    }
+    };
 
-    // ----------- Edit Leave Credits Modal
+    // ----------- Add Leave Credits Modal
     const [openAddLeaveCredit, setOpenAddLeaveCredit] = useState(false);
 
     const handleOpenAddLeaveCredit = () => {
         setOpenAddLeaveCredit(true);
-    }
+    };
 
     const handleCloseAddLeaveCredit = () => {
         setOpenAddLeaveCredit(false);
         getLeaveCredits();
         getLeaveCreditLogs();
-    }
+    };
 
     return (
         <>
@@ -129,23 +128,21 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                         </TableHead>
                                         <TableBody>
                                             {leaveCreditLogs.length > 0 ? (
-                                                leaveCreditLogs.map((log, index) => {
-                                                    return (
-                                                        <TableRow key={index}>
-                                                            <TableCell align="left">
-                                                                <Typography>
-                                                                    {dayjs(log.created_at).format('YYYY-MM-DD HH:mm:ss')}
-                                                                </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="left">
-                                                                <Typography>
-                                                                    {`${log.username} ${log.action}`}
-                                                                </Typography>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-
-                                                })) :
+                                                leaveCreditLogs.map((log, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell align="left">
+                                                            <Typography>
+                                                                {dayjs(log.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="left">
+                                                            <Typography>
+                                                                {`${log.username} ${log.action}`}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
                                                 <TableRow>
                                                     <TableCell
                                                         colSpan={5}
@@ -158,12 +155,12 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                         No Leave Credits Found
                                                     </TableCell>
                                                 </TableRow>
-                                            }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                                 <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(false)} >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(false)}>
                                         <p className="m-0">
                                             <i className="fa fa-list"></i>{" "}View Credits
                                         </p>
@@ -172,6 +169,19 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                             </>
                         ) : (
                             <>
+                                {/* Employee Information Section */}
+                                <Box sx={{ mb: 2, textAlign: 'left' }}>
+                                <Typography variant="body1">
+                                        <strong>Employee Name:</strong> {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        <strong>Branch:</strong> {employee.branch || 'Davao'}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        <strong>Department:</strong> {employee.department || 'Unknown'}
+                                    </Typography>
+                                </Box>
+
                                 <TableContainer>
                                     <Table size="small">
                                         <TableHead>
@@ -196,7 +206,6 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                         <TableBody>
                                             {leaveCredits.length > 0 ? (
                                                 leaveCredits.map((leave, index) => {
-
                                                     const remainingCredits = leave.credit_number - leave.credit_used;
                                                     const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
                                                     const remainingEmpty = remainingCredits < (leave.credit_number / 3);
@@ -232,8 +241,8 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                             </TableCell>
                                                         </TableRow>
                                                     );
-
-                                                })) :
+                                                })
+                                            ) : (
                                                 <TableRow>
                                                     <TableCell
                                                         colSpan={5}
@@ -246,17 +255,17 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                         No Leave Credits Found
                                                     </TableCell>
                                                 </TableRow>
-                                            }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                                 <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddLeaveCredit()} >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddLeaveCredit()}>
                                         <p className="m-0">
                                             <i className="fa fa-plus"></i>{" "}Add Leave Credit
                                         </p>
                                     </Button>
-                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(true)} >
+                                    <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => setLogsView(true)}>
                                         <p className="m-0">
                                             <i className="fa fa-list"></i>{" "}View Logs
                                         </p>
@@ -266,21 +275,21 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                         )}
                     </Box>
                 </DialogContent>
-                {openEditLeaveCredit &&
+                {openEditLeaveCredit && (
                     <LeaveCreditEdit
                         open={openEditLeaveCredit}
                         close={handleCloseEditLeaveCredit}
                         leaveData={leaveData}
                     />
-                }
-                {openAddLeaveCredit &&
+                )}
+                {openAddLeaveCredit && (
                     <LeaveCreditAdd
                         open={openAddLeaveCredit}
                         close={handleCloseAddLeaveCredit}
                         empId={employee.user_name}
                     />
-                }
-            </Dialog >
+                )}
+            </Dialog>
         </>
     );
 };
