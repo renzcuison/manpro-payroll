@@ -2,17 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import Layout from "../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
-import "../../../../resources/css/calendar.css";
+import Layout from "../../../components/Layout/Layout";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import "../../../../../resources/css/calendar.css";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import PageHead from "../../components/Table/PageHead";
-import PageToolbar from "../../components/Table/PageToolbar";
-import { getComparator, stableSort } from "../../components/utils/tableUtils";
-import LineGraph from "../../components/utils/LineGraph";
-import VerticalBarGraph from "../../components/utils/VerticalBarGraph";
-import HomeLogo from "../../../images/ManProTab.png";
+import PageHead from "../../../components/Table/PageHead";
+import PageToolbar from "../../../components/Table/PageToolbar";
+import { getComparator, stableSort } from "../../../components/utils/tableUtils";
+import LineGraph from "../../../components/utils/LineGraph";
+import VerticalBarGraph from "../../../components/utils/VerticalBarGraph";
+import HomeLogo from "../../../../images/ManProTab.png";
 
 import { Doughnut } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
@@ -25,7 +25,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const HrDashboard = () => {
+const Dashboard = () => {
 
     const queryParameters = new URLSearchParams(window.location.search);
     const storedUser = localStorage.getItem("nasya_user");
@@ -509,4 +509,4 @@ const HrDashboard = () => {
     );
 };
 
-export default HrDashboard;
+export default Dashboard;

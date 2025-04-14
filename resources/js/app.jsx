@@ -14,7 +14,7 @@ import CheckUser from "./Pages/CheckUser";
 import Dashboard from "./Pages/Dashboard";
 import Invoice from "./Pages/Accounting/Invoice";
 
-import AdminDashboard from "./Pages/Hr/HrDashboard";
+import AdminDashboard from "./Pages/Admin/Dashboard/Dashboard.jsx";
 import EmployeeDashboard from "./Pages/Employee/Dashboard/DashboardView.jsx";
 import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 

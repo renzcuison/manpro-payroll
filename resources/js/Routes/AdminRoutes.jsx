@@ -4,13 +4,14 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Error404 from "../Pages/Errors/Error404";
 
+import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
+
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
 import EmployeeFormLinks from "../Pages/Admin/Employees/EmployeeFormLinks";
 
 import LeaveCreditList from "../Pages/Admin/LeaveCredits/LeaveCreditList";
-
 
 import AllowanceList from "../Pages/Admin/Allowance/AllowanceList";
 
@@ -62,6 +63,8 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
+            <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
+
             <Route path="employee/:user" element={ <ProtectedRoute element={<EmployeeView />} user={user} /> } />
             <Route path="employees" element={ <ProtectedRoute element={<EmployeesList />} user={user} /> } />
             <Route path="employees/add" element={ <ProtectedRoute element={<EmployeesAdd />} user={user} /> } />

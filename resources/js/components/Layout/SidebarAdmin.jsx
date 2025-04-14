@@ -367,7 +367,7 @@ const Sidebar = ({ children, closeMini }) => {
                                     </li>
 
                                     <StyledNav
-                                        to={`/hr/dashboard?year=${moment().year()}`}
+                                        to={`/admin/dashboard?year=${moment().year()}`}
                                     >
                                         <i
                                             className="si si-grid"
