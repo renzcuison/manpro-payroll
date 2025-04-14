@@ -14,9 +14,7 @@ import HrEmployeesDeductions from "../Pages/Hr/HrEmployeesDeductions";
 import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 // import Workshifts from "../Pages/Admin/Workshifts/Workshifts";
 // import Workshift from "../Pages/Admin/Workshifts/Workshift";
-import HrApplications from "../Pages/Hr/HrApplications";
-import HrApplicationList from "../Pages/Hr/HrApplicationList";
-import HrApplicationLeave from "../Pages/Hr/HrApplicationLeave";
+
 import HrAttendance from "../Pages/Hr/HrAttendance";
 import HrAttendanceEmployee from "../Pages/Hr/HrAttendanceEmployee";
 import HrPayrollProcess from "../Pages/Hr/HrPayrollProcess";
@@ -28,7 +26,7 @@ import HrTrainings from "../Pages/Hr/HrTrainings";
 
 import HrSummaryReports from "../Pages/Hr/HrSummaryReports";
 import HrTrainingsView from "../Pages/Hr/HrTrainingsView";
-import HrApplicationOvertime from "../Pages/Hr/HrApplicationOvertime";
+
 import { useReactToPrint } from 'react-to-print';
 
 const HrRoutes = ({ user }) => {
@@ -52,11 +50,6 @@ const HrRoutes = ({ user }) => {
 
       {/* <Route path="workshift" element={<ProtectedRoute element={<Workshift />} user={user} />} /> */}
       {/* <Route path="workshifts" element={<ProtectedRoute element={<Workshifts />} user={user} />} /> */}
-
-      <Route path="applications" element={<ProtectedRoute element={<HrApplications />} user={user} />} />
-      <Route path="applications-list" element={<ProtectedRoute element={<HrApplicationList />} user={user} />} />
-      <Route path="applications-leave" element={<ProtectedRoute element={<HrApplicationLeave />} user={user} />} />
-      <Route path="applications-overtime" element={<ProtectedRoute element={<HrApplicationOvertime />} user={user} />} />
 
       <Route path="attendance" element={<ProtectedRoute element={<HrAttendance />} user={user} />} />
       <Route path="attendance/:month/:year" element={<ProtectedRoute element={<HrAttendance />} user={user} />} />
