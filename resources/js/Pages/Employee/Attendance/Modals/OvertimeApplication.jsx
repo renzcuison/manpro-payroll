@@ -167,9 +167,19 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                             <Grid size={{ xs: 12 }}>
                                 <InfoBox
                                     title="Status"
-                                    info={"You have not yet submitted this overtime period"}
+                                    info={overtime.status == "Unapplied" ? "You have not submitted this overtime period yet." : overtime.status.toUpperCase()}
                                     compact
                                     clean
+                                    color={["Approved", "Paid"].includes(overtime.status)
+                                        ? "#177604"
+                                        : overtime.status === "Declined"
+                                            ? "#f44336"
+                                            : overtime.status === "Pending"
+                                                ? "#e9ae20"
+                                                : overtime.status === "Cancelled"
+                                                    ? "#f57c00"
+                                                    : "#000000"
+                                    }
                                 />
                             </Grid>
                             <Grid size={12} sx={{ my: 0 }}>

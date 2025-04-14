@@ -115,8 +115,23 @@ const AttendanceSummary = () => {
                                                             {formatMinutes(overtime.minutes)}
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            <Typography>
-                                                                {`[insert status]`}
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight:
+                                                                        "bold",
+                                                                    color:
+                                                                        ["Approved", "Paid"].includes(overtime.status)
+                                                                            ? "#177604"
+                                                                            : overtime.status === "Declined"
+                                                                                ? "#f44336"
+                                                                                : overtime.status === "Pending"
+                                                                                    ? "#e9ae20"
+                                                                                    : ["Cancelled", "Unapplied"].includes(overtime.status)
+                                                                                        ? "#f57c00"
+                                                                                        : "#000000",
+                                                                }}
+                                                            >
+                                                                {overtime.status.toUpperCase() || "-"}
                                                             </Typography>
                                                         </TableCell>
                                                     </TableRow>

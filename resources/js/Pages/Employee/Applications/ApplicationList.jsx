@@ -304,23 +304,18 @@ const ApplicationList = () => {
                                                                             fontWeight:
                                                                                 "bold",
                                                                             color:
-                                                                                application.status ===
-                                                                                    "Approved"
+                                                                                application.status === "Approved"
                                                                                     ? "#177604"
-                                                                                    : application.status ===
-                                                                                        "Declined"
+                                                                                    : application.status === "Declined"
                                                                                         ? "#f44336"
-                                                                                        : application.status ===
-                                                                                            "Pending"
+                                                                                        : application.status === "Pending"
                                                                                             ? "#e9ae20"
-                                                                                            : application.status ===
-                                                                                                "Cancelled"
+                                                                                            : application.status === "Cancelled"
                                                                                                 ? "#f57c00"
                                                                                                 : "#000000",
                                                                         }}
                                                                     >
-                                                                        {application.status ||
-                                                                            "-"}
+                                                                        {application.status.toUpperCase() || "-"}
                                                                     </Typography>
                                                                 </TableCell>
                                                                 <TableCell align="center">
