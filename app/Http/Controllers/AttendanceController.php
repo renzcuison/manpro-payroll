@@ -495,79 +495,6 @@ class AttendanceController extends Controller
         }
     }
 
-    public function getAttendanceOvertime()
-    {
-        Log::info("\n");
-        Log::info("AttendanceController::getAttendanceOvertime");
-    
-        $user = Auth::user();
-        $overtime = [];
-    
-        if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
-            $employee = UsersModel::find($user->id);
-            Log::info($employee);
-    
-            // Get all relevant logs
-            $logs = AttendanceLogsModel::where('user_id', $user->id)->whereIn('action', ['Overtime In', 'Overtime Out'])->orderBy('timestamp')->get();
-
-            // Log::info("\n");
-            // Log::info("Raw Attendance Logs for User {$user->id}:");
-            // Log::info($logs);
-            // Log::info("\n");
-    
-            // Group logs by date (based on timestamp)
-            $groupedLogs = [];
-            foreach ($logs as $log) {
-                Log::info("Log action: {$log->action} | timestamp: {$log->timestamp}");
-                $date = \Carbon\Carbon::parse($log->timestamp)->format('Y-m-d');
-                $groupedLogs[$date][] = $log;
-            }
-            
-    
-            // Process each day's logs
-            foreach ($groupedLogs as $date => $dailyLogs) {
-                $in = null;
-                $out = null;
-    
-                foreach ($dailyLogs as $log) {
-                    if ($log->action === 'Overtime In' && !$in) {
-                        $in = $log;
-                    } elseif ($log->action === 'Overtime Out' && !$out) {
-                        $out = $log;
-                    }
-                }
-
-                log::info($in);
-                log::info($out);
-    
-                if ($in && $out) {
-                    $timeIn = \Carbon\Carbon::parse($in->timestamp);
-                    $timeOut = \Carbon\Carbon::parse($out->timestamp);
-                    $minutes = $timeIn->diffInMinutes($timeOut);
-
-                    log::info($date);
-                    log::info($timeIn);
-                    log::info($timeOut);
-                    log::info($minutes);
-    
-                    $overtime[] = [
-                        'date' => $date,
-                        'timeIn' => $timeIn->format('H:i:s'),
-                        'timeOut' => $timeOut->format('H:i:s'),
-                        'minutes' => $minutes,
-                    ];
-                }
-            }
-
-            // log::info($overtime);
-    
-            return response()->json(['status' => 200, 'overtime' => $overtime]);
-        } else {
-            return response()->json(['status' => 200, 'summary' => null]);
-        }
-    }
-    
-
     public function getEmployeeAttendanceSummary(Request $request)
     {
         //Log::info("WorkScheduleController::getEmployeeAttendanceSummary");
@@ -792,6 +719,84 @@ class AttendanceController extends Controller
             ->all();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    public function getAttendanceOvertime()
+    {
+        // Log::info("\n");
+        // Log::info("AttendanceController::getAttendanceOvertime");
+
+        $user = Auth::user();
+        $overtime = [];
+
+        if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
+            $employee = UsersModel::find($user->id);
+            //Log::info($employee);
+
+            // Get all relevant logs
+            $logs = AttendanceLogsModel::where('user_id', $user->id)->whereIn('action', ['Overtime In', 'Overtime Out'])->orderBy('timestamp')->get();
+
+            // Log::info("\n");
+            // Log::info("Raw Attendance Logs for User {$user->id}:");
+            // Log::info($logs);
+            // Log::info("\n");
+
+            // Group logs by date (based on timestamp)
+            $groupedLogs = [];
+            foreach ($logs as $log) {
+                //Log::info("Log action: {$log->action} | timestamp: {$log->timestamp}");
+                $date = Carbon::parse($log->timestamp)->format('Y-m-d');
+                $groupedLogs[$date][] = $log;
+            }
+
+
+            // Process each day's logs
+            foreach ($groupedLogs as $date => $dailyLogs) {
+                $in = null;
+                $out = null;
+
+                foreach ($dailyLogs as $log) {
+                    if ($log->action === 'Overtime In' && !$in) {
+                        $in = $log;
+                    } elseif ($log->action === 'Overtime Out' && !$out) {
+                        $out = $log;
+                    }
+                }
+
+                // log::info($in);
+                // log::info($out);
+
+                if ($in && $out) {
+                    $timeIn = Carbon::parse($in->timestamp);
+                    $timeOut = Carbon::parse($out->timestamp);
+                    $minutes = $timeIn->diffInMinutes($timeOut);
+
+                    // log::info($date);
+                    // log::info($timeIn);
+                    // log::info($timeOut);
+                    // log::info($minutes);
+
+                    $overtime[] = [
+                        'date' => $date,
+                        'timeIn' => $timeIn->format('H:i:s'),
+                        'timeOut' => $timeOut->format('H:i:s'),
+                        'minutes' => $minutes,
+                    ];
+                }
+            }
+
+            //log::info($overtime);
+
+            return response()->json(['status' => 200, 'overtime' => $overtime]);
+        } else {
+            return response()->json(['status' => 200, 'summary' => null]);
+        }
+    }
+
+    public function saveOvertimeApplication(Request $request)
+    {
+        Log::info("AttendanceController::saveOvertimeApplication");
+        Log::info($request);
     }
 
     public function getNagerHolidays($year)

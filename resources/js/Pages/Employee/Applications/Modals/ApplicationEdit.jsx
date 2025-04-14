@@ -628,7 +628,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         value={appType}
                                         error={appTypeError || tenureshipError}
                                         onChange={(event) => handleTypeChange(event.target.value)}
-                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? s : ""}` : ""}
+                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? 's' : ""}` : ""}
                                     >
                                         {applicationTypes
                                             .sort((a, b) => {

@@ -42,7 +42,11 @@
     "src": "resources/images/logo.png"
   },
   "resources/js/app.jsx": {
+<<<<<<< HEAD
     "file": "assets/app-D0lic17X.js",
+=======
+    "file": "assets/app-CIdBIhN7.js",
+>>>>>>> Lance-Vite-Development
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
