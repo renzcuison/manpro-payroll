@@ -17,11 +17,7 @@ import HrEmployeesCalendar from "../Pages/Hr/HrEmployeesCalendar";
 
 import HrAttendance from "../Pages/Hr/HrAttendance";
 import HrAttendanceEmployee from "../Pages/Hr/HrAttendanceEmployee";
-import HrPayrollProcess from "../Pages/Hr/HrPayrollProcess";
-import HrPayrollProcessUnextended from "../Pages/Hr/HrPayrollProcessUnextended";
-import HrPayrollProcessExtended from "../Pages/Hr/HrPayrollProcessExtended";
-import HrPayrollRecords from "../Pages/Hr/HrPayrollRecords";
-import HrPayrollSummary from "../Pages/Hr/HrPayrollSummary";
+
 import HrTrainings from "../Pages/Hr/HrTrainings";
 
 import HrSummaryReports from "../Pages/Hr/HrSummaryReports";
@@ -54,11 +50,6 @@ const HrRoutes = ({ user }) => {
       <Route path="attendance" element={<ProtectedRoute element={<HrAttendance />} user={user} />} />
       <Route path="attendance/:month/:year" element={<ProtectedRoute element={<HrAttendance />} user={user} />} />
       <Route path="attendance-employee/:month/:year/:employeeId" element={<ProtectedRoute element={<HrAttendanceEmployee />} user={user} />} />
-      <Route path="payroll-process" element={<ProtectedRoute element={<HrPayrollProcess />} user={user} />} />
-      <Route path="payroll-process/unextended" element={<ProtectedRoute element={<HrPayrollProcessUnextended />} user={user} />} />
-      <Route path="payroll-process/extended" element={<ProtectedRoute element={<HrPayrollProcessExtended />} user={user} />} />
-      <Route path="payroll-records" element={<ProtectedRoute element={<HrPayrollRecords />} user={user} />} />
-      <Route path="payroll-summary" element={<ProtectedRoute element={<HrPayrollSummary />} user={user} />} />
 
       <Route path="trainings" element={<ProtectedRoute element={<HrTrainings />} user={user} />} />
       <Route path="summary-reports" element={<ProtectedRoute element={<HrSummaryReports />} user={user} />} />
