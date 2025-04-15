@@ -407,7 +407,6 @@ class ApplicationsController extends Controller
     public function getLeaveCredits($userName)
     {
         //Log::info("ApplicationsController::getLeaveCredits");
-        Log::info($userName);
 
         $user = Auth::user();
 

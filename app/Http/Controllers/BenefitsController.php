@@ -39,8 +39,7 @@ class BenefitsController extends Controller
 
     public function getBenefit(Request $request)
     {
-        Log::info("BenefitsController::getBenefit");
-        log::info($request);
+        // Log::info("BenefitsController::getBenefit");
 
         try {
             $decryptedId = Crypt::decryptString($request->id);
