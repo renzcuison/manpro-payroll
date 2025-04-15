@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ApplicationsModel;
+use App\Models\ApplicationsOvertimeModel;
 use App\Models\ApplicationTypesModel;
+use App\Models\AttendanceLogsModel;
 use App\Models\LeaveCreditsModel;
 use App\Models\LogsLeaveCreditsModel;
 use App\Models\UsersModel;
@@ -310,11 +312,11 @@ class ApplicationsController extends Controller
         //Log::info($request);
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        $application = ApplicationsModel::find($request->input('app_id'));
+
+        if ($this->checkUser() && ($user->client_id == $application->client_id)) {
             try {
                 DB::beginTransaction();
-
-                $application = ApplicationsModel::find($request->input('app_id'));
 
                 if (!$application) {
                     //Log::error('Application not found for ID: ' . $id);
@@ -359,7 +361,7 @@ class ApplicationsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200, 'message' => null], 200);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -563,6 +565,118 @@ class ApplicationsController extends Controller
             }
         } else {
             return response()->json(['status' => 200, "logs" => null]);
+        }
+    }
+
+    public function saveOvertimeApplication(Request $request)
+    {
+        // Log::info("ApplicationsController::saveOvertimeApplication");
+        // Log::info($request);
+        $user = Auth::user();
+
+        try {
+            DB::beginTransaction();
+            $overtimeDay = $request->input('ot_date');
+            $overtimeIn = $request->input('ot_in');
+            $overtimeOut = $request->input('ot_out');
+
+            $otTimeIn = "$overtimeDay $overtimeIn";
+            $otTimeOut = "$overtimeDay $overtimeOut";
+
+            $timeInDateTime = Carbon::parse($otTimeIn);
+            $timeOutDateTime = Carbon::parse($otTimeOut);
+
+            $timeIn = AttendanceLogsModel::where('user_id', $user->id)
+                ->where('action', 'Overtime In')
+                ->where('timestamp', $timeInDateTime)
+                ->first();
+
+            $timeOut = AttendanceLogsModel::where('user_id', $user->id)
+                ->where('action', 'Overtime Out')
+                ->where('timestamp', $timeOutDateTime)
+                ->first();
+
+            ApplicationsOvertimeModel::create([
+                'user_id' => $user->id,
+                'client_id' => $user->client_id,
+                'time_in_id' => $timeIn->id,
+                'time_out_id' => $timeOut->id,
+                'reason' => $request->input('reason')
+            ]);
+
+            DB::commit();
+
+            return response()->json(['status' => 200, 'message' => 'overtime submitted successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            //Log::error("Error saving: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'error saving overtime application'], 500);
+            throw $e;
+        }
+    }
+
+    public function getOvertimeApplications()
+    {
+        // Log::info("ApplicationsController::saveOvertimeApplication");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $applications = ApplicationsOvertimeModel::where('client_id', $user->client_id)
+                ->with(['user', 'timeIn', 'timeOut'])
+                ->where('status', 'Pending')
+                ->get();
+
+            $appData = [];
+            foreach ($applications as $app) {
+                $appUser = $app->user;
+                $timeIn = $app->timeIn;
+                $timeOut = $app->timeOut;
+
+                $appData[] = [
+                    'id' => $app->id,
+                    'time_in' => $timeIn->timestamp,
+                    'time_out' => $timeOut->timestamp,
+                    'reason' => $app->reason ?? '',
+                    'requested' => $app->created_at,
+                    'emp_user_name' => $appUser->user_name,
+                    'emp_first_name' => $appUser->first_name ?? '',
+                    'emp_middle_name' => $appUser->middle_name ?? '',
+                    'emp_last_name' => $appUser->last_name ?? '',
+                    'emp_suffix' => $appUser->suffix ?? '',
+                ];
+            }
+            return response()->json(['status' => 200, 'applications' => $appData]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function manageOvertimeApplication(Request $request)
+    {
+        Log::info("ApplicationsController::manageOvertimeApplication");
+        Log::info($request);
+
+        $user = Auth::user();
+
+        $overtime = ApplicationsOvertimeModel::find($request->input('app_id'));
+
+        if ($this->checkUser() && ($user->client_id == $overtime->client_id)) {
+            $status = $request->input('app_response');
+            $message = null;
+
+            switch ($status) {
+                case "Approve":
+                    $overtime->status = "Approved";
+                    $message = "Overtime approved successfully";
+                    break;
+                case "Decline":
+                    $overtime->status = "Declined";
+                    $message = "Overtime declined successfully";
+            }
+            $overtime->save();
+            return response()->json(['status' => 200, 'message' => $message], 200);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 

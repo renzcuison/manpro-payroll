@@ -68,7 +68,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
         formData.append("reason", reason);
 
         axiosInstance
-            .post("/attendance/saveOvertimeApplication", formData, {
+            .post("/applications/saveOvertimeApplication", formData, {
                 headers,
             })
             .then((response) => {
@@ -151,7 +151,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                     rows={3}
                                     label="Reason"
                                     variant="outlined"
-                                    value={reason}
+                                    value={overtime.reason || reason}
                                     error={reasonError}
                                     onChange={(event) => {
                                         if (event.target.value.length <= 512) {
@@ -159,6 +159,9 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                         }
                                     }}
                                     helperText={reasonError ? "Reason is required" : `${reason.length}/512`}
+                                    InputProps={{
+                                        readOnly: overtime.reason,
+                                    }}
                                 />
                             </Grid>
                             <Grid size={12} sx={{ my: 0 }}>
@@ -182,25 +185,38 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                     }
                                 />
                             </Grid>
-                            <Grid size={12} sx={{ my: 0 }}>
-                                <Divider />
-                            </Grid>
-                            <Grid size={{ xs: 12 }} align="center" sx={{ justifyContent: "center", alignItems: "center", }} >
-                                <Button
-                                    onClick={checkInput}
-                                    variant="contained"
-                                    sx={{
-                                        backgroundColor: "#177604",
-                                        color: "white",
-                                    }}
-                                    className="m-1"
-                                >
-                                    <p className="m-0">
-                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
-                                        Submit Overtime{" "}
-                                    </p>
-                                </Button>
-                            </Grid>
+                            {overtime.status == "Unapplied" ? (
+                                <>
+                                    <Grid size={12} sx={{ my: 0 }}>
+                                        <Divider />
+                                    </Grid>
+                                    <Grid size={{ xs: 12 }} align="center" sx={{ justifyContent: "center", alignItems: "center", }} >
+                                        <Button
+                                            onClick={checkInput}
+                                            variant="contained"
+                                            sx={{
+                                                backgroundColor: "#177604",
+                                                color: "white",
+                                            }}
+                                            className="m-1"
+                                        >
+                                            <p className="m-0">
+                                                <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
+                                                Submit Overtime{" "}
+                                            </p>
+                                        </Button>
+                                    </Grid>
+                                </>
+                            ) : (
+                                <Grid size={{ xs: 12 }}>
+                                    <InfoBox
+                                        title="Application Date"
+                                        info={dayjs(overtime.requested).format('MMMM D, YYYY hh:mm A')}
+                                        compact
+                                        clean
+                                    />
+                                </Grid>
+                            )}
                         </Grid>
                     </Box>
                 </DialogContent>

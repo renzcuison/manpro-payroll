@@ -552,6 +552,16 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             formData.append('deleteImages[]', null);
         }
 
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Please wait...",
+            text: "Updating your application...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
         axiosInstance
             .post("/applications/editApplication", formData, {
                 headers,
@@ -578,7 +588,17 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             })
             .catch((error) => {
                 console.error("Error:", error);
-                document.body.setAttribute("aria-hidden", "true");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Error!",
+                    text: "Failed to update your application. Please try again.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#d33",
+                }).then(() => {
+                    document.body.setAttribute("aria-hidden", "true");
+                });
             });
     };
 

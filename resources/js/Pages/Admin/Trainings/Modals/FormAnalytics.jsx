@@ -125,8 +125,8 @@ const FormAnalytics = ({ open, close, contentId }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
-                        minWidth: { xs: "100%", sm: "750px" },
-                        maxWidth: "850px",
+                        minWidth: { xs: "100%", sm: "900px" },
+                        maxWidth: "950px",
                         marginBottom: "5%",
                     },
                 }}
@@ -240,7 +240,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                             },
                                         ]}
                                         grid={{ vertical: true }}
-                                        width={570}
+                                        width={620}
                                         height={200}
                                         borderRadius={4}
                                         layout="horizontal"
@@ -539,7 +539,7 @@ const FormAnalytics = ({ open, close, contentId }) => {
                                                                         },
                                                                     ]}
                                                                     height={200}
-                                                                    width={700}
+                                                                    width={800}
                                                                     margin={{ left: 50, top: 20, bottom: 50, right: 20 }}
                                                                 />
                                                             </Box>

@@ -150,7 +150,7 @@ const ContentEdit = ({ open, close, content }) => {
                 <img
                     src={URL.createObjectURL(file)}
                     alt={`${contentType} Preview`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ width: "100%", objectFit: "contain" }}
                     onError={() => setFile(null)}
                 />
             );
@@ -163,7 +163,7 @@ const ContentEdit = ({ open, close, content }) => {
                     <img
                         src={PDFImage}
                         alt="PDF Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             } else if (fileExtension.match(/\.docx?$/)) {
@@ -171,7 +171,7 @@ const ContentEdit = ({ open, close, content }) => {
                     <img
                         src={DocImage}
                         alt="Document Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             }
@@ -179,7 +179,7 @@ const ContentEdit = ({ open, close, content }) => {
                 <img
                     src={DocImage}
                     alt="Document Icon"
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -189,7 +189,7 @@ const ContentEdit = ({ open, close, content }) => {
                 <img
                     src={PPTImage}
                     alt={`${contentType} Icon`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -433,7 +433,7 @@ const ContentEdit = ({ open, close, content }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> {`Edit Training ${content.content.type ? content.content.type : "Form"}`} </Typography>
@@ -523,8 +523,8 @@ const ContentEdit = ({ open, close, content }) => {
                                                         padding: thumbnailUrl ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: thumbnailUrl ? 0 : "4px",
-                                                        width: thumbnailUrl ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: thumbnailUrl ? "auto" : "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >
@@ -532,7 +532,7 @@ const ContentEdit = ({ open, close, content }) => {
                                                         <img
                                                             src={thumbnailUrl}
                                                             alt="Video Thumbnail"
-                                                            style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                                                            style={{ maxWidth: "100%", objectFit: "contain" }}
                                                             onError={() => setThumbnailUrl(null)}
                                                         />
                                                     ) : (
@@ -617,8 +617,8 @@ const ContentEdit = ({ open, close, content }) => {
                                                         padding: file ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: file ? 0 : "4px",
-                                                        width: file ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >

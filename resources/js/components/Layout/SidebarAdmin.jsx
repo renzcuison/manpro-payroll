@@ -121,13 +121,13 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Allowance",
                 },
                 // {
-                    // href: `/admin/employees/leave-credits?`,
-                    // text: "Leave Credits",
+                // href: `/admin/employees/leave-credits?`,
+                // text: "Leave Credits",
                 // },
                 // {
-                    // href: `/hr/employees-deductions?`,
-                    // text: 'List of Deductions',
-                    // icon: 'si si-user',
+                // href: `/hr/employees-deductions?`,
+                // text: 'List of Deductions',
+                // icon: 'si si-user',
                 // },
             ],
         },
@@ -191,6 +191,10 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/application/leave-credits?`,
                 text: "Leave Credits",
             },
+            {
+                href: `/admin/application/overtimes?`,
+                text: 'Overtime Requests',
+            }
         ]
     }];
 
