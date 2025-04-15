@@ -40,7 +40,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-import ApplicationManage from "./Modals/ApplicationManage";
+import OvertimeManage from "./Modals/OvertimeManage";
 
 const OvertimeAppsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -48,18 +48,19 @@ const OvertimeAppsList = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [applications, setApplications] = useState([]);
+    const [overtimes, setOvertimes] = useState([]);
 
     // ---------------- Application List'
     useEffect(() => {
-        fetchApplications();
+        fetchOvertime();
     }, []);
 
-    const fetchApplications = () => {
+    const fetchOvertime = () => {
+        setIsLoading(true);
         axiosInstance
             .get("/applications/getOvertimeApplications", { headers })
             .then((response) => {
-                setApplications(response.data.applications);
+                setOvertimes(response.data.applications);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -68,15 +69,19 @@ const OvertimeAppsList = () => {
             });
     };
 
-    // ---------------- Application Details
-    const [openApplicationManage, setOpenApplicationManage] = useState(null);
-    const handleOpenApplicationManage = (appDetails) => {
-        setOpenApplicationManage(appDetails);
-    };
-    const handleCloseApplicationManage = () => {
-        setOpenApplicationManage(null);
-        fetchApplications();
-    };
+    // Overtime Details
+    const [openOvertimeManage, setOpenOvertimeManage] = useState(false);
+    const [loadOvertime, setLoadOvertime] = useState(null);
+    const handleOpenOvertimeManage = (overtime) => {
+        setLoadOvertime(overtime);
+        setOpenOvertimeManage(true);
+    }
+    const handleCloseOvertimeManage = (reload) => {
+        setOpenOvertimeManage(false);
+        if (reload) {
+            fetchOvertime();
+        }
+    }
 
     return (
         <Layout title={"ApplicationsList"}>
@@ -115,11 +120,11 @@ const OvertimeAppsList = () => {
                                         </TableHead>
 
                                         <TableBody>{
-                                            applications.length > 0 ? (applications.map(
-                                                (application, index) => (
+                                            overtimes.length > 0 ? (overtimes.map(
+                                                (overtime, index) => (
                                                     <TableRow
-                                                        key={application.id}
-                                                        onClick={() => handleOpenApplicationManage(application)}
+                                                        key={overtime.id}
+                                                        onClick={() => handleOpenOvertimeManage(overtime)}
                                                         sx={{
                                                             p: 1,
                                                             backgroundColor:
@@ -135,19 +140,19 @@ const OvertimeAppsList = () => {
                                                     >
                                                         <TableCell align="left">
                                                             {" "}
-                                                            {application.emp_first_name}{" "}
-                                                            {application.emp_middle_name || ""}{" "}
-                                                            {application.emp_last_name}{" "}
-                                                            {application.emp_suffix || ""}{" "}
+                                                            {overtime.emp_first_name}{" "}
+                                                            {overtime.emp_middle_name || ""}{" "}
+                                                            {overtime.emp_last_name}{" "}
+                                                            {overtime.emp_suffix || ""}{" "}
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            {dayjs(application.time_in).format('MMMM D, YYYY')}
+                                                            {dayjs(overtime.time_in).format('MMMM D, YYYY')}
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            {dayjs(application.time_in).format('hh:mm:ss A')}
+                                                            {dayjs(overtime.time_in).format('hh:mm:ss A')}
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            {dayjs(application.time_out).format('hh:mm:ss A')}
+                                                            {dayjs(overtime.time_out).format('hh:mm:ss A')}
                                                         </TableCell>
                                                     </TableRow>
                                                 )
@@ -172,11 +177,11 @@ const OvertimeAppsList = () => {
                     </Box>
                 </Box>
             </Box>
-            {openApplicationManage && (
-                <ApplicationManage
-                    open={true}
-                    close={handleCloseApplicationManage}
-                    appDetails={openApplicationManage}
+            {openOvertimeManage && (
+                <OvertimeManage
+                    open={openOvertimeManage}
+                    close={handleCloseOvertimeManage}
+                    overtime={loadOvertime}
                 />
             )}
         </Layout>

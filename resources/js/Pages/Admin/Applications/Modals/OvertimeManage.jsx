@@ -20,22 +20,22 @@ const OvertimeManage = ({ open, close, overtime }) => {
     const [reason, setReason] = useState('');
     const [reasonError, setReasonError] = useState(false);
 
-    const formatTime = (time) => {
-        return time ? dayjs(`${overtime.date}T${time}`).format('hh:mm:ss A') : '';
-    };
+    const [appResponse, setAppResponse] = useState('');
+    const [appResponseError, setAppResponseError] = useState(false);
 
-    const formatDate = (date) => {
-        return date ? dayjs(date).format('MM/DD/YYYY') : '';
-    };
+    const checkInput = (event) => {
+        event.preventDefault();
 
-    const checkInput = () => {
-        setReasonError(!reason);
-
-        if (!reason) {
+        if (!appResponse) {
+            setAppResponseError(true);
+        } else {
+            setAppResponseError(false);
+        }
+        if (!appResponse) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: 'Add a Reason',
+                text: "Select an Action!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -44,31 +44,30 @@ const OvertimeManage = ({ open, close, overtime }) => {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "Do you want to submit this overtime?",
+                title: `${appResponse} application?`,
+                text: "This action cannot be undone",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Save",
-                confirmButtonColor: "#177604",
+                confirmButtonText: appResponse,
+                confirmButtonColor: `${appResponse == "Approve" ? "#177604" : "#f44336"}`,
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
             }).then((res) => {
                 if (res.isConfirmed) {
-                    saveInput();
+                    saveInput(event);
                 }
             });
         }
     }
 
     const saveInput = () => {
-        const formData = new FormData();
-        formData.append("ot_date", overtime.date);
-        formData.append("ot_in", overtime.timeIn);
-        formData.append("ot_out", overtime.timeOut);
-        formData.append("reason", reason);
+        const data = {
+            app_id: overtime.id,
+            app_response: appResponse,
+        }
 
         axiosInstance
-            .post("/applications/saveOvertimeApplication", formData, {
+            .post("/applications/manageOvertimeApplication", data, {
                 headers,
             })
             .then((response) => {
@@ -77,7 +76,7 @@ const OvertimeManage = ({ open, close, overtime }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Overtime successfully submitted`,
+                        text: `Overtime successfully ${appResponse == "Approve" ? "Approved" : "Declined"}`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",
@@ -99,124 +98,96 @@ const OvertimeManage = ({ open, close, overtime }) => {
                 fullWidth
                 maxWidth="md"
                 PaperProps={{
-                    style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' }
+                    style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "500px" }, maxWidth: '600px', marginBottom: '5%' }
                 }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Overtime Application </Typography>
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Overtime Details </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ padding: 5, mt: 2, mb: 1 }}>
                     <Box sx={{ mt: 1, width: "100%" }}>
                         <Grid container spacing={2}>
-                            <Grid size={{ xs: 4 }}>
-                                <TextField
-                                    label="Date"
-                                    value={formatDate(overtime.date)}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    variant="outlined"
+                            {/* Overtime Date */}
+                            <Grid size={{ xs: 12 }}>
+                                <InfoBox
+                                    title="Overtime Date"
+                                    info={dayjs(overtime.time_in).format('MMMM D, YYYY')}
+                                    compact
+                                    clean
                                 />
                             </Grid>
-                            <Grid size={{ xs: 4 }}>
-                                <TextField
-                                    label="Time In"
-                                    value={formatTime(overtime.timeIn)}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    variant="outlined"
+                            {/* Time In */}
+                            <Grid size={{ xs: 12 }}>
+                                <InfoBox
+                                    title="Time In"
+                                    info={dayjs(overtime.time_in).format('hh:mm:ss A')}
+                                    compact
+                                    clean
                                 />
                             </Grid>
-                            <Grid size={{ xs: 4 }}>
-                                <TextField
-                                    label="Time Out"
-                                    value={formatTime(overtime.timeOut)}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    variant="outlined"
+                            {/* Time Out */}
+                            <Grid size={{ xs: 12 }}>
+                                <InfoBox
+                                    title="Time Out"
+                                    info={dayjs(overtime.time_out).format('hh:mm:ss A')}
+                                    compact
+                                    clean
                                 />
                             </Grid>
-                            <Grid size={12}>
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={3}
-                                    label="Reason"
-                                    variant="outlined"
-                                    value={overtime.reason || reason}
-                                    error={reasonError}
-                                    onChange={(event) => {
-                                        if (event.target.value.length <= 512) {
-                                            setReason(event.target.value);
-                                        }
-                                    }}
-                                    helperText={reasonError ? "Reason is required" : `${reason.length}/512`}
-                                    InputProps={{
-                                        readOnly: overtime.reason,
-                                    }}
+                            {/* Request Date */}
+                            <Grid size={{ xs: 12 }}>
+                                <InfoBox
+                                    title="Date Requested"
+                                    info={dayjs(overtime.requested).format('MMMM D, YYYY hh:mm A')}
+                                    compact
+                                    clean
                                 />
                             </Grid>
                             <Grid size={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            <Grid size={{ xs: 12 }}>
-                                <InfoBox
-                                    title="Status"
-                                    info={overtime.status == "Unapplied" ? "You have not submitted this overtime period yet." : overtime.status.toUpperCase()}
-                                    compact
-                                    clean
-                                    color={["Approved", "Paid"].includes(overtime.status)
-                                        ? "#177604"
-                                        : overtime.status === "Declined"
-                                            ? "#f44336"
-                                            : overtime.status === "Pending"
-                                                ? "#e9ae20"
-                                                : overtime.status === "Cancelled"
-                                                    ? "#f57c00"
-                                                    : "#000000"
-                                    }
-                                />
+                            {/* Reason */}
+                            <Grid size={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Reason
+                                </Typography>
+                                <Typography>
+                                    {overtime.reason}
+                                </Typography>
                             </Grid>
-                            {overtime.status == "Unapplied" ? (
-                                <>
-                                    <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid>
-                                    <Grid size={{ xs: 12 }} align="center" sx={{ justifyContent: "center", alignItems: "center", }} >
-                                        <Button
-                                            onClick={checkInput}
-                                            variant="contained"
-                                            sx={{
-                                                backgroundColor: "#177604",
-                                                color: "white",
-                                            }}
-                                            className="m-1"
-                                        >
-                                            <p className="m-0">
-                                                <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
-                                                Submit Overtime{" "}
-                                            </p>
-                                        </Button>
-                                    </Grid>
-                                </>
-                            ) : (
-                                <Grid size={{ xs: 12 }}>
-                                    <InfoBox
-                                        title="Application Date"
-                                        info={dayjs(overtime.requested).format('MMMM D, YYYY hh:mm A')}
-                                        compact
-                                        clean
-                                    />
+                            <Grid size={12} sx={{ my: 0 }}>
+                                <Divider />
+                            </Grid>
+                            {/* Application Response */}
+                            <Grid container size={{ xs: 12 }} sx={{ alignItems: "center" }} >
+                                <Grid size={{ xs: 5 }} align="left">
+                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                        Action
+                                    </Typography>
                                 </Grid>
-                            )}
+                                <Grid size={{ xs: 7 }} align="left">
+                                    <FormControl fullWidth>
+                                        <InputLabel id="app-response-label">
+                                            Select Action
+                                        </InputLabel>
+                                        <Select labelId="app-response-label" id="app-response" value={appResponse} error={appResponseError} label="Select Action" onChange={(event) => setAppResponse(event.target.value)} >
+                                            <MenuItem value="Approve"> Approve </MenuItem>
+                                            <MenuItem value="Decline"> Decline </MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                            {/* Submit Button */}
+                            <Grid size={12} align="center">
+                                <Button variant="contained" sx={{ mt: 2, backgroundColor: "#177604", color: "white" }} onClick={checkInput} >
+                                    <p className="m-0">
+                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}Confirm Response{" "}
+                                    </p>
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Box>
                 </DialogContent>

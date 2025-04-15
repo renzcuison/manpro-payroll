@@ -176,19 +176,21 @@ const ApplicationManage = ({ open, close, appDetails }) => {
 
         axiosInstance.post(`applications/manageApplication`, data, { headers })
             .then((response) => {
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `The application has been ${appResponse == "Approve" ? "Approved" : "Declined"}.`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close();
-                    }
-                });
+                if (response.data.status == 200) {
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `The application has been ${appResponse == "Approve" ? "Approved" : "Declined"}.`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close();
+                        }
+                    });
+                }
             })
             .catch((error) => {
                 console.error("Error managing application:", error);
@@ -334,7 +336,9 @@ const ApplicationManage = ({ open, close, appDetails }) => {
                                 {/* Application Response */}
                                 <Grid container size={{ xs: 12 }} sx={{ alignItems: "center" }} >
                                     <Grid size={{ xs: 5 }} align="left">
-                                        Action
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                            Action
+                                        </Typography>
                                     </Grid>
                                     <Grid size={{ xs: 7 }} align="left">
                                         <FormControl fullWidth>

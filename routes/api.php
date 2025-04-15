@@ -232,6 +232,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveOvertimeApplication', [ApplicationsController::class, 'saveOvertimeApplication']);
 
         Route::get('/getOvertimeApplications', [ApplicationsController::class, 'getOvertimeApplications']);
+        Route::post('/manageOvertimeApplication', [ApplicationsController::class, 'manageOvertimeApplication']);
     });
 
     Route::prefix('announcements')->group(function () {
