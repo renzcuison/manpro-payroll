@@ -18,128 +18,9 @@ const useIsActive = (path) => {
     return location.pathname.startsWith(path);
 };
 
-const sidebarItems = [
-    {
-        id: 1,
-        text: "Employees",
-        icon: "si si-users",
-        children: [
-            {
-                href: `/hr/employees?`,
-                text: "List of Employees",
-                icon: "si si-user",
-            },
-            {
-                href: `/hr/employees-benefits?`,
-                text: "List of Benefits",
-                icon: "si si-user",
-            },
-            {
-                href: `/hr/employees-deductions?`,
-                text: "List of Deductions",
-                icon: "si si-user",
-            },
-        ],
-    },
-    {
-        id: 2,
-        text: "Applications",
-        icon: "fa fa-pencil-square-o",
-        children: [
-            {
-                href: `/hr/applications?`,
-                text: "Request",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-list?`,
-                text: "List",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-leave?`,
-                text: "Leave Credit",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-overtime?`,
-                text: "Overtime",
-                icon: "fa fa-cogs",
-            },
-        ],
-    },
-];
-
-const payrollItems = [
-    {
-        id: 3,
-        text: "Payroll",
-        icon: "fa fa-money",
-        children: [
-            {
-                href: `/hr/payroll-process?`,
-                text: "Process",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/payroll-records?month=${moment().format(
-                    "M"
-                )}&cutoff=${1}&year=${moment().year()}&`,
-                text: "Records",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/payroll-summary?month=${moment().format(
-                    "M"
-                )}&cutoff=${1}&year=${moment().year()}&`,
-                text: "Summary",
-                icon: "fa fa-cogs",
-            },
-        ],
-    },
-];
-
-const settingsItems = [
-    {
-        id: 4,
-        text: "Settings",
-        icon: "fa fa-gear",
-        children: [
-            {
-                href: `/personal-details?`,
-                text: "Personal Details",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/change-password?`,
-                text: "Change Password",
-                icon: "fa fa-cogs",
-            },
-        ],
-    },
-];
-
-const evaluationItems = [
-    {
-        id: 4,
-        text: "Performance Evaluation",
-        icon: "fa fa-check",
-        children: [
-            {
-                href: `/member/evaluate`,
-                text: "Evaluate",
-            },
-            {
-                href: `/member/evaluation`,
-                text: "My Evaluation",
-            },
-        ],
-    },
-];
-
 const AttendanceItems = [
     {
-        id: 5,
+        id: 1,
         text: "Attendance",
         icon: "fa fa-check",
         children: [
@@ -159,36 +40,35 @@ const AttendanceItems = [
     },
 ];
 
+const evaluationItems = [
+    {
+        id: 2,
+        text: "Performance Evaluation",
+        icon: "fa fa-check",
+        children: [
+            {
+                href: `/member/evaluate`,
+                text: "Evaluate",
+            },
+            {
+                href: `/member/evaluation`,
+                text: "My Evaluation",
+            },
+        ],
+    },
+];
+
 const StyledNav = styled(NavLink)(({ isActive }) => ({
     backgroundColor: "transparent",
-    ":hover": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
-    "&.active": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
+    ":hover": { backgroundColor: "rgb(233, 171, 19,0.7)", "& #navName": { color: "white" }},
+    "&.active": { backgroundColor: "rgb(233, 171, 19,0.7)", "& #navName": { color: "white" }},
 }));
 
 const Sidebar = ({ children, closeMini }) => {
     const { user } = useUser();
-    const navigate = useNavigate();
-    const dayToday = moment().format("DD");
-    const handleNavigate = (link) => {
-        navigate(link);
-    };
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [workshifts, setWorkshifts] = useState([]);
-
-    const isAttendanceActive = useIsActive("/hr/attendance");
-    const isAttendanceEmployeeActive = useIsActive("/hr/attendance-employee");
-
-    const isReportsActive = useIsActive("/reports");
-    const isReportEditActive = useIsActive("/report-edit");
-    const isReportCreateActive = useIsActive("/report-create");
 
     const [imagePath, setImagePath] = useState('');
 
@@ -229,10 +109,7 @@ const Sidebar = ({ children, closeMini }) => {
     }, [imagePath]);
 
     return (
-        <nav
-            id="sidebar"
-            style={{ zIndex: 1, height: "100vh", overflow: "hidden" }}
-        >
+        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">
@@ -258,19 +135,7 @@ const Sidebar = ({ children, closeMini }) => {
                         <div className="sidebar-mini-hidden-b text-center">
                             <div className="sidebar-mini-hidden-b text-center">
                                 <Box display="flex" flexDirection="column" alignItems="center">
-                                    <Avatar
-                                        src={imagePath ? imagePath : HomeLogo}
-                                        alt={`${user.first_name} ${user.last_name}`}
-                                        sx={{
-                                            width: 64,
-                                            height: 64,
-                                            objectFit: 'contain',
-                                            bgcolor: 'grey.300',
-                                            '& .MuiAvatar-img': {
-                                                objectFit: 'cover',
-                                            },
-                                        }}
-                                    />
+                                    <Avatar src={imagePath ? imagePath : HomeLogo} alt={`${user.first_name} ${user.last_name}`} sx={{ width: 64, height: 64, objectFit: 'contain', bgcolor: 'grey.300', '& .MuiAvatar-img': { objectFit: 'cover' }, }} />
                                     <ul className="list-inline mt-10">
                                         <li className="list-inline-item">
                                             {/* <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.fname)} {capitalize(user.lname)}</a> */}
