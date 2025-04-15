@@ -196,6 +196,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/createProposal/{id}', [LoanApplicationsController::class, 'createProposal']);
         Route::post('/respondToProposal/{id}', [LoanApplicationsController::class, 'respondToProposal']);
         Route::get('/getLoanProposal/{id}', [LoanApplicationsController::class, 'getLoanProposal']);
+
+        Route::get('/getCurrentLoans/{employeeId}', [LoanApplicationsController::class, 'getCurrentLoans']);
     });
 
     Route::prefix('applications')->group(function () {

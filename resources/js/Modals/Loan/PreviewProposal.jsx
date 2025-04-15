@@ -17,7 +17,7 @@ import {
   IconButton,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 
 const style = {
