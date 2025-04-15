@@ -9,7 +9,7 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import PreviewProposal from '../../../../components/Loan/Modal/PreviewProposal';
+import PreviewProposal from '../../../../Modals/Loan/PreviewProposal';
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);

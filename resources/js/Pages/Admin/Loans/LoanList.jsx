@@ -14,7 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
-import LoanView from '../../../Modals/Loan/LoanView';
+import LoanApplication from './Modals/LoanApplication';   
 
 const LoanList = () => {
     const { user } = useUser();
@@ -25,7 +25,7 @@ const LoanList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [dataUpdated, setDataUpdated] = useState(false);
 
-    const [openLoanViewModal, setOpenLoanViewModal] = useState(false);
+    const [openLoanApplicationModal, setOpenLoanApplicationModal] = useState(false);
     const [selectedLoan, setSelectedLoanId] = useState('');
 
     const [loans, setLoans] = useState([]);
@@ -67,13 +67,13 @@ const LoanList = () => {
             });
     }, []);
 
-    const handleOpenLoanViewModal = (id) => {
+    const handleOpenLoanApplicationModal = (id) => {
         setSelectedLoanId(id);
-        setOpenLoanViewModal(true);
+        setOpenLoanApplicationModal(true);
     };
 
-    const handleCloseLoanViewModal = () => {
-        setOpenLoanViewModal(false);
+    const handleCloseLoanApplicationModal = () => {
+        setOpenLoanApplicationModal(false);
     };
 
     return (
@@ -106,7 +106,7 @@ const LoanList = () => {
                                                     <TableRow
                                                         key={loan.loan_id}
                                                         sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}
-                                                        onClick={() => handleOpenLoanViewModal(loan.loan_id)}
+                                                        onClick={() => handleOpenLoanApplicationModal(loan.loan_id)}
                                                     >
                                                         <TableCell align="left">
                                                             {`${loan.emp_first_name} ${loan.emp_middle_name ? loan.emp_middle_name + ' ' : ''}${loan.emp_last_name}${loan.emp_suffix ? ' ' + loan.emp_suffix : ''}`}
@@ -132,8 +132,8 @@ const LoanList = () => {
                     </Box>
                 </Box>
 
-                {openLoanViewModal && (
-                    <LoanView open={openLoanViewModal} close={handleCloseLoanViewModal} selectedLoan={selectedLoan} />
+                {openLoanApplicationModal && (
+                    <LoanApplication open={openLoanApplicationModal} close={handleCloseLoanApplicationModal} selectedLoan={selectedLoan} />
                 )}
             </Box>
         </Layout>
