@@ -707,77 +707,64 @@ class LoanApplicationsController extends Controller
         return response()->json(['status' => 200, 'proposal' => null, 'message' => 'No proposal found']);
     }
 
-    public function respondToProposal(Request $request, $id)
+    public function respondToProposal(Request $request, $loanId)
     {
         $user = Auth::user();
-    
-        $loan = LoanApplicationsModel::where('id', $id)
-            ->where('employee_id', $user->id)
-            ->first();
-    
-        if (!$loan) {
-            Log::warning("Unauthorized access to loan application ID: $id by User ID: {$user->id}");
-            return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan application'], 403);
-        }
-    
-        $proposal = LoanProposalsModel::where('loan_application_id', $id)
-            ->where('status', 'Pending')
-            ->first();
-    
-        if (!$proposal) {
-            Log::warning("No pending proposal found for loan ID: $id");
-            return response()->json(['status' => 404, 'message' => 'No pending proposal found'], 404);
-        }
-    
-        try {
-            $request->validate([
-                'action' => 'required|in:approve,decline',
-                'proposed_loan_amount' => 'required|numeric|min:1',
-                'proposed_payment_term' => 'required|integer|min:1'
-            ]);
-        } catch (ValidationException $e) {
-            Log::warning("Validation error responding to proposal for loan ID: $id: " . json_encode($e->errors()));
-            return response()->json(['status' => 422, 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
-        }
-    
-        try {
-            DB::beginTransaction();
+        $data = $request->all();
 
-            if ($request->input('action') === 'approve') {
-                $loan->loan_amount = $request->input('proposed_loan_amount');
-                $loan->payment_term = $request->input('proposed_payment_term');
-                $loan->status = 'Approved';
-                $loan->save();
-                Log::info("Loan ID: $id updated to Approved with amount: {$loan->loan_amount}, term: {$loan->payment_term} by User ID: {$user->id}");
-    
-                $proposal->status = 'Approved';
-                $proposal->save();
-                Log::info("Proposal for loan ID: $id updated to Approved");
-    
-                DB::commit();
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'Proposal approved and loan updated successfully'
-                ]);
-            } else {
-                $loan->status = 'Declined';
-                $loan->save();
-                Log::info("Loan ID: $id updated to Declined by User ID: {$user->id}");
-    
-                $proposal->status = 'Declined';
-                $proposal->save();
-                Log::info("Proposal for loan ID: $id updated to Declined");
-    
-                DB::commit();
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'Proposal and loan declined successfully'
-                ]);
-            }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Error responding to proposal for loan ID: $id: " . $e->getMessage());
-            return response()->json(['status' => 500, 'message' => 'Error responding to proposal: ' . $e->getMessage()], 500);
+        Log::info("Responding to proposal for Loan ID: $loanId, User ID: {$user->id}, User Type: {$user->user_type}", ['data' => $data]);
+
+        // Validate request
+        $validator = Validator::make($data, [
+            'action' => 'required|in:approve,decline',
+            'proposed_loan_amount' => 'required|numeric|min:0',
+            'proposed_payment_term' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning("Validation failed for respondToProposal", ['errors' => $validator->errors()]);
+            return response()->json(['status' => 422, 'message' => $validator->errors()], 422);
         }
+
+        $loan = LoanApplicationsModel::find($loanId);
+        if (!$loan) {
+            Log::warning("Loan not found: $loanId");
+            return response()->json(['status' => 404, 'message' => 'Loan not found'], 404);
+        }
+
+        $proposal = LoanProposalsModel::where('loan_application_id', $loanId)->first();
+        if (!$proposal) {
+            Log::warning("Proposal not found for Loan ID: $loanId");
+            return response()->json(['status' => 404, 'message' => 'Proposal not found'], 404);
+        }
+
+        // Update statuses
+        $action = $data['action'];
+        $newStatus = $action === 'approve' ? 'Approved' : 'Declined';
+        $proposal->status = $newStatus;
+        $proposal->proposed_loan_amount = $data['proposed_loan_amount'];
+        $proposal->proposed_payment_term = $data['proposed_payment_term'];
+        $proposal->save();
+
+        $loan->status = $newStatus;
+        if ($action === 'approve') {
+            $loan->approved_by = $user->id; // Set admin's ID
+            $loan->loan_amount = $data['proposed_loan_amount'];
+            $loan->payment_term = $data['proposed_payment_term'];
+            Log::info("Loan approved by Admin ID: {$user->id} for Loan ID: $loanId");
+        }
+        $loan->save();
+
+        Log::info("Proposal and loan updated", [
+            'loan_id' => $loanId,
+            'status' => $newStatus,
+            'approved_by' => $loan->approved_by,
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => "Proposal {$action}d successfully",
+            'proposal' => $proposal,
+        ]);
     }
 }
