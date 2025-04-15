@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress } from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Chip } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
@@ -26,8 +26,7 @@ const ApplicationsList = () => {
     }, []);
 
     const fetchApplications = () => {
-        axiosInstance
-            .get("/applications/getApplications", { headers })
+        axiosInstance.get("/applications/getApplications", { headers })
             .then((response) => {
                 setApplications(response.data.applications);
                 setIsLoading(false);
@@ -70,11 +69,12 @@ const ApplicationsList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "20%" }}> Employee </TableCell>
-                                                <TableCell align="center" sx={{ width: "20%" }}> Application Type </TableCell>
-                                                <TableCell align="center" sx={{ width: "20%" }}> Start Date/Time </TableCell>
-                                                <TableCell align="center" sx={{ width: "20%" }}> End Date/Time </TableCell>
-                                                <TableCell align="center" sx={{ width: "20%" }}> Date of Application </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> Employee </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> Application Type </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> Start Date/Time </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> End Date/Time </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> Date of Application </TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}> Date of Application </TableCell>
                                             </TableRow>
                                         </TableHead>
 
@@ -89,13 +89,28 @@ const ApplicationsList = () => {
                                                         <TableRow
                                                             key={application.app_id}
                                                             onClick={() => handleOpenApplicationManage(application)}
-                                                            sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" },}}
+                                                            sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}}
                                                         >
                                                             <TableCell align="left">{" "}{application.emp_first_name}{" "}{application.emp_middle_name || ""}{" "}{application.emp_last_name}{" "}{application.emp_suffix || ""}{" "}</TableCell>
                                                             <TableCell align="center">{application.app_type_name || "-"}</TableCell>
                                                             <TableCell align="center">{startDate || "-"}</TableCell>
                                                             <TableCell align="center">{endDate || "-"}</TableCell>
                                                             <TableCell align="center">{createDate || "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                {application.app_status ? (
+                                                                    <Chip label={application.app_status}
+                                                                        sx={{
+                                                                            backgroundColor: application.app_status === "Approved" ? "#177604" : application.app_status === "Declined" ? "#f44336" : application.app_status === "Pending" ? "#e9ae20" : application.app_status === "Cancelled" ? "#f57c00" : "#000000",
+                                                                            color: "#fff",
+                                                                            fontWeight: "bold",
+                                                                            borderRadius: "999px",
+                                                                            px: 1.5,
+                                                                            height: "24px",
+                                                                            fontSize: "0.75rem"
+                                                                        }}
+                                                                    />
+                                                                ) : ( "-" )}
+                                                            </TableCell>
                                                         </TableRow>
                                                     );
                                                 }

@@ -321,7 +321,8 @@ class EmployeesController extends Controller
 
     public function getEmployeeDetails(Request $request)
     {
-        // log::info("EmployeesController::getEmployeeDetails");
+        log::info("EmployeesController::getEmployeeDetails");
+        log::info($request);
 
         $validated = $request->validate([
             'username' => 'required|string'

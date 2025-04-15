@@ -10,7 +10,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
-import EmployeeLeaveCredits from '../../../Modals/Employees/EmployeeLeaveCredits';
+import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -391,7 +391,8 @@ const EmployeeView = () => {
                     <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />}
 
                 {openEmployeeLeaveCreditsModal &&
-                    <EmployeeLeaveCredits open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} employee={employee} />}
+                    <LeaveCreditView open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} userName={user} />
+                }
 
             </Box>
         </Layout >

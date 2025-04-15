@@ -185,7 +185,7 @@ class AdminDashboardController extends Controller
 
     public function getAttendanceToday(Request $request)
     {
-        log::info("AdminDashboardController::getAttendanceToday");
+        // log::info("AdminDashboardController::getAttendanceToday");
 
         $user = Auth::user();
         $today = Carbon::now()->toDateString();
@@ -245,18 +245,9 @@ class AdminDashboardController extends Controller
                             return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
                         });
                     }
-
-                    log::info("=============================");
-
-                    log::info("firstTimeIn");
-                    log::info($firstTimeIn->timestamp);
-
-                    log::info("schedule");
-                    log::info(Carbon::parse("$date {$workHours->first_time_in}"));
                     
                     if ( $firstTimeIn->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
                         $isLate = true;
-                        log::info("LATE");
                     }
 
                     $user = $logs->first()->user;

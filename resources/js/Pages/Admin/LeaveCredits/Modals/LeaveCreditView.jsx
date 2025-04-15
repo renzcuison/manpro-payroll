@@ -1,10 +1,10 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
-import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
-import LeaveCreditAdd from "../Employees/LeaveCreditAdd";
-import LeaveCreditEdit from "../Employees/LeaveCreditEdit";
+import LeaveCreditAdd from "../Modals/LeaveCreditAdd";
+import LeaveCreditEdit from "../Modals/LeaveCreditEdit";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,22 +12,35 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const EmployeeLeaveCredits = ({ open, close, employee }) => {
+const LeaveCreditView = ({ open, close, userName }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [employee, setEmployee] = useState([]);
     const [leaveCredits, setLeaveCredits] = useState([]);
     const [leaveCreditLogs, setLeaveCreditLogs] = useState([]);
     const [logsView, setLogsView] = useState(false);
 
     // ----------- Request Leave Credits
     useEffect(() => {
+        getEmployeeDetails();
         getLeaveCredits();
         getLeaveCreditLogs();
     }, []);
 
+    const getEmployeeDetails = () => {
+        const data = { username: userName };
+
+        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
+            .then((response) => {
+                setEmployee(response.data.employee);
+            }).catch((error) => {
+                console.error('Error fetching employee:', error);
+            });
+    };
+
     const getLeaveCredits = () => {
-        axiosInstance.get(`/applications/getLeaveCredits/${employee.user_name}`, { headers })
+        axiosInstance.get(`/applications/getLeaveCredits/${userName}`, { headers })
             .then((response) => {
                 setLeaveCredits(response.data.leave_credits);
             })
@@ -37,7 +50,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
     };
 
     const getLeaveCreditLogs = () => {
-        axiosInstance.get(`/applications/getLeaveCreditLogs/${employee.user_name}`, { headers })
+        axiosInstance.get(`/applications/getLeaveCreditLogs/${userName}`, { headers })
             .then((response) => {
                 setLeaveCreditLogs(response.data.logs);
             })
@@ -76,31 +89,13 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
 
     return (
         <>
-            <Dialog
-                open={open}
-                fullWidth
-                maxWidth="md"
+            <Dialog open={open} fullWidth maxWidth="md"
                 PaperProps={{
-                    style: {
-                        padding: "16px",
-                        backgroundColor: "#f8f9fa",
-                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                        borderRadius: "20px",
-                        maxHeight: "600px",
-                        minWidth: { xs: "100%", sm: "750px" },
-                        maxWidth: "800px",
-                        marginBottom: "5%",
-                    },
+                    style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "800px", marginBottom: "5%" },
                 }}
             >
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
                             {`${logsView ? "Leave Credit Logs" : "Leave Credit Details"}`}
                         </Typography>
@@ -111,6 +106,19 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ py: 4, mb: 2 }}>
+
+                    <Box sx={{ mb: 2, textAlign: 'left' }}>
+                        <Typography variant="body1">
+                            <strong>Employee Name:</strong> {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Branch:</strong> {employee.branch || '-'}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Department:</strong> {employee.department || '-'}
+                        </Typography>
+                    </Box>
+
                     <Box>
                         {logsView ? (
                             <>
@@ -118,12 +126,8 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left" sx={{ width: "25%" }}>
-                                                    Timestamp
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "75%" }}>
-                                                    Action
-                                                </TableCell>
+                                                <TableCell align="left" sx={{ width: "25%" }}> Timestamp </TableCell>
+                                                <TableCell align="center" sx={{ width: "75%" }}> Action </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -169,38 +173,15 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                             </>
                         ) : (
                             <>
-                                {/* Employee Information Section */}
-                                <Box sx={{ mb: 2, textAlign: 'left' }}>
-                                <Typography variant="body1">
-                                        <strong>Employee Name:</strong> {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Branch:</strong> {employee.branch || 'Davao'}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Department:</strong> {employee.department || 'Unknown'}
-                                    </Typography>
-                                </Box>
-
                                 <TableContainer>
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left" sx={{ width: "40%" }}>
-                                                    Type
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
-                                                    Credits
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
-                                                    Used
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
-                                                    Remaining
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}>
-                                                    Edit
-                                                </TableCell>
+                                                <TableCell align="left" sx={{ width: "40%" }}> Type </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}> Credits </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}> Used </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}> Remaining </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}> Edit </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -213,45 +194,26 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                                     return (
                                                         <TableRow key={index}>
                                                             <TableCell>
-                                                                <Typography>
-                                                                    {leave.app_type_name}
-                                                                </Typography>
+                                                                <Typography>{leave.app_type_name}</Typography>
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                <Typography>
-                                                                    {leave.credit_number}
-                                                                </Typography>
+                                                                <Typography>{leave.credit_number}</Typography>
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                <Typography>
-                                                                    {leave.credit_used}
-                                                                </Typography>
+                                                                <Typography>{leave.credit_used}</Typography>
                                                             </TableCell>
-                                                            <TableCell align="center" sx={{
-                                                                color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null
-                                                            }}>
-                                                                <Typography>
-                                                                    {remainingCredits}
-                                                                </Typography>
+                                                            <TableCell align="center" sx={{ color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null }}>
+                                                                <Typography> {remainingCredits} </Typography>
                                                             </TableCell>
                                                             <TableCell align="center">
-                                                                <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}>
-                                                                    <Edit size="small" />
-                                                                </IconButton>
+                                                                <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}> <Edit size="small" /> </IconButton>
                                                             </TableCell>
                                                         </TableRow>
                                                     );
                                                 })
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell
-                                                        colSpan={5}
-                                                        align="center"
-                                                        sx={{
-                                                            color: "text.secondary",
-                                                            p: 1,
-                                                        }}
-                                                    >
+                                                    <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }} >
                                                         No Leave Credits Found
                                                     </TableCell>
                                                 </TableRow>
@@ -259,6 +221,7 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+
                                 <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
                                     <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddLeaveCredit()}>
                                         <p className="m-0">
@@ -275,23 +238,16 @@ const EmployeeLeaveCredits = ({ open, close, employee }) => {
                         )}
                     </Box>
                 </DialogContent>
+
                 {openEditLeaveCredit && (
-                    <LeaveCreditEdit
-                        open={openEditLeaveCredit}
-                        close={handleCloseEditLeaveCredit}
-                        leaveData={leaveData}
-                    />
+                    <LeaveCreditEdit open={openEditLeaveCredit} close={handleCloseEditLeaveCredit} leaveData={leaveData} />
                 )}
                 {openAddLeaveCredit && (
-                    <LeaveCreditAdd
-                        open={openAddLeaveCredit}
-                        close={handleCloseAddLeaveCredit}
-                        empId={employee.user_name}
-                    />
+                    <LeaveCreditAdd open={openAddLeaveCredit} close={handleCloseAddLeaveCredit} empId={userName} />
                 )}
             </Dialog>
         </>
     );
 };
 
-export default EmployeeLeaveCredits;
+export default LeaveCreditView;
