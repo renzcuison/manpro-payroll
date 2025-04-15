@@ -498,34 +498,54 @@ const ApplicationForm = ({ open, close }) => {
             });
         }
 
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Please wait...",
+            text: "Submitting your application...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
         axiosInstance
             .post("/applications/saveApplication", formData, {
                 headers,
             })
             .then((response) => {
-                document.activeElement.blur();
-                document.body.removeAttribute("aria-hidden");
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Your application has been submitted!`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close();
-                        document.body.setAttribute("aria-hidden", "true");
-                    } else {
-                        document.body.setAttribute("aria-hidden", "true");
-                    }
-                });
+                if (response.data.status == 200) {
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: "Your application has been submitted!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close();
+                            document.body.setAttribute("aria-hidden", "true");
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
             })
             .catch((error) => {
                 console.error("Error:", error);
-                document.body.setAttribute("aria-hidden", "true");
-            });
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Error!",
+                    text: "Failed to submit your application. Please try again.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#d33",
+                }).then(() => {
+                    document.body.setAttribute("aria-hidden", "true");
+                });
+            })
     };
 
     return (

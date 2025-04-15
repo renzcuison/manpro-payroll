@@ -560,83 +560,49 @@ const ContentView = () => {
                                         <CircularProgress />
                                     </Box>
                                 ) : (
-                                    <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
-                                        {/* Title */}
-                                        <Grid size={{ xs: 12 }}>
-                                            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-                                                {content.title || "-"}
-                                            </Typography>
-                                        </Grid>
-                                        {(content.content.type == "Form") ? (
-                                            <>
-                                                <FormViews
-                                                    content={content}
-                                                    updateProgress={handleTrainingViews}
-                                                    formItems={formItems}
-                                                    attemptData={attemptData}
-                                                    handleFormFinished={handleTrainingViews}
-                                                    contentReload={getContentDetails}
-                                                />
-                                            </>
-                                        ) :
-                                            <>
-                                                {/* Primary Content */}
-                                                <Grid size={{ xs: 12 }} sx={{ placeContent: "center", placeItems: "center" }}>
-                                                    <Box sx={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                                                        {content.content.type === "Video" ? (
-                                                            <Box
-                                                                sx={{
-                                                                    maxWidth: '720px',
-                                                                    width: "90%",
-                                                                    aspectRatio: "16 / 9",
-                                                                    placeSelf: "center",
-                                                                    mb: 1,
-                                                                }}
-                                                            >
-                                                                {renderVideo(content.content.source)}
-                                                            </Box>
-                                                        ) : content.content.type === "Image" ? (
-                                                            <CardMedia
-                                                                component="img"
-                                                                sx={{
-                                                                    maxWidth: '640px',
-                                                                    width: "80%",
-                                                                    aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
-                                                                    objectFit: "contain",
-                                                                    borderRadius: "4px",
-                                                                    backgroundColor: "transparent",
-                                                                    placeSelf: "center",
-                                                                    mb: 1,
-                                                                }}
-                                                                image={renderImage(content.content.source, content.content.type)}
-                                                                title={content.title || "Content Item"}
-                                                                alt={content.title || "Content Item"}
-                                                            />
-                                                        ) : (
-                                                            <Box
-                                                                display="flex"
-                                                                sx={{
-                                                                    p: 2,
-                                                                    width: "50%",
-                                                                    border: "solid 1px #e0e0e0",
-                                                                    borderRadius: "4px",
-                                                                    alignItems: "center",
-                                                                    "&:hover": {
-                                                                        backgroundColor: "#e0e0e0",
-                                                                        transform: "scale(0.97)",
-                                                                        transition: "background-color 0.3s ease, transform 0.2s ease-in-out",
-                                                                    },
-                                                                }}
-                                                                onClick={() => {
-                                                                    window.open(file.url, "_blank");
-                                                                    handleTrainingViews(content.id, true);
-                                                                }}
-                                                            >
+                                    <Box sx={{ minHeight: "450px" }}>
+                                        <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
+                                            {/* Title */}
+                                            <Grid size={{ xs: 12 }}>
+                                                <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                                                    {content.title || "-"}
+                                                </Typography>
+                                            </Grid>
+                                            {(content.content.type == "Form") ? (
+                                                <>
+                                                    <FormViews
+                                                        content={content}
+                                                        updateProgress={handleTrainingViews}
+                                                        formItems={formItems}
+                                                        attemptData={attemptData}
+                                                        handleFormFinished={handleTrainingViews}
+                                                        contentReload={getContentDetails}
+                                                    />
+                                                </>
+                                            ) :
+                                                <>
+                                                    {/* Primary Content */}
+                                                    <Grid size={{ xs: 12 }} sx={{ placeContent: "center", placeItems: "center" }}>
+                                                        <Box sx={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                                                            {content.content.type === "Video" ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        maxWidth: '720px',
+                                                                        width: "90%",
+                                                                        aspectRatio: "16 / 9",
+                                                                        placeSelf: "center",
+                                                                        mb: 1,
+                                                                    }}
+                                                                >
+                                                                    {renderVideo(content.content.source)}
+                                                                </Box>
+                                                            ) : content.content.type === "Image" ? (
                                                                 <CardMedia
                                                                     component="img"
                                                                     sx={{
-                                                                        width: "25%",
-                                                                        aspectRatio: "4 / 3",
+                                                                        maxWidth: '640px',
+                                                                        width: "80%",
+                                                                        aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
                                                                         objectFit: "contain",
                                                                         borderRadius: "4px",
                                                                         backgroundColor: "transparent",
@@ -647,49 +613,114 @@ const ContentView = () => {
                                                                     title={content.title || "Content Item"}
                                                                     alt={content.title || "Content Item"}
                                                                 />
-                                                                <Stack sx={{ ml: 1.5 }}>
-                                                                    <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                                                                        {file.name}
-                                                                    </Typography>
-                                                                    <Typography variant="caption" sx={{ color: "text.secondary", mb: 2 }}>
-                                                                        {getFileSize(content.file_size)}
-                                                                    </Typography>
-                                                                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                                        Click to Open Document
-                                                                    </Typography>
-                                                                </Stack>
-                                                            </Box>
-                                                        )}
-                                                        {prevContentId && (
-                                                            <Box sx={{ position: "absolute", height: "20%", top: "40%", left: 0 }}>Previous</Box>
-                                                        )}
-                                                        {nextContentId && (
-                                                            <Box sx={{ position: "absolute", height: "20%", top: "40%", right: 0 }}>Next</Box>
-                                                        )}
-                                                    </Box>
-                                                </Grid>
-                                                <Grid size={{ xs: 12 }}>
-                                                    <Divider />
-                                                </Grid>
-                                                {/* Description */}
-                                                <Grid size={{ xs: 12 }} >
-                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                                                        Description
-                                                    </Typography>
-                                                    <Typography
-                                                        variant="body1"
-                                                        sx={{
-                                                            wordWrap: 'break-word',
-                                                            wordBreak: 'break-word',
-                                                            overflowWrap: 'break-word',
-                                                            whiteSpace: 'pre-wrap',
-                                                        }}
-                                                        dangerouslySetInnerHTML={{ __html: content.description }}
-                                                    />
-                                                </Grid>
-                                            </>
-                                        }
-                                    </Grid>
+                                                            ) : (
+                                                                <Box
+                                                                    sx={{
+                                                                        maxWidth: '640px',
+                                                                        width: "80%",
+                                                                        placeSelf: "center",
+                                                                        mb: 1,
+                                                                    }}
+                                                                    onClick={() => {
+                                                                        window.open(file.url, "_blank");
+                                                                        handleTrainingViews(content.id, true);
+                                                                    }}
+                                                                >
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            p: 2,
+                                                                            borderRadius: "12px",
+                                                                            bgcolor: "#fff",
+                                                                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                                                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                                            "&:hover": {
+                                                                                transform: 'scale(1.02)',
+                                                                                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <CardMedia
+                                                                            component="img"
+                                                                            sx={{
+                                                                                width: "30%",
+                                                                                maxWidth: "200px",
+                                                                                aspectRatio: "4 / 3",
+                                                                                objectFit: "contain",
+                                                                                borderRadius: "4px",
+                                                                                backgroundColor: "transparent",
+                                                                                mr: 2,
+                                                                            }}
+                                                                            image={renderImage(content.content.source, content.content.type)}
+                                                                            title={content.title || "Content Item"}
+                                                                            alt={content.title || "Content Item"}
+                                                                        />
+                                                                        <Stack sx={{ flex: 1 }}>
+                                                                            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                                                                                {file.name}
+                                                                            </Typography>
+                                                                            <Typography variant="caption" sx={{ color: "text.secondary", mb: 1 }}>
+                                                                                {getFileSize(content.file_size)}
+                                                                            </Typography>
+                                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                                                Click to Open Document
+                                                                            </Typography>
+                                                                        </Stack>
+                                                                    </Box>
+                                                                </Box>
+                                                            )}
+                                                            {prevContentId && (
+                                                                <Box
+                                                                    onClick={() => handleContentChange(prevContentId, true)}
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        height: "20%",
+                                                                        top: "40%",
+                                                                        left: 0
+                                                                    }}
+                                                                >
+                                                                    Previous
+                                                                </Box>
+                                                            )}
+                                                            {nextContentId && (
+                                                                <Box
+                                                                    onClick={() => handleContentChange(nextContentId, content.is_finished)}
+                                                                    sx={{
+                                                                        position: "absolute",
+                                                                        height: "20%",
+                                                                        top: "40%",
+                                                                        right: 0
+                                                                    }}
+                                                                >
+                                                                    Previous
+                                                                </Box>
+                                                            )}
+                                                        </Box>
+                                                    </Grid>
+                                                    <Grid size={{ xs: 12 }}>
+                                                        <Divider />
+                                                    </Grid>
+                                                    {/* Description */}
+                                                    <Grid size={{ xs: 12 }} >
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                            Description
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="body1"
+                                                            sx={{
+                                                                wordWrap: 'break-word',
+                                                                wordBreak: 'break-word',
+                                                                overflowWrap: 'break-word',
+                                                                whiteSpace: 'pre-wrap',
+                                                            }}
+                                                            dangerouslySetInnerHTML={{ __html: content.description }}
+                                                        />
+                                                    </Grid>
+                                                </>
+                                            }
+                                        </Grid>
+                                    </Box>
                                 )}
                             </Box>
                         </>

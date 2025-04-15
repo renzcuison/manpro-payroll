@@ -421,7 +421,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Training Content </Typography>

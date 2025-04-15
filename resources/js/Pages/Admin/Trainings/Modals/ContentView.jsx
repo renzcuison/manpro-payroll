@@ -92,7 +92,7 @@ const ContentView = ({ open, close, contentId, status }) => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return file;
+                return file.url;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -143,10 +143,19 @@ const ContentView = ({ open, close, contentId, status }) => {
         return null;
     };
 
+    // Document File Size
+    const getFileSize = (bytes) => {
+        if (!bytes) return "Size not available";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+        return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    };
+
     useEffect(() => {
         return () => {
-            if (file && file.startsWith('blob:')) {
-                URL.revokeObjectURL(file);
+            if (file && file.url.startsWith('blob:')) {
+                URL.revokeObjectURL(file.url);
             }
         };
     }, [file]);
@@ -175,8 +184,8 @@ const ContentView = ({ open, close, contentId, status }) => {
                     ["Image", "Document", "PowerPoint"].includes(resContent?.content?.type) &&
                     resContent?.file
                 ) {
-                    if (file && file.startsWith('blob:')) {
-                        URL.revokeObjectURL(file);
+                    if (file && file.url.startsWith('blob:')) {
+                        URL.revokeObjectURL(file.url);
                     }
                     const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -186,7 +195,11 @@ const ContentView = ({ open, close, contentId, status }) => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.file_mime });
 
-                    setFile(URL.createObjectURL(blob));
+                    const filePath = resContent.content.source;
+                    const fileName = filePath.split('/').pop()
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    setFile({ url: blobUrl, name: fileName });
                 } else {
                     setFile(null);
                 }
@@ -392,7 +405,7 @@ const ContentView = ({ open, close, contentId, status }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> {content?.title ?? "Content"} </Typography>
@@ -430,14 +443,14 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             >
                                                 {renderVideo(content.content.source)}
                                             </Box>
-                                        ) : (
+                                        ) : content.content.type === "Image" ? (
                                             <CardMedia
                                                 component="img"
                                                 sx={{
                                                     mb: 2,
                                                     width: "100%",
-                                                    maxWidth: ["Document", "PowerPoint"].includes(content.content.type) ? "200px" : "600px", // Smaller for documents, larger for images
-                                                    aspectRatio: ["Document", "PowerPoint"].includes(content.content.type) ? "4 / 3" : "16 / 9",
+                                                    maxWidth: "600px",
+                                                    aspectRatio: "16 / 9",
                                                     objectFit: "contain",
                                                     borderRadius: "8px",
                                                     backgroundColor: "transparent",
@@ -446,23 +459,67 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     "&:hover": {
                                                         transform: "scale(1.02)",
                                                         boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
-                                                        backgroundColor: ["Document", "PowerPoint"].includes(content.content.type) ? "#e0e0e0" : "transparent",
+                                                        backgroundColor: "transparent",
                                                     },
                                                 }}
                                                 image={renderImage(content.content.source, content.content.type)}
                                                 title={content.title || "Content Item"}
                                                 alt={content.title || "Content Item"}
-                                                onClick={
-                                                    ["Document", "PowerPoint"].includes(content.content.type)
-                                                        ? () => window.open(file, "_blank")
-                                                        : undefined
-                                                }
                                             />
-                                        )}
-                                        {["Document", "PowerPoint"].includes(content.content.type) && (
-                                            <Typography variant="caption" sx={{ mt: 1, color: "text.secondary", fontStyle: "italic" }}>
-                                                Click to open file
-                                            </Typography>
+                                        ) : (
+                                            <Box
+                                                sx={{
+                                                    mb: 2,
+                                                    width: "100%",
+                                                    maxWidth: "600px",
+                                                    borderRadius: "8px",
+                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "scale(1.02)",
+                                                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                                                    },
+                                                }}
+                                                onClick={() => {
+                                                    window.open(file.url, "_blank");
+                                                    handleTrainingViews(content.id, true);
+                                                }}
+                                            >
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        p: 2,
+                                                    }}
+                                                >
+                                                    <CardMedia
+                                                        component="img"
+                                                        sx={{
+                                                            width: "30%",
+                                                            maxWidth: "200px",
+                                                            aspectRatio: "16 / 9",
+                                                            objectFit: "contain",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "transparent",
+                                                            mr: 2,
+                                                        }}
+                                                        image={renderImage(content.content.source, content.content.type)}
+                                                        title={content.title || "Content Item"}
+                                                        alt={content.title || "Content Item"}
+                                                    />
+                                                    <Stack sx={{ flex: 1 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                                                            {file.name}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: "text.secondary", mb: 1 }}>
+                                                            {getFileSize(content.file_size)}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                            Click to Open Document
+                                                        </Typography>
+                                                    </Stack>
+                                                </Box>
+                                            </Box>
                                         )}
                                     </Grid>
                                 )}
