@@ -31,8 +31,7 @@ const AttendanceToday = () => {
     const getAttendance = (type) => {
         /* types: 1 - Present, 2 - Late, 3 - Absent, 4 - On Leave */
         setAttendanceLoading(true);
-        axiosInstance
-            .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
+        axiosInstance.get(`adminDashboard/getAttendanceToday`, { headers, params: { type: type } })
             .then((response) => {
                 const attendanceData = response.data.attendance || [];
                 setAttendance(attendanceData);
@@ -102,8 +101,7 @@ const AttendanceToday = () => {
         const userIds = attendanceData.map((attend) => attend.id);
         if (userIds.length === 0) return;
 
-        axiosInstance
-            .post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
+        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
             .then((avatarResponse) => {
                 const avatars = avatarResponse.data.avatars || {};
                 setBlobMap((prev) => {

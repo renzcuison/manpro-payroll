@@ -183,7 +183,7 @@ class AdminDashboardController extends Controller
         }
     }
 
-    public function getAttendance(Request $request)
+    public function getAttendanceToday(Request $request)
     {
         $user = Auth::user();
         $today = Carbon::now()->toDateString();
@@ -194,61 +194,134 @@ class AdminDashboardController extends Controller
 
             $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
-            })
-                ->whereDate('timestamp', Carbon::now()->toDateString())
-                ->with('user', 'workHour')
-                ->get();
+            })->whereDate('timestamp', Carbon::now()->toDateString())->with('user', 'workHour')->get();
 
             $result = [];
 
-
             if ($type == 1) { // Present
-                $result = $attendances->groupBy('user_id')
-                    ->sortKeysDesc()
-                    ->map(function ($logs) {
+                $result = $attendances->groupBy('user_id')->sortKeysDesc()->map(function ($logs) {
 
-                        $firstTimeIn = null;
-                        $firstTimeOut = null;
-                        $secondTimeIn = null;
-                        $secondTimeOut = null;
+                    $firstTimeIn = null;
+                    $firstTimeOut = null;
+                    $secondTimeIn = null;
+                    $secondTimeOut = null;
+                    $isLate = false;
 
-                        $workHours = $logs->first()->workHour;
-                        if ($workHours->shift_type == "Regular") {
-                            $firstTimeIn = $logs->firstWhere('action', 'Duty In');
-                            $firstTimeOut = $logs->last(function ($log) {
-                                return $log->action === 'Duty Out';
-                            });
-                        } else {
-                            // Date Normalizers
-                            $date = Carbon::parse($logs->first()->timestamp)->toDateString();
-                            $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
-                            $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
-                            $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
+                    $workHours = $logs->first()->workHour;
+                    
+                    if ($workHours->shift_type == "Regular") {
+                        $firstTimeIn = $logs->firstWhere('action', 'Duty In');
+                        $firstTimeOut = $logs->last(function ($log) {
+                            return $log->action === 'Duty Out';
+                        });
+                    } else {
+                        // Date Normalizers
+                        $date = Carbon::parse($logs->first()->timestamp)->toDateString();
+                        $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
+                        $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
+                        $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
 
-                            // First Shift -> First Time In
-                            $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
-                                return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
-                            });
+                        // First Shift -> First Time In
+                        $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
+                            return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
+                        });
 
-                            // Second Shift -> First Time In
-                            $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
-                                return $log->action === 'Duty In' &&
-                                    Carbon::parse($log->timestamp)->gt($firstOut) &&
-                                    Carbon::parse($log->timestamp)->lt($secondOut);
-                            });
+                        // Second Shift -> First Time In
+                        $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
+                            return $log->action === 'Duty In' &&
+                                Carbon::parse($log->timestamp)->gt($firstOut) &&
+                                Carbon::parse($log->timestamp)->lt($secondOut);
+                        });
 
-                            // First Shift -> Last Time Out 
-                            $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
-                                return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
-                            });
+                        // First Shift -> Last Time Out 
+                        $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
+                            return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
+                        });
 
-                            // Second Shift -> Last Time Out
-                            $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
-                                return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
-                            });
-                        }
-                        $user = $logs->first()->user;
+                        // Second Shift -> Last Time Out
+                        $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
+                            return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
+                        });
+                    }
 
+                    log::info($firstTimeIn->timestamp);
+                    log::info(Carbon::parse("$date {$workHours->first_time_in}"));
+                    
+                    if ( $firstTimeIn->timestamp < Carbon::parse("$date {$workHours->first_time_in}")) {
+                        $isLate = true;
+                    }
+
+                    $user = $logs->first()->user;
+
+                    return [
+                        'id' => $user->id,
+                        'first_name' => $user->first_name ?? null,
+                        'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
+                        'suffix' => $user->suffix ?? null,
+                        'shift_type' => $workHours->shift_type ?? null,
+                        'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                        'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
+                        'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                        'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
+                        'is_late' => $isLate,
+                    ];
+                })->values()->all();
+
+                usort($result, function ($a, $b) {
+                    return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
+                });
+            } elseif ($type == 2) {
+                
+                // Late
+                $result = $attendances->groupBy('user_id')->map(function ($logs) {
+                    $firstTimeIn = null;
+                    $firstTimeOut = null;
+                    $secondTimeIn = null;
+                    $secondTimeOut = null;
+
+                    $workHours = $logs->first()->workHour;
+                    if ($workHours->shift_type == "Regular") {
+                        $firstTimeIn = $logs->firstWhere('action', 'Duty In');
+                        $firstTimeOut = $logs->last(function ($log) {
+                            return $log->action === 'Duty Out';
+                        });
+                    } else {
+                        // Date Normalizers
+                        $date = Carbon::parse($logs->first()->timestamp)->toDateString();
+                        $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
+                        $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
+                        $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
+
+                        // First Shift -> First Time In
+                        $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
+                            return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
+                        });
+
+                        // Second Shift -> First Time In
+                        $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
+                            return $log->action === 'Duty In' &&Carbon::parse($log->timestamp)->gt($firstOut) &&Carbon::parse($log->timestamp)->lt($secondOut);
+                        });
+
+                        // First Shift -> Last Time Out 
+                        $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
+                            return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
+                        });
+
+                        // Second Shift -> Last Time Out
+                        $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
+                            return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
+                        });
+                    }
+                    
+                    $user = $logs->first()->user;
+                    $workStart = $workHours->first_time_in;
+                    $expectedStart = Carbon::parse($workStart);
+
+                    $lateThreshold = $expectedStart->copy()->addMinute();
+
+                    if ($firstTimeIn && $workStart && Carbon::parse($firstTimeIn->timestamp)->gt($lateThreshold)) {
+                        $lateBy = Carbon::parse($firstTimeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
                         return [
                             'id' => $user->id,
                             'first_name' => $user->first_name ?? null,
@@ -260,131 +333,43 @@ class AdminDashboardController extends Controller
                             'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
                             'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
                             'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
+                            'start_time' => $expectedStart,
+                            'late_by' => $lateBy,
                         ];
-                    })
-                    ->values()
-                    ->all();
+                    }
+                    return null;
+                })->filter()->values()->all();
 
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
-            } elseif ($type == 2) { // Late
-                $result = $attendances->groupBy('user_id')
-                    ->map(function ($logs) {
-                        $firstTimeIn = null;
-                        $firstTimeOut = null;
-                        $secondTimeIn = null;
-                        $secondTimeOut = null;
 
-                        $workHours = $logs->first()->workHour;
-                        if ($workHours->shift_type == "Regular") {
-                            $firstTimeIn = $logs->firstWhere('action', 'Duty In');
-                            $firstTimeOut = $logs->last(function ($log) {
-                                return $log->action === 'Duty Out';
-                            });
-                        } else {
-                            // Date Normalizers
-                            $date = Carbon::parse($logs->first()->timestamp)->toDateString();
-                            $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
-                            $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
-                            $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
-
-                            // First Shift -> First Time In
-                            $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
-                                return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
-                            });
-
-                            // Second Shift -> First Time In
-                            $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
-                                return $log->action === 'Duty In' &&
-                                    Carbon::parse($log->timestamp)->gt($firstOut) &&
-                                    Carbon::parse($log->timestamp)->lt($secondOut);
-                            });
-
-                            // First Shift -> Last Time Out 
-                            $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
-                                return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
-                            });
-
-                            // Second Shift -> Last Time Out
-                            $secondTimeOut = $logs->last(function ($log) use ($secondIn) {
-                                return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
-                            });
-                        }
-                        $user = $logs->first()->user;
-                        $workStart = $workHours->first_time_in;
-                        $expectedStart = Carbon::parse($workStart);
-
-                        $lateThreshold = $expectedStart->copy()->addMinute();
-
-                        if ($firstTimeIn && $workStart && Carbon::parse($firstTimeIn->timestamp)->gt($lateThreshold)) {
-                            $lateBy = Carbon::parse($firstTimeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
-                            return [
-                                'id' => $user->id,
-                                'first_name' => $user->first_name ?? null,
-                                'last_name' => $user->last_name ?? null,
-                                'middle_name' => $user->middle_name ?? null,
-                                'suffix' => $user->suffix ?? null,
-                                'shift_type' => $workHours->shift_type ?? null,
-                                'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
-                                'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
-                                'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
-                                'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
-                                'start_time' => $expectedStart,
-                                'late_by' => $lateBy,
-                            ];
-                        }
-                        return null;
-                    })
-                    ->filter()
-                    ->values()
-                    ->all();
-
-                usort($result, function ($a, $b) {
-                    return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
-                });
-            } elseif ($type == 3) { // Absent
+            } elseif ($type == 3) {
+                
+                // Absent
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
                 $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
-                })
-                    ->where('status', 'Approved')
-                    ->whereDate('duration_start', '<=', $today)
-                    ->whereDate('duration_end', '>=', $today)
-                    ->distinct('user_id')
-                    ->pluck('user_id')
-                    ->toArray();
+                })->where('status', 'Approved')->whereDate('duration_start', '<=', $today)->whereDate('duration_end', '>=', $today)->distinct('user_id')->pluck('user_id')->toArray();
 
-                $allEmployees = UsersModel::where('client_id', $clientId)
-                    ->where('user_type', 'Employee')
-                    ->where('employment_status', 'Active')
-                    ->pluck('id')
-                    ->diff($attendedUserIds)
-                    ->diff($onLeaveUserIds)
-                    ->toArray();
+                $allEmployees = UsersModel::where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active')->pluck('id')->diff($attendedUserIds)->diff($onLeaveUserIds)->toArray();
 
-                $result = UsersModel::whereIn('id', $allEmployees)
-                    ->get()
-                    ->map(function ($user) {
-                        return [
-                            'id' => $user->id,
-                            'first_name' => $user->first_name ?? null,
-                            'last_name' => $user->last_name ?? null,
-                            'middle_name' => $user->middle_name ?? null,
-                            'suffix' => $user->suffix ?? null,
-                        ];
-                    })
-                    ->values()
-                    ->all();
-            } elseif ($type == 4) { // On Leave
+                $result = UsersModel::whereIn('id', $allEmployees)->get()->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'first_name' => $user->first_name ?? null,
+                        'last_name' => $user->last_name ?? null,
+                        'middle_name' => $user->middle_name ?? null,
+                        'suffix' => $user->suffix ?? null,
+                    ];
+                })->values()->all();
+                
+            } elseif ($type == 4) {
+                
+                // On Leave
                 $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
-                })
-                    ->where('status', 'Approved')
-                    ->whereDate('duration_start', '<=', $today)
-                    ->whereDate('duration_end', '>=', $today)
-                    ->with('user', 'type')
-                    ->get();
+                })->where('status', 'Approved')->whereDate('duration_start', '<=', $today)->whereDate('duration_end', '>=', $today)->with('user', 'type')->get();
 
                 $result = $onLeaveApplications->map(function ($application) {
                     $user = $application->user;

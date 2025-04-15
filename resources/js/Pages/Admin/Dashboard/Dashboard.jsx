@@ -85,8 +85,7 @@ const Dashboard = () => {
     const getAttendance = (type) => {
         /* types: 1 - Present, 2 - Late, 3 - Absent, 4 - On Leave */
         setAttendanceLoading(true);
-        axiosInstance
-            .get(`adminDashboard/getAttendance`, { headers, params: { type: type } })
+        axiosInstance.get(`adminDashboard/getAttendanceToday`, { headers, params: { type: type } })
             .then((response) => {
                 const attendanceData = response.data.attendance || [];
                 setAttendance(attendanceData);
