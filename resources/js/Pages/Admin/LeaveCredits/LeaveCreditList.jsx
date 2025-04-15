@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    Box,
-    Typography,
-    Grid,
-    TextField,
-    FormControl,
-    CircularProgress,
-    TablePagination,
-} from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
+
 import EmployeeLeaveCredits from '../../../Modals/Employees/EmployeeLeaveCredits';
 
 const LeaveCreditList = () => {

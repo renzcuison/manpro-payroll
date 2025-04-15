@@ -3,11 +3,13 @@ import { Table, TableBody, TableCell, TableContainer, TableRow, Box, FormControl
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { useNavigate } from 'react-router-dom';
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+
+import ApplicationManage from "../Applications/Modals/ApplicationManage";
+
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -49,6 +51,7 @@ const AttendanceToday = () => {
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
+
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
@@ -151,6 +154,18 @@ const AttendanceToday = () => {
             setBlobMap({});
         };
     }, []);
+
+    // ---------------- Application Details
+    const [openApplicationManage, setOpenApplicationManage] = useState(null);
+
+    const handleOpenApplicationManage = (appDetails) => {
+        setOpenApplicationManage(appDetails);
+    };
+    
+    const handleCloseApplicationManage = () => {
+        setOpenApplicationManage(null);
+        fetchApplications();
+    };
 
     return (
         <Layout title={"AttendanceLogs"}>
@@ -382,7 +397,7 @@ const AttendanceToday = () => {
                                                 <TableBody>
                                                     {paginatedAttendance.length > 0 ? (
                                                         paginatedAttendance.map((attend, index) => (
-                                                            <TableRow key={index}>
+                                                            <TableRow key={index} onClick={() => handleOpenApplicationManage()}>
                                                                 <TableCell align="left">
                                                                     <Box display="flex" sx={{ alignItems: "center" }}>
                                                                         <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
@@ -409,6 +424,10 @@ const AttendanceToday = () => {
                         </TabContext>
                     </Box>
                 </Box>
+
+                {openApplicationManage && (
+                    <ApplicationManage open={true} close={handleCloseApplicationManage} appDetails={openApplicationManage} />
+                )}
             </Box>
         </Layout>
     );
