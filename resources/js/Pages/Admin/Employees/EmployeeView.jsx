@@ -391,7 +391,8 @@ const EmployeeView = () => {
                     <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />}
 
                 {openEmployeeLeaveCreditsModal &&
-                    <EmployeeLeaveCredits open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} employee={employee} />}
+                    <EmployeeLeaveCredits open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} userName={user} />
+                }
 
             </Box>
         </Layout >

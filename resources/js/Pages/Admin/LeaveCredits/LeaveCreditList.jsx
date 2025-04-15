@@ -20,8 +20,7 @@ const LeaveCreditList = () => {
 
     useEffect(() => {
         // Step 1: Fetch the list of employees
-        axiosInstance
-            .get('/employee/getEmployeeLeaveCredits', { headers })
+        axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);
@@ -29,8 +28,7 @@ const LeaveCreditList = () => {
 
                 // Step 2: Fetch leave credits for each employee
                 employeesData.forEach((employee) => {
-                    axiosInstance
-                        .get(`/applications/getLeaveCredits/${employee.user_name}`, { headers })
+                    axiosInstance.get(`/applications/getLeaveCredits/${employee.user_name}`, { headers })
                         .then((creditResponse) => {
                             const leaveCredits = creditResponse.data.leave_credits || [];
 
@@ -60,7 +58,7 @@ const LeaveCreditList = () => {
     }, []);
 
     const handleRowClick = (employee) => {
-        setSelectedEmployee(employee);
+        setSelectedEmployee(employee.user_name);
     };
 
     const handleCloseModal = () => {
@@ -83,9 +81,7 @@ const LeaveCreditList = () => {
         setPage(0);
     };
 
-   
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
    
     const formatEmployeeName = (employee) => {
         return `${employee.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.trim();
@@ -105,31 +101,12 @@ const LeaveCreditList = () => {
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
                             <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl
-                                        sx={{
-                                            width: '100%',
-                                            '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}
-                                    >
-                                        <TextField
-                                            id="searchName"
-                                            label="Search Name"
-                                            variant="outlined"
-                                            value={searchName}
-                                            onChange={(e) => setSearchName(e.target.value)}
-                                        />
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
-                            <Grid
-                                container
-                                item
-                                direction="row"
-                                justifyContent="flex-end"
-                                xs={4}
-                                spacing={2}
-                            ></Grid>
+                            <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
                         {isLoading ? (
@@ -165,32 +142,12 @@ const LeaveCreditList = () => {
                                         <TableBody>
                                             {paginatedEmployees.length > 0 ? (
                                                 paginatedEmployees.map((employee, index) => {
-                                                    const credits = employeeCredits[employee.user_name] || {
-                                                        totalCredits: 0,
-                                                        usedCredits: 0,
-                                                        remainingCredits: 0,
-                                                    };
+                                                    const credits = employeeCredits[employee.user_name] || { totalCredits: 0, usedCredits: 0, remainingCredits: 0 };
 
                                                     return (
-                                                        <TableRow
-                                                            key={employee.id}
-                                                            onClick={() => handleRowClick(employee)}
-                                                            sx={{
-                                                                backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff',
-                                                                '&:hover': {
-                                                                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                                                                    cursor: 'pointer',
-                                                                },
-                                                            }}
-                                                        >
+                                                        <TableRow key={employee.id} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">
-                                                                <Link
-                                                                    to={`/admin/employee/${employee.user_name}`}
-                                                                    style={{ textDecoration: 'none', color: 'inherit' }}
-                                                                    onClick={(e) => e.preventDefault()}
-                                                                >
-                                                                    {formatEmployeeName(employee)}
-                                                                </Link>
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {formatEmployeeName(employee)} </Link>
                                                             </TableCell>
                                                             <TableCell align="center">{employee.branch || 'Davao'}</TableCell>
                                                             <TableCell align="center">{employee.department || 'Unknown'}</TableCell>
@@ -232,11 +189,7 @@ const LeaveCreditList = () => {
             </Box>
 
             {selectedEmployee && (
-                <EmployeeLeaveCredits
-                    open={!!selectedEmployee}
-                    close={handleCloseModal}
-                    employee={selectedEmployee}
-                />
+                <EmployeeLeaveCredits open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
             )}
         </Layout>
     );
