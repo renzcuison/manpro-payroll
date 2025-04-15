@@ -16,6 +16,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useClient } from "../hooks/useClients";
+import EditClient from "./EditClient";
+import AssignPackage from "./AssignPackage";
+import { usePackages } from "../hooks/usePackages";
 
 const steps = [
     {
@@ -38,16 +41,15 @@ const ClientsAdd = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [clientData, setClientData] = useState(null);
     const [companyData, setCompanyData] = useState(null);
+    const { packages } = usePackages();
     const { state } = useLocation();
-    const { client, isFetched, isFetching } = useClient(state?.id);
-    console.log(client);
 
     useEffect(() => {
-        if (state) {
-            setClientData(client);
-            setCompanyData(client?.company ?? null);
+        if (state && state.id) {
+            setClientData(state);
+            setCompanyData(state.company);
         }
-    }, [client]);
+    }, [state]);
 
     const handleNext = () => {
         if (clientData) {
@@ -65,12 +67,38 @@ const ClientsAdd = () => {
         setActiveStep(0);
     };
 
-    const renderCreate = useMemo(
-        () => (
-            <CreateUser clientData={clientData} setClientData={setClientData} />
-        ),
-        [client, setClientData, clientData, isFetched, isFetching]
-    );
+    const renderStepContent = (step) => {
+        switch (step) {
+            case 0:
+                return clientData ? (
+                    <EditClient
+                        clientData={clientData}
+                        companyData={companyData}
+                        setClientData={setClientData}
+                        setCompanyData={setCompanyData}
+                    />
+                ) : (
+                    <CreateUser
+                        clientData={clientData}
+                        setClientData={setClientData}
+                    />
+                );
+            case 1:
+                return (
+                    <CreateCompany
+                        clientData={clientData}
+                        setCompanyData={setCompanyData}
+                        companyData={companyData}
+                    />
+                );
+            case 2:
+                return (
+                    <AssignPackage company={companyData} packages={packages} />
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <Layout title={"EvaluateCreateForm"}>
@@ -92,80 +120,25 @@ const ClientsAdd = () => {
                                 </Typography>
                             </StepLabel>
                             <StepContent>
-                                {index === 0 && (
-                                    <>
-                                        {renderCreate}
-
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                Continue
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
-                                {index == 1 && (
-                                    <>
-                                        <CreateCompany
-                                            clientData={clientData}
-                                            setCompanyData={setCompanyData}
-                                            companyData={companyData}
-                                        />
-
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                {index === steps.length - 1
-                                                    ? "Finish"
-                                                    : "Continue"}
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
-                                {index == 2 && (
-                                    <>
-                                        <Box></Box>
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                Finish
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
+                                {renderStepContent(index)}
+                                <Box sx={{ mb: 2, mt: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleNext}
+                                        sx={{ mr: 1 }}
+                                        disabled={index !== 2 && !clientData}
+                                    >
+                                        {index === steps.length - 1
+                                            ? "Finish"
+                                            : "Continue"}
+                                    </Button>
+                                    <Button
+                                        onClick={handleBack}
+                                        disabled={index === 0}
+                                    >
+                                        Back
+                                    </Button>
+                                </Box>
                             </StepContent>
                         </Step>
                     ))}

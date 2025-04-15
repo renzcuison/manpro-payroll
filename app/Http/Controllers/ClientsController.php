@@ -94,7 +94,7 @@ class ClientsController extends Controller
                 'lastname' => 'required',
                 'email' => 'required|email|unique:users,email',
                 'username' => 'required|unique:users,user_name',
-                'phone' => 'required',
+                'contact_number' => 'required',
                 'address' => 'required',
                 'password' => 'required',
                 'confirm_password' => 'required|same:password',
@@ -107,7 +107,7 @@ class ClientsController extends Controller
             $client->user_name = $validated['username'];
             $client->email = $validated['email'];
             $client->password = Hash::make($validated['password']);
-            $client->contact_number = $validated['phone'];
+            $client->contact_number = $validated['contact_number'];
             $client->address = $validated['address'];
             $client->user_type = "Admin";
             $client->save();
