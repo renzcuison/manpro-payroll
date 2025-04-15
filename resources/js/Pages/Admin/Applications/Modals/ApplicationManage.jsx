@@ -209,13 +209,13 @@ const ApplicationManage = ({ open, close, appId }) => {
         event.preventDefault();
 
         const data = {
-            app_id: appDetails.app_id,
-            app_type_id: appDetails.app_type_id,
-            app_emp_username: appDetails.emp_user_name,
+            app_id: application.id,
+            app_type_id: application.type_id,
+            app_emp_username: application.user_name,
             app_response: appResponse,
-            app_leave_used: appDetails.app_leave_used,
-            app_start_date: dayjs(appDetails.app_duration_start).format("YYYY-MM-DD"),
-            app_end_date: dayjs(appDetails.app_duration_end).format("YYYY-MM-DD"),
+            app_leave_used: application.leave_used,
+            app_start_date: dayjs(application.duration_start).format("YYYY-MM-DD"),
+            app_end_date: dayjs(application.duration_end).format("YYYY-MM-DD"),
         }
 
         axiosInstance.post(`applications/manageApplication`, data, { headers })
