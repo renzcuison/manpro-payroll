@@ -317,8 +317,10 @@ class AdminDashboardController extends Controller
 
                         $lateThreshold = $expectedStart->copy()->addMinute();
 
-                        if ($firstTimeIn && $workStart && Carbon::parse($firstTimeIn->timestamp)->gt($lateThreshold)) {
-                            $lateBy = Carbon::parse($firstTimeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                        $firstAttendance = $firstTimeIn ?: $secondTimeIn;
+
+                        if ($firstAttendance && $workStart && Carbon::parse($firstAttendance->timestamp)->gt($lateThreshold)) {
+                            $lateBy = Carbon::parse($firstAttendance->timestamp)->diffInSeconds(Carbon::parse($workStart));
                             return [
                                 'id' => $user->id,
                                 'first_name' => $user->first_name ?? null,
