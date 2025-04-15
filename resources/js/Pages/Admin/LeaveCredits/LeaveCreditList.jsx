@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 
-import EmployeeLeaveCredits from '../../../Modals/Employees/EmployeeLeaveCredits';
+import LeaveCreditView from './Modals/LeaveCreditView';
 
 const LeaveCreditList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -189,7 +189,7 @@ const LeaveCreditList = () => {
             </Box>
 
             {selectedEmployee && (
-                <EmployeeLeaveCredits open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                <LeaveCreditView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
             )}
         </Layout>
     );

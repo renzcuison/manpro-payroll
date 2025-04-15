@@ -1,10 +1,10 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
-import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
-import LeaveCreditAdd from "../Employees/LeaveCreditAdd";
-import LeaveCreditEdit from "../Employees/LeaveCreditEdit";
+import LeaveCreditAdd from "../Modals/LeaveCreditAdd";
+import LeaveCreditEdit from "../Modals/LeaveCreditEdit";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,7 +12,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const EmployeeLeaveCredits = ({ open, close, userName }) => {
+const LeaveCreditView = ({ open, close, userName }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -250,4 +250,4 @@ const EmployeeLeaveCredits = ({ open, close, userName }) => {
     );
 };
 
-export default EmployeeLeaveCredits;
+export default LeaveCreditView;

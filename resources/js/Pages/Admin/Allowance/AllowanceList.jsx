@@ -17,7 +17,7 @@ import {
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
-import EmployeeLeaveCredits from '../../../Modals/Employees/EmployeeLeaveCredits';
+import EmployeeLeaveCredits from '../LeaveCredits/Modals/LeaveCreditView';
 
 const AllowanceList = () => {
     const storedUser = localStorage.getItem("nasya_user");
