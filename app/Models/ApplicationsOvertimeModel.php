@@ -15,6 +15,7 @@ class ApplicationsOvertimeModel extends Model
 
     protected $fillable = [
         'user_id',
+        'client_id',
         'time_in_id',
         'time_out_id',
         'reason',

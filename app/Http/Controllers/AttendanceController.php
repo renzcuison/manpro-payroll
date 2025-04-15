@@ -775,7 +775,7 @@ class AttendanceController extends Controller
                     $application = ApplicationsOvertimeModel::where('user_id', $user->id)
                         ->where('time_in_id', $in->id)
                         ->where('time_out_id', $out->id)
-                        ->select('status')
+                        ->select('status', 'reason', 'created_at')
                         ->first();
 
                     // log::info($date);
@@ -790,6 +790,8 @@ class AttendanceController extends Controller
                         'timeOut' => $timeOut->format('H:i:s'),
                         'minutes' => $minutes,
                         'status' => $application ? $application->status : "Unapplied",
+                        'reason' => $application ? $application->reason : null,
+                        'requested' => $application ? $application->created_at : null,
                     ];
                 }
             }
@@ -799,56 +801,6 @@ class AttendanceController extends Controller
             return response()->json(['status' => 200, 'overtime' => $overtime]);
         } else {
             return response()->json(['status' => 200, 'summary' => null]);
-        }
-    }
-
-    public function saveOvertimeApplication(Request $request)
-    {
-        // Log::info("AttendanceController::saveOvertimeApplication");
-        // Log::info($request);
-        $user = Auth::user();
-
-        if ($this->checkUserEmployee()) {
-            try {
-                DB::beginTransaction();
-                $overtimeDay = $request->input('ot_date');
-                $overtimeIn = $request->input('ot_in');
-                $overtimeOut = $request->input('ot_out');
-
-                $otTimeIn = "$overtimeDay $overtimeIn";
-                $otTimeOut = "$overtimeDay $overtimeOut";
-
-                $timeInDateTime = Carbon::parse($otTimeIn);
-                $timeOutDateTime = Carbon::parse($otTimeOut);
-
-                $timeIn = AttendanceLogsModel::where('user_id', $user->id)
-                    ->where('action', 'Overtime In')
-                    ->where('timestamp', $timeInDateTime)
-                    ->first();
-
-                $timeOut = AttendanceLogsModel::where('user_id', $user->id)
-                    ->where('action', 'Overtime Out')
-                    ->where('timestamp', $timeOutDateTime)
-                    ->first();
-
-                ApplicationsOvertimeModel::create([
-                    'user_id' => $user->id,
-                    'time_in_id' => $timeIn->id,
-                    'time_out_id' => $timeOut->id,
-                    'reason' => $request->input('reason')
-                ]);
-
-                DB::commit();
-
-                return response()->json(['status' => 200, 'message' => 'overtime submitted successfully']);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                //Log::error("Error saving: " . $e->getMessage());
-                return response()->json(['status' => 500, 'message' => 'error saving overtime application'], 500);
-                throw $e;
-            }
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 

@@ -117,13 +117,13 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Benefits",
                 },
                 // {
-                    // href: `/admin/employees/leave-credits?`,
-                    // text: "Leave Credits",
+                // href: `/admin/employees/leave-credits?`,
+                // text: "Leave Credits",
                 // },
                 // {
-                    // href: `/hr/employees-deductions?`,
-                    // text: 'List of Deductions',
-                    // icon: 'si si-user',
+                // href: `/hr/employees-deductions?`,
+                // text: 'List of Deductions',
+                // icon: 'si si-user',
                 // },
             ],
         },
@@ -182,6 +182,10 @@ const Sidebar = ({ children, closeMini }) => {
             {
                 href: `/admin/applications?`,
                 text: 'Application Request',
+            },
+            {
+                href: `/admin/application/overtimes?`,
+                text: 'Overtime Requests',
             }
         ]
     }];
@@ -414,9 +418,9 @@ const Sidebar = ({ children, closeMini }) => {
                                         return <SideItem key={index} items={items} />
                                     })}
 
-                                     <StyledNav to={`/admin/loan-management`} >
+                                    <StyledNav to={`/admin/loan-management`} >
                                         <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                                    </StyledNav> 
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/announcements`}>
                                         <i

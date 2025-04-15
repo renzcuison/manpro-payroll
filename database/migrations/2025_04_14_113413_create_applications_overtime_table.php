@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('applications_overtime', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('time_in_id');
             $table->unsignedBigInteger('time_out_id');
             $table->string('reason', 512);
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
             $table->foreign('time_in_id')->references('id')->on('attendance_logs')->onDelete('cascade');
             $table->foreign('time_out_id')->references('id')->on('attendance_logs')->onDelete('cascade');
         });

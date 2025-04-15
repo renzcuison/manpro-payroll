@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 
 import InfoBox from "../../../../components/General/InfoBox";
 
-const OvertimeApplication = ({ open, close, overtime }) => {
+const OvertimeManage = ({ open, close, overtime }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -225,4 +225,4 @@ const OvertimeApplication = ({ open, close, overtime }) => {
     )
 }
 
-export default OvertimeApplication;
+export default OvertimeManage;
