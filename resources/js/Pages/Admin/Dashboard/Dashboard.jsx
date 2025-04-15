@@ -381,7 +381,7 @@ const Dashboard = () => {
                                         <TableBody>
                                             {paginatedAttendance.length > 0 ? (
                                                 paginatedAttendance.map((attend, index) => (
-                                                    <TableRow key={index}>
+                                                    <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' }}}>
                                                         <TableCell align="left">
                                                             <Box display="flex" sx={{ alignItems: "center" }}>
                                                                 <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
