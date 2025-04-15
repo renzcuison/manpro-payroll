@@ -181,8 +181,8 @@ const AttendanceToday = () => {
                             </Box>
                             
                             <TabPanel value="1" sx={{ px: 0 }}>
-                                <Box sx={{ height: "450px", overflow: "auto" }}>
-                                    <TableContainer sx={{ maxHeight: "450px" }}>
+                                <Box sx={{ overflow: "auto" }}>
+                                    <TableContainer>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
                                                 <TableRow>
@@ -242,8 +242,8 @@ const AttendanceToday = () => {
                             </TabPanel>
 
                             <TabPanel value="2" sx={{ px: 0 }}>
-                                <Box sx={{ height: "450px", overflow: "auto" }}>
-                                    <TableContainer sx={{ maxHeight: "450px" }}>
+                                <Box sx={{ overflow: "auto" }}>
+                                    <TableContainer>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
                                                 <TableRow>
@@ -311,8 +311,8 @@ const AttendanceToday = () => {
                             </TabPanel>
 
                             <TabPanel value="3" sx={{ px: 0 }}>
-                                <Box sx={{ height: "450px", overflow: "auto" }}>
-                                    <TableContainer sx={{ maxHeight: "450px" }}>
+                                <Box sx={{ overflow: "auto" }}>
+                                    <TableContainer>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
                                                 <TableRow>
@@ -357,8 +357,8 @@ const AttendanceToday = () => {
                             </TabPanel>
 
                             <TabPanel value="4" sx={{ px: 0 }}>
-                                <Box sx={{ height: "450px", overflow: "auto" }}>
-                                    <TableContainer sx={{ maxHeight: "450px" }}>
+                                <Box sx={{ overflow: "auto" }}>
+                                    <TableContainer>
                                         <Table stickyHeader className="table table-md table-striped table-vcenter">
                                             <TableHead>
                                                 <TableRow>
