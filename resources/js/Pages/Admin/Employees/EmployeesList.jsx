@@ -136,7 +136,7 @@ const EmployeesList = () => {
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                             <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    <FormControl sx={{ width: '150%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                     }}>
                                         <TextField
