@@ -2,17 +2,135 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClientRequest;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
-
+use App\Models\Company;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class ClientsController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        $clients = UsersModel::with('company')->get();
+        return response()->json($clients);
+    }
+
+    public function show($id): JsonResponse
+    {
+        $client = UsersModel::find($id);
+        
+        if (!$client) {
+            return response()->json(['error' => 'Client not found'], 404);
+        }
+        
+        return response()->json($client->load('company'));
+    }
+
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'firstname' => 'required',
+                'middlename' => 'required',
+                'lastname' => 'required',
+                'email' => 'required|email|unique:users,email,' . $id,
+                'username' => 'required|unique:users,user_name,' . $id,
+                'contact_number' => 'required',
+                'address' => 'required',
+                'password' => 'nullable|min:6',
+                'confirm_password' => 'nullable|same:password',
+            ]);
+
+            $client = UsersModel::findOrFail($id);
+
+            $client->first_name = $validated['firstname'];
+            $client->middle_name = $validated['middlename'];
+            $client->last_name = $validated['lastname'];
+            $client->user_name = $validated['username'];
+            $client->email = $validated['email'];
+            $client->contact_number = $validated['contact_number'];
+            $client->address = $validated['address'];
+
+            if (!empty($validated['password'])) {
+                $client->password = Hash::make($validated['password']);
+            }
+
+            $client->save();
+
+            return response()->json([
+                'isSuccess' => true,
+                'message' => 'Client updated successfully',
+                'client' => $client,
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return response()->json([
+                'message' => 'Error updating client',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'firstname' => 'required',
+                'middlename' => 'required',
+                'lastname' => 'required',
+                'email' => 'required|email|unique:users,email',
+                'username' => 'required|unique:users,user_name',
+                'phone' => 'required',
+                'address' => 'required',
+                'password' => 'required',
+                'confirm_password' => 'required|same:password',
+            ]);
+
+            $client = new UsersModel();
+            $client->first_name = $validated['firstname'];
+            $client->middle_name = $validated['middlename'];
+            $client->last_name = $validated['lastname'];
+            $client->user_name = $validated['username'];
+            $client->email = $validated['email'];
+            $client->password = Hash::make($validated['password']);
+            $client->contact_number = $validated['phone'];
+            $client->address = $validated['address'];
+            $client->user_type = "Admin";
+            $client->save();
+
+            return response()->json([
+                'isSuccess' => true,
+                'message' => 'Client created successfully',
+                'client' => $client,
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return response()->json([
+                'message' => 'Error creating client',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
     public function checkUser()
     {
         // Log::info("ClientsController::checkUser");
@@ -104,5 +222,44 @@ class ClientsController extends Controller
                 throw $e;
             }
         }    
+    }
+
+    public function storeCompany(Request $request): JsonResponse
+    {
+        try {
+            
+            $validated = $request->validate([
+                'user_id' => 'required',
+                'name' => 'required',
+                'email' => 'required|unique:companies,email',
+                'phone' => 'required|unique:companies,phone',
+                'address' => 'required',
+                'website' => 'required',
+                'description' => 'required',
+            ]);
+            
+            $company = new Company();
+            $company->user_id = $request->user_id;
+            $company->name = $request->name;
+            $company->email = $request->email;
+            $company->phone = $request->phone;
+            $company->address = $request->address;
+            $company->website = $request->website;
+            $company->description = $request->description;
+            $company->save();
+
+            return response()->json([ 'company' => $company, 'status' => 200 ]);
+
+        } catch (ValidationException $e) 
+        {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+        ], 422);} catch (\Throwable $th) 
+        {
+            Log::error("Error saving company: " . $th->getMessage());
+            return response()->json([ 'error' => 'Error saving company', 'status' =>
+            500 ], 500);
+        }
     }
 }
