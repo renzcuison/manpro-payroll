@@ -20,6 +20,7 @@ import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
+import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
@@ -75,34 +76,37 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits" element={ <ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={ <ProtectedRoute element={<BenefitView />} user={user} /> } />
 
-            <Route path="attendance/logs" element={ <ProtectedRoute element={<AttendanceLogs />} user={user} /> } />
-            <Route path="attendance/:user" element={ <ProtectedRoute element={<AttendanceView />} user={user} /> } />
-            <Route path="attendance/today" element={ <ProtectedRoute element={<AttendanceToday />} user={user} /> } />
-            <Route path="attendance/summary" element={ <ProtectedRoute element={<AttendanceSummary />} user={user} /> } />
+            <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
+            <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />
+            <Route path="attendance/today" element={<ProtectedRoute element={<AttendanceToday />} user={user} />} />
+            <Route path="attendance/summary" element={<ProtectedRoute element={<AttendanceSummary />} user={user} />} />
 
             <Route path="applications" element={<ProtectedRoute element={<ApplicationsList />} user={user} />} />
             <Route path="application/types" element={<ProtectedRoute element={<ApplicationTypes />} user={user} />} />
+
+            <Route path="application/overtimes" element={<ProtectedRoute element={<OvertimeAppsList />} user={user} />} />
+            
             <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} />} />
 
-            <Route path="announcements" element={ <ProtectedRoute element={<AnnouncementList />} user={user} /> } />
+            <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} />} />
 
-            <Route path="trainings" element={ <ProtectedRoute element={<TrainingsList />} user={user} /> } />
-            <Route path="training/:code" element={ <ProtectedRoute element={<TrainingView />} user={user} /> } />
+            <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} />} />
+            <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} />} />
 
-            <Route path="performance-evaluation/add" element={ <ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} /> } />
-            <Route path="performance-evaluation" element={ <ProtectedRoute element={<PerformanceEvaluationList />} user={user} /> } />
+            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
+            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
-            <Route path="settings/general" element={ <ProtectedRoute element={<GeneralSettings />} user={user} /> } />
+            <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
 
-            <Route path="workshift/:client/:selectedShift" element={ <ProtectedRoute element={<WorkshiftView />} user={user} /> } />
-            <Route path="workshifts/add" element={ <ProtectedRoute element={<WorkshiftsAdd />} user={user} /> } />
+            <Route path="workshift/:client/:selectedShift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
+            <Route path="workshifts/add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />
 
-            <Route path="workgroup/:client/:group" element={ <ProtectedRoute element={<WorkGroupView />} user={user} /> } />
-            <Route path="workgroups/add" element={ <ProtectedRoute element={<WorkGroupsAdd />} user={user} /> } />
+            <Route path="workgroup/:client/:group" element={<ProtectedRoute element={<WorkGroupView />} user={user} />} />
+            <Route path="workgroups/add" element={<ProtectedRoute element={<WorkGroupsAdd />} user={user} />} />
 
-            <Route path="workdays" element={ <ProtectedRoute element={<WorkDayView />} user={user} /> } />
+            <Route path="workdays" element={<ProtectedRoute element={<WorkDayView />} user={user} />} />
 
             <Route path="payroll/process" element={<ProtectedRoute element={<PayrollProcess />} user={user} />} />
             <Route path="payroll/records" element={<ProtectedRoute element={<PayrollRecords />} user={user} />} />
