@@ -40,8 +40,8 @@ const ApplicationsList = () => {
 
     // ---------------- Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
-    const handleOpenApplicationManage = (appDetails) => {
-        setOpenApplicationManage(appDetails);
+    const handleOpenApplicationManage = (appId) => {
+        setOpenApplicationManage(appId);
     };
     const handleCloseApplicationManage = () => {
         setOpenApplicationManage(null);
@@ -88,8 +88,8 @@ const ApplicationsList = () => {
                                                     return (
                                                         <TableRow
                                                             key={application.app_id}
-                                                            onClick={() => handleOpenApplicationManage(application)}
-                                                            sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" },}}
+                                                            onClick={() => handleOpenApplicationManage(application.app_id)}
+                                                            sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }, }}
                                                         >
                                                             <TableCell align="left">{" "}{application.emp_first_name}{" "}{application.emp_middle_name || ""}{" "}{application.emp_last_name}{" "}{application.emp_suffix || ""}{" "}</TableCell>
                                                             <TableCell align="center">{application.app_type_name || "-"}</TableCell>
@@ -113,7 +113,7 @@ const ApplicationsList = () => {
             </Box>
 
             {openApplicationManage && (
-                <ApplicationManage open={true} close={handleCloseApplicationManage} appDetails={openApplicationManage} />
+                <ApplicationManage open={true} close={handleCloseApplicationManage} appId={openApplicationManage} />
             )}
         </Layout>
     );
