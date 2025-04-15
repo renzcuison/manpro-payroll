@@ -1,16 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Select, MenuItem, InputLabel, Box, FormControl, Typography, TablePagination, Accordion, AccordionSummary, AccordionDetails, TableHead, Avatar, Tab, CircularProgress } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Box, TablePagination, TableHead, Avatar, CircularProgress } from "@mui/material";
 
+import { Chart as ChartJS } from 'chart.js/auto';
 import { Doughnut } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
 import { Pie } from 'react-chartjs-2';
-import { forEach } from "lodash";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -22,7 +20,9 @@ const Dashboard = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [headCount, setHeadCount] = useState();
+    const chartRef = useRef(null);
+
+    const [headCount, setHeadCount] = useState(0);
     const [applicationCount, setApplicationCount] = useState();
     const [announcementCount, setAnnouncementCount] = useState();
     const [trainingCount, setTrainingCount] = useState();
@@ -41,12 +41,17 @@ const Dashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    const [attendanceTab, setAttendanceTab] = useState('1');
     const [attendanceLoading, setAttendanceLoading] = useState(true);
 
     useEffect(() => {
         getDashboardData();
         getAttendance(1);
+
+        return () => {
+            if (chartRef.current) {
+              chartRef.current.destroy();
+            }
+        };
     }, []);
 
     const getDashboardData = () => {
@@ -154,10 +159,7 @@ const Dashboard = () => {
         width: 500,
         height: 500,
         plugins: {
-            legend: {
-                position: 'right',
-                labels: { fontColor: 'black' },
-            },
+            legend: { position: 'right', labels: { fontColor: 'black' }}
         },
     };
 
@@ -171,33 +173,6 @@ const Dashboard = () => {
     };
     const paginatedAttendance = attendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-    // Tab Controls
-    const handleAttendanceTabChange = (event, newValue) => {
-        event.preventDefault();
-        setAttendanceTab(newValue);
-        setAttendanceLoading(true);
-        getAttendance(newValue);
-    }
-
-    // Late Time Formatter
-    const formatLateTime = (seconds) => {
-        if (!seconds && seconds !== 0) return '-';
-
-        const absSeconds = Math.abs(seconds);
-
-        const hours = Math.floor(absSeconds / 3600);
-        const minutes = Math.floor((absSeconds % 3600) / 60);
-        const sec = absSeconds % 60;
-
-        if (hours > 0) {
-            return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
-        } else if (minutes > 0) {
-            return `${minutes}m${sec > 0 ? ` ${sec}s` : ''}`;
-        } else {
-            return `${sec}s`;
-        }
-    };
-
     // "../../../images/avatarpic.jpg"
     const [blobMap, setBlobMap] = useState({});
 
@@ -205,8 +180,7 @@ const Dashboard = () => {
         const userIds = attendanceData.map((attend) => attend.id);
         if (userIds.length === 0) return;
 
-        axiosInstance
-            .post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
+        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
             .then((avatarResponse) => {
                 const avatars = avatarResponse.data.avatars || {};
                 setBlobMap((prev) => {
@@ -271,15 +245,7 @@ const Dashboard = () => {
                         <div className="row g-2" >
                             {/* Head Count */}
                             <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px"
-                                    }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
                                     <div className="block-content block-content-full">
                                         <Link to="/admin/employees" style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {headCount ? headCount : 0} </div>
@@ -290,15 +256,7 @@ const Dashboard = () => {
                             </div>
                             {/* Application Count*/}
                             <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px"
-                                    }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }}>
                                     <div className="block-content block-content-full">
                                         <Link to={"/admin/applications"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {applicationCount ? applicationCount : 0} </div>
@@ -309,15 +267,7 @@ const Dashboard = () => {
                             </div>
                             {/* Announcement Count */}
                             <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px"
-                                    }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }}>
                                     <div className="block-content block-content-full">
                                         <Link to={"/admin/announcements"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {announcementCount ? announcementCount : 0} </div>
@@ -331,7 +281,7 @@ const Dashboard = () => {
                         <div className="row g-2" style={{ marginTop: 25 }} >
                             {/* Trainings */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }}>
                                     <div className="block-content block-content-full">
                                         <Link to={"/hr/trainings"} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {trainingCount ? trainingCount : 0} </div>
@@ -342,7 +292,7 @@ const Dashboard = () => {
                             </div>
                             {/* Average Age */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }}>
                                     <div className="block-content block-content-full">
                                         <Link to={`/hr/employees`} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {averageAge ? averageAge : 0} years </div>
@@ -353,7 +303,7 @@ const Dashboard = () => {
                             </div>
                             {/* Average Tenureship */}
                             <div className="col-lg-4 col-sm-12">
-                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }} >
+                                <div className="block" style={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", height: "165px", borderLeft: "4px solid #2a800f", paddingLeft: "12px" }}>
                                     <div className="block-content block-content-full">
                                         <Link to={`/hr/employees`} style={{ color: "#777777" }} >
                                             <div className="font-size-h2 font-w600" style={{ paddingTop: 13 }}> {averageTenure ? averageTenure : 0} years </div>
@@ -371,7 +321,7 @@ const Dashboard = () => {
                                 <h5 className="block-title">Employee Attendance</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Doughnut data={attendancePieChart} options={attendancePieOptions} />
+                                <Doughnut key={`attendance-${presentCount}-${onLeaveCount}-${headCount}`} data={attendancePieChart} options={attendancePieOptions} />
                             </div>
                         </div>
                     </div>
@@ -385,7 +335,7 @@ const Dashboard = () => {
                                 <h5 className="block-title">Employee Count by Branch</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Bar data={branchBarChart} options={branchBarOptions} />
+                                <Bar key={`branch-${Object.values(branchCount).join(",")}`} data={branchBarChart} options={branchBarOptions} />
                             </div>
                         </div>
                     </div>
@@ -397,7 +347,7 @@ const Dashboard = () => {
                                 <h5 className="block-title">Employee Count by Salary Range</h5>
                             </div>
                             <div className="block-content block-content-full" style={{ minHeight: '300px', overflowY: 'auto' }}>
-                                <Pie data={salaryPieChart} options={salaryPieOptions} />
+                                <Pie key={`salary-${salaryRange.join(",")}`} data={salaryPieChart} options={salaryPieOptions} />
                             </div>
                         </div>
                     </div>
@@ -474,7 +424,6 @@ const Dashboard = () => {
                                     sx={{ alignItems: "center" }}
                                 />
                             </TableContainer>
-                            {/* <h5 className="block-title">{presentCount ? presentCount : 0} out of {headCount ? headCount : 0}</h5> */}
                         </Box>
                     </div>
                 </div>
