@@ -474,58 +474,53 @@ const ApplicationManage = ({ open, close, appId }) => {
                                         <Divider />
                                     </Grid>
                                     {/* Leave Credits */}
-                                    <Grid container size={{ xs: 12 }}>
-                                        <Grid size={12}>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                Leave Credits
-                                            </Typography>
-                                        </Grid>
+                                    <Grid size={12}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                            Leave Credits
+                                        </Typography>
+                                        <TableContainer sx={{ border: "solid 1px #e0e0e0" }}>
+                                            <Table size="small" stickyHeader>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell align="left" sx={{ width: "40%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}> Type </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}> Credits </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}> Used </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ width: "20%" }}>
+                                                            <Typography variant="caption" sx={{ color: "text.secondary" }}> Remaining </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {leaveCredits.length > 0 ? (
+                                                        leaveCredits.map((leave, index) => {
 
-                                        <Grid size={12}>
-                                            <TableContainer>
-                                                <Table size="small">
-                                                    <TableHead>
+                                                            const remainingCredits = leave.credit_number - leave.credit_used;
+                                                            const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
+                                                            const remainingEmpty = remainingCredits < (leave.credit_number / 3);
+
+                                                            return (
+                                                                <TableRow key={index}>
+                                                                    <TableCell> {leave.app_type_name} </TableCell>
+                                                                    <TableCell align="center"> {leave.credit_number} </TableCell>
+                                                                    <TableCell align="center"> {leave.credit_used} </TableCell>
+                                                                    <TableCell align="center" sx={{ color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null }}> {remainingCredits} </TableCell>
+                                                                </TableRow>
+                                                            );
+
+                                                        })) :
                                                         <TableRow>
-                                                            <TableCell align="left" sx={{ width: "40%" }}>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}> Type </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}> Credits </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}> Used </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: "20%" }}>
-                                                                <Typography variant="caption" sx={{ color: "text.secondary" }}> Remaining </Typography>
-                                                            </TableCell>
+                                                            <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} > No Leave Credits Found </TableCell>
                                                         </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        {leaveCredits.length > 0 ? (
-                                                            leaveCredits.map((leave, index) => {
-
-                                                                const remainingCredits = leave.credit_number - leave.credit_used;
-                                                                const remainingWarning = remainingCredits < ((leave.credit_number / 3) * 2);
-                                                                const remainingEmpty = remainingCredits < (leave.credit_number / 3);
-
-                                                                return (
-                                                                    <TableRow key={index}>
-                                                                        <TableCell> {leave.app_type_name} </TableCell>
-                                                                        <TableCell align="center"> {leave.credit_number} </TableCell>
-                                                                        <TableCell align="center"> {leave.credit_used} </TableCell>
-                                                                        <TableCell align="center" sx={{ color: remainingEmpty ? "#f44336" : remainingWarning ? "#e9ae20" : null }}> {remainingCredits} </TableCell>
-                                                                    </TableRow>
-                                                                );
-
-                                                            })) :
-                                                            <TableRow>
-                                                                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} > No Leave Credits Found </TableCell>
-                                                            </TableRow>
-                                                        }
-                                                    </TableBody>
-                                                </Table>
-                                            </TableContainer>
-                                        </Grid>
+                                                    }
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Grid>
                                 </Grid>
                             </Box>
