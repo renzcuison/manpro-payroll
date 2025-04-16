@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 use Carbon\Carbon;
@@ -37,6 +38,7 @@ class ApplicationsController extends Controller
         return false;
     }
 
+    // Application Lists
     public function getApplications()
     {
         //Log::info("ApplicationsController::getApplications");
@@ -52,9 +54,6 @@ class ApplicationsController extends Controller
             foreach ($apps as $app) {
                 $employee = $app->user;
                 $type = $app->type;
-                $branch = $app->branch;
-                $department = $app->department;
-                $job_title = $app->jobTitle;
 
                 $applications[] = [
                     'app_id' => $app->id,
@@ -63,62 +62,17 @@ class ApplicationsController extends Controller
                     'app_duration_start' => $app->duration_start,
                     'app_duration_end' => $app->duration_end,
                     'app_date_requested' => $app->created_at,
-                    'app_description' => $app->description,
-                    'app_status' => $app->status,
-                    'app_leave_used' => $app->leave_used,
                     'emp_user_name' => $employee->user_name,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
                     'emp_suffix' => $employee->suffix,
-                    'emp_branch' => $branch->name ?? '',
-                    'emp_department' => $department->name ?? '',
-                    'emp_job_title' => $job_title->name ?? ''
                 ];
             }
 
             return response()->json(['status' => 200, 'applications' => $applications]);
         } else {
             return response()->json(['status' => 200, 'applications' => null]);
-        }
-    }
-
-    public function getApplicationTypes()
-    {
-        //Log::info("ApplicationsController::getApplicationTypes");
-
-        $user = Auth::user();
-        $clientId = $user->client_id;
-
-        $types = ApplicationTypesModel::where('client_id', $clientId)->where('deleted_at', NULL)->get();
-
-        return response()->json(['status' => 200, 'types' => $types]);
-    }
-
-    public function editApplicationType(Request $request)
-    {
-        // Log::info("ApplicationsController::editApplicationType");
-
-        try {
-            DB::beginTransaction();
-
-            $applicationType = ApplicationTypesModel::find($request->applicationType);
-
-            $applicationType->name = $request->name;
-            $applicationType->is_paid_leave = $request->paidLeave;
-            $applicationType->percentage = $request->percentage;
-            $applicationType->require_files = $request->requireFiles;
-            $applicationType->tenureship_required = $request->tenureship;
-            $applicationType->save();
-
-            DB::commit();
-            return response()->json(['status' => 200]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error("Error saving: " . $e->getMessage());
-
-            throw $e;
         }
     }
 
@@ -163,21 +117,109 @@ class ApplicationsController extends Controller
         return response()->json(['status' => 200, 'applications' => $applications]);
     }
 
-    public function getTenureship()
+    // Details
+    public function getApplicationDetails($id)
     {
-        //Log::info("ApplicationsController::getTenureship");
+        //Log::info("ApplicationsController::getApplicationDetails");
+        //Log::info($id);
 
         $user = Auth::user();
 
-        $startDate = Carbon::parse($user->date_start);
+        $app = ApplicationsModel::with(['user', 'type', 'branch', 'department', 'jobTitle'])->find($id);
 
-        $currentDate = Carbon::now();
+        if ($this->checkUser() && ($user->client_id == $app->client_id)) {
+            $appUser = $app->user;
+            $appType = $app->type;
+            $branch = $app->branch;
+            $department = $app->department;
+            $job_title = $app->jobTitle;
 
-        $tenureshipMonths = $startDate->diffInMonths($currentDate);
+            $app->type_id = $appType->id;
+            $app->type_name = $appType->name;
+            $app->emp_user_name = $appUser->user_name;
+            $app->emp_first_name = $appUser->first_name;
+            $app->emp_middle_name = $appUser->middle_name ?? '';
+            $app->emp_last_name = $appUser->last_name ?? '';
+            $app->emp_suffix = $appUser->suffix ?? '';
+            $app->emp_branch = $branch->name ?? '';
+            $app->emp_department = $department->name ?? '';
+            $app->emp_job_title = $job_title->name ?? '';
+            if ($appUser->profile_pic && Storage::disk('public')->exists($appUser->profile_pic)) {
+                $app->avatar = base64_encode(Storage::disk('public')->get($appUser->profile_pic));
+                $app->avatar_mime = mime_content_type(storage_path('app/public/' . $appUser->profile_pic));
+            } else {
+                $app->avatar = null;
+                $app->avatar_mime = null;
+            }
 
-        return response()->json(['status' => 200, 'tenureship' => $tenureshipMonths]);
+            $filenames = [];
+            $mediaItems = $app->getMedia('*');
+
+            foreach ($mediaItems as $media) {
+                $filenames[] = [
+                    'id' => $media->id,
+                    'filename' => $media->file_name,
+                    'type' => $media->getCustomProperty('type'),
+                ];
+            }
+
+            unset(
+                $app->user,
+                $app->client_id,
+                $app->user_id,
+                $app->media,
+                $app->type,
+                $app->department,
+                $app->branch,
+                $app->jobTitle
+            );
+            return response()->json(['status' => 200, 'application' => $app, 'files' => $filenames ?: null]);
+        } else {
+            return response()->json(['status' => 200, 'application' => null, 'files' => null]);
+        }
     }
 
+    // Application Types
+    public function getApplicationTypes()
+    {
+        //Log::info("ApplicationsController::getApplicationTypes");
+
+        $user = Auth::user();
+        $clientId = $user->client_id;
+
+        $types = ApplicationTypesModel::where('client_id', $clientId)->where('deleted_at', NULL)->get();
+
+        return response()->json(['status' => 200, 'types' => $types]);
+    }
+
+    public function editApplicationType(Request $request)
+    {
+        // Log::info("ApplicationsController::editApplicationType");
+
+        try {
+            DB::beginTransaction();
+
+            $applicationType = ApplicationTypesModel::find($request->applicationType);
+
+            $applicationType->name = $request->name;
+            $applicationType->is_paid_leave = $request->paidLeave;
+            $applicationType->percentage = $request->percentage;
+            $applicationType->require_files = $request->requireFiles;
+            $applicationType->tenureship_required = $request->tenureship;
+            $applicationType->save();
+
+            DB::commit();
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // Functions
     public function saveApplication(Request $request)
     {
         $user = Auth::user();
@@ -365,6 +407,7 @@ class ApplicationsController extends Controller
         }
     }
 
+    // Files
     public function getApplicationFiles($id)
     {
         //Log::info("AnnouncementsController::getApplicationFiles");
@@ -406,6 +449,7 @@ class ApplicationsController extends Controller
         return response()->download($filePath, $media->file_name);
     }
 
+    // Leave Credits
     public function getLeaveCredits($userName)
     {
         //Log::info("ApplicationsController::getLeaveCredits");
@@ -568,6 +612,7 @@ class ApplicationsController extends Controller
         }
     }
 
+    // Overtime
     public function saveOvertimeApplication(Request $request)
     {
         // Log::info("ApplicationsController::saveOvertimeApplication");
@@ -678,6 +723,22 @@ class ApplicationsController extends Controller
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+    }
+
+    // Restrictions
+    public function getTenureship()
+    {
+        //Log::info("ApplicationsController::getTenureship");
+
+        $user = Auth::user();
+
+        $startDate = Carbon::parse($user->date_start);
+
+        $currentDate = Carbon::now();
+
+        $tenureshipMonths = $startDate->diffInMonths($currentDate);
+
+        return response()->json(['status' => 200, 'tenureship' => $tenureshipMonths]);
     }
 
     public function getFullLeaveDays()
