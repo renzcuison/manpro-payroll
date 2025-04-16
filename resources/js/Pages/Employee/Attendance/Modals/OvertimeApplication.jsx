@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Divider } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, Divider, useTheme, useMediaQuery } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -19,6 +19,9 @@ const OvertimeApplication = ({ open, close, overtime }) => {
 
     const [reason, setReason] = useState('');
     const [reasonError, setReasonError] = useState(false);
+
+    const theme = useTheme();
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
 
     const formatTime = (time) => {
         return time ? dayjs(`${overtime.date}T${time}`).format('hh:mm:ss A') : '';
@@ -98,20 +101,32 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' }
-                }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                slotProps={{
+                    paper: {
+                        sx: {
+                            px: { xs: 0, md: 3 },
+                            pt: 1,
+                            backgroundColor: "#f8f9fa",
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: '20px' },
+                            minWidth: { xs: "100%", md: "700px" },
+                            maxWidth: '800px',
+                            marginBottom: '5%'
+                        }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Overtime Application </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ mt: 2, mb: 3 }}>
                     <Box sx={{ mt: 1, width: "100%" }}>
                         <Grid container spacing={2}>
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <TextField
                                     label="Date"
                                     value={formatDate(overtime.date)}
@@ -122,7 +137,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                     variant="outlined"
                                 />
                             </Grid>
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <TextField
                                     label="Time In"
                                     value={formatTime(overtime.timeIn)}
@@ -133,7 +148,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                     variant="outlined"
                                 />
                             </Grid>
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <TextField
                                     label="Time Out"
                                     value={formatTime(overtime.timeOut)}
@@ -170,7 +185,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                             <Grid size={{ xs: 12 }}>
                                 <InfoBox
                                     title="Status"
-                                    info={overtime.status == "Unapplied" ? "You have not submitted this overtime period yet." : overtime.status.toUpperCase()}
+                                    info={overtime.status == "Unapplied" ? "You haven't submitted this overtime yet" : overtime.status.toUpperCase()}
                                     compact
                                     clean
                                     color={["Approved", "Paid"].includes(overtime.status)
@@ -183,6 +198,7 @@ const OvertimeApplication = ({ open, close, overtime }) => {
                                                     ? "#f57c00"
                                                     : "#000000"
                                     }
+                                    stacked={overtime.status == "Unapplied" && !medScreen}
                                 />
                             </Grid>
                             {overtime.status == "Unapplied" ? (
