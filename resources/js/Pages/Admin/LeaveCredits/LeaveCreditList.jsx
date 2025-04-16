@@ -19,37 +19,11 @@ const LeaveCreditList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        // Step 1: Fetch the list of employees
         axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);
                 setIsLoading(false);
-
-                // Step 2: Fetch leave credits for each employee
-                employeesData.forEach((employee) => {
-                    axiosInstance.get(`/applications/getLeaveCredits/${employee.user_name}`, { headers })
-                        .then((creditResponse) => {
-                            const leaveCredits = creditResponse.data.leave_credits || [];
-
-                            // Aggregate credits
-                            const totalCredits = leaveCredits.reduce((sum, credit) => sum + Number(credit.credit_number || 0), 0);
-                            const usedCredits = leaveCredits.reduce((sum, credit) => sum + Number(credit.credit_used || 0), 0);
-                            const remainingCredits = totalCredits - usedCredits;
-
-                            setEmployeeCredits((prev) => ({
-                                ...prev,
-                                [employee.user_name]: {
-                                    totalCredits,
-                                    usedCredits,
-                                    remainingCredits,
-                                },
-                            }));
-                        })
-                        .catch((error) => {
-                            console.error(`Error fetching leave credits for ${employee.user_name}:`, error);
-                        });
-                });
             })
             .catch((error) => {
                 console.error('Error fetching employees:', error);
@@ -70,12 +44,10 @@ const LeaveCreditList = () => {
         return fullName.includes(searchName.toLowerCase());
     });
 
-    
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-  
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
@@ -83,10 +55,6 @@ const LeaveCreditList = () => {
 
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
    
-    const formatEmployeeName = (employee) => {
-        return `${employee.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.trim();
-    };
-
     return (
         <Layout title={"LeaveCreditList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -119,41 +87,27 @@ const LeaveCreditList = () => {
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left" sx={{ fontWeight: 'bold' }}>
-                                                    Employee Name
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                                    Branch
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                                    Department
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                                    Total Credits
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                                    Used Credits
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                                    Remaining
-                                                </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Total Credits </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Used Credits </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Remaining </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {paginatedEmployees.length > 0 ? (
                                                 paginatedEmployees.map((employee, index) => {
-                                                    const credits = employeeCredits[employee.user_name] || { totalCredits: 0, usedCredits: 0, remainingCredits: 0 };
-
                                                     return (
                                                         <TableRow key={employee.id} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {formatEmployeeName(employee)} </Link>
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {employee.name || '-'} </Link>
                                                             </TableCell>
-                                                            <TableCell align="center">{employee.branch || 'Davao'}</TableCell>
-                                                            <TableCell align="center">{employee.department || 'Unknown'}</TableCell>
-                                                            <TableCell align="center">{Number(credits.totalCredits || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(credits.usedCredits || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(credits.remainingCredits || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">{employee.branch || '-'}</TableCell>
+                                                            <TableCell align="center">{employee.department || '-'}</TableCell>
+                                                            <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">{Number(employee.used || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">{Number(employee.remaining || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })

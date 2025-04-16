@@ -174,28 +174,21 @@ class EmployeesController extends Controller
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
-            $employees = $client->employees;
+            $employees = [];
 
-            $enrichedEmployees = $employees->map(function ($employee) {
-                $employee = $this->enrichEmployeeDetails($employee);
-    
-                unset(
-                    // $employee->id,
-                    $employee->verify_code,
-                    $employee->code_expiration,
-                    $employee->is_verified,
-                    $employee->client_id,
-                    $employee->branch_id,
-                    $employee->department_id,
-                    $employee->role_id,
-                    $employee->job_title_id,
-                    $employee->work_group_id
-                );
-    
-                return $employee;
-            });
+            foreach ( $client->employees as $employee ) {
+                $employees[] = [
+                    'user_name' => $employee->user_name,
+                    'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
+                    'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                    'total' => $employee->leaveCredits->sum('number'),
+                    'used' => $employee->leaveCredits->sum('used'),
+                    'remaining' => $employee->leaveCredits->sum('number') - $employee->leaveCredits->sum('used'),
+                ];
+            }
 
-            return response()->json(['status' => 200, 'employees' => $enrichedEmployees]);
+            return response()->json(['status' => 200, 'employees' => $employees]);
         }
 
         return response()->json(['status' => 200, 'employees' => null]);
@@ -215,8 +208,6 @@ class EmployeesController extends Controller
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
-            log::info($request);
 
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
@@ -321,8 +312,7 @@ class EmployeesController extends Controller
 
     public function getEmployeeDetails(Request $request)
     {
-        log::info("EmployeesController::getEmployeeDetails");
-        log::info($request);
+        // log::info("EmployeesController::getEmployeeDetails");
 
         $validated = $request->validate([
             'username' => 'required|string'
@@ -442,10 +432,7 @@ class EmployeesController extends Controller
 
     public function editEmployeeDetails(Request $request)
     {
-        log::info("EmployeesController::editEmployeeDetails");
-        log::info($request);
-
-        // dd("Stopper");
+        // log::info("EmployeesController::editEmployeeDetails");
 
         $user = Auth::user();
         $employee = UsersModel::where('user_name', $request->userName)->first();
