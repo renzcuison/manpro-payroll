@@ -91,7 +91,7 @@ const AttendanceSummary = () => {
     return (
         <Layout title={"AttendanceSummary"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box
                         sx={{
                             mt: 5,
@@ -114,7 +114,7 @@ const AttendanceSummary = () => {
                             </Box>
                         ) : (
                             <>
-                                <Box display="flex" sx={{ justifyContent: "flex-start", pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                                <Box display="flex" gap={2} sx={{ pb: 4, width: "100%", justifyContent: "flex-start", borderBottom: "1px solid #e0e0e0", flexDirection: { xs: "column", md: "row" } }} >
                                     <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="From Date"
@@ -128,7 +128,7 @@ const AttendanceSummary = () => {
                                             renderInput={(params) => (
                                                 <TextField {...params} />
                                             )}
-                                            sx={{ mr: 2 }}
+                                            sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
                                         />
                                         <DatePicker
                                             label="To Date"
@@ -140,6 +140,7 @@ const AttendanceSummary = () => {
                                             renderInput={(params) => (
                                                 <TextField {...params} />
                                             )}
+                                            sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
                                         />
                                     </LocalizationProvider>
                                 </Box>

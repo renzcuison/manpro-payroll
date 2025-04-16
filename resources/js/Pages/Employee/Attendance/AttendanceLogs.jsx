@@ -290,7 +290,6 @@ const AttendanceLogs = () => {
                                                 ) : (
                                                     <><i className="fa fa-plus"></i> Show Filters </>
                                                 )}
-
                                             </p>
                                         </Button>
                                     )}
