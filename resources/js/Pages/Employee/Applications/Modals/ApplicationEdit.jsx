@@ -34,6 +34,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    console.log(appDetails);
     // Form Fields
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
@@ -608,17 +609,22 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "700px" },
-                        maxWidth: '800px',
-                        marginBottom: '5%'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            px: { xs: 0, md: 2 },
+                            pt: 1,
+                            backgroundColor: '#f8f9fa',
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: '20px' },
+                            minWidth: { xs: "100%", sm: "700px" },
+                            maxWidth: '800px',
+                            marginBottom: '5%',
+                        }
                     }
-                }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                }}
+            >
+                <DialogTitle sx={{ paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Edit Application{" "}
@@ -629,7 +635,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ mt: 2, mb: 3 }}>
                     <Box
                         component="form"
                         onSubmit={checkInput}
@@ -672,7 +678,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* From Date */}
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -693,11 +699,12 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
+                                        sx={{ width: "100%" }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
                             {/* To Date */}
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -718,11 +725,12 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
+                                        sx={{ width: "100%" }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
                             {/* Leave Credits */}
-                            <Grid size={{ xs: 4 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         label="Credits Used/Available"

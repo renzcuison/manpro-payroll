@@ -107,19 +107,24 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "500px" },
-                        maxWidth: '600px',
-                        marginBottom: '5%'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            px: { xs: 0, md: 2 },
+                            pt: 1,
+                            backgroundColor: '#f8f9fa',
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: '20px' },
+                            minWidth: { xs: "100%", sm: "500px" },
+                            maxWidth: '600px',
+                            marginBottom: '5%',
+                        }
                     }
-                }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                }}
+            >
+                <DialogTitle sx={{ paddingBottom: 1, mt: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
+                        <Typography variant="h4" sx={{ my: 1, fontWeight: "bold" }}>
                             {" "}Application Details{" "}
                         </Typography>
                         <IconButton onClick={close}>
@@ -128,7 +133,7 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ mt: 2, mb: 3 }}>
                     <Grid container rowSpacing={2}>
                         {/* Application Type */}
                         <Grid size={{ xs: 12 }}>
