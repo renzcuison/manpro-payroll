@@ -99,7 +99,7 @@ const LeaveCreditList = () => {
                                             {paginatedEmployees.length > 0 ? (
                                                 paginatedEmployees.map((employee, index) => {
                                                     return (
-                                                        <TableRow key={employee.id} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
+                                                        <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">
                                                                 <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {employee.name || '-'} </Link>
                                                             </TableCell>
