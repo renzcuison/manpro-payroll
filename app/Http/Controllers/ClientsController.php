@@ -6,6 +6,7 @@ use App\Http\Requests\StoreClientRequest;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\Company;
+use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ class ClientsController extends Controller
 {
     public function index(): JsonResponse
     {
-        $clients = UsersModel::with('company')->get();
+        $clients = UsersModel::with('company.package')->get();
         return response()->json($clients);
     }
 
@@ -30,7 +31,7 @@ class ClientsController extends Controller
             return response()->json(['error' => 'Client not found'], 404);
         }
         
-        return response()->json($client->load('company'));
+        return response()->json($client->load('company.package'));
     }
 
     public function update(Request $request, $id): JsonResponse
@@ -131,6 +132,31 @@ class ClientsController extends Controller
             ], 500);
         }
     }
+
+    public function assignPackageToCompany(Request $req, $id, $pkg_id)
+    {
+        try {
+            
+            $company = Company::findOrFail($id);
+            $package = Package::findOrFail($pkg_id);
+            
+            $company->package_id = $package->id;
+            $company->save();
+
+            return response()->json([
+                'isSuccess' => true,
+                'message' => 'Package assigned successfully',
+                'company' =>$company->load('package')
+        ], 200);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return response()->json([
+                'message' => 'Error assigning package',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+    
     public function checkUser()
     {
         // Log::info("ClientsController::checkUser");

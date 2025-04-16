@@ -7,6 +7,8 @@ import {
     Step,
     StepLabel,
     StepContent,
+    Stack,
+    Divider,
 } from "@mui/material";
 
 import Layout from "../../../components/Layout/Layout";
@@ -14,7 +16,7 @@ import CreateCompany from "./CreateCompany";
 import CreateUser from "./CreateUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useClient } from "../hooks/useClients";
 import EditClient from "./EditClient";
 import AssignPackage from "./AssignPackage";
@@ -41,6 +43,7 @@ const ClientsAdd = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [clientData, setClientData] = useState(null);
     const [companyData, setCompanyData] = useState(null);
+    const navigate = useNavigate();
     const { packages } = usePackages();
     const { state } = useLocation();
 
@@ -93,7 +96,11 @@ const ClientsAdd = () => {
                 );
             case 2:
                 return (
-                    <AssignPackage company={companyData} packages={packages} />
+                    <AssignPackage
+                        company={companyData}
+                        packages={packages}
+                        setCompanyData={setCompanyData}
+                    />
                 );
             default:
                 return null;
@@ -102,7 +109,17 @@ const ClientsAdd = () => {
 
     return (
         <Layout title={"EvaluateCreateForm"}>
-            <Box sx={{}}>
+            <Stack sx={{}}>
+                <Box>
+                    <Button
+                        onClick={() => navigate(-1)}
+                        sx={{ mt: 1, mr: 1 }}
+                        variant="outlined"
+                    >
+                        Back to client lists
+                    </Button>
+                </Box>
+                <Divider sx={{ py: 2 }} />
                 <Stepper activeStep={activeStep} orientation="vertical">
                     {steps.map((step, index) => (
                         <Step key={step.label}>
@@ -148,8 +165,11 @@ const ClientsAdd = () => {
                         <Typography>
                             All steps completed - you&apos;re finished
                         </Typography>
-                        <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                            Reset
+                        <Button
+                            onClick={() => navigate(-1)}
+                            sx={{ mt: 1, mr: 1 }}
+                        >
+                            Back to client lists
                         </Button>
                     </Paper>
                 )}
@@ -582,7 +602,7 @@ const ClientsAdd = () => {
                         </Box>
                     </Box>
                 </div> */}
-            </Box>
+            </Stack>
         </Layout>
     );
 };

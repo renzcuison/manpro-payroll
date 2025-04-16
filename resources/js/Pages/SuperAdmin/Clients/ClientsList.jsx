@@ -260,7 +260,11 @@ const ClientsList = () => {
                                                             }
                                                         </TableCell>
                                                         <TableCell>
-                                                            {client.status}
+                                                            {
+                                                                client.company
+                                                                    ?.package
+                                                                    ?.name
+                                                            }
                                                         </TableCell>
                                                         <TableCell>
                                                             {client.status}

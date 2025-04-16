@@ -47,19 +47,6 @@ export function usePackages() {
         return response.data;
     }
 
-    async function assignFeature(packageID, featureID) {
-        const response = await axiosInstance.post(
-            `/super-admin/packages/${packageID}/assignFeature`,
-            {
-                feature_id: featureID,
-            },
-            {
-                headers,
-            }
-        );
-        return response.data;
-    }
-
     return {
         packages,
         isFetched,
@@ -67,7 +54,6 @@ export function usePackages() {
         refetch,
         store,
         update,
-        assignFeature,
     };
 }
 
