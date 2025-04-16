@@ -319,25 +319,30 @@ class AdminDashboardController extends Controller
 
                     $lateThreshold = $expectedStart->copy()->addMinute();
 
-                    if ($firstTimeIn && $workStart && Carbon::parse($firstTimeIn->timestamp)->gt($lateThreshold)) {
-                        $lateBy = Carbon::parse($firstTimeIn->timestamp)->diffInSeconds(Carbon::parse($workStart));
-                        return [
-                            'id' => $user->id,
-                            'first_name' => $user->first_name ?? null,
-                            'last_name' => $user->last_name ?? null,
-                            'middle_name' => $user->middle_name ?? null,
-                            'suffix' => $user->suffix ?? null,
-                            'shift_type' => $workHours->shift_type ?? null,
-                            'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
-                            'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
-                            'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
-                            'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
-                            'start_time' => $expectedStart,
-                            'late_by' => $lateBy,
-                        ];
-                    }
-                    return null;
-                })->filter()->values()->all();
+                        $firstAttendance = $firstTimeIn ?: $secondTimeIn;
+
+                        if ($firstAttendance && $workStart && Carbon::parse($firstAttendance->timestamp)->gt($lateThreshold)) {
+                            $lateBy = Carbon::parse($firstAttendance->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                            return [
+                                'id' => $user->id,
+                                'first_name' => $user->first_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'middle_name' => $user->middle_name ?? null,
+                                'suffix' => $user->suffix ?? null,
+                                'shift_type' => $workHours->shift_type ?? null,
+                                'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                                'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
+                                'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                                'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
+                                'start_time' => $expectedStart,
+                                'late_by' => $lateBy,
+                            ];
+                        }
+                        return null;
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
 
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
