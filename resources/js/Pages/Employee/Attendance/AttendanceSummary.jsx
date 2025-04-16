@@ -10,6 +10,10 @@ import {
     Typography,
     TextField,
     CircularProgress,
+    useTheme,
+    useMediaQuery,
+    Button,
+    Divider
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -26,7 +30,11 @@ const AttendanceSummary = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    const theme = useTheme();
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+
     const [isLoading, setIsLoading] = useState(true);
+    const [filterView, setFilterView] = useState(medScreen);
 
     // ---------------- Attendance Summary Date
     const [summaryFromDate, setSummaryFromDate] = useState(
@@ -114,36 +122,55 @@ const AttendanceSummary = () => {
                             </Box>
                         ) : (
                             <>
-                                <Box display="flex" gap={2} sx={{ pb: 4, width: "100%", justifyContent: "flex-start", borderBottom: "1px solid #e0e0e0", flexDirection: { xs: "column", md: "row" } }} >
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                        <DatePicker
-                                            label="From Date"
-                                            value={summaryFromDate}
-                                            onChange={(newValue) => {
-                                                setSummaryFromDate(newValue);
-                                                if (newValue.isAfter(summaryToDate)) {
+                                {filterView && (
+                                    <Box display="flex" gap={2} sx={{ pb: 2, width: "100%", justifyContent: "flex-start", flexDirection: { xs: "column", md: "row" } }} >
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                            <DatePicker
+                                                label="From Date"
+                                                value={summaryFromDate}
+                                                onChange={(newValue) => {
+                                                    setSummaryFromDate(newValue);
+                                                    if (newValue.isAfter(summaryToDate)) {
+                                                        setSummaryToDate(newValue);
+                                                    }
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} />
+                                                )}
+                                                sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
+                                            />
+                                            <DatePicker
+                                                label="To Date"
+                                                value={summaryToDate}
+                                                onChange={(newValue) => {
                                                     setSummaryToDate(newValue);
-                                                }
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
+                                                }}
+                                                minDate={summaryFromDate}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} />
+                                                )}
+                                                sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
+                                            />
+                                        </LocalizationProvider>
+                                    </Box>
+                                )}
+                                {!medScreen && (
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => setFilterView(!filterView)}
+                                        sx={{ mb: 2 }}
+                                    >
+                                        <p className="m-0">
+                                            {filterView ? (
+                                                <><i className="fa fa-minus"></i> Hide Filters </>
+                                            ) : (
+                                                <><i className="fa fa-plus"></i> Show Filters </>
                                             )}
-                                            sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                        />
-                                        <DatePicker
-                                            label="To Date"
-                                            value={summaryToDate}
-                                            onChange={(newValue) => {
-                                                setSummaryToDate(newValue);
-                                            }}
-                                            minDate={summaryFromDate}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
-                                            )}
-                                            sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                        />
-                                    </LocalizationProvider>
-                                </Box>
+                                        </p>
+                                    </Button>
+                                )}
+                                <Divider />
                                 <TableContainer>
                                     <Table aria-label="attendance summary table">
                                         <TableHead>
