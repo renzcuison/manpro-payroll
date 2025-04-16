@@ -2,18 +2,20 @@
 
 // New Controllers
 use App\Http\Controllers\ClientsController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\BenefitsController;
+use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
-use App\Http\Controllers\WorkScheduleController;
+use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ApplicationsController;
+use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AnnouncementsController;
-use App\Http\Controllers\PayrollController;
-use App\Http\Controllers\BenefitsController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\TrainingFormsController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
+
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -69,14 +71,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveClient', [ClientsController::class, 'saveClient']);
     });
 
-    // 
     Route::prefix('admin/documents')->group(function () {
         Route::get('/', [DocumentController::class, 'index']); // GET /admin/documents
         Route::post('/store', [DocumentController::class, 'store']);
         Route::post('/edit', [DocumentController::class, 'edit']);
         Route::delete('/{id}', [DocumentController::class, 'destroy']);
     });
-
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
@@ -104,8 +104,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
-        Route::get('/getEmployeeAllowance', [EmployeesController::class, 'getEmployeeAllowance']);
-
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
@@ -117,6 +115,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
         Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
+    });
+
+    Route::prefix('allowance')->group(function () {
+        Route::get('/getEmployeeAllowance', [AllowanceController::class, 'getEmployeeAllowance']);
     });
 
     Route::prefix('benefits')->group(function () {

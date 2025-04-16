@@ -167,33 +167,6 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
-    public function getEmployeeAllowance()
-    {
-        // log::info("EmployeesController::getEmployeeAllowance");
-
-        if ($this->checkUserAdmin()) {
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $employees = [];
-
-            foreach ( $client->employees as $employee ) {
-                $employees[] = [
-                    'user_name' => $employee->user_name,
-                    'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
-                    'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
-                    'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                    'total' => $employee->allowances->sum('amount'),
-                ];
-            }
-
-            log::info($employees);
-
-            return response()->json(['status' => 200, 'employees' => $employees]);
-        }
-
-        return response()->json(['status' => 200, 'employees' => null]);
-    }
-
     public function getEmployeeLeaveCredits()
     {
         // log::info("EmployeesController::getEmployeeLeaveCredits");

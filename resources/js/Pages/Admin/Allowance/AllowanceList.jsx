@@ -4,6 +4,8 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 
+import AllowanceView from '../Allowance/Modals/AllowanceView';
+
 const AllowanceList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -16,7 +18,7 @@ const AllowanceList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployeeAllowance', { headers })
+        axiosInstance.get('/allowance/getEmployeeAllowance', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);
