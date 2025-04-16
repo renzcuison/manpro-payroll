@@ -519,7 +519,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                 -- Publishing Data Unavailable --
                                             </Typography>
-                                        </Grid>}
+                                        </Grid>
+                                    }
                                 </Grid>
                             </Grid>
                             <Grid size={12} sx={{ my: 0 }} >
@@ -554,7 +555,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             Images
                                         </Typography>
                                     </Grid>
-                                    <Grid md={12} align="left">
+                                    <Grid size={12} align="left">
                                         <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                             {images.map((image) => (
                                                 <ImageListItem
@@ -604,7 +605,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             Documents
                                         </Typography>
                                     </Grid>
-                                    <Grid md={12} align="left">
+                                    <Grid size={12} align="left">
                                         <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                             {attachments.map((attachment) => {
                                                 const fileIcon = getFileIcon(attachment.filename);
