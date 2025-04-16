@@ -69,15 +69,15 @@ const Dashboard = () => {
     return (
         <Layout>
             <Box sx={{ overflowX: "scroll", width: "100%", whiteSpace: "nowrap" }}>
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>Dashboard</Typography>
-                        <Typography variant="h5" sx={{marginLeft: 2,paddingTop: 1,flexGrow: 1,textAlign: "right",color: "#777777"}}> {" "}{formattedDateTime}{" "} </Typography>
+                        <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: "right", color: "#777777" }}> {" "}{formattedDateTime}{" "} </Typography>
                     </Box>
 
                     {/* Header Content */}
                     <Grid container spacing={4} sx={{ mt: 2 }}>
-                        <Grid item size={{ xs: 12, sm: 6, lg: 4}}>
+                        <Grid item size={{ xs: 12, md: 4 }}>
                             <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", padding: 4, borderRadius: "16px" }}>
                                 <Link onClick={handleOpenAttendanceModal} sx={{ color: "#777777", textDecoration: "none", display: "flex", justifyContent: "space-between", width: "100%" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
@@ -92,65 +92,32 @@ const Dashboard = () => {
                             </Box>
                         </Grid>
 
-                        <Grid item size={{ xs: 12, sm: 6, lg: 4}}>
-                            <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", padding: 4, borderRadius: "16px" }}>
-                                <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+                        <Grid item size={{ xs: 12, md: 4 }}>
+                            <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", padding: 4, borderRadius: "16px", }}>
+                                <Box sx={{ display: "flex", alignItems: "center", width: "100%", }}>
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#2a800f", borderRadius: "50%", width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
-                                        <CheckCircle sx={{ color: "white", fontSize: 30 }} />
+                                        <CheckCircle sx={{ color: "white", fontSize: 30, width: { xs: 40, sm: 50 } }} />
                                     </Box>
-                                    <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: "right", color: "#777777" }}> {" "}Announcements{" "} </Typography>
+                                    <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: "right", color: "#777777", }}> {" "}Announcements{" "} </Typography>
                                 </Box>
                             </Box>
                         </Grid>
 
-                        <Grid item size={{ xs: 12, sm: 6, lg: 4}}>
-                            <Box sx={{
-                                backgroundColor: "white",
-                                boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                padding: 4,
-                                borderRadius: "16px",
-                            }}>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        width: "100%",
-                                    }}>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#2a800f",
-                                            borderRadius: "50%",
-                                            width: { xs: 40, sm: 50 },
-                                            height: { xs: 40, sm: 50 },
-                                        }}>
-                                        <Info
-                                            sx={{
-                                                color: "white",
-                                                fontSize: 30,
-                                            }} />
+                        <Grid item size={{ xs: 12, md: 4 }}>
+                            <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", padding: 4, borderRadius: "16px", }}>
+                                <Box sx={{ display: "flex", alignItems: "center", width: "100%", }}>
+                                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#2a800f", borderRadius: "50%", width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}>
+                                        <Info sx={{ color: "white", fontSize: 30, width: { xs: 40, sm: 50 } }} />
                                     </Box>
-                                    <Typography
-                                        variant="h5"
-                                        sx={{
-                                            marginLeft: 2,
-                                            paddingTop: 1,
-                                            flexGrow: 1,
-                                            textAlign: "right",
-                                            color: "#777777",
-                                        }}>
-                                        {" "}Trainings{" "}
-                                    </Typography>
+                                    <Typography variant="h5" sx={{ marginLeft: 2, paddingTop: 1, flexGrow: 1, textAlign: "right", color: "#777777", }}> {" "}Trainings{" "} </Typography>
                                 </Box>
                             </Box>
                         </Grid>
                     </Grid>
 
-                    <Grid container direction="row" spacing={4} sx={{ mt: 1 }}>
+                    <Grid container direction="row" spacing={4} sx={{ mt: { xs: 2, md: 1 } }}>
                         {/* Attendance Table */}
-                        <Grid item size={{ xs: 12, lg: 8}}>
+                        <Grid item size={{ xs: 12, lg: 8 }}>
                             <Box sx={{
                                 backgroundColor: "white",
                                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -245,7 +212,7 @@ const Dashboard = () => {
                             </Box>
                         </Grid>
                         {/* Applications Table */}
-                        <Grid item size={{ xs: 12, lg: 4}}>
+                        <Grid item size={{ xs: 12, lg: 4 }}>
                             <Box sx={{ backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", padding: 2, borderRadius: "16px" }}>
                                 <div style={{ marginLeft: 10 }}>
                                     <Box component={"div"} className="d-flex justify-content-between">

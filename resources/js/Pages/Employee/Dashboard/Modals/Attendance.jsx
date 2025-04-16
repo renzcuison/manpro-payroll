@@ -230,15 +230,18 @@ const Attendance = ({ open, close }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        padding: "16px",
-                        backgroundColor: "#f8f9fa",
-                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                        borderRadius: "20px",
-                        minWidth: "400px",
-                        maxWidth: "450px",
-                        marginBottom: "5%",
+                slotProps={{
+                    paper: {
+                        sx: {
+                            py: "16px",
+                            px: { xs: "4px", md: "16px" },
+                            backgroundColor: "#f8f9fa",
+                            boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                            borderRadius: { xs: 0, md: "20px" },
+                            minWidth: { xs: "100%", md: "450px" },
+                            maxWidth: { xs: "100%", md: "500px" },
+                            marginBottom: "5%",
+                        },
                     },
                 }}
             >
@@ -267,36 +270,42 @@ const Attendance = ({ open, close }) => {
                             justifyContent: "flex-start",
                             alignItems: "flex-start",
                         }}
+                        spacing={1}
                     >
                         <Grid
                             container
-                            direction={{ xs: "column", sm: "row" }}
-                            alignItems={{ xs: "flex-start", sm: "flex-start" }}
-                            sx={{ pb: 1, borderBottom: "1px solid #e0e0e0" }}
+                            direction="row"
+                            alignItems="flex-start"
                             rowSpacing={1}
                             size={{ xs: 12 }}
                         >
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                Date:
+                            <Grid size={5}>
+                                <Typography>
+                                    Date
+                                </Typography>
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 8 }}>
-                                <Typography sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" }, }}>
+                            <Grid size={7}>
+                                <Typography sx={{ fontWeight: "bold", textAlign: "right", }}>
                                     {formattedDate}
                                 </Typography>
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                Time:
+                            <Grid size={5}>
+                                <Typography>
+                                    Time
+                                </Typography>
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 8 }}>
+                            <Grid size={7}>
                                 <Typography
-                                    sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" } }}>
+                                    sx={{ fontWeight: "bold", textAlign: "right" }}>
                                     {formattedTime}
                                 </Typography>
                             </Grid>
-                            <Grid size={{ xs: 7 }}>
-                                Status:
+                            <Grid size={5}>
+                                <Typography>
+                                    Status
+                                </Typography>
                             </Grid>
-                            <Grid size={{ xs: 5 }}>
+                            <Grid size={7}>
                                 <Typography
                                     sx={{
                                         fontWeight: "bold",
@@ -304,11 +313,13 @@ const Attendance = ({ open, close }) => {
                                         color: onDuty ? "#177604" : "#f44336",
                                     }}
                                 >
-                                    {onDuty ? "On Duty" : "Off Duty"}
+                                    {onDuty ? "ON DUTY" : "OFF DUTY"}
                                 </Typography>
                             </Grid>
                         </Grid>
-
+                        <Grid size={12} sx={{ my: 0 }}>
+                            <Divider />
+                        </Grid>
                         {workShift.shift_type === "Regular" ? (
                             <>
                                 {/* Regular Shift */}
@@ -384,9 +395,11 @@ const Attendance = ({ open, close }) => {
                     {/*Attendance Logs------------------------------*/}
                     {employeeAttendance.length > 0 ? (
                         <>
-                            <Divider sx={{ my: 1 }} />
+                            <Divider sx={{ mt: 1, mb: 2 }} />
                             <Box>
-                                Today's Attendance:
+                                <Typography sx={{ mb: 1 }}>
+                                    Today's Attendance
+                                </Typography>
                             </Box>
                             {(() => {
                                 const timeToSeconds = (timeStr) => {
