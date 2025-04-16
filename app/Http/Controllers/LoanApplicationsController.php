@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail; 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 use Carbon\Carbon;
@@ -738,6 +739,13 @@ class LoanApplicationsController extends Controller
             return response()->json(['status' => 404, 'message' => 'Proposal not found'], 404);
         }
 
+        // Find an admin user
+        $admin = User::where('user_type', 'Admin')->first();
+        if (!$admin) {
+            Log::error("No admin user found for setting approved_by");
+            return response()->json(['status' => 500, 'message' => 'No admin user found'], 500);
+        }
+
         // Update statuses
         $action = $data['action'];
         $newStatus = $action === 'approve' ? 'Approved' : 'Declined';
@@ -748,10 +756,10 @@ class LoanApplicationsController extends Controller
 
         $loan->status = $newStatus;
         if ($action === 'approve') {
-            $loan->approved_by = $user->id; // Set admin's ID
+            $loan->approved_by = $admin->id; // Set admin's ID
             $loan->loan_amount = $data['proposed_loan_amount'];
             $loan->payment_term = $data['proposed_payment_term'];
-            Log::info("Loan approved by Admin ID: {$user->id} for Loan ID: $loanId");
+            Log::info("Loan approved by Admin ID: {$admin->id} for Loan ID: $loanId");
         }
         $loan->save();
 
