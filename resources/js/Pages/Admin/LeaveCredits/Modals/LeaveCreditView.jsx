@@ -97,7 +97,7 @@ const LeaveCreditView = ({ open, close, userName }) => {
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
-                            {`${logsView ? "Leave Credit Logs" : "Leave Credit Details"}`}
+                            {`${logsView ? "Leave Credit Logs" : "Employee Leave Credit"}`}
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>

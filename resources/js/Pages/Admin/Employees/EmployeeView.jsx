@@ -8,6 +8,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import AllowanceView from '../Allowance/Modals/AllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
@@ -403,7 +404,7 @@ const EmployeeView = () => {
                 }
 
                 {openEmployeeAllowanceModal &&
-                    <EmployeeBenefits open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} employee={employee} />
+                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} employee={employee} />
                 }
 
                 {openEmployeeLeaveCreditsModal &&

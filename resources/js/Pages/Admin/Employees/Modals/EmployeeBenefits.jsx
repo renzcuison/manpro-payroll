@@ -108,7 +108,7 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
-                            Benefit Details
+                            Employee Benefit
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
