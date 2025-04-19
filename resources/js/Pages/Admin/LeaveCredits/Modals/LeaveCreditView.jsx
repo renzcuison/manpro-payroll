@@ -105,7 +105,7 @@ const LeaveCreditView = ({ open, close, userName }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, mb: 2 }}>
+                <DialogContent sx={{ pt: 4 }}>
 
                     <Box sx={{ mb: 2, textAlign: 'left' }}>
                         <Typography variant="body1">

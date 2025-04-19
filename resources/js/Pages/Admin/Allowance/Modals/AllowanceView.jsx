@@ -8,38 +8,30 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const AllowanceView = ({ open, close, employee }) => {
+import AllowanceList from "../Components/AllowanceList";
+// import AllowanceList from "./Components/AllowanceList";
+
+const AllowanceView = ({ open, close, userName }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [benefits, setBenefits] = useState([]);
+    const [employee, setEmployee] = useState([]);
 
-    // ----------- Request Leave Credits
     useEffect(() => {
-        getBenefits();
+        getEmployeeDetails();
     }, []);
 
-    const getBenefits = () => {
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, {headers, params: { username: employee.user_name }
-            }).then((response) => {
-                setBenefits(response.data.benefits);
-            }).catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    }
+    const getEmployeeDetails = () => {
+        const data = { username: userName };
 
-    // ----------- Add Benefits Modal
-    const [openAddEmployeeBenefit, setOpenEmployeeBenefit] = useState(false);
-    const handleOpenAddEmployeeBenefit = () => {
-        setOpenEmployeeBenefit(true);
-    }
-    const handleCloseAddEmployeeBenefit = (reload) => {
-        setOpenEmployeeBenefit(false);
-        if (reload) {
-            getBenefits();
-        }
-    }
+        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
+            .then((response) => {
+                setEmployee(response.data.employee);
+            }).catch((error) => {
+                console.error('Error fetching employee:', error);
+            });
+    };
 
     return (
         <>
@@ -53,50 +45,24 @@ const AllowanceView = ({ open, close, employee }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ py: 4, mb: 2 }}>
-                    <Box>
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left">Allowance</TableCell>
-                                        <TableCell align="center">Number</TableCell>
-                                        <TableCell align="center">Amount</TableCell>
-                                        <TableCell align="center">Date Added</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {benefits.length > 0 ? ( benefits.map((benefit, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>
-                                                    <Typography> {benefit.benefit} </Typography>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Typography> {benefit.number} </Typography>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Typography> {dayjs(benefit.created_at).format('MMM DD YYYY, HH:mm:ss A')} </Typography>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))) :
-                                        <TableRow>
-                                            <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} >
-                                                No Allowance Found
-                                            </TableCell>
-                                        </TableRow>
-                                    }
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                        <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}>
-                            <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddEmployeeBenefit()} >
-                                <p className="m-0">
-                                    <i className="fa fa-plus"></i>{" "}Add Allowance
-                                </p>
-                            </Button>
-                        </Box>
+                <DialogContent sx={{ pt: 4 }}>
+
+                    <Box sx={{ mb: 2, textAlign: 'left' }}>
+                        <Typography variant="body1">
+                            <strong>Employee Name:</strong> {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Branch:</strong> {employee.branch || '-'}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Department:</strong> {employee.department || '-'}
+                        </Typography>
                     </Box>
+                    
+                    <AllowanceList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeBenefit()} />
+
                 </DialogContent>
+    ;
 
             </Dialog >
         </>

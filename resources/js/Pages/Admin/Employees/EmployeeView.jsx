@@ -404,7 +404,7 @@ const EmployeeView = () => {
                 }
 
                 {openEmployeeAllowanceModal &&
-                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} employee={employee} />
+                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} userName={user} />
                 }
 
                 {openEmployeeLeaveCreditsModal &&
