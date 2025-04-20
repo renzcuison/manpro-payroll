@@ -20,12 +20,6 @@ import SuperAdminDashboard from "./Pages/SuperAdmin/Dashboard";
 
 import Error404 from "./Pages/Errors/Error404";
 
-import SuperEmployees from "./Pages/Super/SuperEmployees";
-import SuperApplications from "./Pages/Super/SuperApplications";
-import SuperAttendance from "./Pages/Super/SuperAttendance";
-import SuperPayroll from "./Pages/Super/SuperPayroll";
-import SuperResetPassword from "./Pages/Super/SuperResetPassword";
-import SuperEmployeesList from "./Pages/Super/SuperEmployeesList";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import VerifyLogin from "./Pages/VerifyLogin";
@@ -112,12 +106,7 @@ function App() {
             <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
 
             {/* SUPER ADMIN ROUTES */}
-            <Route path="/super/employees" element={user ? <SuperEmployees /> : <CheckUser />} />
             <Route path="/super/applications" element={user ? <SuperApplications /> : <CheckUser />} />
-            <Route path="/super/attendance" element={user ? <SuperAttendance /> : <CheckUser />} />
-            <Route path="/super/payroll-process" element={user ? <SuperPayroll /> : <CheckUser />} />
-            <Route path="/super/reset-password" element={user ? <SuperResetPassword /> : <CheckUser />} />
-            <Route path="/super/employee-reset-password" element={user ? <SuperEmployeesList /> : <CheckUser />} />
 
             {/* ----------------------------------------------------------------------------------------------- */}
             {/* GLOBAL ROUTES */}
