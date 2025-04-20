@@ -15,7 +15,6 @@ class AllowancesModel extends Model
 
     protected $fillable = [
         'name',
-        'number',
         'amount',
         'percentage',
         'client_id',

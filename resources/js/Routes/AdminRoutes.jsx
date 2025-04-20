@@ -13,6 +13,7 @@ import EmployeeFormLinks from "../Pages/Admin/Employees/EmployeeFormLinks";
 
 import LeaveCreditList from "../Pages/Admin/LeaveCredits/LeaveCreditList";
 
+import AllowanceTypes from "../Pages/Admin/Allowance/AllowanceTypes";
 import EmployeesAllowanceList from "../Pages/Admin/Allowance/EmployeesAllowanceList";
 
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
@@ -72,6 +73,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/formlinks" element={ <ProtectedRoute element={<EmployeeFormLinks />} user={user} /> } />
 
             <Route path="employees/allowance" element={ <ProtectedRoute element={<EmployeesAllowanceList />} user={user} /> } />
+            <Route path="employees/allowance-types" element={ <ProtectedRoute element={<AllowanceTypes />} user={user} /> } />
 
             <Route path="employees/benefits" element={ <ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={ <ProtectedRoute element={<BenefitView />} user={user} /> } />

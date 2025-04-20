@@ -17,6 +17,7 @@ class EmployeeAllowancesModel extends Model
         'client_id',
         'user_id',
         'allowance_id',
+        'number',
     ];
 
     public function allowance()

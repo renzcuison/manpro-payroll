@@ -34,7 +34,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "800px", marginBottom: "5%" }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "800px" }}}>
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}> Employee Allowance </Typography>
@@ -61,8 +61,6 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                     <AllowanceList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeBenefit()} />
 
                 </DialogContent>
-    ;
-
             </Dialog >
         </>
     );

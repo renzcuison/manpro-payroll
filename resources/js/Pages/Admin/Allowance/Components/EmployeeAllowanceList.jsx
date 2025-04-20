@@ -57,7 +57,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                 </Table>
             </TableContainer>
 
-            <Box display="flex" justifyContent="center" sx={{ mt: "20px", gap: 2 }}>
+            <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
                         <i className="fa fa-plus"></i> Add Allowance
