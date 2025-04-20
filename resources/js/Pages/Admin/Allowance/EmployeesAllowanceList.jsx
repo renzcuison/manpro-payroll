@@ -1,31 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-import LeaveCreditView from './Modals/LeaveCreditView';
+import AllowanceView from './Modals/EmployeeAllowanceView';
 
-const LeaveCreditList = () => {
+const EmployeesAllowanceList = () => {
+    const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
-    const [employeeCredits, setEmployeeCredits] = useState({}); // Store leave credits for each employee
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
+        axiosInstance.get('/allowance/getEmployeesAllowance', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);
                 setIsLoading(false);
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 console.error('Error fetching employees:', error);
                 setIsLoading(false);
             });
@@ -59,17 +58,20 @@ const LeaveCreditList = () => {
         <Layout title={"LeaveCreditList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
+
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                            Leave Credits
-                        </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowance </Typography>
+
+                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
+                            <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>
+                        </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
                             <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
+                                    <FormControl sx={{ width: '150%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
@@ -90,9 +92,7 @@ const LeaveCreditList = () => {
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Total Credits </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Used Credits </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Remaining </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -105,9 +105,7 @@ const LeaveCreditList = () => {
                                                             </TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(employee.used || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(employee.remaining || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="right">{Number(employee.total || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })
@@ -142,11 +140,8 @@ const LeaveCreditList = () => {
                 </Box>
             </Box>
 
-            {selectedEmployee && (
-                <LeaveCreditView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
-            )}
         </Layout>
     );
 };
 
-export default LeaveCreditList;
+export default EmployeesAllowanceList;

@@ -8,9 +8,11 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
+import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
+
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
-import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -27,6 +29,7 @@ const EmployeeView = () => {
     const [imagePath, setImagePath] = useState('');
 
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
+    const [openEmployeeAllowanceModal, setOpenEmployeeAllowanceModal] = useState(false);
     const [openEmployeeDetailsEditModal, setOpenEmployeeDetailsEditModal] = useState(false);
     const [openEmployeeLeaveCreditsModal, setOpenEmployeeLeaveCreditsModal] = useState(false);
 
@@ -137,6 +140,14 @@ const EmployeeView = () => {
         setOpenEmployeeBenefitsModal(false);
     }
 
+    // Allowance
+    const handleOpenEmployeeAllowanceModal = () => {
+        setOpenEmployeeAllowanceModal(true);
+    }
+    const handleCloseEmployeeAllowanceModal = () => {
+        setOpenEmployeeAllowanceModal(false);
+    }
+
     // Leave Credits
     const handleOpenEmployeeLeaveCreditsModal = () => {
         setOpenEmployeeLeaveCreditsModal(true);
@@ -182,6 +193,7 @@ const EmployeeView = () => {
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenEmployeeDetailsEditModal}>Edit Employee Details</MenuItem>
                             <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
+                            <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
                         </Menu>
 
@@ -388,7 +400,12 @@ const EmployeeView = () => {
                 }
 
                 {openEmployeeBenefitsModal &&
-                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />}
+                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />
+                }
+
+                {openEmployeeAllowanceModal &&
+                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} userName={user} />
+                }
 
                 {openEmployeeLeaveCreditsModal &&
                     <LeaveCreditView open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} userName={user} />
