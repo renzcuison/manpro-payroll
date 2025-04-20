@@ -4,9 +4,9 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 
-import AllowanceView from '../Allowance/Modals/AllowanceView';
+import AllowanceView from './Modals/EmployeeAllowanceView';
 
-const AllowanceList = () => {
+const EmployeesAllowanceList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -138,4 +138,4 @@ const AllowanceList = () => {
     );
 };
 
-export default AllowanceList;
+export default EmployeesAllowanceList;

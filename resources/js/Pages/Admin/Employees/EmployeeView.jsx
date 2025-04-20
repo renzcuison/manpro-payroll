@@ -8,7 +8,7 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-import AllowanceView from '../Allowance/Modals/AllowanceView';
+import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
 import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';

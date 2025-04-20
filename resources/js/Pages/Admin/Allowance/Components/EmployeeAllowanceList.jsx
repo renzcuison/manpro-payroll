@@ -3,7 +3,7 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import dayjs from "dayjs";
 import axiosInstance from "../../../../utils/axiosConfig";
 
-const AllowanceList = ({ userName, headers, onAdd }) => {
+const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
     const [allowances, setAllowances] = useState([]);
 
     useEffect(() => {
@@ -68,4 +68,4 @@ const AllowanceList = ({ userName, headers, onAdd }) => {
     );
 };
 
-export default AllowanceList;
+export default EmployeeAllowanceList;

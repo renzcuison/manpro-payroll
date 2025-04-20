@@ -8,10 +8,9 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-import AllowanceList from "../Components/AllowanceList";
-// import AllowanceList from "./Components/AllowanceList";
+import AllowanceList from "../Components/EmployeeAllowanceList";
 
-const AllowanceView = ({ open, close, userName }) => {
+const EmployeeAllowanceView = ({ open, close, userName }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -69,4 +68,4 @@ const AllowanceView = ({ open, close, userName }) => {
     );
 };
 
-export default AllowanceView;
+export default EmployeeAllowanceView;
