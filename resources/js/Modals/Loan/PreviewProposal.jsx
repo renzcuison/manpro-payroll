@@ -113,7 +113,6 @@ const PreviewProposal = ({
       return;
     }
 
-    // Show confirmation dialog for sending the proposal
     Swal.fire({
       title: 'Send this proposal?',
       text: 'Are you sure you want to send this proposal to the employee?',
@@ -177,86 +176,85 @@ const PreviewProposal = ({
 
   const handleRespondToProposal = (action) => {
     if (!selectedLoan || !proposalData) {
-        Swal.fire({
-            title: 'Error',
-            text: 'No loan or proposal data available.',
-            icon: 'error',
-            confirmButtonText: 'Okay',
-            confirmButtonColor: '#177604',
-            customClass: {
-                container: 'swal2-zindex-fix',
-            },
-        });
-        return;
+      Swal.fire({
+        title: 'Error',
+        text: 'No loan or proposal data available.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#177604',
+        customClass: {
+          container: 'swal2-zindex-fix',
+        },
+      });
+      return;
     }
 
     Swal.fire({
-        title: `${action === 'approve' ? 'Approve' : 'Decline'} this proposal?`,
-        text: `Are you sure you want to ${action} this proposal?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-        confirmButtonColor: '#177604',
-        cancelButtonColor: '#d33',
-        customClass: {
-            container: 'swal2-zindex-fix',
-        },
+      title: `${action === 'approve' ? 'Approve' : 'Decline'} this proposal?`,
+      text: `Are you sure you want to ${action} this proposal?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No',
+      confirmButtonColor: '#177604',
+      cancelButtonColor: '#d33',
+      customClass: {
+        container: 'swal2-zindex-fix',
+      },
     }).then((result) => {
-        if (result.isConfirmed) {
-            const data = {
-                action,
-                proposed_loan_amount: parseFloat(proposalData.proposed_loan_amount),
-                proposed_payment_term: parseInt(proposalData.proposed_payment_term),
-            };
+      if (result.isConfirmed) {
+        const data = {
+          action,
+          proposed_loan_amount: parseFloat(proposalData.proposed_loan_amount),
+          proposed_payment_term: parseInt(proposalData.proposed_payment_term),
+        };
 
-            axiosInstance
-                .post(`/loans/respondToProposal/${selectedLoan}`, data, { headers })
-                .then((response) => {
-                    if (response.data.status === 200) {
-                        console.log(`Proposal ${action}d:`, response.data);
-                        Swal.fire({
-                            title: 'Success',
-                            text: action === 'approve' ? 'Proposal approved and loan updated successfully!' : 'Proposal and loan declined successfully!',
-                            icon: 'success',
-                            confirmButtonText: 'Okay',
-                            confirmButtonColor: '#177604',
-                            customClass: {
-                                container: 'swal2-zindex-fix',
-                            },
-                        });
-                        setProposalData({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
-                        if (onProposalSent) onProposalSent({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
-                        onClose();
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: response.data.message || `Failed to ${action} proposal.`,
-                            icon: 'error',
-                            confirmButtonText: 'Okay',
-                            confirmButtonColor: '#177604',
-                            customClass: {
-                                container: 'swal2-zindex-fix',
-                            },
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.error(`Error ${action}ing proposal:`, error);
-                    Swal.fire({
-                        title: 'Error',
-                        text: error.response?.data?.message || error.message || `Failed to ${action} proposal.`,
-                        icon: 'error',
-                        confirmButtonText: 'Okay',
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            container: 'swal2-zindex-fix',
-                        },
-                    });
-                });
-        }
+        axiosInstance
+          .post(`/loans/respondToProposal/${selectedLoan}`, data, { headers })
+          .then((response) => {
+            if (response.data.status === 200) {
+              Swal.fire({
+                title: 'Success',
+                text: action === 'approve' ? 'Proposal approved and loan updated successfully!' : 'Proposal and loan declined successfully!',
+                icon: 'success',
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#177604',
+                customClass: {
+                  container: 'swal2-zindex-fix',
+                },
+              });
+              setProposalData({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
+              if (onProposalSent) onProposalSent({ ...proposalData, status: action === 'approve' ? 'Approved' : 'Declined' });
+              onClose();
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: response.data.message || `Failed to ${action} proposal.`,
+                icon: 'error',
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#177604',
+                customClass: {
+                  container: 'swal2-zindex-fix',
+                },
+              });
+            }
+          })
+          .catch((error) => {
+            console.error(`Error ${action}ing proposal:`, error);
+            Swal.fire({
+              title: 'Error',
+              text: error.response?.data?.message || error.message || `Failed to ${action} proposal.`,
+              icon: 'error',
+              confirmButtonText: 'Okay',
+              confirmButtonColor: '#177604',
+              customClass: {
+                container: 'swal2-zindex-fix',
+              },
+            });
+          });
+      }
     });
-};
+  };
 
   const proposal = proposalData || existingProposal || {
     proposed_loan_amount: proposedLoanAmount || 0,
@@ -264,8 +262,6 @@ const PreviewProposal = ({
     monthly_interest_rate: monthlyInterestRate || 0,
     status: existingProposal?.status || 'Pending',
   };
-
-  const isProposalResolved = proposal.status === 'Approved' || proposal.status === 'Declined';
 
   return (
     <>
@@ -281,11 +277,11 @@ const PreviewProposal = ({
           {/* Header with Title and Close Icon */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6" component="h2">
-              {isPreviewOnly ? 'Loan Preview' : 'Preview Proposal'}
+              Loan Proposal Preview
             </Typography>
             <IconButton onClick={onClose} sx={{ p: 0 }}>
-                <i className="si si-close"></i>
-              </IconButton>
+              <i className="si si-close"></i>
+            </IconButton>
           </Box>
 
           {/* Proposal Details */}
@@ -337,8 +333,8 @@ const PreviewProposal = ({
                   <TableCell>Principal</TableCell>
                   <TableCell>Interest</TableCell>
                   <TableCell>Remaining Balance</TableCell>
-                  {proposal.status === 'Approved' && <TableCell>Status</TableCell>}                
-                  </TableRow>
+                  {proposal.status === 'Approved' && <TableCell>Status</TableCell>}
+                </TableRow>
               </TableHead>
               <TableBody>
                 {amortizationSchedule.map((row) => (
@@ -349,7 +345,7 @@ const PreviewProposal = ({
                     <TableCell>₱{row.interest}</TableCell>
                     <TableCell>₱{row.balance}</TableCell>
                     {proposal.status === 'Approved' && <TableCell>{row.status}</TableCell>}
-                     </TableRow>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -357,22 +353,20 @@ const PreviewProposal = ({
 
           {/* Action Buttons */}
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-            {isPreviewOnly ? null : isAdmin ? (
+            {!isPreviewOnly && isAdmin ? (
               <Button variant="contained" color="primary" onClick={handleCreateProposal}>
                 Send Proposal
               </Button>
-            ) : (
-              !isProposalResolved && (
-                <>
-                  <Button variant="contained" color="success" onClick={() => handleRespondToProposal('approve')}>
-                    Approve
-                  </Button>
-                  <Button variant="contained" color="error" onClick={() => handleRespondToProposal('decline')} sx={{ ml: 2 }}>
-                    Decline
-                  </Button>
-                </>
-              )
-            )}
+            ) : !isPreviewOnly && !isAdmin && proposal.status === 'Pending' ? (
+              <>
+                <Button variant="contained" color="success" onClick={() => handleRespondToProposal('approve')}>
+                  Approve
+                </Button>
+                <Button variant="contained" color="error" onClick={() => handleRespondToProposal('decline')} sx={{ ml: 2 }}>
+                  Decline
+                </Button>
+              </>
+            ) : null}
           </Box>
         </Box>
       </Modal>

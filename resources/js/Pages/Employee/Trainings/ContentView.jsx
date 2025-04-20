@@ -182,7 +182,7 @@ const ContentView = () => {
     };
 
     // Content Selection
-    const handleContentChange = (id, unlocked) => {
+    const handleContentChange = (id, unlocked, quickNav = false) => {
         if (unlocked) {
             setContentId(id);
             getContentDetails(id);
@@ -198,7 +198,7 @@ const ContentView = () => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Content Locked!",
-                text: "Finish previous content to unlock",
+                text: `Finish ${quickNav ? "the current" : "previous"} content to unlock`,
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -675,25 +675,62 @@ const ContentView = () => {
                                                                     onClick={() => handleContentChange(prevContentId, true)}
                                                                     sx={{
                                                                         position: "absolute",
-                                                                        height: "20%",
-                                                                        top: "40%",
-                                                                        left: 0
+                                                                        height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
+                                                                        top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
+                                                                        left: 0,
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        justifyContent: "center",
+                                                                        py: 1,
+                                                                        pl: 1.5,
+                                                                        backgroundColor: "#fff",
+                                                                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                                                                        borderRadius: "8px",
+                                                                        cursor: "pointer",
+                                                                        transition: "background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, color 0.3s ease",
+                                                                        color: "#e0e0e0",
+                                                                        "&:hover": {
+                                                                            color: "#fff",
+                                                                            backgroundColor: "#177604",
+                                                                            transform: "scale(1.05)",
+                                                                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                                                        },
                                                                     }}
                                                                 >
-                                                                    Previous
+                                                                    <ArrowBackIos sx={{ fontSize: "2rem" }} />
                                                                 </Box>
                                                             )}
                                                             {nextContentId && (
                                                                 <Box
-                                                                    onClick={() => handleContentChange(nextContentId, content.is_finished)}
+                                                                    onClick={() => handleContentChange(nextContentId, content.is_finished, true)}
                                                                     sx={{
                                                                         position: "absolute",
-                                                                        height: "20%",
-                                                                        top: "40%",
-                                                                        right: 0
+                                                                        height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
+                                                                        top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
+                                                                        right: 0,
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        justifyContent: "center",
+                                                                        p: 1,
+                                                                        backgroundColor: "#fff",
+                                                                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                                                                        borderRadius: "8px",
+                                                                        cursor: "pointer",
+                                                                        transition: "background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, color 0.3s ease",
+                                                                        color: "#e0e0e0",
+                                                                        "&:hover": {
+                                                                            color: "#fff",
+                                                                            backgroundColor: content.is_finished ? "#177604" : "#e0e0e0",
+                                                                            transform: "scale(1.05)",
+                                                                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                                                        },
                                                                     }}
                                                                 >
-                                                                    Previous
+                                                                    {content.is_finished ? (
+                                                                        <ArrowForwardIos sx={{ fontSize: "2rem" }} />
+                                                                    ) : (
+                                                                        <Lock sx={{ fontSize: "2rem" }} />
+                                                                    )}
                                                                 </Box>
                                                             )}
                                                         </Box>

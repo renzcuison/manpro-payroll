@@ -1,13 +1,15 @@
 import { Box, Typography } from '@mui/material';
 
-const InfoBox = ({ title, info, compact = false, clean = false, color = null }) => {
+const InfoBox = ({ title, info, compact = false, clean = false, stacked = false, color = null }) => {
     return (
         <Box
             sx={{
-                display: 'flex',
                 width: '100%',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                ...(!stacked && {
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }),
                 ...(!clean && {
                     p: 1,
                     border: '1px solid #e0e0e0',
@@ -29,6 +31,7 @@ const InfoBox = ({ title, info, compact = false, clean = false, color = null }) 
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     ...(compact && { flex: '0 0 40%' }),
+                    ...(stacked && { mb: 0.5 })
                 }}
             >
                 {title}

@@ -66,36 +66,43 @@ const LoanApplication = ({ open, close, selectedLoan }) => {
                   const loanData = response.data.loan;
                   setLoanDetails(loanData);
                   setFiles(loanData.attachments || []);
-                  setLoanProposal(loanData.proposal);
-                  if (loanData.proposal) {
-                      setProposedLoanAmount(loanData.proposal.proposed_loan_amount.toString());
-                      setProposedPaymentTerm(loanData.proposal.proposed_payment_term.toString());
-                      setMonthlyInterestRate(loanData.proposal.monthly_interest_rate.toString());
-                      setShowProposalForm(true);
-                      setActionSubmitted(true);
-                      setAppResponse("Approve");
-                  } else {
-                      setProposedLoanAmount(loanData.loan_amount?.toString() || '');
-                      setProposedPaymentTerm(loanData.payment_term?.toString() || '');
+  
+                  // Only set proposal-related states if they haven't been edited by the user
+                  if (!proposedLoanAmount && !proposedPaymentTerm && !monthlyInterestRate) {
+                      setLoanProposal(loanData.proposal);
+                      if (loanData.proposal) {
+                          setProposedLoanAmount(loanData.proposal.proposed_loan_amount.toString());
+                          setProposedPaymentTerm(loanData.proposal.proposed_payment_term.toString());
+                          setMonthlyInterestRate(loanData.proposal.monthly_interest_rate.toString());
+                          setShowProposalForm(true);
+                          setActionSubmitted(true);
+                          setAppResponse("Approve");
+                      } else {
+                          setProposedLoanAmount(loanData.loan_amount?.toString() || '');
+                          setProposedPaymentTerm(loanData.payment_term?.toString() || '');
+                          setMonthlyInterestRate('');
+                      }
                   }
+  
                   if (loanData.status === "Declined") {
                       setActionSubmitted(true);
                       setAppResponse("Decline");
                   }
   
-                  // Fetch previous loans with employee_id
+                  // Fetch current loans with employee_id
                   if (loanData.employee_id) {
-                    axiosInstance.get(`/loans/getCurrentLoans/${loanData.employee_id}`, { headers })
+                      console.log('Fetching current loans for employee_id:', loanData.employee_id);
+                      axiosInstance.get(`/loans/getCurrentLoans/${loanData.employee_id}`, { headers })
                           .then((response) => {
                               if (response.data.status === 200) {
                                   setExistingLoans(response.data.loans || []);
-                                  console.log('Previous loans fetched:', response.data.loans);
+                                  console.log('Current loans fetched:', response.data.loans);
                               } else {
-                                  console.error('Failed to fetch previous loans:', response.data.message);
+                                  console.error('Failed to fetch current loans:', response.data.message);
                               }
                           })
                           .catch((error) => {
-                              console.error('Error fetching previous loans:', error);
+                              console.error('Error fetching current loans:', error);
                           });
                   } else {
                       console.warn('No employee_id found in loan details');
@@ -105,7 +112,7 @@ const LoanApplication = ({ open, close, selectedLoan }) => {
           .catch((error) => {
               console.error('Error fetching loan details:', error);
           });
-  }, [selectedLoan, headers]);
+  }, [selectedLoan, headers, proposedLoanAmount, proposedPaymentTerm, monthlyInterestRate]);
 
     // Dynamic File Icon
     const getFileIcon = (filename) => {
@@ -448,62 +455,65 @@ const LoanApplication = ({ open, close, selectedLoan }) => {
                                 )}
                                 {/* Proposal Input Fields */}
                                 {showProposalForm && (
-                                    <>
-                                        <Grid size={12} sx={{ my: 0 }}>
-                                            <Divider />
-                                        </Grid>
-                                        <Grid container size={{ xs: 12 }} spacing={2}>
-                                            <Grid size={12}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                    Loan Proposal
-                                                </Typography>
-                                            </Grid>
-                                            <Grid size={4}>
-                                                <TextField
-                                                    fullWidth
-                                                    label="New Loan Amount"
-                                                    value={proposedLoanAmount}
-                                                    onChange={(e) => setProposedLoanAmount(e.target.value)}
-                                                    type="number"
-                                                    variant="outlined"
-                                                    disabled={!!loanProposal}
-                                                />
-                                            </Grid>
-                                            <Grid size={4}>
-                                                <TextField
-                                                    fullWidth
-                                                    label="New Payment Term (months)"
-                                                    value={proposedPaymentTerm}
-                                                    onChange={(e) => setProposedPaymentTerm(e.target.value)}
-                                                    type="number"
-                                                    variant="outlined"
-                                                    disabled={!!loanProposal}
-                                                />
-                                            </Grid>
-                                            <Grid size={4}>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Monthly Interest Rate (%)"
-                                                    value={monthlyInterestRate}
-                                                    onChange={(e) => setMonthlyInterestRate(e.target.value)}
-                                                    type="number"
-                                                    variant="outlined"
-                                                    disabled={!!loanProposal}
-                                                />
-                                            </Grid>
-                                            <Grid size={12} align="right">
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={() => setOpenPreview(true)}
-                                                    disabled={!proposedLoanAmount || !proposedPaymentTerm || !monthlyInterestRate}
-                                                    sx={{ bgcolor: '#1976d2', '&:hover': { bgcolor: '#1565c0' } }}
-                                                >
-                                                    Preview Loan Proposal
-                                                </Button>
-                                            </Grid>
-                                        </Grid>
-                                    </>
-                                )}
+                                  <>
+                                      <Grid size={12} sx={{ my: 0 }}>
+                                          <Divider />
+                                      </Grid>
+                                      <Grid container size={{ xs: 12 }} spacing={2}>
+                                          <Grid size={12}>
+                                              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                  Loan Proposal
+                                              </Typography>
+                                          </Grid>
+                                          <Grid size={4}>
+                                              <TextField
+                                                  fullWidth
+                                                  label="New Loan Amount"
+                                                  value={proposedLoanAmount}
+                                                  onChange={(e) => setProposedLoanAmount(e.target.value)}
+                                                  type="number"
+                                                  variant="outlined"
+                                                  disabled={['Approved', 'Declined', 'Cancelled'].includes(loanDetails.status)}
+                                                  inputProps={{ min: 0 }}
+                                              />
+                                          </Grid>
+                                          <Grid size={4}>
+                                              <TextField
+                                                  fullWidth
+                                                  label="New Payment Term (months)"
+                                                  value={proposedPaymentTerm}
+                                                  onChange={(e) => setProposedPaymentTerm(e.target.value)}
+                                                  type="number"
+                                                  variant="outlined"
+                                                  disabled={['Approved', 'Declined', 'Cancelled'].includes(loanDetails.status)}
+                                                  inputProps={{ min: 1 }}
+                                              />
+                                          </Grid>
+                                          <Grid size={4}>
+                                              <TextField
+                                                  fullWidth
+                                                  label="Monthly Interest Rate (%)"
+                                                  value={monthlyInterestRate}
+                                                  onChange={(e) => setMonthlyInterestRate(e.target.value)}
+                                                  type="number"
+                                                  variant="outlined"
+                                                  disabled={['Approved', 'Declined', 'Cancelled'].includes(loanDetails.status)}
+                                                  inputProps={{ min: 0, step: 0.01 }}
+                                              />
+                                          </Grid>
+                                          <Grid size={12} align="right">
+                                              <Button
+                                                  variant="contained"
+                                                  onClick={() => setOpenPreview(true)}
+                                                  disabled={!proposedLoanAmount || !proposedPaymentTerm || !monthlyInterestRate}
+                                                  sx={{ bgcolor: '#1976d2', '&:hover': { bgcolor: '#1565c0' } }}
+                                              >
+                                                  Preview Loan Proposal
+                                              </Button>
+                                          </Grid>
+                                      </Grid>
+                                  </>
+                              )}
                             </Grid>
                         </Box>
                         <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
@@ -623,7 +633,7 @@ const LoanApplication = ({ open, close, selectedLoan }) => {
                 monthlyInterestRate={monthlyInterestRate}
                 selectedLoan={selectedLoan}
                 isAdmin={isAdmin}
-                isPreviewOnly={!!loanProposal}
+                isPreviewOnly={!(isAdmin && loanDetails.status === 'Pending')} 
             />
         </>
     );
