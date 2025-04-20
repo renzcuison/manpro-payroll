@@ -15,6 +15,9 @@ import {
     FormControl,
     InputLabel,
     Select,
+    useMediaQuery,
+    useTheme,
+    Button
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -23,26 +26,19 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
+import { useNavigate } from "react-router-dom";
 
 const AttendanceLogs = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    const theme = useTheme();
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+
     const [isLoading, setIsLoading] = useState(true);
     const [attendanceLogs, setAttendanceLogs] = useState([]);
+    const [filterView, setFilterView] = useState(medScreen);
 
     // ---------------- Attendance Logs API
     useEffect(() => {
@@ -196,7 +192,7 @@ const AttendanceLogs = () => {
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Attendance Logs{" "}
@@ -210,78 +206,93 @@ const AttendanceLogs = () => {
                             </Box>
                         ) : (
                             <>
-                                <Grid container direction="row" columnGap={1} justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                                    <Grid size={{ xs: 3 }}>
-                                        <FormControl sx={{ mr: 2, width: "80%" }} >
-                                            <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
-                                            <Select
-                                                labelId="attendance-type-select-label"
-                                                id="attendance-type-select"
-                                                value={selectedAttendanceType}
-                                                label="Attendance Type"
-                                                onChange={(event) => setAttendanceType(event.target.value)}
-                                            >
-                                                <MenuItem value="All"> All </MenuItem>
-                                                <MenuItem value="Duty In"> Duty In </MenuItem>
-                                                <MenuItem value="Duty Out"> Duty Out </MenuItem>
-                                                <MenuItem value="Overtime In"> Overtime In </MenuItem>
-                                                <MenuItem value="Overtime Out"> Overtime Out </MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid container size={{ xs: 7 }} direction="row" justifyContent="flex-end" >
-                                        <Grid size={{ xs: 3 }} sx={{ mr: 2 }}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="date-range-select-label"> Date Range </InputLabel>
-
-                                                <Select
-                                                    labelId="date-range-select-label"
-                                                    id="date-range-select"
-                                                    value={selectedRange}
-                                                    label="Date Range"
-                                                    onChange={(event) => setPredefinedDates(event.target.value)}
-                                                >
-                                                    <MenuItem value="today"> Today </MenuItem>
-                                                    <MenuItem value="yesterday"> Yesterday </MenuItem>
-                                                    <MenuItem value="last7days"> Last 7 Days </MenuItem>
-                                                    <MenuItem value="last30days"> Last 30 Days </MenuItem>
-                                                    <MenuItem value="thisMonth"> This Month </MenuItem>
-                                                    <MenuItem value="lastMonth"> Last Month </MenuItem>
-                                                    <MenuItem value="custom"> Custom Range </MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-
-                                        <Grid size={{ xs: 7 }} sx={{ mr: 4 }}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                                <DatePicker
-                                                    label="From Date"
-                                                    value={fromDate}
-                                                    onChange={(newValue) => {
-                                                        setSelectedRange("custom");
-                                                        handleFilterChange("from", newValue);
-                                                    }}
-                                                    renderInput={(params) => (
-                                                        <TextField {...params} />
-                                                    )}
-                                                    sx={{ mr: 2 }}
-                                                />
-                                                <DatePicker
-                                                    label="To Date"
-                                                    value={toDate}
-                                                    onChange={(newValue) => {
-                                                        setSelectedRange("custom");
-                                                        handleFilterChange("to", newValue);
-                                                    }}
-                                                    minDate={fromDate}
-                                                    renderInput={(params) => (
-                                                        <TextField {...params} />
-                                                    )}
-                                                />
-                                            </LocalizationProvider>
-                                        </Grid>
-                                    </Grid>
+                                <Grid container sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                                    {filterView && (
+                                        <>
+                                            <Grid size={{ xs: 12, md: 3 }} sx={{ mb: { xs: 2, md: 0 } }}>
+                                                <FormControl sx={{ width: { xs: "100%", md: "180px" } }} >
+                                                    <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
+                                                    <Select
+                                                        labelId="attendance-type-select-label"
+                                                        id="attendance-type-select"
+                                                        value={selectedAttendanceType}
+                                                        label="Attendance Type"
+                                                        onChange={(event) => setAttendanceType(event.target.value)}
+                                                    >
+                                                        <MenuItem value="All"> All </MenuItem>
+                                                        <MenuItem value="Duty In"> Duty In </MenuItem>
+                                                        <MenuItem value="Duty Out"> Duty Out </MenuItem>
+                                                        <MenuItem value="Overtime In"> Overtime In </MenuItem>
+                                                        <MenuItem value="Overtime Out"> Overtime Out </MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid container size={{ xs: 12, md: 9 }}>
+                                                <Box display="flex" gap={{ xs: 2, md: 0 }} sx={{ mb: { xs: 2, md: 0 }, flexDirection: { xs: "column", md: "row" }, width: "100%", justifyContent: "flex-end" }}>
+                                                    <FormControl sx={{ width: { xs: "100%", md: "180px" }, mr: 2 }}>
+                                                        <InputLabel id="date-range-select-label"> Date Range </InputLabel>
+                                                        <Select
+                                                            labelId="date-range-select-label"
+                                                            id="date-range-select"
+                                                            value={selectedRange}
+                                                            label="Date Range"
+                                                            onChange={(event) => setPredefinedDates(event.target.value)}
+                                                        >
+                                                            <MenuItem value="today"> Today </MenuItem>
+                                                            <MenuItem value="yesterday"> Yesterday </MenuItem>
+                                                            <MenuItem value="last7days"> Last 7 Days </MenuItem>
+                                                            <MenuItem value="last30days"> Last 30 Days </MenuItem>
+                                                            <MenuItem value="thisMonth"> This Month </MenuItem>
+                                                            <MenuItem value="lastMonth"> Last Month </MenuItem>
+                                                            <MenuItem value="custom"> Custom Range </MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                                        <DatePicker
+                                                            label="From Date"
+                                                            value={fromDate}
+                                                            onChange={(newValue) => {
+                                                                setSelectedRange("custom");
+                                                                handleFilterChange("from", newValue);
+                                                            }}
+                                                            renderInput={(params) => (
+                                                                <TextField {...params} />
+                                                            )}
+                                                            sx={{ mr: 2, minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
+                                                        />
+                                                        <DatePicker
+                                                            label="To Date"
+                                                            value={toDate}
+                                                            onChange={(newValue) => {
+                                                                setSelectedRange("custom");
+                                                                handleFilterChange("to", newValue);
+                                                            }}
+                                                            minDate={fromDate}
+                                                            renderInput={(params) => (
+                                                                <TextField {...params} />
+                                                            )}
+                                                            sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
+                                                        />
+                                                    </LocalizationProvider>
+                                                </Box>
+                                            </Grid>
+                                        </>
+                                    )}
+                                    {!medScreen && (
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => setFilterView(!filterView)}
+                                        >
+                                            <p className="m-0">
+                                                {filterView ? (
+                                                    <><i className="fa fa-minus"></i> Hide Filters </>
+                                                ) : (
+                                                    <><i className="fa fa-plus"></i> Show Filters </>
+                                                )}
+                                            </p>
+                                        </Button>
+                                    )}
                                 </Grid>
 
                                 <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }} >

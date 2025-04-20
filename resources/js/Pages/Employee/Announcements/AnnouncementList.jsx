@@ -133,14 +133,14 @@ const AnnouncementList = () => {
     return (
         <Layout title={"AnnouncementList"}>
             <Box sx={{ width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Announcements
                         </Typography>
                     </Box>
 
-                    <Box sx={{ p: 3, justifyContent: 'center', alignItems: 'center' }} >
+                    <Box sx={{ my: 3, justifyContent: 'center', alignItems: 'center' }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
@@ -227,8 +227,17 @@ const AnnouncementList = () => {
                                                                     {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
                                                                     {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
                                                                     {/* Media Text */}
-                                                                    <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0 }}>
-                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                    <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0, mt: { xs: 1.5, md: 0 } }}>
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            sx={{
+                                                                                color: "text.secondary",
+                                                                                whiteSpace: "normal",
+                                                                                wordBreak: "break-word",
+                                                                                overflowWrap: "break-word",
+                                                                                lineHeight: 1.5,
+                                                                            }}
+                                                                        >
                                                                             {(() => {
                                                                                 const available = [
                                                                                     announcement.branch_matched && 'Branch',

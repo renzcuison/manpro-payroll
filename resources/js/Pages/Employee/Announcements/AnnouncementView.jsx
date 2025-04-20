@@ -12,7 +12,9 @@ import {
     ImageList,
     ImageListItem,
     ImageListItemBar,
-    Tooltip
+    Tooltip,
+    useTheme,
+    useMediaQuery
 } from "@mui/material";
 import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
@@ -31,6 +33,12 @@ const AnnouncementView = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
+
+    const theme = useTheme();
+    const smScreen = useMediaQuery(theme.breakpoints.up('sm'));
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const colCount = medScreen ? 5 : smScreen ? 3 : 2;
+    const headSize = medScreen ? "h5" : "h6";
 
     // ---------------- Announcement Data States
     const [isLoading, setIsLoading] = useState(false);
@@ -237,10 +245,20 @@ const AnnouncementView = () => {
     return (
         <Layout title={"AnnouncementView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Box display="flex" sx={{ alignItems: "center" }}>
-                            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            <Typography
+                                variant="h4"
+                                sx={{
+                                    fontWeight: "bold",
+                                    whiteSpace: "normal",
+                                    wordBreak: "break-word",
+                                    overflowWrap: "break-word",
+                                    lineHeight: 1.5,
+                                    paddingRight: { xs: 0, md: 2 },
+                                }}
+                            >
                                 {announcement.title || "Announcement"}
                             </Typography>
                             {announcement.acknowledged && (
@@ -261,7 +279,7 @@ const AnnouncementView = () => {
                         </Box>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Box sx={{ mt: 6, p: { xs: 2, md: 3 }, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
@@ -270,7 +288,7 @@ const AnnouncementView = () => {
                             <>
                                 <Grid container columnSpacing={4} rowSpacing={2}>
                                     {/* Thumbnail */}
-                                    <Grid size={{ xs: 12 }}>
+                                    <Grid size={12}>
                                         <Box sx={{
                                             mb: 1,
                                             position: 'relative',
@@ -299,11 +317,11 @@ const AnnouncementView = () => {
                                         </Box>
                                     </Grid>
                                     {/* Core Information */}
-                                    <Grid container size={{ xs: 12 }} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                        {/* Title and Action Menu */}
+                                    <Grid container size={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                        {/* Header and Action Menu */}
                                         <Grid size={12}>
-                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                                <Typography variant="h5" sx={{ pb: 2, fontWeight: "bold", color: "text.primary" }}>
+                                            <Stack direction="row" sx={{ pb: 2, justifyContent: "space-between", alignItems: "center" }}>
+                                                <Typography variant={headSize} sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                     About This Announcement:
                                                 </Typography>
                                                 {/* Acknowledgement */}
@@ -345,7 +363,7 @@ const AnnouncementView = () => {
                                             </Stack>
                                         </Grid>
                                         {/* Posting Date */}
-                                        <Grid size={6}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <InfoBox
                                                 title="Date Posted"
                                                 info={dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
@@ -354,7 +372,7 @@ const AnnouncementView = () => {
                                             />
                                         </Grid>
                                         {/* Author Information */}
-                                        <Grid size={6}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', }} >
                                                 <Typography
                                                     sx={{
@@ -383,7 +401,7 @@ const AnnouncementView = () => {
                                         </Grid>
                                         {/* Acknowledgement Status */}
                                         {announcement.acknowledged ? (
-                                            <Grid size={6}>
+                                            <Grid size={{ xs: 12, md: 6 }}>
                                                 <InfoBox
                                                     title="Acknowledged On"
                                                     info={dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A")}
@@ -391,12 +409,32 @@ const AnnouncementView = () => {
                                                     clean
                                                 />
                                             </Grid>
-                                        ) : <Grid size={{ xs: 6 }} align="left">
-                                            You have not acknowledged this announcement yet
-                                        </Grid>}
+                                        ) : (
+                                            <Grid size={{ xs: 12, md: 6 }} align="left">
+                                                <Typography
+                                                    sx={{
+                                                        whiteSpace: "normal",
+                                                        wordBreak: "break-word",
+                                                        overflowWrap: "break-word",
+                                                        lineHeight: 1.5,
+                                                        paddingRight: { xs: 0, md: 2 },
+                                                    }}
+                                                >
+                                                    You have not acknowledged this announcement yet
+                                                </Typography>
+                                            </Grid>
+                                        )}
                                         {/* Recipient Branch/Department */}
-                                        <Grid size={{ xs: 6 }} align="left">
-                                            <Typography>
+                                        <Grid size={{ xs: 12, md: 6 }} align="left">
+                                            <Typography
+                                                sx={{
+                                                    whiteSpace: "normal",
+                                                    wordBreak: "break-word",
+                                                    overflowWrap: "break-word",
+                                                    lineHeight: 1.5,
+                                                    paddingRight: { xs: 0, md: 2 },
+                                                }}
+                                            >
                                                 {`This announcement is posted for your ${announcement.department_matched && announcement.branch_matched
                                                     ? "branch and department"
                                                     : announcement.department_matched ? "department"
@@ -409,7 +447,7 @@ const AnnouncementView = () => {
                                         <Divider />
                                     </Grid>
                                     {/* Description */}
-                                    <Grid size={{ xs: 12 }} >
+                                    <Grid size={12} >
                                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                                             Description
                                         </Typography>
@@ -439,7 +477,7 @@ const AnnouncementView = () => {
                                                 </Typography>
                                             </Grid>
                                             <Grid size={{ md: 12 }} align="left">
-                                                <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
+                                                <ImageList cols={colCount} gap={4} sx={{ width: '100%' }}>
                                                     {images.map((image) => (
                                                         <ImageListItem
                                                             key={image.id}
@@ -486,7 +524,7 @@ const AnnouncementView = () => {
                                                 </Typography>
                                             </Grid>
                                             <Grid size={{ md: 12 }} align="left">
-                                                <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
+                                                <ImageList cols={colCount} gap={4} sx={{ width: '100%' }}>
                                                     {attachments.map((attachment) => {
                                                         const fileIcon = getFileIcon(attachment.filename);
                                                         return (

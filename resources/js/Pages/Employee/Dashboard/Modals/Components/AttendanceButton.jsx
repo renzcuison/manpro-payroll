@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Button } from "@mui/material";
+import { Grid, Button, Typography } from "@mui/material";
 import { AccessTime } from "@mui/icons-material";
 
 const AttendanceButtons = ({
@@ -13,11 +13,13 @@ const AttendanceButtons = ({
             <Grid
                 container
                 direction="row"
-                sx={{ justifyContent: "flex-start", alignItems: "center", pt: 1.5 }}
+                sx={{ justifyContent: "flex-start", alignItems: "center" }}
                 size={{ xs: 12 }}
             >
                 <Grid size={{ xs: 8 }}>
-                    {label}
+                    <Typography>
+                        {label}
+                    </Typography>
                 </Grid>
 
                 <Grid size={{ xs: 4 }} sx={{ display: "flex", justifyContent: "flex-end" }}>
