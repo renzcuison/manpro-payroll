@@ -105,9 +105,6 @@ function App() {
             {/* User Profile Routes */}
             <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
 
-            {/* SUPER ADMIN ROUTES */}
-            <Route path="/super/applications" element={user ? <SuperApplications /> : <CheckUser />} />
-
             {/* ----------------------------------------------------------------------------------------------- */}
             {/* GLOBAL ROUTES */}
             <Route path="/reports" element={user ? <Reports /> : <CheckUser />} />
