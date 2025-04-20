@@ -4,14 +4,15 @@ import dayjs from "dayjs";
 import axiosInstance from "../../../../utils/axiosConfig";
 
 const AllowanceList = ({ userName, headers, onAdd }) => {
-    const [benefits, setBenefits] = useState([]);
+    const [allowances, setAllowances] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, { headers, params: { username: userName },
+        axiosInstance.get(`/allowance/getEmployeeAllowance`, { headers, params: { username: userName },
             }).then((response) => {
-                setBenefits(response.data.benefits);
+                console.log(response.data);
+                setAllowances(response.data.allowances);
             }).catch((error) => {
-                console.error("Error fetching benefits:", error);
+                console.error("Error fetching allowances:", error);
             });
     }, []);
 
@@ -28,8 +29,8 @@ const AllowanceList = ({ userName, headers, onAdd }) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {benefits.length > 0 ? (
-                            benefits.map((benefit, index) => (
+                        {allowances.length > 0 ? (
+                            allowances.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <Typography>{benefit.benefit}</Typography>

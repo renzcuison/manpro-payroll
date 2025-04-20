@@ -55,9 +55,34 @@ class AllowanceController extends Controller
         return false;
     }
     
-    public function getEmployeeAllowance()
+    public function getEmployeeAllowance(Request $request)
     {
-        // log::info("EmployeesController::getEmployeeAllowance");
+        log::info("EmployeesController::getEmployeeAllowance");
+        log::info($request);
+
+        if ($this->checkUserAdmin()) {
+
+            $employee = UsersModel::where('user_name', $request->username)->first();
+            log::info($employee);
+            $allowances = [];
+
+            foreach ($employee->allowances as $allowance) {
+                log::info($allowance);
+
+                $allowances[] = [
+                    'id' => $allowance->id,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'allowances' => $allowances]);
+        }
+
+        return response()->json(['status' => 200, 'allowances' => null]);
+    }
+
+    public function getEmployeesAllowance()
+    {
+        log::info("EmployeesController::getEmployeesAllowance");
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();

@@ -18,7 +18,7 @@ const AllowanceList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        axiosInstance.get('/allowance/getEmployeeAllowance', { headers })
+        axiosInstance.get('/allowance/getEmployeesAllowance', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);

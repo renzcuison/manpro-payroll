@@ -16,7 +16,6 @@ use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
 
-
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -119,6 +118,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('allowance')->group(function () {
         Route::get('/getEmployeeAllowance', [AllowanceController::class, 'getEmployeeAllowance']);
+        Route::get('/getEmployeesAllowance', [AllowanceController::class, 'getEmployeesAllowance']);
     });
 
     Route::prefix('benefits')->group(function () {

@@ -18,4 +18,9 @@ class EmployeeAllowancesModel extends Model
         'user_id',
         'allowance_id',
     ];
+
+    public function allowance()
+    {
+        return $this->belongsTo(AllowancesModel::class, 'allowance_id');
+    }
 }

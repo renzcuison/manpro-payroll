@@ -24,7 +24,7 @@ const AllowanceView = ({ open, close, userName }) => {
 
     const getEmployeeDetails = () => {
         const data = { username: userName };
-
+        console.log("getEmployeeDetails()");
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 setEmployee(response.data.employee);

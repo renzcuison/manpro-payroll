@@ -113,7 +113,7 @@ class UsersModel extends Authenticatable
 
     public function allowances()
     {
-        return $this->hasMany(AllowancesModel::class, 'user_id');
+        return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
     }
 
     public function leaveCredits()
