@@ -5,18 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AllowanceTypeModel extends Model
+class EmployeeAllowancesModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'allowance_types';
+    protected $table = 'employee_allowances';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name',
-        'amount',
-        'percentage',
         'client_id',
+        'user_id',
+        'allowance_id',
     ];
 }

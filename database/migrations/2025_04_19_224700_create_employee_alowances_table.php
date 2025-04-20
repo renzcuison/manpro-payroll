@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('allowance_types', function (Blueprint $table) {
+        Schema::create('employee_alowances', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
-            $table->decimal('amount', 10, 2)->nullable();
-            $table->decimal('percentage', 10, 2)->nullable();
             $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('allowance_id');
+            $table->timestamps();
             $table->softDeletes();
 
-            $table->timestamps();
-
             $table->foreign('client_id')->references('id')->on('clients');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('allowance_id')->references('id')->on('allowances');
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('allowance_types');
+        Schema::dropIfExists('employee_alowances');
     }
 };

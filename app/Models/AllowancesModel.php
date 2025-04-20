@@ -14,9 +14,10 @@ class AllowancesModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'client_id',
-        'user_id',
-        'allowance_type_id',
+        'name',
+        'number',
         'amount',
+        'percentage',
+        'client_id',
     ];
 }
