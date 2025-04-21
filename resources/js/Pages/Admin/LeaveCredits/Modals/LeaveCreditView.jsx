@@ -1,5 +1,6 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table } from "@mui/material";
 import { Edit } from "@mui/icons-material";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
@@ -7,6 +8,7 @@ import LeaveCreditAdd from "../Modals/LeaveCreditAdd";
 import LeaveCreditEdit from "../Modals/LeaveCreditEdit";
 
 import dayjs from "dayjs";
+import Swal from "sweetalert2";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
@@ -85,6 +87,46 @@ const LeaveCreditView = ({ open, close, userName }) => {
         setOpenAddLeaveCredit(false);
         getLeaveCredits();
         getLeaveCreditLogs();
+    };
+
+    const handleDeleteLeaveCredit = (leaveInfo) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Delete Leave Credit",
+            text: "Are you sure you want to delete this?",
+            icon: "warning",
+            showConfirmButton: true,
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                deleteLeaveCredit(leaveInfo.id)
+            }
+        });
+    };
+
+    const deleteLeaveCredit = (leaveCredit) => {
+        const data = { leaveCredit: leaveCredit };
+
+        axiosInstance.post('/applications/deleteLeaveCredits', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    document.activeElement.blur();
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Leave Credits edited successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        getLeaveCredits();
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
 
     return (
@@ -181,7 +223,7 @@ const LeaveCreditView = ({ open, close, userName }) => {
                                                 <TableCell align="center" sx={{ width: "15%" }}> Credits </TableCell>
                                                 <TableCell align="center" sx={{ width: "15%" }}> Used </TableCell>
                                                 <TableCell align="center" sx={{ width: "15%" }}> Remaining </TableCell>
-                                                <TableCell align="center" sx={{ width: "15%" }}> Edit </TableCell>
+                                                <TableCell align="center" sx={{ width: "15%" }}> Actions </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -207,6 +249,7 @@ const LeaveCreditView = ({ open, close, userName }) => {
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 <IconButton size="small" onClick={() => handleOpenEditLeaveCredit(leave)}> <Edit size="small" /> </IconButton>
+                                                                <IconButton size="small" onClick={() => handleDeleteLeaveCredit(leave)}> <DeleteOutlineIcon size="small" /> </IconButton>
                                                             </TableCell>
                                                         </TableRow>
                                                     );

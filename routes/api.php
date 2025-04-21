@@ -235,11 +235,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/manageApplication', [ApplicationsController::class, 'manageApplication']);
 
         // Leave Credits
-        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
+        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
+        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
+        
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
-        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
+        Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
+        
 
         // Overtime Applications
         Route::post('/saveOvertimeApplication', [ApplicationsController::class, 'saveOvertimeApplication']);

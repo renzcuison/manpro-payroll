@@ -583,6 +583,28 @@ class ApplicationsController extends Controller
         }
     }
 
+    public function deleteLeaveCredits(Request $request)
+    {
+        // Log::info("ApplicationsController::deleteLeaveCredits");
+
+        if ($this->checkUser()) {
+            try {
+
+                $leaveCredit = LeaveCreditsModel::find($request->input('leaveCredit'));
+
+                if ($leaveCredit) {
+                    $leaveCredit->delete();
+                    return response()->json(['status' => 200]);
+                }
+
+                return response()->json(['status' => 404]);
+            } catch (\Exception $e) {
+                //Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+    }
+
     public function getLeaveCreditLogs($userName)
     {
         //Log::info("ApplicationsController::getLeaveCreditLogs");
