@@ -10,7 +10,7 @@ import moment from 'moment';
 import dayjs from 'dayjs';
 import { Edit } from '@mui/icons-material';
 
-const ProfileEdit = ({ open, close, employee, avatar }) => {
+const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -165,25 +165,39 @@ const ProfileEdit = ({ open, close, employee, avatar }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+            <Dialog
+                open={open}
+                fullWidth
+                slotProps={{
+                    paper: {
+                        sx: {
+                            p: '16px',
+                            backgroundColor: "#f8f9fa",
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: "20px" },
+                            minWidth: { xs: "100%", md: "800px" },
+                            maxWidth: { xs: "100%", md: "1000px" },
+                            marginBottom: "5%",
+                        }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ padding: { xs: 1, md: 4 }, paddingBottom: 1, mt: { xs: 1, md: 0 } }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Edit Profile </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Edit Profile </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
-                        {/* Profile Picture */}
-                        <Box display="flex" sx={{ justifyContent: "space-between" }}>
-                            <FormGroup className="d-flex justify-content-between" sx={{
-                                width: "24%",
-                                '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
+                <DialogContent sx={{ px: { xs: 1, md: 5 }, py: 2 }}>
+                    <Box component="form" sx={{ my: 1 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                        {/* Top Section */}
+                        <Grid container spacing={{ xs: 3, md: 2 }}>
+                            {/* Profile Image */}
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                {/* Profile Image */}
                                 <FormControl sx={{
-                                    marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                 }}>
                                     <Box display="flex" sx={{ justifyContent: "center" }}>
@@ -210,160 +224,187 @@ const ProfileEdit = ({ open, close, employee, avatar }) => {
                                         </Box>
                                     </Box>
                                 </FormControl>
-                            </FormGroup>
-                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                width: "74%",
-                                '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <FormControl sx={{
-                                    marginBottom: 2, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        id="first_name"
-                                        label="First Name"
-                                        variant="outlined"
-                                        value={firstName}
-                                        error={firstNameError}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                    />
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 2, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        id="middle_name"
-                                        label="Middle Name"
-                                        variant="outlined"
-                                        value={middleName}
-                                        error={middleNameError}
-                                        onChange={(e) => setMiddleName(e.target.value)}
-                                    />
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        id="last_name"
-                                        label="Last Name"
-                                        variant="outlined"
-                                        value={lastName}
-                                        error={lastNameError}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                    />
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '9%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        id="suffix"
-                                        label="Suffix"
-                                        variant="outlined"
-                                        value={suffix}
-                                        error={suffixError}
-                                        onChange={(e) => setSuffix(e.target.value)}
-                                    />
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        id="username"
-                                        label="Username"
-                                        variant="outlined"
-                                        value={username}
-                                        error={usernameError}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        inputProps={{
-                                            readOnly: true
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '39%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <LocalizationProvider
-                                        dateAdapter={AdapterDayjs}
-                                    >
-                                        <DatePicker
-                                            label="Birth Date"
-                                            value={birthDate}
-                                            onChange={(newDate) => setBirthDate(newDate)}
-                                            slotProps={{
-                                                textField: {
-                                                    error: birthDateError,
-                                                    readOnly: true,
-                                                }
+                            </Grid>
+                            {/* Personal Details */}
+                            <Grid container rowSpacing={{ xs: 3, md: 0 }} size={{ xs: 12, md: 9 }}>
+                                {/* Names */}
+                                <Grid container size={{ xs: 12, md: 10 }}>
+                                    {/* First Name */}
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <FormControl fullWidth sx={{
+                                            '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        }}>
+                                            <TextField
+                                                id="first_name"
+                                                label="First Name"
+                                                variant="outlined"
+                                                value={firstName}
+                                                error={firstNameError}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+                                    {/* Middle Name */}
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <FormControl fullWidth sx={{
+                                            '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        }}>
+                                            <TextField
+                                                id="middle_name"
+                                                label="Middle Name"
+                                                variant="outlined"
+                                                value={middleName}
+                                                error={middleNameError}
+                                                onChange={(e) => setMiddleName(e.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+                                    {/* Last Name */}
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <FormControl fullWidth sx={{
+                                            '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        }}>
+                                            <TextField
+                                                id="last_name"
+                                                label="Last Name"
+                                                variant="outlined"
+                                                value={lastName}
+                                                error={lastNameError}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+                                </Grid>
+                                {/* Suffix */}
+                                <Grid size={{ xs: 12, md: 2 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <TextField
+                                            id="suffix"
+                                            label="Suffix"
+                                            variant="outlined"
+                                            value={suffix}
+                                            error={suffixError}
+                                            onChange={(e) => setSuffix(e.target.value)}
+                                        />
+                                    </FormControl>
+                                </Grid>
+                                {/* Username */}
+                                <Grid size={{ xs: 12, md: 5 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <TextField
+                                            id="username"
+                                            label="Username"
+                                            variant="outlined"
+                                            value={username}
+                                            error={usernameError}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            inputProps={{
+                                                readOnly: true
                                             }}
                                         />
-                                    </LocalizationProvider>
-                                </FormControl>
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '19%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <TextField
-                                        select
-                                        id="gender"
-                                        label="Gender"
-                                        variant="outlined"
-                                        value={gender}
-                                        error={genderError}
-                                        onChange={(e) => setGender(e.target.value)}
-                                    >
-                                        <MenuItem value="Male"> Male </MenuItem>
-                                        <MenuItem value="Female"> Female </MenuItem>
-                                    </TextField>
-                                </FormControl>
-                            </FormGroup>
-                        </Box>
-                        <Divider sx={{ mb: 3 }} />
-                        {/* Editable Fields */}
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '24%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="contact"
-                                    label="Phone Number"
-                                    variant="outlined"
-                                    type="number"
-                                    value={contact}
-                                    error={contactError}
-                                    onChange={(e) => setContact(e.target.value)}
-                                />
-                            </FormControl>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '74%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="address"
-                                    label="Address"
-                                    variant="outlined"
-                                    value={address}
-                                    error={addressError}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
+                                    </FormControl>
+                                </Grid>
+                                {/* Birth Date */}
+                                <Grid size={{ xs: 12, md: 5 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <LocalizationProvider
+                                            dateAdapter={AdapterDayjs}
+                                        >
+                                            <DatePicker
+                                                label="Birth Date"
+                                                value={birthDate}
+                                                onChange={(newDate) => setBirthDate(newDate)}
+                                                slotProps={{
+                                                    textField: {
+                                                        error: birthDateError,
+                                                        readOnly: true,
+                                                    }
+                                                }}
+                                            />
+                                        </LocalizationProvider>
+                                    </FormControl>
+                                </Grid>
+                                {/* Gender */}
+                                <Grid size={{ xs: 12, md: 2 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <TextField
+                                            select
+                                            id="gender"
+                                            label="Gender"
+                                            variant="outlined"
+                                            value={gender}
+                                            error={genderError}
+                                            onChange={(e) => setGender(e.target.value)}
+                                        >
+                                            <MenuItem value="Male"> Male </MenuItem>
+                                            <MenuItem value="Female"> Female </MenuItem>
+                                        </TextField>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                            {medScreen &&
+                                <Grid size={12} sx={{ my: 0 }}>
+                                    <Divider />
+                                </Grid>
+                            }
+                            {/* Contact Information */}
+                            <Grid container rowSpacing={{ xs: 3, md: 0 }} size={12}>
+                                {/* Contact No. */}
+                                <Grid size={{ xs: 12, md: 3 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <TextField
+                                            id="contact"
+                                            label="Phone Number"
+                                            variant="outlined"
+                                            type="number"
+                                            value={contact}
+                                            error={contactError}
+                                            onChange={(e) => setContact(e.target.value)}
+                                        />
+                                    </FormControl>
+                                </Grid>
+                                {/* Address */}
+                                <Grid size={{ xs: 12, md: 9 }}>
+                                    <FormControl fullWidth sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                    }}>
+                                        <TextField
+                                            id="address"
+                                            label="Address"
+                                            variant="outlined"
+                                            value={address}
+                                            error={addressError}
+                                            onChange={(e) => setAddress(e.target.value)}
+                                        />
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        {/* Submit Button */}
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Changes </p>
                             </Button>
                         </Box>
-
                     </Box>
                 </DialogContent>
             </Dialog >
