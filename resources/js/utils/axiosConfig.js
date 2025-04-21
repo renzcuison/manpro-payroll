@@ -4,7 +4,7 @@ import axios from "axios";
 // const baseURL = "https://team.manpromanagement.com/api";
 
 // STAGING MANPRO - anxrqwcazv
-const baseURL = "https://phplaravel-719501-5268927.cloudwaysapps.com/api";
+// const baseURL = "https://phplaravel-719501-5268927.cloudwaysapps.com/api";
 
 // LOCAL MANPRO
 const baseURL = "http://localhost:8000/api";

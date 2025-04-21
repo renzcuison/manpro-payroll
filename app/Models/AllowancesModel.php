@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AllowancesModel extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'allowances';
 
@@ -15,6 +17,7 @@ class AllowancesModel extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'amount',
         'percentage',
         'client_id',

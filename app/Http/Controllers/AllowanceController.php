@@ -4,17 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
-use App\Models\BenefitsModel;
-use App\Models\PayslipsModel;
-use App\Models\BranchesModel;
-use App\Models\UserFormsModel;
-use App\Models\JobTitlesModel;
-use App\Models\WorkGroupsModel;
-use App\Models\DepartmentsModel;
-use App\Models\ApplicationsModel;
-use App\Models\EmployeeRolesModel;
-use App\Models\AttendanceLogsModel;
-use App\Models\LoanLimitHistoryModel;
+use App\Models\AllowancesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +17,7 @@ class AllowanceController extends Controller
 {
     public function checkUserAdmin()
     {
-        // Log::info("EmployeesController::checkUserAdmin");
+        // Log::info("AllowanceController::checkUserAdmin");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -42,7 +32,7 @@ class AllowanceController extends Controller
 
     public function checkUserEmployee()
     {
-        // Log::info("PayrollController::checkUserEmployee");
+        // Log::info("AllowanceController::checkUserEmployee");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -53,6 +43,77 @@ class AllowanceController extends Controller
         }
 
         return false;
+    }
+
+    public function getAllowances()
+    {
+        log::info("AllowanceController::getAllowances");
+
+        if ($this->checkUserAdmin()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $allowances = [];
+
+            foreach ($client->allowances as $allowance) {
+                log::info($allowance);
+    
+                $allowances[] = [
+                    'id' => Hash::make($allowance->id),
+                    'name' => $allowance->name,
+                    'type' => $allowance->type,
+                    'amount' => $allowance->amount,
+                    'percentage' => $allowance->percentage,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'allowances' => $allowances]);
+        }
+
+        return response()->json(['status' => 200, 'allowances' => null]);
+    }
+
+    public function saveAllowance(Request $request)
+    {
+        log::info("AllowanceController::saveAllowance");
+        log::info($request);
+
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+        ]);
+
+        if ($this->checkUserAdmin() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                $allowance = AllowancesModel::create([
+                    "name" => $request->name,
+                    "type" => $request->type,
+                    "amount" => $request->amount,
+                    "percentage" => $request->percentage,
+                    "client_id" => $client->id,
+                ]);
+
+                log::info($allowance);
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
     }
     
     public function getEmployeeAllowance(Request $request)
@@ -82,7 +143,7 @@ class AllowanceController extends Controller
 
     public function getEmployeesAllowance()
     {
-        log::info("EmployeesController::getEmployeesAllowance");
+        // log::info("EmployeesController::getEmployeesAllowance");
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();

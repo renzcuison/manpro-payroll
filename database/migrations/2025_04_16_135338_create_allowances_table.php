@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('allowances', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
+            $table->enum('type',['Amount', 'Percentage', 'Bracket']);
             $table->decimal('amount', 10, 2)->nullable();
             $table->decimal('percentage', 10, 2)->nullable();
             $table->unsignedBigInteger('client_id');
