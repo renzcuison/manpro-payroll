@@ -37,7 +37,6 @@ const Dashboard = () => {
     useEffect(() => {
         axiosInstance.get('/attendance/getEmployeeDashboardAttendance', { headers })
             .then((response) => {
-                console.log(response.data.attendances);
                 setRecentAttendances(response.data.attendances);
                 setIsAttendanceLoading(false);
             })
