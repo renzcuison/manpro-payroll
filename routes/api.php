@@ -122,6 +122,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeAllowance', [AllowanceController::class, 'getEmployeeAllowance']);
         Route::get('/getEmployeesAllowance', [AllowanceController::class, 'getEmployeesAllowance']);
+        Route::post('/saveEmployeeAllowance', [AllowanceController::class, 'saveEmployeeAllowance']);
     });
 
     Route::prefix('benefits')->group(function () {

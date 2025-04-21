@@ -9,7 +9,6 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
     useEffect(() => {
         axiosInstance.get(`/allowance/getEmployeeAllowance`, { headers, params: { username: userName },
             }).then((response) => {
-                console.log(response.data);
                 setAllowances(response.data.allowances);
             }).catch((error) => {
                 console.error("Error fetching allowances:", error);
@@ -30,19 +29,19 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                     </TableHead>
                     <TableBody>
                         {allowances.length > 0 ? (
-                            allowances.map((benefit, index) => (
+                            allowances.map((allowance, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{benefit.benefit}</Typography>
+                                        <Typography>{allowance.benefit}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{benefit.number}</Typography>
+                                        <Typography>{allowance.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{benefit.amount}</Typography>
+                                        <Typography>{allowance.amount}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>
                                 </TableRow>
                             ))

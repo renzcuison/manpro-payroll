@@ -8,22 +8,27 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-import AllowanceList from "../Components/EmployeeAllowanceList";
+import EmployeeAllowanceAdd from "../Components/EmployeeAllowanceAdd";
+import EmployeeAllowanceList from "../Components/EmployeeAllowanceList";
 
 const EmployeeAllowanceView = ({ open, close, userName }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [allowanceAddOpen, setAllowanceAddOpen] = useState(false);
+    const [allowanceListOpen, setAllowanceListOpen] = useState(false);
+
     const [employee, setEmployee] = useState([]);
 
     useEffect(() => {
         getEmployeeDetails();
+        setAllowanceListOpen(true);
     }, []);
 
     const getEmployeeDetails = () => {
         const data = { username: userName };
-        console.log("getEmployeeDetails()");
+
         axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
             .then((response) => {
                 setEmployee(response.data.employee);
@@ -31,6 +36,16 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                 console.error('Error fetching employee:', error);
             });
     };
+
+    const handleOpenAddEmployeeAllowance = () => {
+        setAllowanceListOpen(false);
+        setAllowanceAddOpen(true);
+    }
+
+    const handleCloseAddEmployeeAllowance = () => {
+        setAllowanceAddOpen(false);
+        setAllowanceListOpen(true);
+    }
 
     return (
         <>
@@ -58,7 +73,13 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                         </Typography>
                     </Box>
                     
-                    <AllowanceList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeBenefit()} />
+                    {allowanceListOpen && (
+                        <EmployeeAllowanceList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeAllowance()} />
+                    )}
+
+                    {allowanceAddOpen && (
+                        <EmployeeAllowanceAdd userName={userName} headers={headers} onClose={() => handleCloseAddEmployeeAllowance()} />
+                    )}
 
                 </DialogContent>
             </Dialog >
