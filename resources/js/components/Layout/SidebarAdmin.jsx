@@ -387,10 +387,10 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span id="navName" className="sidebar-mini-hide" > Documents </span>
                                     </StyledNav>
 
-                                    <StyledNav to={`/admin/trainings`}>
-                                        <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "}
-                                        <span id="navName" className="sidebar-mini-hide" > Trainings </span>
-                                    </StyledNav>
+                                    {/* <StyledNav to={`/admin/trainings`}> */}
+                                        {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
+                                        {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
+                                    {/* </StyledNav> */}
 
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
