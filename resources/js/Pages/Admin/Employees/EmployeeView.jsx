@@ -11,7 +11,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
-import EmployeeBenefits from '../Employees/Modals/EmployeeBenefits';
+import EmployeeBenefits from '../Benefits/Modals/EmployeeBenefitsView';
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 
 const EmployeeView = () => {
@@ -191,7 +191,7 @@ const EmployeeView = () => {
                         <Button variant="contained" color="primary" onClick={handleOpenActions}> Actions </Button>
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
-                            <MenuItem onClick={handleOpenEmployeeDetailsEditModal}>Edit Employee Details</MenuItem>
+                            <MenuItem onClick={handleOpenEmployeeDetailsEditModal}> Employee Details</MenuItem>
                             <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem>
                             <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
@@ -400,7 +400,7 @@ const EmployeeView = () => {
                 }
 
                 {openEmployeeBenefitsModal &&
-                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} employee={employee} />
+                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} userName={user} />
                 }
 
                 {openEmployeeAllowanceModal &&
