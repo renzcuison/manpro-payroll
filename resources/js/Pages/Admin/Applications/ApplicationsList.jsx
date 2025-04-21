@@ -179,7 +179,7 @@ const ApplicationsList = () => {
                                                     );
                                                 }
                                             )) : <TableRow>
-                                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Applications Found </TableCell>
+                                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}> No Applications Found </TableCell>
                                             </TableRow>}
 
                                         </TableBody>

@@ -212,7 +212,7 @@ const ApplicationManage = ({ open, close, appId }) => {
         const data = {
             app_id: application.id,
             app_type_id: application.type_id,
-            app_emp_username: application.user_name,
+            app_emp_username: application.emp_user_name,
             app_response: appResponse,
             app_leave_used: application.leave_used,
             app_start_date: dayjs(application.duration_start).format("YYYY-MM-DD"),

@@ -351,8 +351,8 @@ class ApplicationsController extends Controller
 
     public function manageApplication(Request $request)
     {
-        //Log::info("ApplicationsController::manageApplication");
-        //Log::info($request);
+        Log::info("ApplicationsController::manageApplication");
+        Log::info($request);
         $user = Auth::user();
 
         $application = ApplicationsModel::find($request->input('app_id'));
@@ -360,12 +360,12 @@ class ApplicationsController extends Controller
         if ($this->checkUser() && ($user->client_id == $application->client_id)) {
             try {
                 DB::beginTransaction();
-
+                
                 if (!$application) {
                     //Log::error('Application not found for ID: ' . $id);
                     return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
                 }
-
+                
                 switch ($request->input('app_response')) {
                     case 'Approve':
                         $emp = UsersModel::where('user_name', $request->input('app_emp_username'))->first();
