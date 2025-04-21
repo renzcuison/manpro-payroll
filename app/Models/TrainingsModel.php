@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TrainingsModel extends Model
+class TrainingsModel extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $table = 'trainings';
 
@@ -17,7 +19,6 @@ class TrainingsModel extends Model
         'unique_code',
         'title',
         'description',
-        'cover_photo',
         'status',
         'start_date',
         'end_date',
@@ -26,6 +27,11 @@ class TrainingsModel extends Model
         'created_by',
         'sequential',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('covers')->singleFile();
+    }
 
     public function client()
     {

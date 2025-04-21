@@ -28,7 +28,7 @@ class AnnouncementsModel extends Model implements HasMedia
     {
         $this->addMediaCollection('documents');
         $this->addMediaCollection('images');
-        $this->addMediaCollection('thumbnails');
+        $this->addMediaCollection('thumbnails')->singleFile();
     }
 
     public function user()

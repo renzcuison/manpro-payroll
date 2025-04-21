@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
 
 use Carbon\Carbon;
 
@@ -157,30 +159,26 @@ class TrainingsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $dateTime = now()->format('YmdHis');
-
-                if ($request->hasFile('cover_image')) {
-                    $cover = $request->file('cover_image');
-                    $coverName = pathinfo($cover->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $cover->getClientOriginalExtension();
-                    $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
-                }
-
                 $uniqueCode = $this->generateRandomCode(16);
                 while (TrainingsModel::where('unique_code', $uniqueCode)->exists()) {
                     $uniqueCode = $this->generateRandomCode(16);
                 }
 
-                TrainingsModel::create([
+                $training = TrainingsModel::create([
                     'unique_code' => $uniqueCode,
                     'title' => $request->input('title'),
                     'description' => $request->input('description'),
-                    'cover_photo' => $coverPath ?? null,
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'duration' => $request->input('duration'),
                     'client_id' => $user->client_id,
                     'created_by' => $user->id,
                 ]);
+
+                if ($request->hasFile('cover_image')) {
+                    $training->addMedia($request->file('cover_image'))
+                        ->toMediaCollection('covers');
+                }
 
                 DB::commit();
 
@@ -207,11 +205,8 @@ class TrainingsController extends Controller
         $training = TrainingsModel::where('unique_code', $request->input('unique_code'))->firstOrFail();
 
         if ($this->checkUser() && $training->client_id == $user->client_id) {
-
             try {
                 DB::beginTransaction();
-
-                $dateTime = now()->format('YmdHis');
 
                 $training->title = $request->input('title');
                 $training->description = $request->input('description');
@@ -220,19 +215,9 @@ class TrainingsController extends Controller
                 $training->duration = $request->input('duration');
 
                 if ($request->hasFile('cover_image')) {
-                    $oldCover = $training->cover_photo;
-
-                    $cover = $request->file('cover_image');
-                    $coverName = pathinfo($cover->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $cover->getClientOriginalExtension();
-                    $coverPath = $cover->storeAs('trainings/covers', $coverName, 'public');
-
-                    $training->cover_photo = $coverPath;
-
-                    if ($oldCover && Storage::disk('public')->exists($oldCover)) {
-                        Storage::disk('public')->delete($oldCover);
-                    }
+                    $training->addMedia($request->file('cover_image'))
+                        ->toMediaCollection('covers');
                 }
-
                 $training->save();
 
                 DB::commit();
@@ -243,7 +228,7 @@ class TrainingsController extends Controller
 
                 Log::error("Error updating: " . $e->getMessage());
 
-                throw $e;
+                return response()->json(['status' => 500, 'message' => 'Failed to update training: ' . $e->getMessage()], 500);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
@@ -605,12 +590,12 @@ class TrainingsController extends Controller
             ]));
             $training->author_title = $author->jobTitle->name;
 
-            if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
-                $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
-                $training->cover_name = basename($training->cover_photo);
-            } else {
-                $training->cover = null;
-                $training->cover_name = null;
+            $training->cover = null;
+            $training->cover_name = null;
+            $media = $training->getFirstMedia('covers');
+            if ($media) {
+                $training->cover = base64_encode(file_get_contents($media->getPath()));
+                $training->cover_name = $media->file_name;
             }
 
             $trainingData = $training->toArray();
@@ -907,25 +892,16 @@ class TrainingsController extends Controller
     public function getPageCovers(Request $request)
     {
         //Log::info("TrainingsController::getPageCovers");
-
-        $user = Auth::user();
-
         $trainingIds = $request->input('training_ids', []);
+        $trainings = TrainingsModel::whereIn('id', $trainingIds)->get();
 
         $covers = array_fill_keys($trainingIds, null);
-
-        $coverFiles = TrainingsModel::whereIn('id', $trainingIds)
-            ->where('client_id', $user->client_id)
-            ->select('id', 'cover_photo')
-            ->get();
-
-        $coverFiles->each(function ($file) use (&$covers) {
-            if ($file->cover_photo) {
-                if (Storage::disk('public')->exists($file->cover_photo)) {
-                    $covers[$file->id] = base64_encode(Storage::disk('public')->get($file->cover_photo));
-                }
+        foreach ($trainings as $training) {
+            $coverMedia = $training->getMedia('covers')->first();
+            if ($coverMedia) {
+                $covers[$training->id] = base64_encode(file_get_contents($coverMedia->getPath()));
             }
-        });
+        }
 
         return response()->json(['status' => 200, 'covers' => array_values($covers)]);
     }
