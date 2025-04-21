@@ -100,9 +100,7 @@ const LeaveCreditList = () => {
                                                 paginatedEmployees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
-                                                            <TableCell align="left">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {employee.name || '-'} </Link>
-                                                            </TableCell>
+                                                            <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
                                                             <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
@@ -140,11 +138,11 @@ const LeaveCreditList = () => {
                         )}
                     </Box>
                 </Box>
-            </Box>
 
-            {selectedEmployee && (
-                <LeaveCreditView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
-            )}
+                {selectedEmployee && (
+                    <LeaveCreditView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                )}
+            </Box>
         </Layout>
     );
 };
