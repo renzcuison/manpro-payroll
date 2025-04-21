@@ -45,32 +45,35 @@ class TrainingsController extends Controller
         if ($this->checkUser()) {
             try {
                 $trainings = TrainingsModel::where('client_id', $user->client_id)
-                    ->select('trainings.*')
-                    ->addSelect([
-                        // Combined Content Type Check
-                        'content_types' => function ($query) {
-                            $query->selectRaw('JSON_OBJECT(
-                            "has_video", SUM(CASE WHEN training_media.type = "Video" THEN 1 ELSE 0 END),
-                            "has_image", SUM(CASE WHEN training_media.type = "Image" THEN 1 ELSE 0 END),
-                            "has_attachment", SUM(CASE WHEN training_media.type IN ("Document", "PowerPoint") THEN 1 ELSE 0 END),
-                            "has_form", SUM(CASE WHEN training_content.training_form_id IS NOT NULL THEN 1 ELSE 0 END)
-                        )')
-                                ->from('training_content')
-                                ->leftJoin('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                                ->whereColumn('training_content.training_id', 'trainings.id');
-                        },
-                    ])
+                    ->with(['contents' => function ($query) {
+                        $query->with('media');
+                    }])
                     ->get()
                     ->map(function ($training) {
-                        // Parse content types
-                        $contentTypes = json_decode($training->content_types, true);
-                        $training->video = (bool) ($contentTypes['has_video'] ?? 0);
-                        $training->image = (bool) ($contentTypes['has_image'] ?? 0);
-                        $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
-                        $training->form = (bool) ($contentTypes['has_form'] ?? 0);
+                        $hasVideo = $training->contents->contains(function ($content) {
+                            return $content->source && !$content->training_form_id && $content->media->isEmpty();
+                        });
+                        $hasImage = $training->contents->contains(function ($content) {
+                            return $content->media->contains(function ($media) {
+                                return $media->collection_name === 'images' && $media->getCustomProperty('type') === 'Image';
+                            });
+                        });
+                        $hasAttachment = $training->contents->contains(function ($content) {
+                            return $content->media->contains(function ($media) {
+                                return in_array($media->collection_name, ['documents', 'powerpoints']) &&
+                                    in_array($media->getCustomProperty('type'), ['Document', 'PowerPoint']);
+                            });
+                        });
+                        $hasForm = $training->contents->contains('training_form_id');
 
-                        // Response Cleanup
-                        unset($training->content_types);
+                        // Content Flags
+                        $training->video = $hasVideo;
+                        $training->image = $hasImage;
+                        $training->attachment = $hasAttachment;
+                        $training->form = $hasForm;
+
+                        // Clean Up
+                        unset($training->contents);
 
                         return $training;
                     });
@@ -84,6 +87,7 @@ class TrainingsController extends Controller
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
+
     public function getEmployeeTrainings()
     {
         //Log::info("TrainingsController::getEmployeeTrainings");
@@ -92,49 +96,52 @@ class TrainingsController extends Controller
         try {
             $trainings = TrainingsModel::where('client_id', $user->client_id)
                 ->where('status', 'Active')
-                ->where('start_date', "<=", now())
-                ->where('end_date', ">=", now())
-                ->select('trainings.*')
-                ->addSelect([
-                    // Content Type Checks
-                    'content_types' => function ($query) {
-                        $query->selectRaw('JSON_OBJECT(
-                        "has_video", SUM(CASE WHEN training_media.type = "Video" THEN 1 ELSE 0 END),
-                        "has_image", SUM(CASE WHEN training_media.type = "Image" THEN 1 ELSE 0 END),
-                        "has_attachment", SUM(CASE WHEN training_media.type IN ("Document", "PowerPoint") THEN 1 ELSE 0 END),
-                        "has_form", SUM(CASE WHEN training_content.training_form_id IS NOT NULL THEN 1 ELSE 0 END)
-                    )')
-                            ->from('training_content')
-                            ->leftJoin('training_media', 'training_content.training_media_id', '=', 'training_media.id')
-                            ->whereColumn('training_content.training_id', 'trainings.id');
-                    }
-                ])
+                ->where('start_date', "<=", Carbon::now())
+                ->where('end_date', ">=", Carbon::now())
+                ->with(['contents' => function ($query) {
+                    $query->with(['media', 'views']);
+                }])
                 ->get()
                 ->map(function ($training) use ($user) {
-                    $totalContents = TrainingContentModel::where('training_id', $training->id)->count();
+                    $totalContents = $training->contents->count();
 
-                    // View Trackers
-                    $hasViews = TrainingContentModel::where('training_id', $training->id)
-                        ->whereHas('views', function ($query) use ($user) {
-                            $query->where('user_id', $user->id);
-                        })
-                        ->exists();
-                    $completedContents = TrainingContentModel::where('training_id', $training->id)
-                        ->whereHas('views', function ($query) use ($user) {
-                            $query->where('user_id', $user->id)->where('status', 'Finished');
-                        })
-                        ->count();
+                    // View trackers
+                    $hasViews = $training->contents->contains(function ($content) use ($user) {
+                        return $content->views->contains('user_id', $user->id);
+                    });
+                    $completedContents = $training->contents->filter(function ($content) use ($user) {
+                        return $content->views->contains(function ($view) use ($user) {
+                            return $view->user_id === $user->id && $view->status === 'Finished';
+                        });
+                    })->count();
 
-                    // Appended Data
-                    $contentTypes = json_decode($training->content_types, true);
-                    $training->video = (bool) ($contentTypes['has_video'] ?? 0);
-                    $training->image = (bool) ($contentTypes['has_image'] ?? 0);
-                    $training->attachment = (bool) ($contentTypes['has_attachment'] ?? 0);
-                    $training->form = (bool) ($contentTypes['has_form'] ?? 0);
+                    // Content types
+                    $hasVideo = $training->contents->contains(function ($content) {
+                        return $content->source && !$content->training_form_id && $content->media->isEmpty();
+                    });
+                    $hasImage = $training->contents->contains(function ($content) {
+                        return $content->media->contains(function ($media) {
+                            return $media->collection_name === 'images' && $media->getCustomProperty('type') === 'Image';
+                        });
+                    });
+                    $hasAttachment = $training->contents->contains(function ($content) {
+                        return $content->media->contains(function ($media) {
+                            return in_array($media->collection_name, ['documents', 'powerpoints']) &&
+                                in_array($media->getCustomProperty('type'), ['Document', 'PowerPoint']);
+                        });
+                    });
+                    $hasForm = $training->contents->contains('training_form_id');
+
+                    // Set flags
+                    $training->video = $hasVideo;
+                    $training->image = $hasImage;
+                    $training->attachment = $hasAttachment;
+                    $training->form = $hasForm;
                     $training->completed = $totalContents == $completedContents;
                     $training->viewed = $hasViews;
 
-                    unset($training->content_types);
+                    // Clean up
+                    unset($training->contents);
 
                     return $training;
                 });
@@ -336,8 +343,11 @@ class TrainingsController extends Controller
                 }
 
                 DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content Saved Successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
+                Log::info($e);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
@@ -346,18 +356,18 @@ class TrainingsController extends Controller
 
     public function editContent(Request $request)
     {
-        Log::info("TrainingsController::editContent");
-        Log::info($request);
+        //Log::info("TrainingsController::editContent");
+        //Log::info($request);
 
         $user = Auth::user();
+        $content = TrainingContentModel::with('training')->find($request->input('id'));
+        $clientId = $content->training->client_id;
 
-        if ($this->checkUser()) {
-            $content = TrainingContentModel::find($request->input('id'));
+        if (!$content) {
+            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        }
 
-            if (!$content) {
-                return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
-            }
-
+        if ($this->checkUser() && $user->client_id == $clientId) {
             try {
                 DB::beginTransaction();
 
@@ -368,57 +378,53 @@ class TrainingsController extends Controller
 
                 $relatedContent = null;
                 $contentType = null;
-                if ($content->training_media_id) {
-                    $relatedContent = $content->media;
-                    $contentType = $relatedContent ? $relatedContent->type : null;
-                } elseif ($content->training_form_id) {
+
+                $collections = ['images', 'documents', 'powerpoints'];
+                foreach ($collections as $collection) {
+                    $media = $content->getFirstMedia($collection);
+                    if ($media) {
+                        $relatedContent = $media;
+                        $contentType = $media->getCustomProperty('type');
+                        break;
+                    }
+                }
+                if (!$contentType && $content->training_form_id) {
                     $relatedContent = $content->form;
                     $contentType = 'Form';
+                }
+
+                if (!$contentType && $content->source) {
+                    $relatedContent = $content->source;
+                    $contentType = 'Video';
                 }
 
                 if (!$relatedContent) {
                     return response()->json(['status' => 400, 'message' => 'Related content not found'], 400);
                 }
 
-                $dateTime = now()->format('YmdHis');
-                $newSource = null;
-
                 switch ($contentType) {
                     case 'Video':
                         $newSource = $request->input('link');
-                        if ($newSource && $newSource !== $relatedContent->source) {
-                            $relatedContent->source = $newSource;
-                            $relatedContent->save();
+                        if ($newSource && $newSource != $relatedContent) {
+                            $content->source = $newSource;
                         }
                         break;
-
                     case 'Image':
                     case 'Document':
                     case 'PowerPoint':
-                        //Log::info($request->input('newFile'));
                         if ($request->hasFile('file') && $request->input('newFile') == "true") {
-                            //Log::info("Replacing File");
-                            $file = $request->file('file');
-                            $location = 'trainings/' . strtolower($contentType) . 's';
-                            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $file->getClientOriginalExtension();
-                            $newSource = $file->storeAs($location, $fileName, 'public');
-
-                            if ($relatedContent->source && $relatedContent->source !== $newSource && Storage::disk('public')->exists($relatedContent->source)) {
-                                Storage::disk('public')->delete($relatedContent->source);
-                            }
-
-                            $relatedContent->source = $newSource;
-                            $relatedContent->save();
+                            $collection = strtolower($contentType) . 's';
+                            $content->addMedia($request->file('file'))
+                                ->withCustomProperties(['type' => $contentType])
+                                ->toMediaCollection($collection);
                         }
                         break;
-
                     case 'Form':
                         $relatedContent->require_pass = $request->input('attempt_policy') == 'passing-required';
                         $relatedContent->attempts_allowed = $request->input('attempts');
                         $relatedContent->passing_score = $request->input('passing_score');
                         $relatedContent->save();
                         break;
-
                     default:
                         return response()->json(['status' => 400, 'message' => 'Invalid content type'], 400);
                 }
@@ -426,82 +432,79 @@ class TrainingsController extends Controller
                 $content->save();
 
                 DB::commit();
-
-                return response()->json(['status' => 200, 'message' => 'Content updated successfully']);
+                return response()->json(['status' => 200, 'message' => 'Content Updated Successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                Log::error("Error updating content ID {$request->input('id')}: " . $e->getMessage());
-                if (isset($newSource) && $contentType !== 'Video' && $contentType !== 'Form' && Storage::disk('public')->exists($newSource)) {
-                    Storage::disk('public')->delete($newSource);
-                }
-
-                return response()->json(['status' => 500, 'message' => 'Error updating content'], 500);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
-    // public function removeContent(Request $request)
-    // {
-    //     // Log::info("TrainingsController::removeContent");
-    //     // Log::info($request);
+    public function removeContent(Request $request)
+    {
+        // Log::info("TrainingsController::removeContent");
+        // Log::info($request);
 
-    //     $user = Auth::user();
+        $user = Auth::user();
+        $content = TrainingContentModel::with('training')->find($request->input('id'));
 
-    //     if ($this->checkUser()) {
-    //         try {
-    //             DB::beginTransaction();
+        if (!$content) {
+            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        }
 
-    //             $content = TrainingContentModel::find($request->input('id'));
-    //             if (!$content) {
-    //                 return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
-    //             }
+        $clientId = $content->training->client_id;
 
-    //             $deletedOrder = $content->order;
-    //             $content->order = null;
-    //             $content->save();
-    //             $content->delete();
+        if ($this->checkUser() && $user->client_id == $clientId) {
+            try {
+                DB::beginTransaction();
 
-    //             TrainingContentModel::where('order', '>', $deletedOrder)
-    //                 ->where('training_id', $content->training_id)
-    //                 ->decrement('order', 1);
+                $deletedOrder = $content->order;
+                $trainingId = $content->training_id;
 
-    //             // Training Media Soft Delete
-    //             if ($content->training_media_id) {
-    //                 $media = TrainingMediaModel::find($content->training_media_id);
-    //                 $media->delete();
-    //             }
+                // File Clearing
+                $collections = ['images', 'documents', 'powerpoints'];
+                foreach ($collections as $collection) {
+                    $content->clearMediaCollection($collection);
+                }
 
-    //             // Training Form Soft Delete
-    //             if ($content->training_form_id) {
-    //                 $formId = $content->training_form_id;
+                // Form Deletes
+                if ($content->training_form_id) {
+                    $formId = $content->training_form_id;
 
-    //                 //Form Removal, Pending addition of SoftDeletes();
-    //                 //$form = TrainingFormsModel::find($formId);
-    //                 //$form->delete();
+                    TrainingFormChoicesModel::whereIn('form_item_id', function ($query) use ($formId) {
+                        $query->select('id')
+                            ->from('training_form_items')
+                            ->where('form_id', $formId);
+                    })->delete();
+                    TrainingFormItemsModel::where('form_id', $formId)->delete();
 
-    //                 $formItems = TrainingFormItemsModel::where('form_id', $formId)->get();
-    //                 if ($formItems->isNotEmpty()) {
-    //                     $formItemIds = $formItems->pluck('id')->toArray();
-    //                     TrainingFormChoicesModel::whereIn('form_item_id', $formItemIds)->delete();
-    //                 }
-    //                 TrainingFormItemsModel::where('form_id', $formId)->delete();
-    //             }
+                    // Form SoftDeletes, Pending addition to Database
+                    // $form = TrainingFormsModel::find($formId);
+                    // $form->delete();
+                }
 
-    //             DB::commit();
+                $content->order = null;
+                $content->save();
+                $content->delete();
 
-    //             return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
-    //         } catch (\Exception $e) {
-    //             DB::rollBack();
-    //             Log::error("Error removing content: " . $e->getMessage());
-    //             return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
-    //         }
-    //     } else {
-    //         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-    //     }
-    // }
+                // Content Reorder
+                TrainingContentModel::where('order', '>', $deletedOrder)
+                    ->where('training_id', $trainingId)
+                    ->decrement('order', 1);
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => 'Content removed successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error removing content ID {$request->input('id')}: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error removing content'], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
 
     public function saveContentSettings(Request $request)
     {
@@ -596,39 +599,45 @@ class TrainingsController extends Controller
             ->firstOrFail();
 
         if ($this->checkUser() && $training->client_id == $user->client_id) {
-
-            $content = TrainingContentModel::with(['form', 'media'])
+            $content = TrainingContentModel::with(['form'])
                 ->where('training_id', $training->id)
                 ->orderBy('order', 'asc')
                 ->get()
                 ->map(function ($cont) {
-                    if ($cont->training_media_id) {
-                        $cont->content = $cont->media;
-                    } elseif ($cont->training_form_id) {
-                        $formData = $cont->form;
-                        $cont->content = $formData;
-                        $cont->empty_form = $formData->items->count() == 0;
-                    } else {
-                        $cont->content = null;
-                        $cont->empty_form = false;
-                    }
+                    $cont->content = null;
+                    $cont->empty_form = false;
+                    $cont->image = null;
+                    $cont->mime = null;
 
-                    if ($cont->training_media_id && $cont->media && $cont->media->type === 'Image') {
-                        $filePath = $cont->media->source;
-                        $fullPath = storage_path('app/public/' . $filePath);
-                        if (Storage::disk('public')->exists($filePath)) {
-                            $cont->image = base64_encode(Storage::disk('public')->get($filePath));
-                            $cont->mime = mime_content_type($fullPath);
-                        } else {
-                            $cont->image = null;
-                            $cont->mime = null;
+                    // Media Retrieval
+                    $collections = ['images', 'documents', 'powerpoints'];
+                    foreach ($collections as $collection) {
+                        $media = $cont->getFirstMedia($collection);
+                        if ($media) {
+                            $cont->content = (object) [
+                                'type' => $media->getCustomProperty('type'),
+                                'source' => $media->getUrl(),
+                            ];
+                            if ($media->getCustomProperty('type') === 'Image') {
+                                $cont->image = base64_encode(file_get_contents($media->getPath()));
+                                $cont->mime = $media->mime_type;
+                            }
+                            break;
                         }
-                    } else {
-                        $cont->image = null;
-                        $cont->mime = null;
                     }
 
-                    unset($cont->form, $cont->media);
+                    // Form, Video Check
+                    if (!$cont->content) {
+                        if ($cont->training_form_id) {
+                            $formData = $cont->form;
+                            $cont->content = $formData;
+                            $cont->empty_form = $formData->items->count() == 0;
+                        } elseif ($cont->source) {
+                            $cont->content = (object) ['type' => 'Video', 'source' => $cont->source];
+                        }
+                    }
+
+                    unset($cont->form);
                     return $cont;
                 });
 
@@ -641,17 +650,16 @@ class TrainingsController extends Controller
     public function getContentDetails($id)
     {
         // Log::info("TrainingsController::getContentDetails");
-
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $content = TrainingContentModel::with(['form', 'media', 'views'])->find($id);
+            $content = TrainingContentModel::with(['form', 'views'])->find($id);
 
             if (!$content) {
                 return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
             }
 
-            // View Check
+            // View Statistics
             $content->view_count = $content->views->where('status', 'Viewed')->count();
             $content->finished_count = $content->views->where('status', 'Finished')->count();
 
@@ -661,7 +669,7 @@ class TrainingsController extends Controller
                 ->whereNotIn('id', $viewedUserIds)
                 ->count();
 
-            // Add latest views with user details
+            // Latest Views
             $content->latest_views = $content->views()
                 ->with('user')
                 ->orderBy('updated_at', 'desc')
@@ -674,39 +682,48 @@ class TrainingsController extends Controller
                     return $view;
                 });
 
-            // Content Constructor
-            if ($content->training_media_id) {
-                $content->content = $content->media;
-            } elseif ($content->training_form_id) {
-                $formData = $content->form;
-                $content->content = $formData;
-                $content->content->type = "Form";
-                $content->item_count = $formData->items->count();
-                $content->total_points = $formData->items->sum('value') ?? 0;
-            } else {
-                $content->content = null;
-            }
-
+            // Content Handling
+            $content->content = null;
             $content->file = null;
             $content->file_mime = null;
             $content->file_size = null;
 
-            // File -> Blob Conversion
-            if ($content->training_media_id && $content->media && $content->media->type !== 'Video') {
-                try {
-                    $filePath = $content->media->source;
-                    $fullPath = storage_path('app/public/' . $filePath);
-                    if (Storage::disk('public')->exists($filePath)) {
-                        $content->file = base64_encode(Storage::disk('public')->get($filePath));
-                        $content->file_mime = mime_content_type($fullPath);
-                        $content->file_size = filesize($fullPath);
+            // Media Retrieval
+            $collections = ['images', 'documents', 'powerpoints'];
+            foreach ($collections as $collection) {
+                $media = $content->getFirstMedia($collection);
+                if ($media) {
+                    $content->content = (object) [
+                        'type' => $media->getCustomProperty('type'),
+                        'source' => $media->getUrl(),
+                    ];
+                    if ($media->getCustomProperty('type') !== 'Video') {
+                        try {
+                            $content->file = base64_encode(file_get_contents($media->getPath()));
+                            $content->file_mime = $media->mime_type;
+                            $content->file_size = $media->size;
+                        } catch (\Exception $e) {
+                            Log::error("Failed to convert file to blob: " . $e->getMessage());
+                        }
                     }
-                } catch (\Exception $e) {
-                    Log::error("Failed to convert file to blob: " . $e->getMessage());
+                    break;
                 }
             }
 
-            unset($content->form, $content->media);
+            // Form, Video Check
+            if (!$content->content) {
+                if ($content->training_form_id) {
+                    $formData = $content->form;
+                    $content->content = $formData;
+                    $content->content->type = "Form";
+                    $content->item_count = $formData->items->count();
+                    $content->total_points = $formData->items->sum('value') ?? 0;
+                } elseif ($content->source) {
+                    $content->content = (object) ['type' => 'Video', 'source' => $content->source];
+                }
+            }
+
+            unset($content->form, $content->views);
 
             return response()->json(['status' => 200, 'content' => $content]);
         } else {
@@ -736,17 +753,15 @@ class TrainingsController extends Controller
         ]));
         $training->author_title = $author->jobTitle->name;
 
-        if ($training->cover_photo && Storage::disk('public')->exists($training->cover_photo)) {
-            $training->cover = base64_encode(Storage::disk('public')->get($training->cover_photo));
-            $training->cover_name = basename($training->cover_photo);
-            $training->cover_mime =  mime_content_type(storage_path('app/public/' . $training->cover_photo));
-        } else {
-            $training->cover = null;
-            $training->cover_name = null;
-            $training->cover_mime = null;
+        $training->cover = null;
+        $training->cover_name = null;
+        $media = $training->getFirstMedia('covers');
+        if ($media) {
+            $training->cover = base64_encode(file_get_contents($media->getPath()));
+            $training->cover_name = $media->file_name;
         }
-
         $trainingData = $training->toArray();
+
         unset($trainingData['user']);
 
         return response()->json(['status' => 200, 'training' => $trainingData]);
@@ -768,46 +783,50 @@ class TrainingsController extends Controller
             ->where('training_id', $training->id)
             ->orderBy('order', 'asc')
             ->get()
-            ->map(function ($contentItem) {
-                $view = $contentItem->views->first();
+            ->map(function ($cont) {
+                $view = $cont->views->first();
 
-                $contentItem->has_viewed = !is_null($view);
-                $contentItem->viewed_at = $view ? $view->created_at : null;
+                $cont->has_viewed = !is_null($view);
+                $cont->viewed_at = $view ? $view->created_at : null;
 
-                $contentItem->is_finished = false;
-                $contentItem->completed_at = null;
+                $cont->is_finished = false;
+                $cont->completed_at = null;
                 if ($view && $view->status === 'Finished') {
-                    $contentItem->is_finished = true;
-                    $contentItem->completed_at = $view->completed_at;
+                    $cont->is_finished = true;
+                    $cont->completed_at = $view->completed_at;
                 }
 
-                // Content Constructor
-                if ($contentItem->training_media_id) {
-                    $contentItem->content = $contentItem->media;
-                } elseif ($contentItem->training_form_id) {
-                    $contentItem->content = $contentItem->form;
-                } else {
-                    $contentItem->content = null;
-                }
-
-                if ($contentItem->training_media_id && $contentItem->media && $contentItem->media->type === 'Image') {
-                    $filePath = $contentItem->media->source;
-                    $fullPath = storage_path('app/public/' . $filePath);
-                    if (Storage::disk('public')->exists($filePath)) {
-                        $contentItem->image = base64_encode(Storage::disk('public')->get($filePath));
-                        $contentItem->mime = mime_content_type($fullPath);
-                    } else {
-                        $contentItem->image = null;
-                        $contentItem->mime = null;
+                // Media Retrieval
+                $collections = ['images', 'documents', 'powerpoints'];
+                foreach ($collections as $collection) {
+                    $media = $cont->getFirstMedia($collection);
+                    if ($media) {
+                        $cont->content = (object) [
+                            'type' => $media->getCustomProperty('type'),
+                            'source' => $media->getUrl(),
+                        ];
+                        if ($media->getCustomProperty('type') === 'Image') {
+                            $cont->image = base64_encode(file_get_contents($media->getPath()));
+                            $cont->mime = $media->mime_type;
+                        }
+                        break;
                     }
-                } else {
-                    $contentItem->image = null;
-                    $contentItem->mime = null;
                 }
 
-                unset($contentItem->views, $contentItem->form, $contentItem->media);
+                // Form, Video Check
+                if (!$cont->content) {
+                    if ($cont->training_form_id) {
+                        $formData = $cont->form;
+                        $cont->content = $formData;
+                        $cont->empty_form = $formData->items->count() == 0;
+                    } elseif ($cont->source) {
+                        $cont->content = (object) ['type' => 'Video', 'source' => $cont->source];
+                    }
+                }
 
-                return $contentItem;
+                unset($cont->views, $cont->form, $cont->media);
+
+                return $cont;
             });
 
         return response()->json(['status' => 200, 'content' => $content]);
@@ -816,7 +835,6 @@ class TrainingsController extends Controller
     public function getEmployeeContentDetails($id)
     {
         // Log::info("TrainingsController::getEmployeeContentDetails");
-
         $user = Auth::user();
 
         $content = TrainingContentModel::with(['form', 'media', 'views' => function ($query) use ($user) {
@@ -834,32 +852,42 @@ class TrainingsController extends Controller
 
         unset($content->views);
 
-        // Content Constructor
-        if ($content->training_media_id) {
-            $content->content = $content->media;
-        } elseif ($content->training_form_id) {
-            $content->content = $content->form;
-            $content->content->type = "Form";
-        } else {
-            $content->content = null;
-        }
-
+        // Content Handling
+        $content->content = null;
         $content->file = null;
         $content->file_mime = null;
         $content->file_size = null;
 
-        // File -> Blob Conversion
-        if ($content->training_media_id && $content->media && $content->media->type !== 'Video') {
-            try {
-                $filePath = $content->media->source;
-                $fullPath = storage_path('app/public/' . $filePath);
-                if (Storage::disk('public')->exists($filePath)) {
-                    $content->file = base64_encode(Storage::disk('public')->get($filePath));
-                    $content->file_mime = mime_content_type($fullPath);
-                    $content->file_size = filesize($fullPath);
+        // Media Retrieval
+        $collections = ['images', 'documents', 'powerpoints'];
+        foreach ($collections as $collection) {
+            $media = $content->getFirstMedia($collection);
+            if ($media) {
+                $content->content = (object) [
+                    'type' => $media->getCustomProperty('type'),
+                    'source' => $media->getUrl(),
+                ];
+                if ($media->getCustomProperty('type') !== 'Video') {
+                    try {
+                        $content->file = base64_encode(file_get_contents($media->getPath()));
+                        $content->file_mime = $media->mime_type;
+                        $content->file_size = $media->size;
+                    } catch (\Exception $e) {
+                        Log::error("Failed to convert file to blob: " . $e->getMessage());
+                    }
                 }
-            } catch (\Exception $e) {
-                Log::error("Failed to convert file to blob: " . $e->getMessage());
+                break;
+            }
+        }
+
+        // Form, Video Check
+        if (!$content->content) {
+            if ($content->training_form_id) {
+                $formData = $content->form;
+                $content->content = $formData;
+                $content->content->type = "Form";
+            } elseif ($content->source) {
+                $content->content = (object) ['type' => 'Video', 'source' => $content->source];
             }
         }
 
@@ -889,32 +917,51 @@ class TrainingsController extends Controller
     {
         //Log::info("TrainingsController:getSource");
         //Log::info($id);
+        $user = Auth::user();
+        $content = TrainingContentModel::with('training')->find($id);
 
-        try {
-            $content = TrainingContentModel::with('media')->find($id);
-            if (!$content || !$content->media->source) {
-                return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        if (!$content) {
+            return response()->json(['status' => 404, 'message' => 'Content not found'], 404);
+        }
+
+        $clientId = $content->training->client_id;
+
+        if ($user->client_id == $clientId) {
+            try {
+                $collections = ['images', 'documents', 'powerpoints'];
+                $media = null;
+                foreach ($collections as $collection) {
+                    $media = $content->getFirstMedia($collection);
+                    if ($media && $media->getCustomProperty('type') !== 'Video') {
+                        break;
+                    }
+                    $media = null;
+                }
+
+                if (!$media) {
+                    return response()->json(['status' => 404, 'message' => 'Content file not found'], 404);
+                }
+
+                $fileContents = file_get_contents($media->getPath());
+                $base64 = base64_encode($fileContents);
+                $mimeType = $media->mime_type;
+                $fileName = $media->file_name;
+
+                return response()->json([
+                    'status' => 200,
+                    'file' => [
+                        'data' => "data:{$mimeType};base64,{$base64}",
+                        'name' => $fileName,
+                        'size' => $media->size,
+                        'type' => $mimeType
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Error fetching file for content ID {$id}: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => 'Error fetching file'], 500);
             }
-
-            $filePath = $content->media->source;
-            $fileContents = Storage::disk('public')->get($filePath);
-            $base64 = base64_encode($fileContents);
-
-            $mimeType = mime_content_type(storage_path('app/public/' . $filePath));
-            $fileName = basename($filePath);
-
-            return response()->json([
-                'status' => 200,
-                'file' => [
-                    'data' => "data:{$mimeType};base64,{$base64}",
-                    'name' => $fileName,
-                    'size' => Storage::disk('public')->size($filePath),
-                    'type' => $mimeType
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Error fetching file for content ID {$id}: " . $e->getMessage());
-            return response()->json(['status' => 500, 'message' => 'Error fetching file'], 500);
+        } else {
+            return response()->json(['status' => 200, 'file' => null]);
         }
     }
 

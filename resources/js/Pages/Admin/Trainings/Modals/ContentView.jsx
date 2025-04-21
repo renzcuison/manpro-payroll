@@ -334,6 +334,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setLoadItem(false);
         setOpenFormItemEditModal(false);
         if (reload) {
+            setExitReload(true);
             getContentDetails();
         }
     }

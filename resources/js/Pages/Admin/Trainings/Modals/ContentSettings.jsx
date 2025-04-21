@@ -41,7 +41,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder }) => {
+const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder, blobs }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -154,11 +154,10 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
     };
 
     // Content Image
-    const renderImage = (source, type) => {
+    const renderImage = (source, type, id) => {
         switch (type) {
             case "Image":
-                return `${location.origin}/storage/${source}`;
-
+                return blobs[id];
             case "Video":
                 const youtubeId = getYouTubeId(source);
                 if (youtubeId) {
@@ -476,7 +475,7 @@ const ContentSettings = ({ open, close, trainingCode, contentInfo, contentOrder 
                                                                     borderRadius: "4px",
                                                                     backgroundColor: "transparent",
                                                                 }}
-                                                                image={renderImage(cont.content.source, cont.content.type)}
+                                                                image={renderImage(cont.content.source, cont.content.type, cont.id)}
                                                                 title={cont.title || "Content Item"}
                                                                 alt={cont.title || "Content Item"}
                                                             />
