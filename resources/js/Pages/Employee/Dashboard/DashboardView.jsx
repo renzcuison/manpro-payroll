@@ -37,6 +37,7 @@ const Dashboard = () => {
     useEffect(() => {
         axiosInstance.get('/attendance/getEmployeeDashboardAttendance', { headers })
             .then((response) => {
+                console.log(response.data.attendances);
                 setRecentAttendances(response.data.attendances);
                 setIsAttendanceLoading(false);
             })
@@ -183,7 +184,10 @@ const Dashboard = () => {
                                                                 <TableCell align="center">
                                                                     {attendance.time_out
                                                                         ? dayjs(attendance.time_out).format("hh:mm:ss A")
-                                                                        : attendance.time_in ? "Failed to Time Out"
+                                                                        : attendance.time_in
+                                                                            ? dayjs() < dayjs(attendance.end_time)
+                                                                                ? "Ongoing"
+                                                                                : "Failed to Time Out"
                                                                             : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
