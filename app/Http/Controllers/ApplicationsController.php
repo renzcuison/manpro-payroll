@@ -62,6 +62,7 @@ class ApplicationsController extends Controller
                     'app_duration_start' => $app->duration_start,
                     'app_duration_end' => $app->duration_end,
                     'app_date_requested' => $app->created_at,
+                    'app_status' => $app->status,
                     'emp_user_name' => $employee->user_name,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,

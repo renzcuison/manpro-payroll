@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Chip } from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Chip, Avatar } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
@@ -20,7 +20,7 @@ const ApplicationsList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [applications, setApplications] = useState([]);
 
-    // ---------------- Application List
+    // Application List
     useEffect(() => {
         fetchApplications();
     }, []);
@@ -28,7 +28,9 @@ const ApplicationsList = () => {
     const fetchApplications = () => {
         axiosInstance.get("/applications/getApplications", { headers })
             .then((response) => {
-                setApplications(response.data.applications);
+                const applicationData = response.data.applications;
+                setApplications(applicationData);
+                getAvatars(applicationData);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -37,7 +39,7 @@ const ApplicationsList = () => {
             });
     };
 
-    // ---------------- Application Details
+    // Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
     const handleOpenApplicationManage = (appId) => {
         setOpenApplicationManage(appId);
@@ -46,6 +48,63 @@ const ApplicationsList = () => {
         setOpenApplicationManage(null);
         fetchApplications();
     };
+
+    // Employee Avatars
+    const [blobMap, setBlobMap] = useState({});
+
+    const getAvatars = (applicationData) => {
+        const userNames = applicationData.map((application) => application.emp_user_name);
+        if (userNames.length === 0) return;
+
+        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_list: userNames, type: 2 }, { headers })
+            .then((avatarResponse) => {
+                const avatars = avatarResponse.data.avatars || {};
+                setBlobMap((prev) => {
+                    // Old blob cleanup
+                    Object.values(prev).forEach((url) => {
+                        if (url.startsWith('blob:')) {
+                            URL.revokeObjectURL(url);
+                        }
+                    });
+                    // New blobs
+                    const newBlobMap = {};
+                    Object.entries(avatars).forEach(([user_name, data]) => {
+                        if (data.avatar && data.avatar_mime) {
+                            const byteCharacters = atob(data.avatar);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
+                            }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: data.avatar_mime });
+                            newBlobMap[user_name] = URL.createObjectURL(blob);
+                        }
+                    });
+                    return newBlobMap;
+                });
+            })
+            .catch((error) => {
+                console.error('Error fetching avatars:', error);
+            });
+    };
+
+    const renderProfile = (uName) => {
+        if (blobMap[uName]) {
+            return blobMap[uName];
+        }
+        return "../../../images/avatarpic.jpg";
+    };
+
+    useEffect(() => {
+        return () => {
+            Object.values(blobMap).forEach((url) => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+        };
+    }, [blobMap]);
+
 
     return (
         <Layout title={"ApplicationsList"}>
@@ -74,7 +133,7 @@ const ApplicationsList = () => {
                                                 <TableCell align="center" sx={{ width: "18%" }}> Start Date/Time </TableCell>
                                                 <TableCell align="center" sx={{ width: "18%" }}> End Date/Time </TableCell>
                                                 <TableCell align="center" sx={{ width: "18%" }}> Date of Application </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}> Date of Application </TableCell>
+                                                <TableCell align="center" sx={{ width: "10%" }}> Status </TableCell>
                                             </TableRow>
                                         </TableHead>
 
@@ -91,7 +150,12 @@ const ApplicationsList = () => {
                                                             onClick={() => handleOpenApplicationManage(application.app_id)}
                                                             sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }, }}
                                                         >
-                                                            <TableCell align="left">{" "}{application.emp_first_name}{" "}{application.emp_middle_name || ""}{" "}{application.emp_last_name}{" "}{application.emp_suffix || ""}{" "}</TableCell>
+                                                            <TableCell align="left">
+                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                    <Avatar alt={`${application.emp_first_name}_Avatar`} src={renderProfile(application.emp_user_name)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                    {application.emp_first_name}{" "}{application.emp_middle_name || ""}{" "}{application.emp_last_name}{" "}{application.emp_suffix || ""}
+                                                                </Box>
+                                                            </TableCell>
                                                             <TableCell align="center">{application.app_type_name || "-"}</TableCell>
                                                             <TableCell align="center">{startDate || "-"}</TableCell>
                                                             <TableCell align="center">{endDate || "-"}</TableCell>
@@ -109,7 +173,7 @@ const ApplicationsList = () => {
                                                                             fontSize: "0.75rem"
                                                                         }}
                                                                     />
-                                                                ) : ( "-" )}
+                                                                ) : ("-")}
                                                             </TableCell>
                                                         </TableRow>
                                                     );

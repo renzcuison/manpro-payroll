@@ -210,7 +210,7 @@ class AdminDashboardController extends Controller
                     $isLate = false;
 
                     $workHours = $logs->first()->workHour;
-                    
+
                     if ($workHours->shift_type == "Regular") {
                         $firstTimeIn = $logs->firstWhere('action', 'Duty In');
                         $firstTimeOut = $logs->last(function ($log) {
@@ -245,8 +245,8 @@ class AdminDashboardController extends Controller
                             return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
                         });
                     }
-                    
-                    if ( $firstTimeIn->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
+
+                    if ($firstTimeIn->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
                         $isLate = true;
                     }
 
@@ -271,7 +271,7 @@ class AdminDashboardController extends Controller
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
             } elseif ($type == 2) {
-                
+
                 // Late
                 $result = $attendances->groupBy('user_id')->map(function ($logs) {
                     $firstTimeIn = null;
@@ -299,7 +299,7 @@ class AdminDashboardController extends Controller
 
                         // Second Shift -> First Time In
                         $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
-                            return $log->action === 'Duty In' &&Carbon::parse($log->timestamp)->gt($firstOut) &&Carbon::parse($log->timestamp)->lt($secondOut);
+                            return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->gt($firstOut) && Carbon::parse($log->timestamp)->lt($secondOut);
                         });
 
                         // First Shift -> Last Time Out 
@@ -312,34 +312,34 @@ class AdminDashboardController extends Controller
                             return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
                         });
                     }
-                    
+
                     $user = $logs->first()->user;
                     $workStart = $workHours->first_time_in;
                     $expectedStart = Carbon::parse($workStart);
 
                     $lateThreshold = $expectedStart->copy()->addMinute();
 
-                        $firstAttendance = $firstTimeIn ?: $secondTimeIn;
+                    $firstAttendance = $firstTimeIn ?: $secondTimeIn;
 
-                        if ($firstAttendance && $workStart && Carbon::parse($firstAttendance->timestamp)->gt($lateThreshold)) {
-                            $lateBy = Carbon::parse($firstAttendance->timestamp)->diffInSeconds(Carbon::parse($workStart));
-                            return [
-                                'id' => $user->id,
-                                'first_name' => $user->first_name ?? null,
-                                'last_name' => $user->last_name ?? null,
-                                'middle_name' => $user->middle_name ?? null,
-                                'suffix' => $user->suffix ?? null,
-                                'shift_type' => $workHours->shift_type ?? null,
-                                'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
-                                'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
-                                'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
-                                'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
-                                'start_time' => $expectedStart,
-                                'late_by' => $lateBy,
-                            ];
-                        }
-                        return null;
-                    })
+                    if ($firstAttendance && $workStart && Carbon::parse($firstAttendance->timestamp)->gt($lateThreshold)) {
+                        $lateBy = Carbon::parse($firstAttendance->timestamp)->diffInSeconds(Carbon::parse($workStart));
+                        return [
+                            'id' => $user->id,
+                            'first_name' => $user->first_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'middle_name' => $user->middle_name ?? null,
+                            'suffix' => $user->suffix ?? null,
+                            'shift_type' => $workHours->shift_type ?? null,
+                            'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                            'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
+                            'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                            'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
+                            'start_time' => $expectedStart,
+                            'late_by' => $lateBy,
+                        ];
+                    }
+                    return null;
+                })
                     ->filter()
                     ->values()
                     ->all();
@@ -347,9 +347,8 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
-
             } elseif ($type == 3) {
-                
+
                 // Absent
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
                 $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
@@ -367,9 +366,8 @@ class AdminDashboardController extends Controller
                         'suffix' => $user->suffix ?? null,
                     ];
                 })->values()->all();
-                
             } elseif ($type == 4) {
-                
+
                 // On Leave
                 $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
@@ -404,30 +402,34 @@ class AdminDashboardController extends Controller
 
     public function getEmployeeAvatars(Request $request)
     {
-        $userIds = $request->input('user_ids', []);
-        if (empty($userIds)) {
-            return response()->json(['status' => 400, 'message' => 'No user IDs provided'], 400);
+        $userList = $request->input('user_list', []);
+        if (empty($userList)) {
+            return response()->json(['status' => 400, 'message' => 'No user list provided'], 400);
         }
 
-        $users = UsersModel::whereIn('id', $userIds)->get();
+        $listType = $request->input('type');
 
-        $avatars = $users->mapWithKeys(function ($user) {
-            if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
-                $avatar = base64_encode(Storage::disk('public')->get($user->profile_pic));
-                $avatarMime = mime_content_type(storage_path('app/public/' . $user->profile_pic));
-                return [
-                    $user->id => [
-                        'avatar' => $avatar,
-                        'avatar_mime' => $avatarMime,
-                    ]
-                ];
-            }
-            return [
-                $user->id => [
-                    'avatar' => null,
-                    'avatar_mime' => null,
-                ]
+        if ($listType == 1) {
+            $users = UsersModel::whereIn('id', $userList)->get();
+        } else if ($listType == 2) {
+            $users = UsersModel::whereIn('user_name', $userList)->get();
+        } else {
+            return response()->json(['status' => 400, 'message' => 'Invalid user list type'], 400);
+        }
+
+        $avatars = $users->mapWithKeys(function ($user) use ($listType) {
+            $key = $listType == 1 ? $user->id : $user->user_name;
+            $avatarData = [
+                'avatar' => null,
+                'avatar_mime' => null,
             ];
+
+            if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
+                $avatarData['avatar'] = base64_encode(Storage::disk('public')->get($user->profile_pic));
+                $avatarData['avatar_mime'] = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+            }
+
+            return [$key => $avatarData];
         })->all();
 
         return response()->json(['status' => 200, 'avatars' => $avatars]);

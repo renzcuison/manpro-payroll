@@ -63,6 +63,7 @@ const ApplicationManage = ({ open, close, appId }) => {
             .then((response) => {
                 if (response.data.status === 200) {
                     const applicationData = response.data.application;
+                    console.log(applicationData);
                     setApplication(applicationData);
                     setFiles(response.data.files);
 
@@ -377,36 +378,40 @@ const ApplicationManage = ({ open, close, appId }) => {
                                             )}
                                         </Grid>
                                     </Grid>
-                                    <Grid size={12} sx={{ my: 0 }} >
-                                        <Divider />
-                                    </Grid>
-                                    {/* Application Response */}
-                                    <Grid container size={{ xs: 12 }} sx={{ alignItems: "center" }} >
-                                        <Grid size={{ xs: 5 }} align="left">
-                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                Action
-                                            </Typography>
-                                        </Grid>
-                                        <Grid size={{ xs: 7 }} align="left">
-                                            <FormControl fullWidth>
-                                                <InputLabel id="app-response-label">
-                                                    Select Action
-                                                </InputLabel>
-                                                <Select labelId="app-response-label" id="app-response" value={appResponse} error={appResponseError} label="Select Action" onChange={(event) => setAppResponse(event.target.value)} >
-                                                    <MenuItem value="Approve"> Approve </MenuItem>
-                                                    <MenuItem value="Decline"> Decline </MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                    </Grid>
-                                    {/* Submit Action */}
-                                    <Grid size={12} align="center">
-                                        <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={checkInput} >
-                                            <p className="m-0">
-                                                <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}Confirm Response{" "}
-                                            </p>
-                                        </Button>
-                                    </Grid>
+                                    {application.status == 'Pending' && (
+                                        <>
+                                            <Grid size={12} sx={{ my: 0 }} >
+                                                <Divider />
+                                            </Grid>
+                                            {/* Application Response */}
+                                            <Grid container size={{ xs: 12 }} sx={{ alignItems: "center" }} >
+                                                <Grid size={{ xs: 5 }} align="left">
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                        Action
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid size={{ xs: 7 }} align="left">
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="app-response-label">
+                                                            Select Action
+                                                        </InputLabel>
+                                                        <Select labelId="app-response-label" id="app-response" value={appResponse} error={appResponseError} label="Select Action" onChange={(event) => setAppResponse(event.target.value)} >
+                                                            <MenuItem value="Approve"> Approve </MenuItem>
+                                                            <MenuItem value="Decline"> Decline </MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid>
+                                            </Grid>
+                                            {/* Submit Action */}
+                                            <Grid size={12} align="center">
+                                                <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={checkInput} >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}Confirm Response{" "}
+                                                    </p>
+                                                </Button>
+                                            </Grid>
+                                        </>
+                                    )}
                                 </Grid>
                             </Box>
                             <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
