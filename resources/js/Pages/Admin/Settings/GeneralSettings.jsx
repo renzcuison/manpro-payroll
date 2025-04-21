@@ -239,7 +239,7 @@ const GeneralSettings = () => {
                 {/* Departments and Branches */}
                 <Grid container spacing={4} sx={{ mt: 2 }}>
                     {/* Departments */}
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Departments </Typography>
@@ -285,7 +285,7 @@ const GeneralSettings = () => {
                         </Box>
                     </Grid>
                     {/* Branches */}
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Branches </Typography>
@@ -334,7 +334,7 @@ const GeneralSettings = () => {
                 {/* Roles and Titles */}
                 <Grid container spacing={4} sx={{ mt: 1 }}>
                     {/* Roles */}
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Employee Roles </Typography>
@@ -379,7 +379,7 @@ const GeneralSettings = () => {
                         </Box>
                     </Grid>
                     {/* Titles */}
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Job Titles </Typography>
@@ -428,7 +428,7 @@ const GeneralSettings = () => {
                 {/* Application Types */}
                 <Grid container spacing={4} sx={{ mt: 1 }}>
                     {/* Application Types */}
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                                 <Typography variant="h5"> Application Types </Typography>
