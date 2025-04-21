@@ -22,8 +22,7 @@ const EmployeeBenefits = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
-    const [dataUpdated, setDataUpdated] = useState(false);
-
+    
     const [openAddBenefitModal, setOpenAddBenefitModal] = useState(false);
 
     const [benefits, setBenefits] = useState([]);

@@ -28,7 +28,7 @@ class PayrollController extends Controller
 {
     public function checkUserAdmin()
     {
-        // Log::info("PayrollController::checkUserAdmin");
+        // log::info("PayrollController::checkUserAdmin");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -43,7 +43,7 @@ class PayrollController extends Controller
 
     public function checkUserEmployee()
     {
-        // Log::info("PayrollController::checkUserEmployee");
+        // log::info("PayrollController::checkUserEmployee");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -58,7 +58,7 @@ class PayrollController extends Controller
 
     public function getNumberOfDays(Carbon $startDate, Carbon $endDate)
     {
-        // Log::info("PayrollController::getNumberOfDays");
+        // log::info("PayrollController::getNumberOfDays");
 
         // Initialize counters
         $numberOfDays = $startDate->diffInDays($endDate) + 1; // Include start and end date
@@ -68,6 +68,8 @@ class PayrollController extends Controller
 
         // Fetch Philippine holidays from Nager.Date API
         $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
+
+        log::info($holidays);
 
         $currentDate = $startDate->copy();
 
@@ -113,7 +115,7 @@ class PayrollController extends Controller
                 $data = $response->json();
 
                 // Log the API response for debugging
-                // Log::info("Nager.Date API Response for {$year}: " . json_encode($data));
+                // log::info("Nager.Date API Response for {$year}: " . json_encode($data));
 
                 // Ensure $data is an array before iterating
                 if (is_array($data)) {
@@ -235,7 +237,7 @@ class PayrollController extends Controller
 
     public function calculateTax($salary, $contribution)
     {
-        log::info("PayrollController::calculateTax");
+        // log::info("PayrollController::calculateTax");
 
         $taxableIncome = $salary - $contribution;
         $withholdingTax = 0;
@@ -261,23 +263,23 @@ class PayrollController extends Controller
             $compensationLevel = 666667;
         }
 
-        log::info("==================================");
-        log::info("salary               :" . $salary);
-        log::info("contribution         :" . $contribution);
-        log::info("withholdingTax       :" . $withholdingTax);
-        log::info("==================================");
+        // log::info("==================================");
+        // log::info("salary               :" . $salary);
+        // log::info("contribution         :" . $contribution);
+        // log::info("withholdingTax       :" . $withholdingTax);
+        // log::info("==================================");
 
-        log::info("==================================");
-        log::info("taxableIncome        :" . $taxableIncome);
-        log::info("compensationLevel    :" . $compensationLevel);
-        log::info("==================================");
+        // log::info("==================================");
+        // log::info("taxableIncome        :" . $taxableIncome);
+        // log::info("compensationLevel    :" . $compensationLevel);
+        // log::info("==================================");
 
         $percentage = $withholdingTax / 100;
         $incomeTax = ($taxableIncome - $compensationLevel) * $percentage;
-        log::info("==================================");
-        log::info("percentage           :" . $salary);
-        log::info("incomeTax            :" . $incomeTax);
-        log::info("==================================");
+        // log::info("==================================");
+        // log::info("percentage           :" . $salary);
+        // log::info("incomeTax            :" . $incomeTax);
+        // log::info("==================================");
 
         return $incomeTax;
     }
@@ -342,6 +344,16 @@ class PayrollController extends Controller
 
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+
+        log::info("===========================");
+        log::info("numberOfDays         : " . $numberOfDays);
+        log::info("numberOfSaturday     : " . $numberOfSaturday);
+        log::info("numberOfSunday       : " . $numberOfSunday);
+        log::info("numberOfHoliday      : " . $numberOfHoliday);
+
+        log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
+        log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
+        log::info("===========================");
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -431,7 +443,7 @@ class PayrollController extends Controller
         $loans = 0;
 
         $tax = $this->calculateTax($employee->salary, $employeeShare);
-        log::info("Returned Tax: " . $tax);
+        // log::info("Returned Tax: " . $tax);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
 
@@ -469,8 +481,8 @@ class PayrollController extends Controller
         ];
 
         $deductions = [
-            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} day)", 'amount' => $absents],
-            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} min)", 'amount' => $tardiness],
+            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} days)", 'amount' => $absents],
+            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
             ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
 
@@ -494,7 +506,7 @@ class PayrollController extends Controller
 
     public function savePayroll(Request $request)
     {
-        // Log::info("PayrollController::savePayroll");
+        // log::info("PayrollController::savePayroll");
 
         $user = Auth::user();
 
@@ -585,7 +597,7 @@ class PayrollController extends Controller
 
     public function savePayrolls(Request $request)
     {
-        // Log::info("PayrollController::savePayrolls");
+        // log::info("PayrollController::savePayrolls");
 
         $currentStartDate = $request->currentStartDate;
         $currentEndDate = $request->currentEndDate;
@@ -763,7 +775,7 @@ class PayrollController extends Controller
 
     public function getTardiness($start_date, $end_date, $employeeId)
     {
-        Log::info("Retrieving Tardiness");
+        // log::info("Retrieving Tardiness");
         $user = Auth::user();
 
         $logs = AttendanceLogsModel::with('workHour')
@@ -857,7 +869,8 @@ class PayrollController extends Controller
 
     public function storeSignature(Request $request, $id)
     {
-        Log::info("PayrollController::storeSignature - Processing signature for payslip ID: {$id}");
+        // log::info("PayrollController::storeSignature");
+        // log::info("Processing signature for payslip ID: {$id}");
 
         try {
             $request->validate([
@@ -873,7 +886,7 @@ class PayrollController extends Controller
 
             // Check if signature already exists
             if ($payslip->signature) {
-                Log::info("PayrollController::storeSignature - Signature already exists for payslip ID: {$decryptedId}");
+                // log::info("PayrollController::storeSignature - Signature already exists for payslip ID: {$decryptedId}");
                 return response()->json([
                     'message' => 'This payslip already has a signature.',
                 ], 400);
@@ -896,7 +909,7 @@ class PayrollController extends Controller
             $payslip->signature = $filePath;
             $payslip->save();
 
-            Log::info("PayrollController::storeSignature - Signature saved successfully for payslip ID: {$decryptedId}, Filepath: {$filePath}");
+            // log::info("PayrollController::storeSignature - Signature saved successfully for payslip ID: {$decryptedId}, Filepath: {$filePath}");
 
             return response()->json([
                 'message' => 'Signature uploaded and linked to payslip successfully.',
@@ -913,7 +926,7 @@ class PayrollController extends Controller
 
     public function getLeaveDeductions(array $params)
     {
-        Log::info("Retrieving Leave Deductions");
+        // log::info("Retrieving Leave Deductions");
 
         $employeeId = $params['employee_id'];
         $clientId = $params['client_id'];
@@ -956,9 +969,9 @@ class PayrollController extends Controller
             foreach ($apps as $app) {
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
-                Log::info("================================");
-                Log::info("App Starts     :" . $fromDate);
-                Log::info("App Ends       :" . $toDate);
+                // log::info("================================");
+                // log::info("App Starts     :" . $fromDate);
+                // log::info("App Ends       :" . $toDate);
 
                 $overlapStart = max($fromDate->startOfDay(), $start);
                 $overlapEnd = min($toDate->startOfDay(), $end);
@@ -971,9 +984,9 @@ class PayrollController extends Controller
                 if ($overlapStart <= $overlapEnd) {
                     $currentDate = $overlapStart->copy();
                     if ($overlapStart->isSameDay($overlapEnd)) {
-                        Log::info("================================");
-                        Log::info("Same Day Leave");
-                        Log::info("Current Date   :" . $currentDate);
+                        // log::info("================================");
+                        // log::info("Same Day Leave");
+                        // log::info("Current Date   :" . $currentDate);
                         $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
                         $appEnd = Carbon::parse($app->duration_end)->setDateFrom(now());
                         $skipDay = true;
@@ -1005,10 +1018,10 @@ class PayrollController extends Controller
                             }
                         }
                     } else {
-                        // Log::info("================================");
-                        // Log::info("Multi Day Leave");
+                        // log::info("================================");
+                        // log::info("Multi Day Leave");
                         while ($currentDate->lessThanOrEqualTo($overlapEnd)) {
-                            //Log::info("Current Date   :" . $currentDate);
+                            //log::info("Current Date   :" . $currentDate);
                             $affectedTime = 0;
 
                             $skipDay = true;
@@ -1018,7 +1031,7 @@ class PayrollController extends Controller
                                 $appStart = Carbon::parse($app->duration_start)->setDateFrom(now());
                                 $appEnd = Carbon::parse($app->duration_end);
                                 if ($currentDate->greaterThan($fromDate) && $currentDate->lessThan($toDate)) {
-                                    //Log::info("Full Day");
+                                    //log::info("Full Day");
                                     $affectedTime = $totalWorkHours;
                                 } elseif ($currentDate->isSameDay($fromDate) && !$appStart->isAfter($dayEnd)) {
                                     $affectedStart = max($appStart, $dayStart);
@@ -1029,7 +1042,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedStart->lessThan($gapEnd)) {
                                         $affectedTime -= $gapEnd->diffInSeconds($affectedStart) / 3600;
                                     }
-                                    //Log::info("First Day:           {$affectedTime}");
+                                    //log::info("First Day:           {$affectedTime}");
                                 } elseif ($currentDate->isSameDay($toDate) && !$appEnd->isBefore($lastStart)) {
                                     $affectedEnd = min($appEnd, $lastEnd);
                                     $affectedTime = $affectedEnd->diffInSeconds($lastStart) / 3600;
@@ -1039,7 +1052,7 @@ class PayrollController extends Controller
                                     } elseif ($affectedEnd->greaterThan($lastGapStart)) {
                                         $affectedTime -= $affectedEnd->diffInSeconds($lastGapStart) / 3600;
                                     }
-                                    //Log::info("Last Day:            {$affectedTime}");
+                                    //log::info("Last Day:            {$affectedTime}");
                                 }
                                 $affectedTime = max(0, $affectedTime);
                             }
@@ -1049,13 +1062,13 @@ class PayrollController extends Controller
                         }
                     }
 
-                    Log::info("================================");
+                    // log::info("================================");
                     $days = floor($totalHours / $totalWorkHours);
                     $remainderHours = $totalHours % $totalWorkHours;
 
                     if ($applicationType->is_paid_leave) {
-                        Log::info("Paid Leave");
-                        Log::info("Leave Percentage:    {$applicationType->percentage}%");
+                        // log::info("Paid Leave");
+                        // log::info("Leave Percentage:    {$applicationType->percentage}%");
                         $earningPerHour = $perHour * ($applicationType->percentage / 100);
                         $totalEarning = $totalHours * $earningPerHour;
                         $leaveEarnings += $totalEarning;
@@ -1068,7 +1081,7 @@ class PayrollController extends Controller
                             'amount' => $totalEarning,
                         ];
                     } else {
-                        Log::info("Unpaid Leave");
+                        // log::info("Unpaid Leave");
                         $earningPerHour = $perHour;
                         $totalEarning = $totalHours * $earningPerHour;
                         $leaveEarnings += $totalEarning;
@@ -1081,10 +1094,10 @@ class PayrollController extends Controller
                             'amount' => $totalEarning,
                         ];
                     }
-                    Log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
-                    Log::info("Earning Per Hour:    {$earningPerHour}");
-                    Log::info("Total Earning:       {$totalEarning}");
-                    Log::info("Total Leave Earnings:{$leaveEarnings}");
+                    // log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
+                    // log::info("Earning Per Hour:    {$earningPerHour}");
+                    // log::info("Total Earning:       {$totalEarning}");
+                    // log::info("Total Leave Earnings:{$leaveEarnings}");
                 }
             }
         }

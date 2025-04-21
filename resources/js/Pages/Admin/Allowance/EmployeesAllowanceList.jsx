@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
-import AllowanceView from './Modals/EmployeeAllowanceView';
+import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
 
 const EmployeesAllowanceList = () => {
     const navigate = useNavigate();
@@ -100,9 +100,7 @@ const EmployeesAllowanceList = () => {
                                                 paginatedEmployees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
-                                                            <TableCell align="left">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.preventDefault()}> {employee.name || '-'} </Link>
-                                                            </TableCell>
+                                                            <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
                                                             <TableCell align="right">{Number(employee.total || 0).toFixed(2)}</TableCell>
@@ -138,8 +136,11 @@ const EmployeesAllowanceList = () => {
                         )}
                     </Box>
                 </Box>
-            </Box>
 
+                {selectedEmployee && (
+                    <EmployeeAllowanceView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                )}
+            </Box>
         </Layout>
     );
 };

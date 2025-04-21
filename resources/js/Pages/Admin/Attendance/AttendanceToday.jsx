@@ -38,7 +38,7 @@ const AttendanceToday = () => {
                 const attendanceData = response.data.attendance || [];
                 setAttendance(attendanceData);
                 setAttendanceLoading(false);
-                getAvatar(attendanceData);
+                getAvatars(attendanceData);
             })
             .catch((error) => {
                 console.error('Error fetching attendance:', error);
@@ -64,7 +64,7 @@ const AttendanceToday = () => {
             return fullName.includes(searchName.toLowerCase());
         });
     }, [searchName, attendance]);
-    
+
     const paginatedAttendance = useMemo(() => {
         const startIndex = page * rowsPerPage;
         const endIndex = startIndex + rowsPerPage;
@@ -98,13 +98,14 @@ const AttendanceToday = () => {
         }
     };
 
+    // Employee Avatars
     const [blobMap, setBlobMap] = useState({});
 
-    const getAvatar = (attendanceData) => {
+    const getAvatars = (attendanceData) => {
         const userIds = attendanceData.map((attend) => attend.id);
         if (userIds.length === 0) return;
 
-        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
+        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_list: userIds, type: 1 }, { headers })
             .then((avatarResponse) => {
                 const avatars = avatarResponse.data.avatars || {};
                 setBlobMap((prev) => {
@@ -151,9 +152,8 @@ const AttendanceToday = () => {
                     URL.revokeObjectURL(url);
                 }
             });
-            setBlobMap({});
         };
-    }, []);
+    }, [blobMap]);
 
     // ---------------- Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
@@ -161,7 +161,7 @@ const AttendanceToday = () => {
     const handleOpenApplicationManage = (appDetails) => {
         setOpenApplicationManage(appDetails);
     };
-    
+
     const handleCloseApplicationManage = () => {
         setOpenApplicationManage(null);
         fetchApplications();
@@ -189,12 +189,12 @@ const AttendanceToday = () => {
                                 </Box>
 
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Box>
                             </Box>
-                            
+
                             <TabPanel value="1" sx={{ px: 0 }}>
                                 <Box sx={{ overflow: "auto" }}>
                                     <TableContainer>
@@ -222,7 +222,7 @@ const AttendanceToday = () => {
                                                 <TableBody>
                                                     {paginatedAttendance.length > 0 ? (
                                                         paginatedAttendance.map((attend, index) => (
-                                                            <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' }}}>
+                                                            <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' } }}>
                                                                 <TableCell align="left">
                                                                     <Box display="flex" sx={{ alignItems: "center" }}>
                                                                         <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
