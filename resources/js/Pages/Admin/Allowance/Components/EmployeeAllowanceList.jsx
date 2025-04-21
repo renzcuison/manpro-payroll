@@ -32,7 +32,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                             allowances.map((allowance, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{allowance.benefit}</Typography>
+                                        <Typography>{allowance.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{allowance.number}</Typography>

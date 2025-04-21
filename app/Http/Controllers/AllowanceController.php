@@ -155,17 +155,18 @@ class AllowanceController extends Controller
     
     public function getEmployeeAllowance(Request $request)
     {
-        log::info("EmployeesController::getEmployeeAllowance");
-        log::info($request);
+        // log::info("EmployeesController::getEmployeeAllowance");
 
         if ($this->checkUserAdmin()) {
-
             $employee = UsersModel::where('user_name', $request->username)->first();
             $allowances = [];
 
             foreach ($employee->allowances as $allowance) {
                 $allowances[] = [
-                    'id' => $allowance->id,
+                    'name' => $allowance->allowance->name,
+                    'number' => $allowance->number,
+                    'amount' => $allowance->allowance->amount,
+                    'created_at' => $allowance->created_at,
                 ];
             }
 
@@ -185,12 +186,20 @@ class AllowanceController extends Controller
             $employees = [];
 
             foreach ( $client->employees as $employee ) {
+
+                $allowances = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
+                $amount = 0;
+
+                foreach ($allowances as $allowance){
+                    $amount = $amount + $allowance->allowance->amount;
+                }
+
                 $employees[] = [
                     'user_name' => $employee->user_name,
                     'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
                     'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                     'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                    'total' => $employee->allowances->sum('amount'),
+                    'total' => $amount,
                 ];
             }
 
