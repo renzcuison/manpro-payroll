@@ -3906,10 +3906,15 @@ svg-pathdata@^6.0.3:
   resolved "https://registry.yarnpkg.com/svg-pathdata/-/svg-pathdata-6.0.3.tgz#80b0e0283b652ccbafb69ad4f8f73e8d3fbf2cac"
   integrity sha512-qsjeeq5YjBZ5eMdFuUa4ZosMLxgr5RZ+F+Y1OrDhuOCEInRMA3x74XdBtggJcj9kOeInz0WE+LgCPDkZFlBYJw==
 
-sweetalert2@^11.5.2:
-  version "11.17.2"
-  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.17.2.tgz#a11852713c8eea274d9e1d233522322cc63cf5be"
-  integrity sha512-HKxDr1IyV3Lxr3W6sb61qm/p2epFIEdr5EKwteRFHnIg6f8nHFl2kX++DBVz16Mac+fFiU3hMpjq1L6yE2Ge5w==
+sweetalert2-react-content@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/sweetalert2-react-content/-/sweetalert2-react-content-5.1.0.tgz#d57f8fe61ec090738373442e427c65a78ac2850b"
+  integrity sha512-SBh41SdyHDY9NzwrIG6LACbClCMxIlEFP86tGVr/B4zGD4H2gGXB8o7UAJRc/RtBd/iQL9hIvuCAkrk0AgKEMA==
+
+sweetalert2@^11.19.1:
+  version "11.19.1"
+  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.19.1.tgz#b6583a3db8e17b2408f45c19d855f1416b37c2ae"
+  integrity sha512-+8yws3Sc1srAZbrgdhmEIZny1I1UOYhJOIOdtOlv4TYaP5kkwQ9Zm8/BT23Qg+KdByCNOazltxEJAHzXVu8mhA==
 
 text-segmentation@^1.0.3:
   version "1.0.3"

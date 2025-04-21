@@ -47,6 +47,16 @@ export function usePackages() {
         return response.data;
     }
 
+    async function deletePkg(id) {
+        const response = await axiosInstance.delete(
+            `/super-admin/packages/${id}`,
+            {
+                headers,
+            }
+        );
+        return response.data;
+    }
+
     return {
         packages,
         isFetched,
@@ -54,6 +64,7 @@ export function usePackages() {
         refetch,
         store,
         update,
+        deletePkg,
     };
 }
 

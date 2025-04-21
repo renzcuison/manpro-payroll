@@ -79,9 +79,18 @@ class PackageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Package $package): JsonResponse
+    public function destroy($id): JsonResponse
     {
-        //
+        try {
+            
+            $package = Package::find($id);
+            $package->features()->delete();
+            $package->delete();
+            return response()->json(['message' => 'Package deleted successfully'], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], 400);
+        }
     }
 
     /**
