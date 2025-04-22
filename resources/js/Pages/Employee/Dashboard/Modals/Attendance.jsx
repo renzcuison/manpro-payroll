@@ -7,6 +7,12 @@ import {
     Grid,
     Typography,
     Divider,
+    TableContainer,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
@@ -15,6 +21,7 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import dayjs from "dayjs";
 import AttendanceTable from "./Components/AttendanceTable";
+import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
     //const navigate = useNavigate();
@@ -33,11 +40,6 @@ const Attendance = ({ open, close }) => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
             .then((response) => {
-                console.log("Work Shift");
-                console.log(response.data.workShift);
-                console.log("---------------");
-                console.log("Work Hours")
-                console.log(response.data.workHours);
                 setWorkShift(response.data.workShift);
                 setWorkHour(response.data.workHours);
             })
@@ -372,51 +374,52 @@ const Attendance = ({ open, close }) => {
                                 }
                             </>
                         )}
+                        {/* Overtime and End of Day Functions */}
                         {((workShift?.shift_type == "Regular" && firstShiftExpired && !(onDuty && latestTime < workHour?.first_time_out))
-                            || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) ? (
-                            firstDutyFinished ? (
-                                (() => {
-                                    if (exactTime < workHour?.over_time_in) {
-                                        return (
-                                            <Grid size={12}>
-                                                <Box sx={{ py: 1, width: "100%", textAlign: "center", }}>
-                                                    <Typography>
-                                                        Overtime Available at{" "}{dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                        );
-                                    } else if (!overtimeExpired || (overtimeExpired && onDuty && latestTime < workHour?.over_time_out)) {
-                                        return (
-                                            <AttendanceButton
-                                                label="Overtime"
-                                                onDuty={onDuty}
-                                                shiftType="Overtime"
-                                                onTimeInOut={handleTimeInOut}
-                                            />
-                                        );
-                                    } else {
-                                        return (
-                                            <Grid size={12}>
-                                                <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
-                                                    <Typography>
-                                                        The Day Has Ended
-                                                    </Typography>
-                                                </Box>
-                                            </Grid>
-                                        );
-                                    }
-                                })()
-                            ) : (
-                                <Grid size={12}>
-                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
-                                        <Typography>
-                                            The Day Has Ended
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                            )
-                        ) : null}
+                            || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) && (
+                                firstDutyFinished ? (
+                                    (() => {
+                                        if (exactTime < workHour?.over_time_in) {
+                                            return (
+                                                <Grid size={12}>
+                                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }}>
+                                                        <Typography>
+                                                            Overtime Available at{" "}{dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid>
+                                            );
+                                        } else if (!overtimeExpired || (overtimeExpired && onDuty && latestTime < workHour?.over_time_out)) {
+                                            return (
+                                                <AttendanceButton
+                                                    label="Overtime"
+                                                    onDuty={onDuty}
+                                                    shiftType="Overtime"
+                                                    onTimeInOut={handleTimeInOut}
+                                                />
+                                            );
+                                        } else {
+                                            return (
+                                                <Grid size={12}>
+                                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                                        <Typography>
+                                                            The Day Has Ended
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid>
+                                            );
+                                        }
+                                    })()
+                                ) : (
+                                    <Grid size={12}>
+                                        <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                            <Typography>
+                                                The Day Has Ended
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                )
+                            )}
                     </Grid>
                     {/*Attendance Logs------------------------------*/}
                     {employeeAttendance.length > 0 ? (
@@ -521,6 +524,90 @@ const Attendance = ({ open, close }) => {
                             No Attendance For Today
                         </Box>
                     )}
+                    <Divider sx={{ mt: 1, mb: 2 }} />
+                    <Box>
+                        <Typography sx={{ mb: 1 }}>
+                            Your Schedule
+                        </Typography>
+                    </Box>
+                    <TableContainer sx={{ maxHeight: "350px", overflowY: "auto", border: "solid 1px #e0e0e0" }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ pl: 1, width: "40%" }}>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                Shift Info
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={{ pl: 0, width: "30%" }}>
+                                        <Box >
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                Start
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={{ pl: 0, width: "30%" }}>
+                                        <Box >
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                End
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                        {workShift ? workShift.first_label : "Shift"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                </TableRow>
+                                {workShift?.shift_type == "Split" ? (
+                                    <TableRow>
+                                        <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                            {workShift ? workShift.second_label : "Second Shift"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    <TableRow>
+                                        <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                            Break
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                <TableRow>
+                                    <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                        Overtime In
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </DialogContent>
             </Dialog>
         </>
