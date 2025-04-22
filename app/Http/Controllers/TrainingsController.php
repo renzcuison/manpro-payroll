@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 
@@ -968,58 +967,73 @@ class TrainingsController extends Controller
     // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
-        // Log::info("TrainingsController:handleTrainingViews");
-        // Log::info($request);
+        Log::info("TrainingsController::handleTrainingViews");
+        Log::info($request);
 
         $user = Auth::user();
+        $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id', 'client_id')->firstOrFail();
+        $clientId = $training->client_id;
 
-        try {
-            DB::beginTransaction();
+        if ($user->client_id == $clientId) {
+            try {
+                DB::beginTransaction();
 
-            $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id')->firstOrFail();
-            $content = TrainingContentModel::find($request->input('id'));
+                $content = TrainingContentModel::findOrFail($request->input('id'));
 
-            $existing = TrainingViewsModel::with(['form', 'media'])
-                ->where('training_content_id', $content->id)
-                ->where('user_id', $user->id)
-                ->exists();
+                $existing = TrainingViewsModel::where('training_content_id', $content->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
 
-            if ($request->input("finished")) {
-                if ($content->media && $content->media->type == "Image") {
+                $isImageContent = false;
+                $collections = ['images', 'documents', 'powerpoints'];
+                foreach ($collections as $collection) {
+                    $media = $content->getFirstMedia($collection);
+                    if ($media) {
+                        $isImageContent = $media->getCustomProperty('type') === 'Image';
+                        break;
+                    }
+                }
+
+                if ($request->input("finished")) {
+                    if ($isImageContent) {
+                        if (!$existing) {
+                            TrainingViewsModel::create([
+                                'user_id' => $user->id,
+                                'training_id' => $training->id,
+                                'training_content_id' => $content->id,
+                                'status' => "Finished",
+                                'completed_at' => Carbon::now(),
+                            ]);
+                        }
+                    } else {
+                        $view = TrainingViewsModel::where('training_content_id', $content->id)
+                            ->where('user_id', $user->id)
+                            ->firstOrFail();
+                        $view->status = "Finished";
+                        $view->completed_at = Carbon::now();
+                        $view->save();
+                    }
+                } else {
                     if (!$existing) {
                         TrainingViewsModel::create([
                             'user_id' => $user->id,
                             'training_id' => $training->id,
                             'training_content_id' => $content->id,
-                            'status' => "Finished",
-                            'completed_at' => Carbon::now(),
+                            'status' => "Viewed",
                         ]);
                     }
-                } else {
-                    $view = TrainingViewsModel::where('training_content_id', $content->id)
-                        ->where('user_id', $user->id)
-                        ->firstOrFail();
-                    $view->status = "Finished";
-                    $view->completed_at = Carbon::now();
-                    $view->save();
                 }
-            } else {
-                if (!$existing) {
-                    TrainingViewsModel::create([
-                        'user_id' => $user->id,
-                        'training_id' => $training->id,
-                        'training_content_id' => $content->id,
-                    ]);
-                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200, 'message' => "Progress recorded successfully"]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Failed to record user progress for content ID {$request->input('id')}: " . $e->getMessage());
+                return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
             }
-
-            DB::commit();
-
-            return response()->json(['status' => 200, 'message' => "Progress recorded successfully"]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(['status' => 500, 'message' => "Failed to record user progress"]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
