@@ -27,11 +27,17 @@ const Attendance = ({ open, close }) => {
     const [workHour, setWorkHour] = useState([]);
     const [firstShiftExpired, setFirstShiftExpired] = useState(false);
     const [secondShiftExpired, setSecondShiftExpired] = useState(false);
+    const [overtimeExpired, setOvertimeExpired] = useState(false);
 
     useEffect(() => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
             .then((response) => {
+                console.log("Work Shift");
+                console.log(response.data.workShift);
+                console.log("---------------");
+                console.log("Work Hours")
+                console.log(response.data.workHours);
                 setWorkShift(response.data.workShift);
                 setWorkHour(response.data.workHours);
             })
@@ -42,13 +48,17 @@ const Attendance = ({ open, close }) => {
 
     //--------------------- Work Shift Expiration Checks
     useEffect(() => {
-        // Ends First Shift Period
+        // End First Shift Period
         if (exactTime > workHour.first_time_out) {
             setFirstShiftExpired(true);
         }
         // End Second Shift Period for Split
         if (exactTime > workHour.second_time_out) {
             setSecondShiftExpired(true);
+        }
+        // End Overtime Period
+        if (exactTime > workHour.over_time_out) {
+            setOvertimeExpired(true);
         }
     }, [workHour]);
 
@@ -320,9 +330,11 @@ const Attendance = ({ open, close }) => {
                         <Grid size={12} sx={{ my: 0 }}>
                             <Divider />
                         </Grid>
-                        {workShift.shift_type === "Regular" ? (
+                        {workShift.shift_type == "Regular" && (
                             <>
-                                {/* Regular Shift */}
+                                {/* Regular Shift Attendance */}
+                                {/* Shift has not yet expired*/}
+                                {/* Shift has expired, but the user is On Duty and the Time In occured before the shift ended*/}
                                 {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) && (
                                     <AttendanceButton
                                         label="Attendance"
@@ -332,11 +344,16 @@ const Attendance = ({ open, close }) => {
                                     />
                                 )}
                             </>
-                        ) : null}
-
-                        {workShift.shift_type === "Split" ? (
+                        )}
+                        {workShift.shift_type == "Split" && (
                             <>
-                                {/* Top: First Shift, Bottom: Second Shift */}
+                                {/* Second Shift Attendance */}
+                                {/* Top: First Shift */}
+                                {/* First Shift has not yet expired */}
+                                {/* First shift has expired, but the user is On Duty and the Time In occured before the first shift ended */}
+                                {/* Bottom: Second Shift */}
+                                {/* Second Shift has not yet expired */}
+                                {/* Second shift has expired, but the user is On Duty and the Time In occured before the second time out */}
                                 {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) ? (
                                     <AttendanceButton
                                         label={workShift.first_label}
@@ -354,21 +371,22 @@ const Attendance = ({ open, close }) => {
                                 ) : null
                                 }
                             </>
-                        ) : null}
-
-                        {/* Overtime and End of Day*/}
+                        )}
                         {((workShift?.shift_type == "Regular" && firstShiftExpired && !(onDuty && latestTime < workHour?.first_time_out))
                             || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) ? (
                             firstDutyFinished ? (
                                 (() => {
                                     if (exactTime < workHour?.over_time_in) {
                                         return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Overtime Available at{" "}
-                                                {dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
-                                            </Box>
+                                            <Grid size={12}>
+                                                <Box sx={{ py: 1, width: "100%", textAlign: "center", }}>
+                                                    <Typography>
+                                                        Overtime Available at{" "}{dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
                                         );
-                                    } else if (exactTime >= workHour?.over_time_in && exactTime <= workHour?.over_time_out) {
+                                    } else if (!overtimeExpired || (overtimeExpired && onDuty && latestTime < workHour?.over_time_out)) {
                                         return (
                                             <AttendanceButton
                                                 label="Overtime"
@@ -379,16 +397,24 @@ const Attendance = ({ open, close }) => {
                                         );
                                     } else {
                                         return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Day has ended
-                                            </Box>
+                                            <Grid size={12}>
+                                                <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                                    <Typography>
+                                                        The Day Has Ended
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
                                         );
                                     }
                                 })()
                             ) : (
-                                <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                    Day has ended
-                                </Box>
+                                <Grid size={12}>
+                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                        <Typography>
+                                            The Day Has Ended
+                                        </Typography>
+                                    </Box>
+                                </Grid>
                             )
                         ) : null}
                     </Grid>
