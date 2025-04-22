@@ -314,7 +314,7 @@ const AttendanceToday = () => {
                                                         ))
                                                     ) : (
                                                         <TableRow>
-                                                            <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
+                                                            <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
                                                         </TableRow>
                                                     )}
                                                 </TableBody>
