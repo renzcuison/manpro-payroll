@@ -967,8 +967,8 @@ class TrainingsController extends Controller
     // Training Views --------------------------------------------------------------- /
     public function handleTrainingViews(Request $request)
     {
-        Log::info("TrainingsController::handleTrainingViews");
-        Log::info($request);
+        // Log::info("TrainingsController::handleTrainingViews");
+        // Log::info($request);
 
         $user = Auth::user();
         $training = TrainingsModel::where('unique_code', $request->input('code'))->select('id', 'client_id')->firstOrFail();

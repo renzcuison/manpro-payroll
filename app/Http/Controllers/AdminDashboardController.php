@@ -210,7 +210,7 @@ class AdminDashboardController extends Controller
                     $isLate = false;
 
                     $workHours = $logs->first()->workHour;
-                    
+
                     if ($workHours->shift_type == "Regular") {
                         $firstTimeIn = $logs->firstWhere('action', 'Duty In');
                         $firstTimeOut = $logs->last(function ($log) {
@@ -246,6 +246,7 @@ class AdminDashboardController extends Controller
                         });
                     }
 
+                    /*
                     log::info("=============================");
 
                     log::info("firstTimeIn");
@@ -253,8 +254,10 @@ class AdminDashboardController extends Controller
 
                     log::info("schedule");
                     log::info(Carbon::parse("$date {$workHours->first_time_in}"));
-                    
-                    if ( $firstTimeIn->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
+                    */
+                    $firstAttendance = $firstTimeIn ?: $secondTimeIn;
+
+                    if ($firstAttendance->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
                         $isLate = true;
                         log::info("LATE");
                     }
@@ -280,7 +283,7 @@ class AdminDashboardController extends Controller
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
             } elseif ($type == 2) {
-                
+
                 // Late
                 $result = $attendances->groupBy('user_id')->map(function ($logs) {
                     $firstTimeIn = null;
@@ -308,7 +311,7 @@ class AdminDashboardController extends Controller
 
                         // Second Shift -> First Time In
                         $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
-                            return $log->action === 'Duty In' &&Carbon::parse($log->timestamp)->gt($firstOut) &&Carbon::parse($log->timestamp)->lt($secondOut);
+                            return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->gt($firstOut) && Carbon::parse($log->timestamp)->lt($secondOut);
                         });
 
                         // First Shift -> Last Time Out 
@@ -321,7 +324,7 @@ class AdminDashboardController extends Controller
                             return $log->action === 'Duty Out' && Carbon::parse($log->timestamp)->gt($secondIn);
                         });
                     }
-                    
+
                     $user = $logs->first()->user;
                     $workStart = $workHours->first_time_in;
                     $expectedStart = Carbon::parse($workStart);
@@ -351,9 +354,8 @@ class AdminDashboardController extends Controller
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
                 });
-
             } elseif ($type == 3) {
-                
+
                 // Absent
                 $attendedUserIds = $attendances->pluck('user_id')->unique()->toArray();
                 $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
@@ -371,9 +373,8 @@ class AdminDashboardController extends Controller
                         'suffix' => $user->suffix ?? null,
                     ];
                 })->values()->all();
-                
             } elseif ($type == 4) {
-                
+
                 // On Leave
                 $onLeaveApplications = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
                     $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');

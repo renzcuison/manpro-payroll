@@ -64,7 +64,7 @@ const AttendanceToday = () => {
             return fullName.includes(searchName.toLowerCase());
         });
     }, [searchName, attendance]);
-    
+
     const paginatedAttendance = useMemo(() => {
         const startIndex = page * rowsPerPage;
         const endIndex = startIndex + rowsPerPage;
@@ -161,7 +161,7 @@ const AttendanceToday = () => {
     const handleOpenApplicationManage = (appDetails) => {
         setOpenApplicationManage(appDetails);
     };
-    
+
     const handleCloseApplicationManage = () => {
         setOpenApplicationManage(null);
         fetchApplications();
@@ -189,12 +189,12 @@ const AttendanceToday = () => {
                                 </Box>
 
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Box>
                             </Box>
-                            
+
                             <TabPanel value="1" sx={{ px: 0 }}>
                                 <Box sx={{ overflow: "auto" }}>
                                     <TableContainer>
@@ -222,7 +222,7 @@ const AttendanceToday = () => {
                                                 <TableBody>
                                                     {paginatedAttendance.length > 0 ? (
                                                         paginatedAttendance.map((attend, index) => (
-                                                            <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' }}}>
+                                                            <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' } }}>
                                                                 <TableCell align="left">
                                                                     <Box display="flex" sx={{ alignItems: "center" }}>
                                                                         <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
@@ -236,10 +236,10 @@ const AttendanceToday = () => {
                                                                     {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : "Ongoing"}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
