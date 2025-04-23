@@ -308,7 +308,6 @@ class AttendanceController extends Controller
                     // Determine Workdays (excluding weekends and holidays)
                     $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
                     $endDay = ($year == Carbon::now()->year && $month == Carbon::now()->month) ? Carbon::now()->subDay()->day : $daysInMonth;
-                    Log::info($endDay);
 
                     $workDays = collect(range(1, $endDay))
                         ->map(fn($day) => Carbon::create($year, $month, $day))
@@ -500,7 +499,6 @@ class AttendanceController extends Controller
                         // Log::info("TL   : " . $totalLate);
                         // Log::info("TLH  : " . $totalLate / 60);
                     }
-                    Log::info("Employee End ---------------");
 
                     $branchInfo = $employee->branch
                         ? "{$employee->branch->name} ({$employee->branch->acronym})"
@@ -527,7 +525,6 @@ class AttendanceController extends Controller
                     ];
                 })->all();
 
-                Log::info("--------------------------- REQUEST END");
                 return response()->json(['status' => 200, 'summary' => $attendanceSummary]);
             } catch (\Exception $e) {
                 Log::error("Error in getAttendanceSummary: " . $e->getMessage());
