@@ -295,6 +295,7 @@ const AttendanceSummary = () => {
                         open={openAttendanceDetails}
                         close={handleCloseAttendanceDetails}
                         viewInfo={loadAttendance}
+                        medScreen={medScreen}
                     />
                 )
             }

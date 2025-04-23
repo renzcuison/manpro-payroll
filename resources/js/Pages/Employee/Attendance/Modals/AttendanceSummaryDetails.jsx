@@ -22,7 +22,7 @@ import dayjs from "dayjs";
 
 import InfoBox from "../../../../components/General/InfoBox";
 
-const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
+const AttendanceSummaryDetails = ({ open, close, viewInfo, medScreen }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -74,7 +74,7 @@ const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
                             p: { xs: 0, md: 1 },
                             backgroundColor: "#f8f9fa",
                             boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                            borderRadius: "20px",
+                            borderRadius: { xs: 0, md: "20px" },
                             minWidth: { xs: "100%", md: "600px" },
                             maxWidth: "650px",
                             marginBottom: "5%",
@@ -117,7 +117,7 @@ const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
                                 <InfoBox
                                     title="Date"
                                     info={dayjs(viewInfo.date).format("MMM DD, YYYY")}
-                                    compact
+                                    compact={medScreen}
                                     clean
                                 />
                             </Grid>
@@ -141,7 +141,7 @@ const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
                                         <InfoBox
                                             title="Time Rendered"
                                             info={formatTime(viewInfo.total_rendered)}
-                                            compact
+                                            compact={medScreen}
                                             clean
                                         />
                                     </Grid>
@@ -149,7 +149,7 @@ const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
                                         <InfoBox
                                             title="Overtime Rendered"
                                             info={formatTime(viewInfo.total_overtime)}
-                                            compact
+                                            compact={medScreen}
                                             clean
                                         />
                                     </Grid>
@@ -157,7 +157,7 @@ const AttendanceSummaryDetails = ({ open, close, viewInfo }) => {
                                         <InfoBox
                                             title="Late By"
                                             info={formatTime(viewInfo.total_late)}
-                                            compact
+                                            compact={medScreen}
                                             clean
                                             color={viewInfo.total_late ? "#f44336" : null}
                                         />
