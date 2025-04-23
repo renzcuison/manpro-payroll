@@ -40,7 +40,6 @@ const AttendanceSummary = () => {
                 department: selectedDepartment
             }
         }).then((response) => {
-            console.log(response.data.summary);
             setAttendanceSummary(response.data.summary || []);
             setIsLoading(false);
         }).catch((error) => {

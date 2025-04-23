@@ -27,6 +27,7 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    // Authentication
     public function checkUserAdmin()
     {
         // Log::info("AttendanceController::checkUserAdmin");
@@ -57,6 +58,69 @@ class AttendanceController extends Controller
         return false;
     }
 
+    // Logs
+    public function getAttendanceLogs(Request $request)
+    {
+        // Log::info("AttendanceController::getAttendanceLogs");
+        Log::info($request);
+
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+            $clientId = $user->client_id;
+
+            $fromDate = $request->input('from_date');
+            $toDate = $request->input('to_date');
+
+            $rawAttendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+                $query->where('client_id', $clientId);
+            })
+                ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
+                ->orderBy('timestamp', 'desc')->get();
+
+            $attendances = [];
+            foreach ($rawAttendances as $rawAttendance) {
+                $employee = UsersModel::select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id')
+                    ->find($rawAttendance->user_id);
+
+                $attendances[] = [
+                    'id' => $rawAttendance->id,
+                    'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'branch' => $employee->branch->name ?? '-',
+                    'department' => $employee->department->name ?? '-',
+                    'role' => $employee->role->name ?? '-',
+                    'timeStamp' => $rawAttendance->timestamp,
+                    'action' => $rawAttendance->action,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'attendances' => $attendances]);
+        }
+
+        return response()->json(['status' => 200, 'attendances' => null]);
+    }
+
+    public function getEmployeeAttendanceLogs(Request $request)
+    {
+        // Log::info("AttendanceController::getEmployeeAttendanceLogs");
+
+        $user = Auth::user();
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
+        $action = $request->input('action');
+
+        $query = AttendanceLogsModel::where('user_id', $user->id)
+            ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+
+        if ($action !== 'All') {
+            $query->where('action', $action);
+        }
+
+        $attendances = $query->orderBy('timestamp', 'desc')->get();
+
+        return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    // Log Sublists
     public function getEmployeeLatestAttendance()
     {
         // log::info("AttendanceController::getEmployeeLatestAttendance");
@@ -80,11 +144,15 @@ class AttendanceController extends Controller
             $employeeId = $request->input('employee');
         }
 
-        $attendance = AttendanceLogsModel::where('user_id', $employeeId)->whereDate('timestamp', $workDate)->get();
+        $attendance = AttendanceLogsModel::where('user_id', $employeeId)
+            ->whereDate('timestamp', $workDate)
+            ->orderBy('timestamp', 'asc')
+            ->get();
 
         return response()->json(['status' => 200, 'attendance' => $attendance]);
     }
 
+    // Recorders
     public function saveEmployeeAttendance(Request $request)
     {
         // log::info("AttendanceController::saveEmployeeAttendance");
@@ -161,15 +229,15 @@ class AttendanceController extends Controller
         }
     }
 
+    // Management
     public function recordEmployeeAttendance(Request $request)
     {
         //log::info("AttendanceController::recordEmployeeAttendance");
-        $validated = $request->validate(['action' => 'required']);
 
         $user = Auth::user();
+        $employee = UsersModel::find($request->input('employee'));
 
-        if ($this->checkUserAdmin() && $validated) {
-            $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
             try {
                 DB::beginTransaction();
 
@@ -186,75 +254,72 @@ class AttendanceController extends Controller
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                //Log::error("Error saving: " . $e->getMessage());
-
+                return response()->json(['status' => 500, 'message' => 'Error recording attendance log'], 500);
                 throw $e;
             }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
-    public function getAttendanceLogs(Request $request)
+    public function editEmployeeAttendance(Request $request)
     {
-        // Log::info("AttendanceController::getAttendanceLogs");
-        Log::info($request);
-
-        if ($this->checkUserAdmin()) {
-            $user = Auth::user();
-            $clientId = $user->client_id;
-
-            $fromDate = $request->input('from_date');
-            $toDate = $request->input('to_date');
-
-            $rawAttendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
-                $query->where('client_id', $clientId);
-            })
-                ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
-                ->orderBy('timestamp', 'desc')->get();
-
-            $attendances = [];
-            foreach ($rawAttendances as $rawAttendance) {
-                $employee = UsersModel::select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id')
-                    ->find($rawAttendance->user_id);
-
-                $attendances[] = [
-                    'id' => $rawAttendance->id,
-                    'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
-                    'branch' => $employee->branch->name ?? '-',
-                    'department' => $employee->department->name ?? '-',
-                    'role' => $employee->role->name ?? '-',
-                    'timeStamp' => $rawAttendance->timestamp,
-                    'action' => $rawAttendance->action,
-                ];
-            }
-
-            return response()->json(['status' => 200, 'attendances' => $attendances]);
-        }
-
-        return response()->json(['status' => 200, 'attendances' => null]);
-    }
-
-    public function getEmployeeAttendanceLogs(Request $request)
-    {
-        // Log::info("AttendanceController::getEmployeeAttendanceLogs");
+        // Log::info("AttendanceController::editEmployeeAttendance");
+        // Log::info($request);
 
         $user = Auth::user();
-        $fromDate = $request->input('from_date');
-        $toDate = $request->input('to_date');
-        $action = $request->input('action');
+        $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
+        $employee = $attendance->user;
 
-        $query = AttendanceLogsModel::where('user_id', $user->id)
-            ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-
-        if ($action !== 'All') {
-            $query->where('action', $action);
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
+                $newTime = Carbon::parse($request->input('timestamp'));
+                $attendance->timestamp = $newTime;
+                Log::info($attendance->timestamp);
+                $attendance->save();
+                DB::commit();
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
 
-        $attendances = $query->orderBy('timestamp', 'desc')->get();
+        // $validated = $request->validate(['action' => 'required']);
 
-        return response()->json(['status' => 200, 'attendances' => $attendances]);
+        // $user = Auth::user();
+
+        // if ($this->checkUserAdmin() && $validated) {
+        //     $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
+        //     try {
+        //         DB::beginTransaction();
+
+        //         AttendanceLogsModel::create([
+        //             "user_id" => $employee->id,
+        //             "work_hour_id" => $employee->workShift->work_hour_id,
+        //             "action" => $request->input('action'),
+        //             "timestamp" => $request->input('timestamp'),
+        //             "method" => 1,
+        //         ]);
+
+        //         DB::commit();
+
+        //         return response()->json(['status' => 200]);
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+
+        //         //Log::error("Error saving: " . $e->getMessage());
+
+        //         throw $e;
+        //     }
+        // }
     }
 
+    // Summaries
     public function getAttendanceSummary(Request $request)
     {
         //Log::info("AttendanceController::getAttendanceSummary");
@@ -778,6 +843,7 @@ class AttendanceController extends Controller
         return response()->json(['status' => 200, 'attendances' => $attendances]);
     }
 
+    // Overtime
     public function getAttendanceOvertime()
     {
         // Log::info("\n");
@@ -860,6 +926,7 @@ class AttendanceController extends Controller
         }
     }
 
+    // Misc
     public function getNagerHolidays($year)
     {
         $holidays = [];
