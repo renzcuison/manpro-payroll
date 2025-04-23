@@ -194,21 +194,28 @@ class AttendanceController extends Controller
         }
     }
 
-    public function getAttendanceLogs()
+    public function getAttendanceLogs(Request $request)
     {
         // Log::info("AttendanceController::getAttendanceLogs");
+        Log::info($request);
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
             $clientId = $user->client_id;
 
-            $attendances = [];
+            $fromDate = $request->input('from_date');
+            $toDate = $request->input('to_date');
+
             $rawAttendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
                 $query->where('client_id', $clientId);
-            })->orderBy('timestamp', 'desc')->get();
+            })
+                ->whereBetween('timestamp', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
+                ->orderBy('timestamp', 'desc')->get();
 
+            $attendances = [];
             foreach ($rawAttendances as $rawAttendance) {
-                $employee = UsersModel::select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id')->find($rawAttendance->user_id);
+                $employee = UsersModel::select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id')
+                    ->find($rawAttendance->user_id);
 
                 $attendances[] = [
                     'id' => $rawAttendance->id,
@@ -220,7 +227,6 @@ class AttendanceController extends Controller
                     'action' => $rawAttendance->action,
                 ];
             }
-
 
             return response()->json(['status' => 200, 'attendances' => $attendances]);
         }

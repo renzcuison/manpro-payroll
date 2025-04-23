@@ -220,6 +220,7 @@ const AttendanceLogs = () => {
                                                         setSelectedRange("custom");
                                                         handleFilterChange("from", newValue);
                                                     }}
+                                                    maxDate={dayjs()}
                                                     renderInput={(params) => (
                                                         <TextField {...params} />
                                                     )}
@@ -233,6 +234,7 @@ const AttendanceLogs = () => {
                                                         handleFilterChange("to", newValue);
                                                     }}
                                                     minDate={fromDate}
+                                                    maxDate={dayjs()}
                                                     renderInput={(params) => (
                                                         <TextField {...params} />
                                                     )}
