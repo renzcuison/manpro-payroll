@@ -36,51 +36,58 @@ const AttendanceSummary = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filterView, setFilterView] = useState(medScreen);
 
-    // ---------------- Attendance Summary Date
-    const [summaryFromDate, setSummaryFromDate] = useState(
-        dayjs().startOf("month")
-    );
+    // Attendance Filters
+    const [summaryFromDate, setSummaryFromDate] = useState(dayjs().startOf("month"));
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
+
+    // Attendance Lists
     const [summaryData, setSummaryData] = useState([]);
     const currentDate = dayjs().format("YYYY-MM-DD");
-
-    // ---------------- Attendance Summary API
-    const fetchAttendanceSummary = async () => {
-        try {
-            const response = await axiosInstance.get(
-                "/attendance/getEmployeeAttendanceSummary",
-                {
-                    headers,
-                    params: {
-                        summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
-                        summary_to_date: summaryToDate.format("YYYY-MM-DD"),
-                    },
-                }
-            );
-            setSummaryData(response.data.summary);
-        } catch (error) {
-            console.error("Error fetching attendance summary:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     useEffect(() => {
         fetchAttendanceSummary();
     }, [summaryFromDate, summaryToDate]);
 
-    // ---------------- Summary Details
-    const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
+    // Summary API
+    const fetchAttendanceSummary = () => {
+        setIsLoading(true);
+        const data = {
+            summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
+            summary_to_date: summaryToDate.format("YYYY-MM-DD"),
+        };
+        axiosInstance.get(`/attendance/getEmployeeAttendanceSummary`, { params: data, headers })
+            .then((response) => {
+                if (response.data.status == 200) {
+                    setSummaryData(response.data.summary);
+                    setIsLoading(false);
+                }
+            }).catch((error) => {
+                console.error("Error fetching attendance summary:", error);
+                setIsLoading(false);
+            });
+    }
 
-    const handleOpenAttendanceDetails = (date) => {
-        setOpenAttendanceDetails(date);
+    // Summary Detail
+    const [openAttendanceDetails, setOpenAttendanceDetails] = useState(false);
+    const [loadAttendance, setLoadAttendance] = useState(null);
+    const handleOpenAttendanceDetails = (summary) => {
+        const ongoing = summary.date == currentDate;
+        const viewInfo = {
+            date: summary.date,
+            ongoing: ongoing,
+            total_rendered: summary.total_rendered,
+            total_overtime: summary.total_overtime,
+            total_late: summary.late_time,
+        };
+        setOpenAttendanceDetails(true);
+        setLoadAttendance(viewInfo);
     };
 
     const handleCloseAttendanceDetails = () => {
-        setOpenAttendanceDetails(null);
+        setOpenAttendanceDetails(false);
     };
 
-    // ---------------- Time Display
+    // Time Formatter
     const formatTime = (time) => {
         if (!time) return '-';
 
@@ -206,7 +213,7 @@ const AttendanceSummary = () => {
                                                 (summary, index) => (
                                                     <TableRow
                                                         key={index}
-                                                        onClick={() => handleOpenAttendanceDetails(summary.date)}
+                                                        onClick={() => handleOpenAttendanceDetails(summary)}
                                                         sx={{
                                                             backgroundColor:
                                                                 index % 2 === 0
@@ -285,9 +292,9 @@ const AttendanceSummary = () => {
             {
                 openAttendanceDetails && (
                     <AttendanceSummaryDetails
-                        open={true}
+                        open={openAttendanceDetails}
                         close={handleCloseAttendanceDetails}
-                        date={openAttendanceDetails}
+                        viewInfo={loadAttendance}
                     />
                 )
             }

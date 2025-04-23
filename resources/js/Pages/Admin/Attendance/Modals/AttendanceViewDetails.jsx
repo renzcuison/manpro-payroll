@@ -118,7 +118,7 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
                             backgroundColor: "#f8f9fa",
                             boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                             borderRadius: "20px",
-                            minWidth: { xs: "100%", sm: "600px" },
+                            minWidth: { xs: "100%", md: "600px" },
                             maxWidth: "650px",
                             marginBottom: "5%",
                         }
@@ -233,7 +233,7 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
                                 </Box>
                             </Grid>
                             <Grid size={12}>
-                                <TableContainer sx={{ border: "solid 1px #e0e0e0" }}>
+                                <TableContainer sx={{ border: "solid 1px #e0e0e0", maxHeight: 400 }}>
                                     <Table stickyHeader size="small">
                                         <TableHead>
                                             <TableRow>
