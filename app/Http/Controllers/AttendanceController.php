@@ -684,6 +684,7 @@ class AttendanceController extends Controller
         $user = Auth::user();
 
         $attendances = AttendanceLogsModel::where('user_id', $user->id)
+            ->with('workHour')
             ->orderBy('timestamp', 'asc')
             ->get()
             ->groupBy(function ($log) {
@@ -691,6 +692,7 @@ class AttendanceController extends Controller
             })
             ->sortKeysDesc()
             ->map(function ($logs, $date) {
+
                 // Find first time in
                 $timeIn = $logs->firstWhere('action', 'Duty In');
 
@@ -707,12 +709,22 @@ class AttendanceController extends Controller
                     return $log->action == 'Overtime Out';
                 });
 
+                // Find End Time
+                $endTime = null;
+                $workHour = $logs->first()->workHour;
+                if ($workHour->shift_type == "Split") {
+                    $endTime = Carbon::parse($date . ' ' . $workHour->second_time_out)->toDateTimeString();
+                } else {
+                    $endTime = Carbon::parse($date . ' ' . $workHour->first_time_out)->toDateTimeString();;
+                }
+
                 return [
                     'date' => $date,
                     'time_in' => $timeIn ? $timeIn->timestamp : null,
                     'time_out' => $timeOut ? $timeOut->timestamp : null,
                     'overtime_in' => $overtimeIn ? $overtimeIn->timestamp : null,
                     'overtime_out' => $overtimeOut ? $overtimeOut->timestamp : null,
+                    'end_time' => $endTime,
                 ];
             })
             ->take(10)

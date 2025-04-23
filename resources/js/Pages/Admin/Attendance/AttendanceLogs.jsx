@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Grid, TextField, FormControl } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,6 +11,8 @@ const AttendanceLogs = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [attendances, setAttendances] = useState([]);
+
+    const [searchName, setSearchName] = useState('');
 
     useEffect(() => {
         axiosInstance.get('/attendance/getAttendanceLogs', { headers })
@@ -26,6 +28,10 @@ const AttendanceLogs = () => {
             });
     }, []);
 
+    const filteredAttendance = attendances.filter((attendance) => {
+        return attendance.name.toLowerCase().includes(searchName.toLowerCase());
+    });
+
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -36,13 +42,23 @@ const AttendanceLogs = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                        {/* Filters */}
+                        <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                            <Grid size={8}>
+                            </Grid>
+                            <Grid container direction="row" justifyContent="flex-end" size={{ xs: 2 }} spacing={2}>
+                                <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
+                                    <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                                </FormControl>
+                            </Grid>
+                        </Grid>
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                <Table aria-label="simple table">
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400, maxHeight: 500 }}>
+                                <Table stickyHeader aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
                                             <TableCell align="center">Name</TableCell>
@@ -55,14 +71,14 @@ const AttendanceLogs = () => {
                                     </TableHead>
 
                                     <TableBody>
-                                        {!Array.isArray(attendances) || attendances.length === 0 ? (
+                                        {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={6} align="center">
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            attendances.map((attendance) => (
+                                            filteredAttendance.map((attendance) => (
                                                 <TableRow key={attendance.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
                                                     <TableCell align="left">{attendance.name || '-'}</TableCell>
                                                     <TableCell align="center">{attendance.branch || '-'}</TableCell>

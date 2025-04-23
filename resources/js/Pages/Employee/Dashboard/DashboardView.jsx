@@ -183,7 +183,10 @@ const Dashboard = () => {
                                                                 <TableCell align="center">
                                                                     {attendance.time_out
                                                                         ? dayjs(attendance.time_out).format("hh:mm:ss A")
-                                                                        : attendance.time_in ? "Failed to Time Out"
+                                                                        : attendance.time_in
+                                                                            ? dayjs() < dayjs(attendance.end_time)
+                                                                                ? "Ongoing"
+                                                                                : "Failed to Time Out"
                                                                             : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
