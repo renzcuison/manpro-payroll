@@ -40,6 +40,7 @@ const AttendanceSummary = () => {
                 department: selectedDepartment
             }
         }).then((response) => {
+            console.log(response.data.summary);
             setAttendanceSummary(response.data.summary || []);
             setIsLoading(false);
         }).catch((error) => {
@@ -192,12 +193,13 @@ const AttendanceSummary = () => {
                                             <TableCell align="center">Hours</TableCell>
                                             <TableCell align="center">Tardiness</TableCell>
                                             <TableCell align="center">Absences</TableCell>
+                                            <TableCell align="center">Overtime</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} align="center">
+                                                <TableCell colSpan={8} align="center">
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
@@ -222,6 +224,7 @@ const AttendanceSummary = () => {
                                                     <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
                                                     <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
                                                     <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
+                                                    <TableCell align="center">{formatTime(attendance.total_overtime)}</TableCell>
                                                 </TableRow>
                                             ))
                                         )}

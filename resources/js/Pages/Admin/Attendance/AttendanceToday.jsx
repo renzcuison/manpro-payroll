@@ -239,7 +239,7 @@ const AttendanceToday = () => {
                                                                     {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : attend.second_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
@@ -305,7 +305,7 @@ const AttendanceToday = () => {
                                                                     {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : attend.second_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
