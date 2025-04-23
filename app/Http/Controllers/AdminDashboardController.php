@@ -210,6 +210,7 @@ class AdminDashboardController extends Controller
                     $isLate = false;
 
                     $workHours = $logs->first()->workHour;
+                    $date = Carbon::parse($logs->first()->timestamp)->toDateString();
 
                     if ($workHours->shift_type == "Regular") {
                         $firstTimeIn = $logs->firstWhere('action', 'Duty In');
@@ -218,7 +219,6 @@ class AdminDashboardController extends Controller
                         });
                     } else {
                         // Date Normalizers
-                        $date = Carbon::parse($logs->first()->timestamp)->toDateString();
                         $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
                         $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
                         $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
