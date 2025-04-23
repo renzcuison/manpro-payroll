@@ -149,7 +149,8 @@ const EditAttendanceModal = ({ open, close, date, attendanceInfo }) => {
                                         label="Time"
                                         value={timestamp}
                                         error={timestampError}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                        timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
                                         minDate={date}
                                         maxDate={date}
                                         onChange={(newValue) => {
