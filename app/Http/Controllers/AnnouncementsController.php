@@ -189,7 +189,7 @@ class AnnouncementsController extends Controller
             $author->last_name ?? null,
             $author->suffix ?? null,
         ]));
-        $announcement->author_title = $author->jobTitle->name;
+        $announcement->author_title = $author->jobTitle ? $author->jobTitle->name : "Administrator";
 
         // Final Data Prep
         $announcementData = $announcement->toArray();
