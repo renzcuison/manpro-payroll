@@ -65,11 +65,11 @@ class PayrollController extends Controller
         $numberOfSaturday = 0;
         $numberOfSunday = 0;
         $numberOfHoliday = 0;
+        $numberOfHolidayWeekday = 0;
 
         // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-
-        log::info($holidays);
+        $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
+        // $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
 
         $currentDate = $startDate->copy();
 
@@ -102,6 +102,8 @@ class PayrollController extends Controller
 
     public function getNagerHolidays($startYear, $endYear)
     {
+        // log::info("PayrollController::getNagerHolidays");
+
         $holidays = [];
         $countryCode = 'PH';
 
@@ -121,6 +123,44 @@ class PayrollController extends Controller
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
                         $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                    }
+                } else {
+                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
+                }
+            } else {
+                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+                Log::error($response->body());
+            }
+        }
+
+        return $holidays;
+    }
+
+    public function getNagerHolidaysWeekdays($startYear, $endYear)
+    {
+        // log::info("PayrollController::getNagerHolidaysWeekdays");
+
+        $holidays = [];
+        $countryCode = 'PH';
+
+        // Fetch holidays for each year in the range
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
+
+            $response = Http::get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Ensure $data is an array before iterating
+                if (is_array($data)) {
+                    foreach ($data as $holiday) {
+                        $holidayDate = Carbon::parse($holiday['date']);
+
+                        // Check if the holiday falls on a weekday (Monday to Friday)
+                        if ($holidayDate->isWeekday()) {
+                            $holidays[] = $holidayDate->format('Y-m-d');
+                        }
                     }
                 } else {
                     Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
@@ -345,15 +385,14 @@ class PayrollController extends Controller
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
 
-        log::info("===========================");
-        log::info("numberOfDays         : " . $numberOfDays);
-        log::info("numberOfSaturday     : " . $numberOfSaturday);
-        log::info("numberOfSunday       : " . $numberOfSunday);
-        log::info("numberOfHoliday      : " . $numberOfHoliday);
-
-        log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
-        log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
-        log::info("===========================");
+        // log::info("===========================");
+        // log::info("numberOfDays         : " . $numberOfDays);
+        // log::info("numberOfSaturday     : " . $numberOfSaturday);
+        // log::info("numberOfSunday       : " . $numberOfSunday);
+        // log::info("numberOfHoliday      : " . $numberOfHoliday);
+        // log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
+        // log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
+        // log::info("===========================");
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -409,7 +448,7 @@ class PayrollController extends Controller
 
         $leaveParams = [
             'employee_id' => $employee->id,
-            'client_id' => $employee->id,
+            'client_id' => $employee->client_id,
             'start' => $start,
             'end' => $end,
             'start_date' => $startDate,
@@ -422,19 +461,21 @@ class PayrollController extends Controller
             'per_hour' => $perHour,
         ];
 
-        $leaveDeductions = $this->getLeaveDeductions($leaveParams);
+        $leaveDeductions = $this->getLeaves($leaveParams);
         $paidLeaves = $leaveDeductions['paid_leaves'];
         $unpaidLeaves = $leaveDeductions['unpaid_leaves'];
         $leaveEarnings = $leaveDeductions['leave_earnings'];
 
         // ============== RESPONSE PREP ==============
+        $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
+
         $basicPay = $perCutOff - $leaveEarnings;
-        $overTimePay = 0;
+        $overTimePay = $perHour * $totalOvertime;
         $holidayPay = 0;
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
-            ['earning' => '2', 'name' => 'Over Time Pay', 'amount' => $overTimePay],
+            ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} hours)", 'amount' => $overTimePay],
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
         ];
 
@@ -446,8 +487,6 @@ class PayrollController extends Controller
         // log::info("Returned Tax: " . $tax);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
-        $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
-        Log::info("Total Overtime: " . $totalOvertime . " minutes");
 
         if ($employee->is_fixed_salary == 0) {
             $absents = $absents - $leaveEarnings;
@@ -872,25 +911,27 @@ class PayrollController extends Controller
     public function getAttendanceOvertime($start_date, $end_date, $employeeId)
     {
         // Log::info("AttendanceController::getAttendanceOvertime");
-
+    
         $user = Auth::user();
         $totalOvertimeMinutes = 0;
-
+        $totalOvertimeHours = 0; // Initialize total overtime hours
+    
         $logs = AttendanceLogsModel::with('workHour')
             ->where('user_id', $employeeId)
             ->whereIn('action', ['Overtime In', 'Overtime Out'])
             ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
             ->orderBy('timestamp')
             ->get();
-
+    
         // Group logs by date
         $groupedLogs = $logs->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'));
-
+    
         // Process each day's logs
         foreach ($groupedLogs as $date => $dailyLogs) {
             $in = null;
             $out = null;
-
+            $dailyOvertimeMinutes = 0; // Initialize daily overtime minutes
+    
             // Find the first Overtime In and Overtime Out for the day
             foreach ($dailyLogs as $log) {
                 if ($log->action === 'Overtime In' && !$in) {
@@ -899,37 +940,47 @@ class PayrollController extends Controller
                     $out = $log;
                 }
             }
-
+    
             // Process if both In and Out are found
             if ($in && $out && $in->workHour && $out->workHour) {
                 $timeIn = Carbon::parse($in->timestamp);
                 $timeOut = Carbon::parse($out->timestamp);
-
-                // Get overtime boundaries from workHour
-                $overtimeStart = Carbon::parse($in->workHour->over_time_in)
-                    ->setDate($timeIn->year, $timeIn->month, $timeIn->day);
-                $overtimeEnd = Carbon::parse($out->workHour->over_time_out)
-                    ->setDate($timeOut->year, $timeOut->month, $timeOut->day);
-
-                // Normalize all times to the same date for comparison
+    
+                $overtimeStart = Carbon::parse($in->workHour->over_time_in)->setDate($timeIn->year, $timeIn->month, $timeIn->day);
+                $overtimeEnd = Carbon::parse($out->workHour->over_time_out)->setDate($timeOut->year, $timeOut->month, $timeOut->day);
+    
                 $today = Carbon::today();
                 $fixedTimeIn = $timeIn->setDate($today->year, $today->month, $today->day);
                 $fixedTimeOut = $timeOut->setDate($today->year, $today->month, $today->day);
                 $fixedOvertimeStart = $overtimeStart->setDate($today->year, $today->month, $today->day);
                 $fixedOvertimeEnd = $overtimeEnd->setDate($today->year, $today->month, $today->day);
-
-                // Calculate minutes within overtime boundaries
+    
                 if ($fixedTimeIn->format('H:i:s') < $fixedOvertimeEnd->format('H:i:s') && $fixedTimeOut->format('H:i:s') > $fixedOvertimeStart->format('H:i:s')) {
                     $renderedStart = max($fixedTimeIn, $fixedOvertimeStart);
                     $renderedEnd = min($fixedTimeOut, $fixedOvertimeEnd);
                     $minutes = $renderedEnd->diffInMinutes($renderedStart);
-                    $totalOvertimeMinutes += max($minutes, 0);
+                    $dailyOvertimeMinutes = max($minutes, 0);
+    
+                    // Log::info("Overtime on {$date}: {$dailyOvertimeMinutes} minutes");
+    
+                    $dailyOvertimeHours = $dailyOvertimeMinutes / 59;
+    
+                    $dailyOvertimeHoursWhole = floor($dailyOvertimeHours);
+                    // Log::info("Overtime on {$date}: {$dailyOvertimeHours} hours");
+                    // Log::info("Overtime on {$date}: {$dailyOvertimeHoursWhole} hours");
+    
+                    $totalOvertimeMinutes += $dailyOvertimeMinutes;
+                    $totalOvertimeHours += $dailyOvertimeHoursWhole;
+
+                    // Log::info("================================================");
                 }
             }
         }
-
-        return $totalOvertimeMinutes;
+    
+        // Return both total overtime minutes and hours
+        return $totalOvertimeHours;
     }
+    
 
     public function storeSignature(Request $request, $id)
     {
@@ -988,9 +1039,9 @@ class PayrollController extends Controller
         }
     }
 
-    public function getLeaveDeductions(array $params)
+    public function getLeaves(array $params)
     {
-        // log::info("Retrieving Leave Deductions");
+        // log::info("PayrollController::getLeaves");
 
         $employeeId = $params['employee_id'];
         $clientId = $params['client_id'];
@@ -1010,7 +1061,6 @@ class PayrollController extends Controller
         $leaveEarnings = 0;
 
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $clientId)->get();
-
 
         $applicationIds = $applicationTypes->pluck('id')->all();
         $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
@@ -1033,9 +1083,6 @@ class PayrollController extends Controller
             foreach ($apps as $app) {
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
-                // log::info("================================");
-                // log::info("App Starts     :" . $fromDate);
-                // log::info("App Ends       :" . $toDate);
 
                 $overlapStart = max($fromDate->startOfDay(), $start);
                 $overlapEnd = min($toDate->startOfDay(), $end);
