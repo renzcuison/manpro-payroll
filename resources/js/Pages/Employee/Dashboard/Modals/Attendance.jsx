@@ -55,6 +55,10 @@ const Attendance = ({ open, close }) => {
     const [secondShiftExpired, setSecondShiftExpired] = useState(false);
     const [overtimeExpired, setOvertimeExpired] = useState(false);
 
+    const [firstNightShift, setFirstNightShift] = useState(false);
+    const [secondNightShift, setSecondNightShift] = useState(false);
+    const [overtimeNightShift, setOvertimeNightShift] = useState(false);
+
     useEffect(() => {
         axiosInstance
             .get(`/workshedule/getWorkShift`, { headers })
@@ -67,26 +71,61 @@ const Attendance = ({ open, close }) => {
             });
     }, [refreshTrigger]);
 
-    // Work Shift Expiration Checks
+    // Night Shift, Expiry Checks
     useEffect(() => {
-        if (workHour.first_time_out && exactTime > workHour.first_time_out) {
-            setFirstShiftExpired(true);
+        const currentDate = dayjs().format(`YYYY-MM-DD`);
+        const currentTime = dayjs(`${currentDate} ${exactTime}`);
+
+        if (workHour.first_time_in && workHour.first_time_out) {
+            const firstIn = dayjs(`${currentDate} ${workHour.first_time_in}`);
+            const firstOut = dayjs(`${currentDate} ${workHour.first_time_out}`);
+
+            const isFirstNightShift = firstIn.isAfter(firstOut);
+            setFirstNightShift(isFirstNightShift);
+
+            if (isFirstNightShift) { // Night Shift Handling
+                /*
+                Night Shift Expiry Period
+                - Current Time is after previous day's Shift Period (uses current day as shift passes through midnight), AND
+                - Current Time is before the current day's shift starts + with 2 hour offset for Early Time-Ins
+                 */
+                const firstInOffset = firstIn.subtract(2, 'hour');
+                setFirstShiftExpired(currentTime.isAfter(firstOut) && currentTime.isBefore(firstInOffset));
+            } else { // Same Day Comparison
+                setFirstShiftExpired(currentTime.isAfter(firstOut));
+            }
         }
-        if (workHour.second_time_out && exactTime > workHour.second_time_out) {
-            setSecondShiftExpired(true);
+
+        if (workHour.second_time_in && workHour.second_time_out) {
+            const secondIn = dayjs(`${currentDate} ${workHour.second_time_in}`);
+            const secondOut = dayjs(`${currentDate} ${workHour.second_time_out}`);
+
+            const isSecondNightShift = secondIn.isAfter(secondOut);
+            setSecondNightShift(isSecondNightShift);
+
+            if (isSecondNightShift) {
+                const secondInOffset = secondIn.subtract(2, 'hour');
+                setSecondShiftExpired(currentTime.isAfter(secondOut) && currentTime.isBefore(secondInOffset));
+            } else {
+                setSecondShiftExpired(currentTime.isAfter(secondOut));
+            }
         }
-        if (workHour.over_time_out && workHour.over_time_in) {
-            // const isCrossMidnight = workHour.over_time_out <= workHour.over_time_in;
-            // const overtimeOut = isCrossMidnight
-            //     ? dayjs(`2023-01-01 ${workHour.over_time_in}`)
-            //         .add(1, 'day')
-            //         .startOf('day')
-            //         .add(dayjs(`2023-01-01 ${workHour.over_time_out}`).diff(dayjs(`2023-01-01 00:00:00`), 'second'), 'second')
-            //     : dayjs(`2023-01-01 ${workHour.over_time_out}`);
-            // if (dayjs(`2023-01-01 ${exactTime}`).isAfter(overtimeOut)) {
-            //     setOvertimeExpired(true);
-            // }
+
+        if (workHour.over_time_in && workHour.over_time_out) {
+            const overtimeIn = dayjs(`${currentDate} ${workHour.over_time_in}`);
+            const overtimeOut = dayjs(`${currentDate} ${workHour.over_time_out}`);
+
+            const isOvertimeNightShift = overtimeIn.isAfter(overtimeOut);
+            setOvertimeNightShift(isOvertimeNightShift);
+
+            if (isOvertimeNightShift) {
+                const overtimeInOffset = overtimeIn.subtract(2, 'hour');
+                setOvertimeNightShift(currentTime.isAfter(overtimeOut) && currentTime.isBefore(overtimeInOffset));
+            } else {
+                setOvertimeNightShift(currentTime.isAfter(overtimeOut));
+            }
         }
+
     }, [workHour, exactTime]);
 
     // Attendance API and State
