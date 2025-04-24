@@ -560,7 +560,7 @@ const Attendance = ({ open, close }) => {
                                     <TableCell sx={{ pl: 1, width: "40%" }}>
                                         <Box>
                                             <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
-                                                Shift Info
+                                                Shift
                                             </Typography>
                                         </Box>
                                     </TableCell>
