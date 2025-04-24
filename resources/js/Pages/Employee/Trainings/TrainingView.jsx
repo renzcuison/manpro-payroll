@@ -1,64 +1,29 @@
 import React, { useEffect, useState } from "react";
 import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
     Box,
     Typography,
-    Button,
-    Menu,
-    MenuItem,
-    TextField,
     Stack,
     Grid,
     Chip,
     CircularProgress,
     LinearProgress,
     linearProgressClasses,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
     Card,
     CardMedia,
     CardContent,
     CardActions,
-    Pagination,
-    IconButton,
     Divider,
-    ImageList,
-    ImageListItem,
-    ImageListItemBar,
     Tooltip,
-    CardActionArea
+    CardActionArea,
+    useTheme,
+    useMediaQuery
 } from "@mui/material";
 import { OndemandVideo, Image, Description, Quiz, Lock, CheckCircle, CheckCircleOutline, HourglassBottom } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
 import Swal from "sweetalert2";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
-import { first } from "lodash";
-
+import { useNavigate, useParams, } from "react-router-dom";
 import PDFImage from '../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../public/media/assets/Docx_file_icon.png';
 import PPTImage from '../../../../../public/media/assets/PowerPoint_file_icon.png';
@@ -69,6 +34,10 @@ const TrainingView = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
+
+    const theme = useTheme();
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const capSize = medScreen ? "h4" : "h5";
 
     // ---------------- Training Data States
     const [isLoading, setIsLoading] = useState(false);
@@ -259,7 +228,7 @@ const TrainingView = () => {
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Box display="flex" sx={{ alignItems: "center" }}>
                             <Typography
-                                variant="h4"
+                                variant={capSize}
                                 sx={{
                                     fontWeight: "bold",
                                     whiteSpace: "normal",

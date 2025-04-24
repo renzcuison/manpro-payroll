@@ -37,6 +37,7 @@ const AnnouncementView = () => {
     const theme = useTheme();
     const smScreen = useMediaQuery(theme.breakpoints.up('sm'));
     const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const capSize = medScreen ? "h4" : "h5";
     const colCount = medScreen ? 5 : smScreen ? 3 : 2;
     const headSize = medScreen ? "h5" : "h6";
 
@@ -249,7 +250,7 @@ const AnnouncementView = () => {
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Box display="flex" sx={{ alignItems: "center" }}>
                             <Typography
-                                variant="h4"
+                                variant={capSize}
                                 sx={{
                                     fontWeight: "bold",
                                     whiteSpace: "normal",
