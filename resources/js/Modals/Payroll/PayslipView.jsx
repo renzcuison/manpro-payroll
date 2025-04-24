@@ -1,11 +1,4 @@
-import {
-    Box,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Typography,
-} from "@mui/material";
+import { Box, IconButton, Dialog, DialogTitle, DialogContent, Typography } from "@mui/material";
 import React from "react";
 import "react-quill/dist/quill.snow.css";
 

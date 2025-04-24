@@ -51,4 +51,14 @@ class PayslipsModel extends Model
     {
         return $this->hasMany(PayslipLeavesModel::class, 'payslip_id');
     }
+
+    public function paidLeaves()
+    {
+        return $this->hasMany(PayslipLeavesModel::class, 'payslip_id')->where('is_paid', true);
+    }
+
+    public function unpaidLeaves()
+    {
+        return $this->hasMany(PayslipLeavesModel::class, 'payslip_id')->where('is_paid', false);
+    }
 }

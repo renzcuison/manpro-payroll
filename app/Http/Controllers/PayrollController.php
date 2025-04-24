@@ -804,6 +804,20 @@ class PayrollController extends Controller
                 ];
             }
 
+            foreach ($record->paidLeaves as $paidLeave  ) {
+                $paid_leaves[] = [
+                    'name' => $paidLeave->applicationType->name,
+                    'amount' => $paidLeave->amount,
+                ];
+            }
+
+            foreach ($record->unpaidLeaves as $unpaidLeave  ) {
+                $unpaid_leaves[] = [
+                    'name' => $unpaidLeave->applicationType->name,
+                    'amount' => $unpaidLeave->amount,
+                ];
+            }
+
             $summaries = [
                 ['name' => 'Total Earnings', 'amount' => $record->total_earnings],
                 ['name' => 'Total Deductions', 'amount' => $record->total_deductions],
