@@ -65,11 +65,11 @@ class PayrollController extends Controller
         $numberOfSaturday = 0;
         $numberOfSunday = 0;
         $numberOfHoliday = 0;
+        $numberOfHolidayWeekday = 0;
 
         // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
-
-        log::info($holidays);
+        $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
+        // $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
 
         $currentDate = $startDate->copy();
 
@@ -102,6 +102,8 @@ class PayrollController extends Controller
 
     public function getNagerHolidays($startYear, $endYear)
     {
+        // log::info("PayrollController::getNagerHolidays");
+
         $holidays = [];
         $countryCode = 'PH';
 
@@ -121,6 +123,44 @@ class PayrollController extends Controller
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
                         $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                    }
+                } else {
+                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
+                }
+            } else {
+                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+                Log::error($response->body());
+            }
+        }
+
+        return $holidays;
+    }
+
+    public function getNagerHolidaysWeekdays($startYear, $endYear)
+    {
+        // log::info("PayrollController::getNagerHolidaysWeekdays");
+
+        $holidays = [];
+        $countryCode = 'PH';
+
+        // Fetch holidays for each year in the range
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
+
+            $response = Http::get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Ensure $data is an array before iterating
+                if (is_array($data)) {
+                    foreach ($data as $holiday) {
+                        $holidayDate = Carbon::parse($holiday['date']);
+
+                        // Check if the holiday falls on a weekday (Monday to Friday)
+                        if ($holidayDate->isWeekday()) {
+                            $holidays[] = $holidayDate->format('Y-m-d');
+                        }
                     }
                 } else {
                     Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
@@ -345,15 +385,14 @@ class PayrollController extends Controller
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
 
-        log::info("===========================");
-        log::info("numberOfDays         : " . $numberOfDays);
-        log::info("numberOfSaturday     : " . $numberOfSaturday);
-        log::info("numberOfSunday       : " . $numberOfSunday);
-        log::info("numberOfHoliday      : " . $numberOfHoliday);
-
-        log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
-        log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
-        log::info("===========================");
+        // log::info("===========================");
+        // log::info("numberOfDays         : " . $numberOfDays);
+        // log::info("numberOfSaturday     : " . $numberOfSaturday);
+        // log::info("numberOfSunday       : " . $numberOfSunday);
+        // log::info("numberOfHoliday      : " . $numberOfHoliday);
+        // log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
+        // log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
+        // log::info("===========================");
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -409,7 +448,7 @@ class PayrollController extends Controller
 
         $leaveParams = [
             'employee_id' => $employee->id,
-            'client_id' => $employee->id,
+            'client_id' => $employee->client_id,
             'start' => $start,
             'end' => $end,
             'start_date' => $startDate,
@@ -422,7 +461,7 @@ class PayrollController extends Controller
             'per_hour' => $perHour,
         ];
 
-        $leaveDeductions = $this->getLeaveDeductions($leaveParams);
+        $leaveDeductions = $this->getLeaves($leaveParams);
         $paidLeaves = $leaveDeductions['paid_leaves'];
         $unpaidLeaves = $leaveDeductions['unpaid_leaves'];
         $leaveEarnings = $leaveDeductions['leave_earnings'];
@@ -447,7 +486,7 @@ class PayrollController extends Controller
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
         $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
-        Log::info("Total Overtime: " . $totalOvertime . " minutes");
+        // Log::info("Total Overtime: " . $totalOvertime . " minutes");
 
         if ($employee->is_fixed_salary == 0) {
             $absents = $absents - $leaveEarnings;
@@ -988,9 +1027,9 @@ class PayrollController extends Controller
         }
     }
 
-    public function getLeaveDeductions(array $params)
+    public function getLeaves(array $params)
     {
-        // log::info("Retrieving Leave Deductions");
+        // log::info("PayrollController::getLeaves");
 
         $employeeId = $params['employee_id'];
         $clientId = $params['client_id'];
@@ -1010,7 +1049,6 @@ class PayrollController extends Controller
         $leaveEarnings = 0;
 
         $applicationTypes = ApplicationTypesModel::select('id', 'name', 'client_id', 'percentage', 'is_paid_leave')->where('client_id', $clientId)->get();
-
 
         $applicationIds = $applicationTypes->pluck('id')->all();
         $applications = ApplicationsModel::select('id', 'type_id', 'duration_start', 'duration_end', 'status')
@@ -1033,9 +1071,6 @@ class PayrollController extends Controller
             foreach ($apps as $app) {
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
-                // log::info("================================");
-                // log::info("App Starts     :" . $fromDate);
-                // log::info("App Ends       :" . $toDate);
 
                 $overlapStart = max($fromDate->startOfDay(), $start);
                 $overlapEnd = min($toDate->startOfDay(), $end);
