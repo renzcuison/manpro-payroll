@@ -212,6 +212,7 @@ class PayrollController extends Controller
     public function payrollProcess(Request $request)
     {
         // log::info("PayrollController::payrollProcess");
+        // log::info($request);
 
         $user = Auth::user();
 
@@ -326,7 +327,8 @@ class PayrollController extends Controller
 
     public function payrollDetails(Request $request)
     {
-        // log::info("PayrollController::payrollDetails");
+        log::info("PayrollController::payrollDetails");
+        log::info($request);
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
@@ -995,7 +997,6 @@ class PayrollController extends Controller
         return $totalOvertimeHours;
     }
     
-
     public function storeSignature(Request $request, $id)
     {
         // log::info("PayrollController::storeSignature");
