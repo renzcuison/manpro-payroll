@@ -5,16 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ApplicationsOvertimeModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\AttendanceLogsMobileModel;
-use App\Models\ClientsModel;
 use App\Models\UsersModel;
-use App\Models\WorkDaysModel;
-use App\Models\WorkHoursModel;
-use App\Models\WorkGroupsModel;
-use App\Models\WorkShiftsModel;
-use App\Models\BranchesModel;
-use App\Models\JobTitlesModel;
-use App\Models\DepartmentsModel;
-use App\Models\EmployeeRolesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +53,7 @@ class AttendanceController extends Controller
     public function getAttendanceLogs(Request $request)
     {
         // Log::info("AttendanceController::getAttendanceLogs");
-        Log::info($request);
+        // Log::info($request);
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
@@ -276,7 +267,7 @@ class AttendanceController extends Controller
                 DB::beginTransaction();
                 $newTime = Carbon::parse($request->input('timestamp'));
                 $attendance->timestamp = $newTime;
-                Log::info($attendance->timestamp);
+                //Log::info($attendance->timestamp);
                 $attendance->save();
                 DB::commit();
                 return response()->json(['status' => 200]);
