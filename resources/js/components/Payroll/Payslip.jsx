@@ -292,7 +292,7 @@ const Payslip = ({ selectedPayroll }) => {
                                                 </TableHead>
                                                 <TableBody>
                                                     <TableRow>
-                                                        <TableCell className="text-center bg-light" sx={{ border: "1px solid #ccc" }}> Tax </TableCell>
+                                                        <TableCell className="text-center bg-light" sx={{ width: "50%" }}> Tax </TableCell>
                                                         <TableCell className="text-center bg-light">
                                                             <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(benefit.employeeAmount)} />
                                                         </TableCell>
