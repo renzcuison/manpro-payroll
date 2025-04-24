@@ -152,18 +152,29 @@ const AddAttendanceModal = ({ open, close, employee }) => {
         }
     };
 
+    const formatTimestamp = (timestamp, selectedDate) => {
+        const formattedTS = timestamp ? selectedDate
+            .set("hour", timestamp.hour())
+            .set("minute", timestamp.minute())
+            .set("second", timestamp.second())
+            .format("YYYY-MM-DD HH:mm:ss")
+            : null;
+        return formattedTS;
+    }
+
     const saveInput = (event) => {
         event.preventDefault();
 
         const data = {
             employee: employee.id,
-            first_in: firstTimeIn.format("YYYY-MM-DD HH:mm:ss"),
-            first_out: firstTimeOut.format("YYYY-MM-DD HH:mm:ss"),
-            second_in: secondTimeIn ? secondTimeIn.format("YYYY-MM-DD HH:mm:ss") : null,
-            second_out: secondTimeOut ? secondTimeOut.format("YYYY-MM-DD HH:mm:ss") : null,
-            overtime_in: overtimeIn ? overtimeIn.format("YYYY-MM-DD HH:mm:ss") : null,
-            overtime_out: overtimeOut ? overtimeOut.format("YYYY-MM-DD HH:mm:ss") : null,
-        }
+            date: selectedDate.format("YYYY-MM-DD"),
+            first_in: formatTimestamp(firstTimeIn, selectedDate),
+            first_out: formatTimestamp(firstTimeOut, selectedDate),
+            second_in: formatTimestamp(secondTimeIn, selectedDate),
+            second_out: formatTimestamp(secondTimeOut, selectedDate),
+            overtime_in: formatTimestamp(overtimeIn, selectedDate),
+            overtime_out: formatTimestamp(overtimeOut, selectedDate),
+        };
 
         axiosInstance
             .post("/attendance/recordEmployeeAttendance", data, {

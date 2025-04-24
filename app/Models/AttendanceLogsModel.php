@@ -25,8 +25,6 @@ class AttendanceLogsModel extends Model
         // 'enroll_number',
         // 'enrolled_machine_number',
         // 'verify_mode',
-
-        'deleted_at',
     ];
 
     public function user()
