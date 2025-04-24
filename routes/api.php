@@ -109,6 +109,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
@@ -240,11 +241,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
         Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
-        
+
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
-        
+
 
         // Overtime Applications
         Route::post('/saveOvertimeApplication', [ApplicationsController::class, 'saveOvertimeApplication']);

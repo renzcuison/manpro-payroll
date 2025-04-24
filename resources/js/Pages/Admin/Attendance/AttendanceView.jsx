@@ -88,9 +88,10 @@ const AttendanceView = () => {
     const getEmployeeDetails = () => {
         let data = { username: user };
         setIsLoading(true);
-        axiosInstance.get(`/employee/getEmployeeDetails`, { params: data, headers })
+        axiosInstance.get(`/employee/getEmployeeShortDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {
+                    console.log(response.data.employee);
                     setEmployee(response.data.employee);
                 }
             }).catch((error) => {
@@ -285,7 +286,7 @@ const AttendanceView = () => {
             </Box>
 
             {openAttendanceDetails && (<AttendanceViewDetails open={true} close={handleCloseAttendanceDetails} viewInfo={openAttendanceDetails} employee={employee.id} />)}
-            {openAddAttendance && (<AddAttendanceModal open={true} close={handleCloseAddAttendance} employee={employee.id} />)}
+            {openAddAttendance && (<AddAttendanceModal open={true} close={handleCloseAddAttendance} employee={employee} />)}
         </Layout>
     )
 }

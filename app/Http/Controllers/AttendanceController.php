@@ -223,34 +223,38 @@ class AttendanceController extends Controller
     // Management
     public function recordEmployeeAttendance(Request $request)
     {
-        //log::info("AttendanceController::recordEmployeeAttendance");
+        Log::info("AttendanceController::recordEmployeeAttendance");
+        Log::info($request);
 
         $user = Auth::user();
-        $employee = UsersModel::find($request->input('employee'));
+        $employee = UsersModel::select('client_id')->find($request->input('employee'));
 
-        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
-            try {
-                DB::beginTransaction();
+        // $user = Auth::user();
+        // $employee = UsersModel::find($request->input('employee'));
 
-                AttendanceLogsModel::create([
-                    "user_id" => $employee->id,
-                    "work_hour_id" => $employee->workShift->work_hour_id,
-                    "action" => $request->input('action'),
-                    "timestamp" => $request->input('timestamp'),
-                    "method" => 1,
-                ]);
+        // if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+        //     try {
+        //         DB::beginTransaction();
 
-                DB::commit();
+        //         AttendanceLogsModel::create([
+        //             "user_id" => $employee->id,
+        //             "work_hour_id" => $employee->workShift->work_hour_id,
+        //             "action" => $request->input('action'),
+        //             "timestamp" => $request->input('timestamp'),
+        //             "method" => 1,
+        //         ]);
 
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return response()->json(['status' => 500, 'message' => 'Error recording attendance log'], 500);
-                throw $e;
-            }
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
+        //         DB::commit();
+
+        //         return response()->json(['status' => 200]);
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+        //         return response()->json(['status' => 500, 'message' => 'Error recording attendance log'], 500);
+        //         throw $e;
+        //     }
+        // } else {
+        //     return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        // }
     }
 
     public function editEmployeeAttendance(Request $request)

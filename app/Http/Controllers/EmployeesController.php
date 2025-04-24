@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use stdClass;
 
 class EmployeesController extends Controller
 {
@@ -82,33 +83,33 @@ class EmployeesController extends Controller
         $employee->work_group = "";
         $employee->avatar = null;
         $employee->avatar_mime = null;
-    
+
         // Enrich with actual data
         if ($employee->role_id) {
             $role = EmployeeRolesModel::find($employee->role_id);
             $employee->role = $role ? $role->name . " (" . $role->acronym . ")" : "";
         }
-    
+
         if ($employee->branch_id) {
             $branch = BranchesModel::find($employee->branch_id);
             $employee->branch = $branch ? $branch->name . " (" . $branch->acronym . ")" : "";
         }
-    
+
         if ($employee->job_title_id) {
             $jobTitle = JobTitlesModel::find($employee->job_title_id);
             $employee->jobTitle = $jobTitle ? $jobTitle->name . " (" . $jobTitle->acronym . ")" : "";
         }
-    
+
         if ($employee->department_id) {
             $department = DepartmentsModel::find($employee->department_id);
             $employee->department = $department ? $department->name . " (" . $department->acronym . ")" : "";
         }
-    
+
         if ($employee->work_group_id) {
             $work_group = WorkGroupsModel::find($employee->work_group_id);
             $employee->work_group = $work_group ? $work_group->name : "";
         }
-    
+
         if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
             $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
             $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
@@ -116,7 +117,7 @@ class EmployeesController extends Controller
             $employee->avatar = null;
             $employee->avatar_mime = null;
         }
-    
+
         unset(
             // $employee->id,
             $employee->verify_code,
@@ -129,9 +130,9 @@ class EmployeesController extends Controller
             // $employee->job_title_id,
             // $employee->work_group_id
         );
-        
+
         return $employee;
-    }    
+    }
 
     public function getEmployees()
     {
@@ -144,7 +145,7 @@ class EmployeesController extends Controller
 
             $enrichedEmployees = $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
-    
+
                 unset(
                     // $employee->id,
                     $employee->verify_code,
@@ -157,7 +158,7 @@ class EmployeesController extends Controller
                     // $employee->job_title_id,
                     // $employee->work_group_id
                 );
-    
+
                 return $employee;
             });
 
@@ -176,7 +177,7 @@ class EmployeesController extends Controller
             $client = ClientsModel::find($user->client_id);
             $employees = [];
 
-            foreach ( $client->employees as $employee ) {
+            foreach ($client->employees as $employee) {
                 $employees[] = [
                     'user_name' => $employee->user_name,
                     'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
@@ -318,23 +319,48 @@ class EmployeesController extends Controller
             'username' => 'required|string'
         ]);
 
-        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated ) {
+        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
             $user = Auth::user();
             $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
 
             $latestLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
 
             $employee = $this->enrichEmployeeDetails($employee);
- 
+
             $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
             $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;
             $employee->total_payroll = PayslipsModel::where('employee_id', $employee->id)->count();
             $employee->total_attendance = AttendanceLogsModel::where('user_id', $employee->id)->latest('created_at')->count();
             $employee->total_applications = ApplicationsModel::where('client_id', $employee->id)->where('status', 'Approved')->count();
-    
+
             return response()->json(['status' => 200, 'employee' => $employee]);
         }
-    }    
+    }
+
+    public function getEmployeeShortDetails(Request $request)
+    {
+        // log::info("EmployeesController::getEmployeeShortDetails");
+        $validated = $request->validate([
+            'username' => 'required|string'
+        ]);
+        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
+            $user = Auth::user();
+            $employee = UsersModel::with('workShift')->where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+
+            $employeeData = new stdClass();
+
+            $employeeData->id = $employee->id;
+            $employeeData->first_name = $employee->first_name ?? '';
+            $employeeData->middle_name = $employee->middle_name ?? '';
+            $employeeData->last_name = $employee->last_name ?? '';
+            $employeeData->suffix = $employee->suffix ?? '';
+
+            $workShift = $employee->workShift;
+            $employeeData->shift_type = $workShift->shift_type;
+
+            return response()->json(['status' => 200, 'employee' => $employeeData]);
+        }
+    }
 
     public function getMyDetails(Request $request)
     {
@@ -471,7 +497,7 @@ class EmployeesController extends Controller
 
                 $existingLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
 
-                if ( $existingLoanLimit && ($existingLoanLimit->new_limit != $request->creditLimit) ) {
+                if ($existingLoanLimit && ($existingLoanLimit->new_limit != $request->creditLimit)) {
                     LoanLimitHistoryModel::create([
                         "employee_id" => $employee->id,
                         "old_limit" => $existingLoanLimit->new_limit,
@@ -480,7 +506,7 @@ class EmployeesController extends Controller
                     ]);
                 }
 
-                if ( !$existingLoanLimit && $request->creditLimit != 0) {
+                if (!$existingLoanLimit && $request->creditLimit != 0) {
                     LoanLimitHistoryModel::create([
                         "employee_id" => $employee->id,
                         "old_limit" => 0,
