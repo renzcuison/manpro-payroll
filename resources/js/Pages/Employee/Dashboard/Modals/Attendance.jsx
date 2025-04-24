@@ -435,9 +435,9 @@ const Attendance = ({ open, close }) => {
                                     })()
                                 ) : (
                                     <Grid size={12}>
-                                        <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                        <Box sx={{ pt: 1, width: "100%", textAlign: "center", }} >
                                             <Typography>
-                                                The Day Has Ended
+                                                {firstNightShift ? `Time In Period for Next Shift Opens at ${dayjs(`2023-01-01 ${workHour.first_time_in}`).subtract(2, 'hour').format('hh:mm:ss A')}` : "The Day Has Ended"}
                                             </Typography>
                                         </Box>
                                     </Grid>
@@ -586,10 +586,10 @@ const Attendance = ({ open, close }) => {
                                         {workShift ? workShift.first_label : "Shift"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.first_time_in ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.first_time_out ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                 </TableRow>
                                 {workShift?.shift_type == "Split" ? (
@@ -598,10 +598,10 @@ const Attendance = ({ open, close }) => {
                                             {workShift ? workShift.second_label : "Second Shift"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.second_time_in ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.second_time_out ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -610,22 +610,22 @@ const Attendance = ({ open, close }) => {
                                             Break
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.break_start ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.break_end ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 <TableRow>
                                     <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
-                                        Overtime In
+                                        Overtime
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.over_time_in ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.over_time_out ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
