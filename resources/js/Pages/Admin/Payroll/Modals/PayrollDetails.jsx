@@ -9,7 +9,7 @@ import HomeLogo from "../../../../../images/ManPro.png";
 import PayrollBreakdown from "../Components/PayrollBreakdown";
 import PayrollInformation from "../Components/PayrollInformation";
 
-const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, currentEndDate, }) => {
+const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, currentEndDate, cutOff}) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -34,6 +34,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
             selectedPayroll: selectedPayroll,
             currentStartDate: currentStartDate,
             currentEndDate: currentEndDate,
+            cutOff: cutOff,
         };
 
         axiosInstance.get(`/payroll/payrollDetails`, { params: data, headers })

@@ -273,6 +273,7 @@ const PayrollProcess = () => {
                         selectedPayroll={selectedPayroll}
                         currentStartDate={formattedStartDate}
                         currentEndDate={formattedEndDate}
+                        cutOff={cutOff}
                     />
                 }
 
