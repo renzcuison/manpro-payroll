@@ -335,7 +335,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                     {/* Primary Details */}
                     <Grid container size={{ xs: 12 }} spacing={2}>
                         {/* Availability */}
-                        <Grid size={{ xs: 6 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <InfoBox
                                 title={formInfo.require_pass ? 'Availability' : 'Attempt Limit'}
                                 info={
@@ -346,35 +346,35 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             />
                         </Grid>
                         {/* Duration */}
-                        <Grid size={{ xs: 6 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <InfoBox
                                 title="Attempt Duration"
                                 info={`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
                             />
                         </Grid>
                         {/* Item Count */}
-                        <Grid size={{ xs: 3 }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                             <InfoBox
                                 title="Item Count"
                                 info={formItems.length}
                             />
                         </Grid>
                         {/* Total Points */}
-                        <Grid size={{ xs: 3 }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                             <InfoBox
                                 title="Total Points"
                                 info={totalPoints}
                             />
                         </Grid>
                         {/* Passing Score */}
-                        <Grid size={{ xs: 3 }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                             <InfoBox
                                 title="Passing Score"
                                 info={`${formInfo.passing_score}%`}
                             />
                         </Grid>
                         {/* Button */}
-                        <Grid size={{ xs: 3 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Grid size={{ xs: 12, md: 3 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -667,7 +667,13 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                 </Typography>
                             ) : (
                                 <>
-                                    <Typography sx={{ color: "text.secondary" }}>
+                                    <Typography sx={{
+                                        color: "text.secondary",
+                                        whiteSpace: "normal",
+                                        wordBreak: "break-word",
+                                        overflowWrap: "break-word",
+                                        lineHeight: 1.5,
+                                    }}>
                                         {formInfo.require_pass ? "The timer will start counting down once the attempt starts"
                                             : "An attempt will be used, and the timer will start counting down once the attempt starts."}
                                     </Typography>
@@ -702,28 +708,28 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     {/* Attempt Count */}
-                    <Grid size={{ xs: 3 }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
                         <InfoBox
                             title="Attempt No."
                             info={`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                         />
                     </Grid>
                     {/* Item Count */}
-                    <Grid size={{ xs: 3 }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
                         <InfoBox
                             title='No. of Items'
                             info={formItems.length}
                         />
                     </Grid>
                     {/* Passing Score*/}
-                    <Grid size={{ xs: 3 }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
                         <InfoBox
                             title='Passing Score'
                             info={`${formInfo.passing_score}%`}
                         />
                     </Grid>
                     {/* Timer */}
-                    <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
+                    <Grid size={{ xs: 12, md: 3 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
                         <Box
                             display="flex"
                             sx={{
@@ -1136,7 +1142,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             { title: "Partial", info: reviewData.partial_items },
                                             { title: "Missed", info: reviewData.incorrect_items },
                                         ].map((item, index) => (
-                                            <Grid key={index} size={{ xs: 6 }}>
+                                            <Grid key={index} size={{ xs: 12, md: 6 }}>
                                                 <InfoBox title={item.title} info={item.info} clean />
                                             </Grid>
                                         ))}

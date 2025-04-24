@@ -399,7 +399,7 @@ const ContentView = () => {
                         </Link>
                     </Box>
 
-                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "hidden" }} >
+                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "auto" }} >
                         <>
                             {/* Content List */}
                             {(contentListOn && medScreen) && (

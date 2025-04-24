@@ -49,7 +49,7 @@ const Dashboard = () => {
 
         return () => {
             if (chartRef.current) {
-              chartRef.current.destroy();
+                chartRef.current.destroy();
             }
         };
     }, []);
@@ -104,17 +104,17 @@ const Dashboard = () => {
         labels: ['Present', 'Absent', 'On Leave'],
         datasets: [
             {
-                data: [ presentCount, headCount ? headCount - presentCount - onLeaveCount : 0, onLeaveCount ],
+                data: [presentCount, headCount ? headCount - presentCount - onLeaveCount : 0, onLeaveCount],
                 backgroundColor: ['#177604', '#E9AB13', '#1E90FF'],
                 hoverBackgroundColor: ['#1A8F07', '#F0B63D', '#56A9FF'],
             },
         ],
     };
-    
+
     const attendancePieOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true }}},
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
     };
 
     // Branch Bar Chart
@@ -158,7 +158,7 @@ const Dashboard = () => {
         width: 500,
         height: 500,
         plugins: {
-            legend: { position: 'right', labels: { fontColor: 'black' }}
+            legend: { position: 'right', labels: { fontColor: 'black' } }
         },
     };
 
@@ -380,28 +380,53 @@ const Dashboard = () => {
                                     ) : (
                                         <TableBody>
                                             {paginatedAttendance.length > 0 ? (
-                                                paginatedAttendance.map((attend, index) => (
-                                                    <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' }}}>
-                                                        <TableCell align="left">
-                                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
-                                                            </Box>
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
+                                                paginatedAttendance.map((attend, index) => {
+
+                                                    const isRegular = attend.shift_type == "Regular";
+                                                    const currentTime = dayjs();
+                                                    const currentDate = currentTime.format('YYYY-MM-DD');
+
+                                                    const firstIn = attend.first_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-";
+                                                    const firstOut = attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-";
+
+                                                    const secondIn = attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-";
+                                                    const secondOut = attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : attend.second_time_in ? "Ongoing" : "-";
+
+                                                    const breakStart = attend.break_start ? dayjs(`${currentDate} ${attend.break_start}`) : null;
+                                                    const breakEnd = attend.break_end ? dayjs(`${currentDate} ${attend.break_end}`) : null;
+
+                                                    return (
+                                                        <TableRow key={index} sx={{ color: attend.is_late ? "error.main" : "inherit", '& td': { color: attend.is_late ? 'error.main' : 'inherit' } }}>
+                                                            <TableCell align="left">
+                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                    <Avatar alt={`${attend.first_name}_Avatar`} src={renderProfile(attend.id)} sx={{ mr: 1, height: "36px", width: "36px" }} />
+                                                                    {attend.first_name} {attend.middle_name || ''} {attend.last_name} {attend.suffix || ''}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {firstIn}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {isRegular
+                                                                    ? currentTime.isBefore(breakStart) ? attend.first_time_in ? "Ongoing" : "-" : breakStart.add(1, 'm').format('hh:mm:ss A')
+                                                                    : firstOut
+                                                                }
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {isRegular
+                                                                    ? currentTime.isAfter(breakEnd) ? breakEnd.subtract(1, 'm').format('hh:mm:ss A') : "-"
+                                                                    : secondIn
+                                                                }
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {isRegular
+                                                                    ? currentTime.isAfter(breakEnd) ? firstOut : "Ongoing"
+                                                                    : secondOut
+                                                                }
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
