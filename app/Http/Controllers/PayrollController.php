@@ -446,8 +446,10 @@ class PayrollController extends Controller
         // log::info("Returned Tax: " . $tax);
 
         $tardinessTime = $this->getTardiness($startDate, $endDate, $employee->id);
+        $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
+        Log::info("Total Overtime: " . $totalOvertime . " minutes");
 
-        if ( $employee->is_fixed_salary == 0 ) {
+        if ($employee->is_fixed_salary == 0) {
             $absents = $absents - $leaveEarnings;
             $tardiness = $perMin * $tardinessTime;
         } else {
@@ -865,6 +867,68 @@ class PayrollController extends Controller
             ->values();
 
         return $logs->sum('late_time');
+    }
+
+    public function getAttendanceOvertime($start_date, $end_date, $employeeId)
+    {
+        // Log::info("AttendanceController::getAttendanceOvertime");
+
+        $user = Auth::user();
+        $totalOvertimeMinutes = 0;
+
+        $logs = AttendanceLogsModel::with('workHour')
+            ->where('user_id', $employeeId)
+            ->whereIn('action', ['Overtime In', 'Overtime Out'])
+            ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->orderBy('timestamp')
+            ->get();
+
+        // Group logs by date
+        $groupedLogs = $logs->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'));
+
+        // Process each day's logs
+        foreach ($groupedLogs as $date => $dailyLogs) {
+            $in = null;
+            $out = null;
+
+            // Find the first Overtime In and Overtime Out for the day
+            foreach ($dailyLogs as $log) {
+                if ($log->action === 'Overtime In' && !$in) {
+                    $in = $log;
+                } elseif ($log->action === 'Overtime Out' && !$out) {
+                    $out = $log;
+                }
+            }
+
+            // Process if both In and Out are found
+            if ($in && $out && $in->workHour && $out->workHour) {
+                $timeIn = Carbon::parse($in->timestamp);
+                $timeOut = Carbon::parse($out->timestamp);
+
+                // Get overtime boundaries from workHour
+                $overtimeStart = Carbon::parse($in->workHour->over_time_in)
+                    ->setDate($timeIn->year, $timeIn->month, $timeIn->day);
+                $overtimeEnd = Carbon::parse($out->workHour->over_time_out)
+                    ->setDate($timeOut->year, $timeOut->month, $timeOut->day);
+
+                // Normalize all times to the same date for comparison
+                $today = Carbon::today();
+                $fixedTimeIn = $timeIn->setDate($today->year, $today->month, $today->day);
+                $fixedTimeOut = $timeOut->setDate($today->year, $today->month, $today->day);
+                $fixedOvertimeStart = $overtimeStart->setDate($today->year, $today->month, $today->day);
+                $fixedOvertimeEnd = $overtimeEnd->setDate($today->year, $today->month, $today->day);
+
+                // Calculate minutes within overtime boundaries
+                if ($fixedTimeIn->format('H:i:s') < $fixedOvertimeEnd->format('H:i:s') && $fixedTimeOut->format('H:i:s') > $fixedOvertimeStart->format('H:i:s')) {
+                    $renderedStart = max($fixedTimeIn, $fixedOvertimeStart);
+                    $renderedEnd = min($fixedTimeOut, $fixedOvertimeEnd);
+                    $minutes = $renderedEnd->diffInMinutes($renderedStart);
+                    $totalOvertimeMinutes += max($minutes, 0);
+                }
+            }
+        }
+
+        return $totalOvertimeMinutes;
     }
 
     public function storeSignature(Request $request, $id)
