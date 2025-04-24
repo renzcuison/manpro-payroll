@@ -101,8 +101,8 @@ const AttendanceSummary = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                            <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
-                                <Grid item xs={6}>
+                            <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2}>
+                                <Grid xs={6}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <FormControl fullWidth>
                                             <TextField
@@ -145,7 +145,7 @@ const AttendanceSummary = () => {
                                         </FormControl>
                                     </LocalizationProvider>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid xs={6}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="Year"
@@ -167,9 +167,9 @@ const AttendanceSummary = () => {
                                     </LocalizationProvider>
                                 </Grid>
                             </Grid>
-                            <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                            <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
+                                <Grid xs={6}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
@@ -181,8 +181,8 @@ const AttendanceSummary = () => {
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                <Table aria-label="simple table">
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400, maxHeight: 500 }}>
+                                <Table stickyHeader aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
                                             <TableCell align="center">Name</TableCell>
@@ -192,12 +192,13 @@ const AttendanceSummary = () => {
                                             <TableCell align="center">Hours</TableCell>
                                             <TableCell align="center">Tardiness</TableCell>
                                             <TableCell align="center">Absences</TableCell>
+                                            <TableCell align="center">Overtime</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} align="center">
+                                                <TableCell colSpan={8} align="center">
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
@@ -222,6 +223,7 @@ const AttendanceSummary = () => {
                                                     <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
                                                     <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
                                                     <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
+                                                    <TableCell align="center">{formatTime(attendance.total_overtime)}</TableCell>
                                                 </TableRow>
                                             ))
                                         )}

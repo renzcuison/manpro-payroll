@@ -74,8 +74,8 @@ const AttendanceSummary = () => {
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer>
-                                    <Table aria-label="attendance summary table">
+                                <TableContainer sx={{ minHeight: 400, maxHeight: 500 }}>
+                                    <Table stickyHeader aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="left">Date</TableCell>

@@ -236,10 +236,10 @@ const AttendanceToday = () => {
                                                                     {attend.first_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : attend.first_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.first_time_in).format("hh:mm:ss A") : "-"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.first_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : attend.second_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
@@ -305,7 +305,7 @@ const AttendanceToday = () => {
                                                                     {attend.shift_type == "Regular" ? "-" : attend.second_time_in ? dayjs(attend.second_time_in).format("hh:mm:ss A") : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
-                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : "Ongoing"}
+                                                                    {attend.shift_type == "Regular" ? "-" : attend.second_time_out ? dayjs(attend.second_time_out).format("hh:mm:ss A") : attend.second_time_in ? "Ongoing" : "-"}
                                                                 </TableCell>
                                                                 <TableCell align="center">
                                                                     {attend.late_by !== undefined ? formatLateTime(attend.late_by) : "-"}
@@ -314,7 +314,7 @@ const AttendanceToday = () => {
                                                         ))
                                                     ) : (
                                                         <TableRow>
-                                                            <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
+                                                            <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }}> No Late Employees Found </TableCell>
                                                         </TableRow>
                                                     )}
                                                 </TableBody>

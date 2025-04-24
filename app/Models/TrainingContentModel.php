@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TrainingContentModel extends Model
+class TrainingContentModel extends Model implements HasMedia
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $table = 'training_content';
 
@@ -21,18 +22,20 @@ class TrainingContentModel extends Model
         'title',
         'description',
         'duration',
-        'training_media_id',
+        'source',
         'training_form_id'
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('documents')->singleFile();
+        $this->addMediaCollection('powerpoints')->singleFile();
+        $this->addMediaCollection('images')->singleFile();
+    }
 
     public function training()
     {
         return $this->belongsTo(TrainingsModel::class, 'training_id');
-    }
-
-    public function media()
-    {
-        return $this->belongsTo(TrainingMediaModel::class, 'training_media_id');
     }
 
     public function form()

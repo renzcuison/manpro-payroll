@@ -20,36 +20,29 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
+const EditAttendanceModal = ({ open, close, date, attendanceInfo }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [selectedAction, setSelectedAction] = useState("");
-    const [timestamp, setTimestamp] = useState(fixedDate ? dayjs(fixedDate) : dayjs());
-
-    const [selectedActionError, setSelectedActionError] = useState(false);
+    const [timestamp, setTimestamp] = useState(dayjs(attendanceInfo.timestamp));
     const [timestampError, setTimestampError] = useState(false);
+
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!selectedAction) {
-            setSelectedActionError(true);
-        } else {
-            setSelectedActionError(false);
-        }
         if (!timestamp) {
             setTimestampError(true);
         } else {
             setTimestampError(false);
         }
 
-        if (!selectedAction || !timestamp) {
+        if (!timestamp) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
-                text: "All fields must be filled!",
+                text: "Enter a valid timestamp!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
@@ -59,10 +52,10 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "Do you want to record this attendance?",
+                text: "Do you want to edit this attendance?",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Save",
+                confirmButtonText: "Update",
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
@@ -79,16 +72,14 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
 
 
         const data = {
-            employee: employee,
-            action: selectedAction,
+            attendance_id: attendanceInfo.id,
             timestamp: timestamp.format("YYYY-MM-DD HH:mm:ss")
         }
 
         console.log(data);
 
-
         axiosInstance
-            .post("/attendance/recordEmployeeAttendance", data, {
+            .post("/attendance/editEmployeeAttendance", data, {
                 headers,
             })
             .then((response) => {
@@ -98,7 +89,7 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
                     Swal.fire({
                         customClass: { container: "my-swal" },
                         title: "Success!",
-                        text: `Attendance successfully recorded`,
+                        text: `Attendance successfully updated`,
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: "Okay",
@@ -125,7 +116,7 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: 1, backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', maxWidth: '600px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 3, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 2, fontWeight: 'bold' }}> Add Attendance </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 2, fontWeight: 'bold' }}> Edit Attendance </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -142,43 +133,32 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
                             }}>
                                 <TextField
                                     required
-                                    select
                                     id="attendance-type"
                                     label="Attendance Type"
-                                    value={selectedAction}
-                                    error={selectedActionError}
-                                    onChange={(event) =>
-                                        setSelectedAction(event.target.value)
-                                    }
-                                >
-                                    <MenuItem value="Duty In">
-                                        Time In
-                                    </MenuItem>
-                                    <MenuItem value="Duty Out">
-                                        Time Out
-                                    </MenuItem>
-                                    <MenuItem value="Overtime In">
-                                        Overtime In
-                                    </MenuItem>
-                                    <MenuItem value="Overtime Out">
-                                        Overtime Out
-                                    </MenuItem>
-                                </TextField>
+                                    value={attendanceInfo.action}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                />
                             </FormControl>
                             <FormControl>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
                                     <DateTimePicker
                                         label="Time"
                                         value={timestamp}
                                         error={timestampError}
                                         views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
                                         timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
+                                        minDate={date}
+                                        maxDate={date}
                                         onChange={(newValue) => {
                                             setTimestamp(newValue);
                                         }}
-                                        minDate={fixedDate ? dayjs(fixedDate).startOf('day') : undefined}
-                                        maxDate={fixedDate ? dayjs(fixedDate).endOf('day') : undefined}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        renderInput={(params) => (
+                                            <TextField required {...params} />
+                                        )}
                                     />
                                 </LocalizationProvider>
                             </FormControl>
@@ -197,4 +177,4 @@ const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
     )
 }
 
-export default AddAttendanceModal;
+export default EditAttendanceModal;

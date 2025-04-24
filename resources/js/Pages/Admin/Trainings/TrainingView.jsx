@@ -129,6 +129,12 @@ const TrainingView = () => {
     const getTrainingContent = () => {
         axiosInstance.get(`/trainings/getTrainingContent/${code}`, { headers })
             .then((response) => {
+                Object.values(blobMap).forEach((url) => {
+                    if (url.startsWith('blob:')) {
+                        URL.revokeObjectURL(url);
+                    }
+                });
+                setBlobMap({});
                 setContent(response.data.content || []);
             })
             .catch((error) => {
@@ -831,6 +837,7 @@ const TrainingView = () => {
                     trainingCode={training.unique_code}
                     contentInfo={content}
                     contentOrder={inOrder}
+                    blobs={blobMap}
                 />
             )}
         </Layout>

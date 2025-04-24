@@ -179,7 +179,7 @@ const Dashboard = () => {
         const userIds = attendanceData.map((attend) => attend.id);
         if (userIds.length === 0) return;
 
-        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_ids: userIds }, { headers })
+        axiosInstance.post(`adminDashboard/getEmployeeAvatars`, { user_list: userIds, type: 1 }, { headers })
             .then((avatarResponse) => {
                 const avatars = avatarResponse.data.avatars || {};
                 setBlobMap((prev) => {
