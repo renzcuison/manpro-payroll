@@ -223,8 +223,8 @@ class AttendanceController extends Controller
     // Management
     public function recordEmployeeAttendance(Request $request)
     {
-        Log::info("AttendanceController::recordEmployeeAttendance");
-        Log::info($request);
+        // Log::info("AttendanceController::recordEmployeeAttendance");
+        // Log::info($request);
 
         $user = Auth::user();
         $empId = $request->input('employee');
@@ -279,8 +279,8 @@ class AttendanceController extends Controller
 
     public function editEmployeeAttendance(Request $request)
     {
-        // Log::info("AttendanceController::editEmployeeAttendance");
-        // Log::info($request);
+        //Log::info("AttendanceController::editEmployeeAttendance");
+        //Log::info($request);
 
         $user = Auth::user();
         $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
@@ -289,49 +289,55 @@ class AttendanceController extends Controller
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
             try {
                 DB::beginTransaction();
+
+                $newType = $request->input('new_type');
                 $newTime = Carbon::parse($request->input('timestamp'));
+
+                $attendance->action = $newType;
                 $attendance->timestamp = $newTime;
-                //Log::info($attendance->timestamp);
                 $attendance->save();
+
                 DB::commit();
+
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
+                Log::error('Error updating attendance', ['error' => $e->getMessage()]);
                 return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
                 throw $e;
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+    }
 
-        // $validated = $request->validate(['action' => 'required']);
+    public function deleteEmployeeAttendance(Request $request)
+    {
+        Log::info("AttendanceController::deleteEmployeeAttendance");
+        Log::info($request);
 
-        // $user = Auth::user();
+        $user = Auth::user();
+        $attendance = AttendanceLogsModel::with('user')->find($request->input('log_id'));
+        $employee = $attendance->user;
 
-        // if ($this->checkUserAdmin() && $validated) {
-        //     $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
-        //     try {
-        //         DB::beginTransaction();
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
 
-        //         AttendanceLogsModel::create([
-        //             "user_id" => $employee->id,
-        //             "work_hour_id" => $employee->workShift->work_hour_id,
-        //             "action" => $request->input('action'),
-        //             "timestamp" => $request->input('timestamp'),
-        //             "method" => 1,
-        //         ]);
+                $attendance->delete();
 
-        //         DB::commit();
+                DB::commit();
 
-        //         return response()->json(['status' => 200]);
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
-
-        //         //Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error deleting attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Error deleting attendance log'], 500);
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
     }
 
     // Summaries
