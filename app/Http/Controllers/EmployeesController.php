@@ -87,22 +87,22 @@ class EmployeesController extends Controller
         // Enrich with actual data
         if ($employee->role_id) {
             $role = EmployeeRolesModel::find($employee->role_id);
-            $employee->role = $role ? $role->name . " (" . $role->acronym . ")" : "";
+            $employee->role = $role ? $role->name  : "";
         }
 
         if ($employee->branch_id) {
             $branch = BranchesModel::find($employee->branch_id);
-            $employee->branch = $branch ? $branch->name . " (" . $branch->acronym . ")" : "";
+            $employee->branch = $branch ? $branch->name  : "";
         }
 
         if ($employee->job_title_id) {
             $jobTitle = JobTitlesModel::find($employee->job_title_id);
-            $employee->jobTitle = $jobTitle ? $jobTitle->name . " (" . $jobTitle->acronym . ")" : "";
+            $employee->jobTitle = $jobTitle ? $jobTitle->name  : "";
         }
 
         if ($employee->department_id) {
             $department = DepartmentsModel::find($employee->department_id);
-            $employee->department = $department ? $department->name . " (" . $department->acronym . ")" : "";
+            $employee->department = $department ? $department->name : "";
         }
 
         if ($employee->work_group_id) {
