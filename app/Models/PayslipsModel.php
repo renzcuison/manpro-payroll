@@ -18,6 +18,7 @@ class PayslipsModel extends Model
 
         'period_start',
         'period_end',
+        'cut_off',
         'working_days',
 
         'total_earnings',

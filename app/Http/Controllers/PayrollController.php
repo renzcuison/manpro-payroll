@@ -332,6 +332,7 @@ class PayrollController extends Controller
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
+        $cutOff = $request->cutOff;
 
         $employee = UsersModel::with('workHours')->find($request->selectedPayroll);
         $employeeBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->get();
@@ -342,17 +343,19 @@ class PayrollController extends Controller
 
         $benefits = [];
 
+        // ============== BENEFITS ==============
         foreach ($employeeBenefits as $employeeBenefit) {
-
-            // ============== BENEFITS ==============
             $benefit = $employeeBenefit->benefit;
 
-            if ($benefit->type == "Percentage") {
+            $employeeAmount = 0;
+            $employerAmount = 0;
+
+            if ( $cutOff == "First" && $benefit->type == "Percentage") {
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
             }
 
-            if ($benefit->type == "Amount") {
+            if ( $cutOff == "First" && $benefit->type == "Amount") {
                 $employeeAmount = $benefit->employee_amount * 1;
                 $employerAmount = $benefit->employer_amount * 1;
             }
@@ -507,6 +510,7 @@ class PayrollController extends Controller
             'employeeId' => $employee->user_name,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'cutOff' => $cutOff,
             'numberOfPresent' => $numberOfPresent,
             'numberOfAbsentDays' => $numberOfAbsentDays,
             'numberOfWorkingDays' => $numberOfWorkingDays,
@@ -553,7 +557,7 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        $payrollRequest = new Request(['selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate]);
+        $payrollRequest = new Request(['selectedPayroll' => $request->selectedPayroll, 'currentStartDate' => $request->currentStartDate, 'currentEndDate' => $request->currentEndDate, 'cutOff' => $request->cutOff]);
 
         // Call payrollDetails() and get response
         $payrollResponse = $this->payrollDetails($payrollRequest);
@@ -588,6 +592,7 @@ class PayrollController extends Controller
                 "employee_id" => $request->selectedPayroll,
                 "period_start" => $request->currentStartDate,
                 "period_end" => $request->currentEndDate,
+                "cut_off" => $request->cutOff,
                 "working_days" => $payroll['numberOfWorkingDays'],
 
                 "total_earnings" => $totalEarning,

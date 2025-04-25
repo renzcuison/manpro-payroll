@@ -97,6 +97,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
             selectedPayroll: selectedPayroll,
             currentStartDate: currentStartDate,
             currentEndDate: currentEndDate,
+            cutOff: cutOff,
         };
 
         axiosInstance.post("/payroll/savePayroll", data, { headers })
