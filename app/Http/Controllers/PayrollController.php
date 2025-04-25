@@ -881,6 +881,85 @@ class PayrollController extends Controller
         }
     }
 
+    public function getPayrollSummary()
+    {
+        // log::info("PayrollController::getPayrollSummary");
+
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+
+            $rawRecords = PayslipsModel::where('client_id', $user->client_id)->get();
+
+            $records = [];
+
+            foreach ($rawRecords as $rawRecord) {
+                $employee = UsersModel::find($rawRecord->employee_id);
+                $overTime = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 2)->first();
+                $absences = PayslipDeductionsModel::where('payslip_id', $rawRecord->id)->where('deduction_id', 1)->first();
+                $tardiness = PayslipDeductionsModel::where('payslip_id', $rawRecord->id)->where('deduction_id', 2)->first();
+
+                $hourlyRate = $rawRecord->rate_hourly;
+                $dailyRate = $rawRecord->rate_daily;
+                $overTimeRate = $hourlyRate * 1.25;
+
+                $paidLeaveDays = 0;
+                $paidLeaveAmount = 0;
+                $totalAllowance = 0;
+
+                foreach ( $rawRecord->paidLeaves as $padiLeave ) {
+                    $amount = $padiLeave->amount;
+
+                    $percentage = $padiLeave->applicationType->percentage / 100;
+                    $dailyRateOT = $dailyRate * $percentage;
+
+                    $days = $amount / $dailyRateOT;
+                    
+                    $paidLeaveDays = $paidLeaveDays + $days;
+                    $paidLeaveAmount = $paidLeaveAmount + $amount;
+                }
+
+                foreach ( $rawRecord->allowances as $allowance ) {
+                    $totalAllowance = $totalAllowance + $allowance->amount;
+                }
+
+                $records[] = [
+                    'record' => encrypt($rawRecord->id),
+                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    
+                    // Monthly Base
+                    'monthlyBaseHours' => $rawRecord->working_days * 8,
+                    'monthlyBasePay' => $rawRecord->rate_monthly / 2,
+
+                    // Overtime
+                    'overTimeHours' => round($overTime->amount / $overTimeRate),
+                    'overTimePay' => $overTime->amount,
+
+                    // Paid Leave
+                    'paidLeaveDays' => $paidLeaveDays,
+                    'paidLeaveAmount' => $paidLeaveAmount,
+
+                    // Allowance
+                    'totalAllowance' => $totalAllowance,
+
+                    'absences' => $absences->amount,
+                    'tardiness' => $tardiness->amount,
+
+                    'payrollStartDate' => $rawRecord->period_start,
+                    'payrollEndDate' => $rawRecord->period_end,
+                    'payrollCutOff' => $rawRecord->cut_off,
+                    'payrollWorkingDays' => $rawRecord->working_days,
+                    'payrollGrossPay' => $rawRecord->total_earnings,
+                    'payrollNetPay' => $rawRecord->total_earnings + $rawRecord->total_deductions,
+                ];
+            }
+
+
+            return response()->json(['status' => 200, 'records' => $records]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
+
     public function getTardiness($start_date, $end_date, $employeeId)
     {
         // log::info("Retrieving Tardiness");

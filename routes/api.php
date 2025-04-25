@@ -184,6 +184,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
 
         Route::get('/getPayrollRecord', [PayrollController::class, 'getPayrollRecord']);
+        Route::get('/getPayrollSummary', [PayrollController::class, 'getPayrollSummary']);
         Route::get('/getEmployeePayrollRecords', [PayrollController::class, 'getEmployeePayrollRecords']);
         Route::get('/getEmployeesPayrollRecords', [PayrollController::class, 'getEmployeesPayrollRecords']);
 

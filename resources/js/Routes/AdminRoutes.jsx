@@ -48,6 +48,7 @@ import WorkGroupView from "../Pages/Admin/WorkGroups/WorkGroupView";
 
 import PayrollProcess from "../Pages/Admin/Payroll/PayrollProcess";
 import PayrollRecords from "../Pages/Admin/Payroll/PayrollRecords";
+import PayrollSummary from "../Pages/Admin/Payroll/PayrollSummary";
 
 import LoanList from "../Pages/Admin/Loans/LoanList";
 
@@ -112,6 +113,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="payroll/process" element={<ProtectedRoute element={<PayrollProcess />} user={user} />} />
             <Route path="payroll/records" element={<ProtectedRoute element={<PayrollRecords />} user={user} />} />
+            <Route path="payroll/summary" element={<ProtectedRoute element={<PayrollSummary />} user={user} />} />
 
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
         </Routes>
