@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payslips', function (Blueprint $table) {
-            $table->enum('cutoff', ['First', 'Second'])->after('period_end')->nullable();
+            $table->enum('cut_off', ['First', 'Second'])->after('period_end')->nullable();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('payslips', function (Blueprint $table) {
-            $table->dropColumn('cutoff');
+            $table->dropColumn('cut_off');
         });
     }
 };

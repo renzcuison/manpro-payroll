@@ -95,7 +95,7 @@ const PayrollRecords = () => {
                                                     <TableCell align="center">{record.employeeDepartment}</TableCell>
                                                     <TableCell align="center">{record.role}</TableCell>
                                                     <TableCell align="center">{dayjs(record.payrollStartDate).format("MMM D, YYYY")} - {dayjs(record.payrollEndDate).format("MMM D, YYYY")}</TableCell>
-                                                    <TableCell align="center">{record.payrollWorkingDays}</TableCell>
+                                                    <TableCell align="center">{record.payrollCutOff}</TableCell>
                                                     <TableCell align="center">{record.payrollGrossPay}</TableCell>
                                                     <TableCell align="center"></TableCell>
                                                 </TableRow>

@@ -327,7 +327,7 @@ class PayrollController extends Controller
 
     public function payrollDetails(Request $request)
     {
-        log::info("PayrollController::payrollDetails");
+        // log::info("PayrollController::payrollDetails");
         // log::info($request);
 
         $startDate = $request->currentStartDate;
@@ -484,7 +484,7 @@ class PayrollController extends Controller
         $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
 
         $basicPay = $perCutOff - $leaveEarnings;
-        $overTimePay = $perHour * $totalOvertime;
+        $overTimePay = ($perHour * 1.25) * $totalOvertime;
         $holidayPay = 0;
 
         $earnings = [
@@ -563,6 +563,7 @@ class PayrollController extends Controller
     public function savePayroll(Request $request)
     {
         // log::info("PayrollController::savePayroll");
+        // log::info($request);
 
         $user = Auth::user();
 
@@ -655,12 +656,13 @@ class PayrollController extends Controller
     public function savePayrolls(Request $request)
     {
         // log::info("PayrollController::savePayrolls");
+        // log::info($request);
 
         $currentStartDate = $request->currentStartDate;
         $currentEndDate = $request->currentEndDate;
 
         foreach ($request->selectedPayrolls as $selectedPayroll) {
-            $payrollRequest = new Request(['selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate]);
+            $payrollRequest = new Request(['selectedPayroll' => $selectedPayroll, 'currentStartDate' => $currentStartDate, 'currentEndDate' => $currentEndDate, 'cutOff' => $request->cutOff]);
 
             $this->savePayroll($payrollRequest);
         }
@@ -690,6 +692,7 @@ class PayrollController extends Controller
                     'employeeRole' => $employee->role->name ?? '-',
                     'payrollStartDate' => $rawRecord->period_start ?? '-',
                     'payrollEndDate' => $rawRecord->period_end ?? '-',
+                    'payrollCutOff' => $rawRecord->cut_off ?? '-',
                     'payrollWorkingDays' => $rawRecord->working_days ?? '-',
                     'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
                 ];

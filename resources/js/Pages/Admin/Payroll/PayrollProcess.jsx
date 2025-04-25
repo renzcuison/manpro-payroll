@@ -110,7 +110,7 @@ const PayrollProcess = () => {
     const saveInput = (event) => {
         event.preventDefault();
     
-        const data = { selectedPayrolls: selectedPayrolls, currentStartDate: formattedStartDate, currentEndDate: formattedEndDate };
+        const data = { selectedPayrolls: selectedPayrolls, currentStartDate: formattedStartDate, currentEndDate: formattedEndDate, cutOff: cutOff, };
     
         Swal.fire({
             customClass: { container: 'my-swal' },
