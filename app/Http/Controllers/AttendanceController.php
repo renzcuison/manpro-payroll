@@ -336,8 +336,8 @@ class AttendanceController extends Controller
 
     public function addAttendanceLog(Request $request)
     {
-        Log::info("AttendanceController::addAttendanceLog");
-        Log::info($request);
+        //Log::info("AttendanceController::addAttendanceLog");
+        //Log::info($request);
 
         $user = Auth::user();
         $empId = $request->input('employee');
