@@ -262,8 +262,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         // Management
         Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
-        Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
+        Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::get('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
 
         // Details
