@@ -38,6 +38,11 @@ class PayslipsModel extends Model
         return $this->hasMany(PayslipBenefitsModel::class, 'payslip_id');
     }
 
+    public function allowances()
+    {
+        return $this->hasMany(PayslipAllowancesModel::class, 'payslip_id');
+    }
+
     public function deductions()
     {
         return $this->hasMany(PayslipDeductionsModel::class, 'payslip_id');

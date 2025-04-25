@@ -660,7 +660,7 @@ class PayrollController extends Controller
             foreach ($payrollData['allowances'] as $allowance) {
                 if ($allowance['name'] != "Total Benefits") {
                     $newAllowance = PayslipAllowancesModel::create(["payslip_id" => $payslip->id, "employee_allowance_id" => decrypt($allowance['allowance']), "amount" => $allowance['amount']]);
-                    log::info($newAllowance);
+                    // log::info($newAllowance);
                 }
             }
 
@@ -786,6 +786,7 @@ class PayrollController extends Controller
             ];
 
             $benefits = [];
+            $allowances = [];
             $deductions = [];
             $earnings = [];
             $paid_leaves = [];
@@ -796,6 +797,13 @@ class PayrollController extends Controller
                     'name' => $benefit->benefit->name,
                     'employee_amount' => $benefit->employee_amount,
                     'employer_amount' => $benefit->employer_amount,
+                ];
+            }
+
+            foreach ($record->allowances as $allowance) {
+                $allowances[] = [
+                    'name' => $allowance->employeeAllowance->allowance->name,
+                    'amount' => $allowance->employeeAllowance->allowance->amount,
                 ];
             }
 
@@ -869,7 +877,7 @@ class PayrollController extends Controller
                 ['name' => 'Net Pay', 'amount' =>  $record->total_earnings - $record->total_deductions],
             ];
 
-            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'deductions' => $deductions, 'earnings' => $earnings, 'paid_leaves' => $paid_leaves, 'unpaid_leaves' => $unpaid_leaves, 'summaries' => $summaries]);
+            return response()->json(['status' => 200, 'payslip' => $payslip, 'benefits' => $benefits, 'allowances' => $allowances, 'deductions' => $deductions, 'earnings' => $earnings, 'paid_leaves' => $paid_leaves, 'unpaid_leaves' => $unpaid_leaves, 'summaries' => $summaries]);
         }
     }
 

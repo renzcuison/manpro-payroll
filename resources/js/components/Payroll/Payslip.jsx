@@ -19,6 +19,7 @@ const Payslip = ({ selectedPayroll }) => {
     const [payroll, setPayroll] = useState([]);
     const [employee, setEmployee] = useState([]);
     const [benefits, setBenefits] = useState([]);
+    const [allowances, setAllowances] = useState([]);
     const [summaries, setSummaries] = useState([]);
 
     const [paidLeaves, setPaidLeaves] = useState([]);
@@ -34,6 +35,7 @@ const Payslip = ({ selectedPayroll }) => {
             .then((response) => {
                 setPayroll(response.data.payslip);
                 setBenefits(response.data.benefits);
+                setAllowances(response.data.allowances);
                 setSummaries(response.data.summaries);
 
                 setPaidLeaves(response.data.paid_leaves);
@@ -163,6 +165,15 @@ const Payslip = ({ selectedPayroll }) => {
                                                             <TableCell className="text-center bg-light" sx={{ width: "50%" }}> {earning.name} </TableCell>
                                                             <TableCell className="text-center bg-light">
                                                                 <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(earning.amount)} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+
+                                                    {allowances.map((allowance) => (
+                                                        <TableRow key={allowance.name} >
+                                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}> {allowance.name} </TableCell>
+                                                            <TableCell className="text-center bg-light">
+                                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(allowance.amount)} />
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
