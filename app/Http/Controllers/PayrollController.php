@@ -8,6 +8,8 @@ use App\Models\PayslipLeavesModel;
 use App\Models\PayslipBenefitsModel;
 use App\Models\PayslipEarningsModel;
 use App\Models\PayslipDeductionsModel;
+use App\Models\PayslipAllowancesModel;
+
 
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
@@ -519,10 +521,10 @@ class PayrollController extends Controller
         $rawAllowance = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
 
         foreach ( $rawAllowance as $allowance ) {
-
             $totalAllowance = $totalAllowance + $allowance->allowance->amount;
 
             $allowances[] = [
+                'allowance' => encrypt($allowance->id),
                 'name' => $allowance->allowance->name,
                 'amount' => $allowance->allowance->amount,
             ];
@@ -652,6 +654,13 @@ class PayrollController extends Controller
             foreach ($payrollData['benefits'] as $benefit) {
                 if ($benefit['name'] != "Total Benefits") {
                     $newBenefit = PayslipBenefitsModel::create(["payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount']]);
+                }
+            }
+
+            foreach ($payrollData['allowances'] as $allowance) {
+                if ($allowance['name'] != "Total Benefits") {
+                    $newAllowance = PayslipAllowancesModel::create(["payslip_id" => $payslip->id, "employee_allowance_id" => decrypt($allowance['allowance']), "amount" => $allowance['amount']]);
+                    log::info($newAllowance);
                 }
             }
 
