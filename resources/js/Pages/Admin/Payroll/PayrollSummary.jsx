@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText, TableFooter } from '@mui/material';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination } from '@mui/material'
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -56,6 +56,28 @@ const PayrollSummary = () => {
     const handleCloseViewPayrollModal = () => {
         setOpenViewPayrollModal(false);
     }
+
+    const totals = records.reduce((acc, curr) => {
+        acc.monthlyBasePay += parseFloat(curr.monthlyBasePay || 0);
+        acc.overTimePay += parseFloat(curr.overTimePay || 0);
+        acc.paidLeaveAmount += parseFloat(curr.paidLeaveAmount || 0);
+        acc.totalAllowance += parseFloat(curr.totalAllowance || 0);
+        acc.payrollGrossPay += parseFloat(curr.payrollGrossPay || 0);
+        acc.payrollNetPay += parseFloat(curr.payrollNetPay || 0);
+        acc.absences += parseFloat(curr.absences || 0);
+        acc.tardiness += parseFloat(curr.tardiness || 0);
+        return acc;
+    }, {
+        monthlyBasePay: 0,
+        overTimePay: 0,
+        paidLeaveAmount: 0,
+        totalAllowance: 0,
+        payrollGrossPay: 0,
+        payrollNetPay: 0,
+        absences: 0,
+        tardiness: 0,
+    });
+    
 
     return (
         <Layout title={"PayrollProcess"}>
@@ -121,6 +143,22 @@ const PayrollSummary = () => {
                                                 </TableRow>
                                             ))}
                                         </TableBody>
+                                        <TableFooter>
+                                            <TableRow>
+                                                <TableCell align="left">Total</TableCell>
+                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="center">{totals.monthlyBasePay.toFixed(2)}</TableCell>
+                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="center">{totals.overTimePay.toFixed(2)}</TableCell>
+                                                <TableCell align="center"></TableCell>
+                                                <TableCell align="center">{totals.paidLeaveAmount.toFixed(2)}</TableCell>
+                                                <TableCell align="center">{totals.absences.toFixed(2)}</TableCell>
+                                                <TableCell align="center">{totals.tardiness.toFixed(2)}</TableCell>
+                                                <TableCell align="center">{totals.totalAllowance.toFixed(2)}</TableCell>
+                                                <TableCell align="center">{totals.payrollGrossPay.toFixed(2)}</TableCell>
+                                                <TableCell align="center">{totals.payrollNetPay.toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        </TableFooter>
                                     </Table>
                                 </TableContainer>
                             </>
