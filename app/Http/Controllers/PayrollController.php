@@ -660,7 +660,6 @@ class PayrollController extends Controller
             foreach ($payrollData['allowances'] as $allowance) {
                 if ($allowance['name'] != "Total Benefits") {
                     $newAllowance = PayslipAllowancesModel::create(["payslip_id" => $payslip->id, "employee_allowance_id" => decrypt($allowance['allowance']), "amount" => $allowance['amount']]);
-                    // log::info($newAllowance);
                 }
             }
 
@@ -901,6 +900,7 @@ class PayrollController extends Controller
                 $hourlyRate = $rawRecord->rate_hourly;
                 $dailyRate = $rawRecord->rate_daily;
                 $overTimeRate = $hourlyRate * 1.25;
+                $overTimeHours = 0;
 
                 $paidLeaveDays = 0;
                 $paidLeaveAmount = 0;
@@ -922,6 +922,10 @@ class PayrollController extends Controller
                     $totalAllowance = $totalAllowance + $allowance->amount;
                 }
 
+                if ( $overTime->amount != 0 ){
+                    $overTimeHours = round($overTime->amount / $overTimeRate);
+                }
+
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
                     'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
@@ -931,11 +935,11 @@ class PayrollController extends Controller
                     'monthlyBasePay' => $rawRecord->rate_monthly / 2,
 
                     // Overtime
-                    'overTimeHours' => round($overTime->amount / $overTimeRate),
+                    'overTimeHours' => $overTimeHours,
                     'overTimePay' => $overTime->amount,
 
                     // Paid Leave
-                    'paidLeaveDays' => $paidLeaveDays,
+                    'paidLeaveDays' => round($paidLeaveDays),
                     'paidLeaveAmount' => $paidLeaveAmount,
 
                     // Allowance

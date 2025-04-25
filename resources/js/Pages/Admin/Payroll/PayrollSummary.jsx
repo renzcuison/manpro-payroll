@@ -59,8 +59,8 @@ const PayrollSummary = () => {
 
     return (
         <Layout title={"PayrollProcess"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}} >
+            <Box sx={{ width: '100%', whiteSpace: 'nowrap' }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '95%' }}} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'left' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Summary of Payroll </Typography>
