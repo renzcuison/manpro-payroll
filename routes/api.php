@@ -176,6 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getAttendanceAdderLogs', [AttendanceController::class, 'getAttendanceAdderLogs']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
+        Route::post('/addAttendanceLog', [AttendanceController::class, 'addAttendanceLog']);
         Route::post('/editEmployeeAttendance', [AttendanceController::class, 'editEmployeeAttendance']);
         Route::post('/deleteEmployeeAttendance', [AttendanceController::class, 'deleteEmployeeAttendance']);
     });

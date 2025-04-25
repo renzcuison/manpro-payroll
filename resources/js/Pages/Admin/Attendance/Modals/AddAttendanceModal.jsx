@@ -1,4 +1,5 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText, Divider } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, Typography, Divider, Tab, TextField, MenuItem } from '@mui/material';
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -25,9 +26,15 @@ const AddAttendanceModal = ({ open, close, employee }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    // Dynamic Field View
+    const [overtimeView, setOvertimeView] = useState(false);
+    const [addType, setAddType] = useState("1");
+
+    // Date
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [selectedDateError, setSelectedDateError] = useState(false);
 
+    // Batch Log Fields
     const [firstTimeIn, setFirstTimeIn] = useState(null);
     const [firstTimeOut, setFirstTimeOut] = useState(null);
     const [firstTimeInError, setFirstTimeInError] = useState(false);
@@ -43,7 +50,12 @@ const AddAttendanceModal = ({ open, close, employee }) => {
     const [overtimeInError, setOvertimeInError] = useState(false);
     const [overtimeOutError, setOvertimeOutError] = useState(false);
 
-    const [overtimeView, setOvertimeView] = useState(false);
+    // Individual Log Fields
+    const [selectedType, setSelectedType] = useState('Duty In');
+    const [selectedTypeError, setSelectedTypeError] = useState(false);
+
+    const [logTimestamp, setLogTimestamp] = useState(dayjs());
+    const [logTimestampError, setLogTimestampError] = useState(false);
 
     useEffect(() => {
         getAttendanceAdderLogs();
@@ -78,6 +90,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
         return formattedTS;
     }
 
+    // Batch Logs
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -231,6 +244,82 @@ const AddAttendanceModal = ({ open, close, employee }) => {
             });
     }
 
+    // Individual Logs
+    const checkAddLog = () => {
+        setSelectedTypeError(!selectedType);
+        setLogTimestampError(!logTimestamp);
+        if (!selectedType || !logTimestamp) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All required fields must be filled!",
+                icon: "error",
+                confirmButtonColor: "#177604",
+            });
+        } else if (!dayjs(logTimestamp).isValid()) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "Use a valid time!",
+                icon: "error",
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "Do you want to save this attendance log?",
+                icon: "warning",
+                confirmButtonText: "Save",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveAddLog();
+                }
+            });
+        }
+    }
+
+    const saveAddLog = () => {
+        const data = {
+            employee: employee.id,
+            date: selectedDate.format("YYYY-MM-DD"),
+            action: selectedType,
+            timestamp: formatTimestamp(logTimestamp, selectedDate),
+        };
+
+        axiosInstance
+            .post("/attendance/addAttendanceLog", data, {
+                headers,
+            })
+            .then((response) => {
+                if (response.data.status == 200) {
+                    document.activeElement.blur();
+                    document.body.removeAttribute("aria-hidden");
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `Attendance successfully recorded`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close(true);
+                            document.body.setAttribute("aria-hidden", "true");
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    }
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: 1, backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', maxWidth: '600px', marginBottom: '5%' } }}>
@@ -242,163 +331,243 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                        <Grid container spacing={2}>
-                            {/* Date */}
-                            <Grid size={12}>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="Date"
-                                        value={selectedDate}
-                                        views={['year', 'month', 'day']}
-                                        onChange={(newValue) => setSelectedDate(newValue,)}
-                                        slotProps={{
-                                            textField: {
-                                                error: selectedDateError,
-                                                helperText: selectedDateError ? "Enter a valid date" : "",
-                                            }
-                                        }}
-                                        sx={{ width: "100%" }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            {/* First Time In */}
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <TimePicker
-                                        label="First In"
-                                        value={firstTimeIn}
-                                        views={['hours', 'minutes', 'seconds']}
-                                        onChange={(newValue) => setFirstTimeIn(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                error: firstTimeInError,
-                                                helperText: firstTimeInError ? "Enter a valid time" : "",
-                                            },
-                                        }}
-                                        sx={{ width: "100%" }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            {/* First Time Out */}
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <TimePicker
-                                        label="First Out"
-                                        value={firstTimeOut}
-                                        views={['hours', 'minutes', 'seconds']}
-                                        onChange={(newValue) => setFirstTimeOut(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                error: firstTimeOutError,
-                                                helperText: firstTimeOutError ? "Enter a valid time" : "",
-                                            },
-                                        }}
-                                        sx={{ width: "100%" }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            {/* Second Time In */}
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <TimePicker
-                                        label="Second In"
-                                        value={secondTimeIn}
-                                        views={['hours', 'minutes', 'seconds']}
-                                        onChange={(newValue) => setSecondTimeIn(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                error: secondTimeInError,
-                                                helperText: secondTimeInError ? "Enter a valid time" : "",
-                                            },
-                                        }}
-                                        sx={{ width: "100%" }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            {/* Second Time Out */}
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <TimePicker
-                                        label="Second Out"
-                                        value={secondTimeOut}
-                                        views={['hours', 'minutes', 'seconds']}
-                                        onChange={(newValue) => setSecondTimeOut(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                error: secondTimeOutError,
-                                                helperText: secondTimeOutError ? "Enter a valid time" : "",
-                                            },
-                                        }}
-                                        sx={{ width: "100%" }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-                            <Grid size={12}>
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
-                                    onClick={() => setOvertimeView(!overtimeView)}
-                                >
-                                    <p className="m-0">
-                                        <i className="fa fa-plus"></i> {`${overtimeView ? 'Hide' : 'Show'} Overtime Fields`}
-                                    </p>
-                                </Button>
-                            </Grid>
-                            {/* Overtime Fields */}
-                            {overtimeView && (
-                                <>
-                                    {/* Overtime In */}
+                    <TabContext value={addType}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList onChange={(event, newValue) => setAddType(newValue)} aria-label="Acknowledgement Tabs">
+                                <Tab label="Day" value="1" />
+                                <Tab label="Individual" value="2" />
+                            </TabList>
+                        </Box>
+                        {/* Batch Logs */}
+                        <TabPanel value="1" sx={{ px: 0 }}>
+                            <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                                <Grid container spacing={2}>
+                                    {/* Date */}
+                                    <Grid size={12}>
+                                        <LocalizationProvider
+                                            dateAdapter={AdapterDayjs}
+                                        >
+                                            <DatePicker
+                                                label="Date"
+                                                value={selectedDate}
+                                                views={['year', 'month', 'day']}
+                                                onChange={(newValue) => setSelectedDate(newValue,)}
+                                                slotProps={{
+                                                    textField: {
+                                                        error: selectedDateError,
+                                                        helperText: selectedDateError ? "Enter a valid date" : "",
+                                                    }
+                                                }}
+                                                sx={{ width: "100%" }}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                    {/* First Time In */}
                                     <Grid size={{ xs: 12, md: 6 }}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                                             <TimePicker
-                                                label="Overtime In"
-                                                value={overtimeIn}
+                                                label="First In"
+                                                value={firstTimeIn}
                                                 views={['hours', 'minutes', 'seconds']}
-                                                onChange={(newValue) => setOvertimeIn(newValue)}
+                                                onChange={(newValue) => setFirstTimeIn(newValue)}
                                                 slotProps={{
                                                     textField: {
-                                                        error: overtimeInError,
-                                                        helperText: overtimeInError ? "Enter a valid time" : "",
+                                                        error: firstTimeInError,
+                                                        helperText: firstTimeInError ? "Enter a valid time" : "",
                                                     },
                                                 }}
                                                 sx={{ width: "100%" }}
                                             />
                                         </LocalizationProvider>
                                     </Grid>
+                                    {/* First Time Out */}
+                                    <Grid size={{ xs: 12, md: 6 }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <TimePicker
+                                                label="First Out"
+                                                value={firstTimeOut}
+                                                views={['hours', 'minutes', 'seconds']}
+                                                onChange={(newValue) => setFirstTimeOut(newValue)}
+                                                slotProps={{
+                                                    textField: {
+                                                        error: firstTimeOutError,
+                                                        helperText: firstTimeOutError ? "Enter a valid time" : "",
+                                                    },
+                                                }}
+                                                sx={{ width: "100%" }}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                    {/* Second Time In */}
+                                    <Grid size={{ xs: 12, md: 6 }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <TimePicker
+                                                label="Second In"
+                                                value={secondTimeIn}
+                                                views={['hours', 'minutes', 'seconds']}
+                                                onChange={(newValue) => setSecondTimeIn(newValue)}
+                                                slotProps={{
+                                                    textField: {
+                                                        error: secondTimeInError,
+                                                        helperText: secondTimeInError ? "Enter a valid time" : "",
+                                                    },
+                                                }}
+                                                sx={{ width: "100%" }}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                    {/* Second Time Out */}
+                                    <Grid size={{ xs: 12, md: 6 }}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <TimePicker
+                                                label="Second Out"
+                                                value={secondTimeOut}
+                                                views={['hours', 'minutes', 'seconds']}
+                                                onChange={(newValue) => setSecondTimeOut(newValue)}
+                                                slotProps={{
+                                                    textField: {
+                                                        error: secondTimeOutError,
+                                                        helperText: secondTimeOutError ? "Enter a valid time" : "",
+                                                    },
+                                                }}
+                                                sx={{ width: "100%" }}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                    <Grid size={12}>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                            onClick={() => setOvertimeView(!overtimeView)}
+                                        >
+                                            <p className="m-0">
+                                                <i className="fa fa-plus"></i> {`${overtimeView ? 'Hide' : 'Show'} Overtime Fields`}
+                                            </p>
+                                        </Button>
+                                    </Grid>
+                                    {/* Overtime Fields */}
+                                    {overtimeView && (
+                                        <>
+                                            {/* Overtime In */}
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                    <TimePicker
+                                                        label="Overtime In"
+                                                        value={overtimeIn}
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        onChange={(newValue) => setOvertimeIn(newValue)}
+                                                        slotProps={{
+                                                            textField: {
+                                                                error: overtimeInError,
+                                                                helperText: overtimeInError ? "Enter a valid time" : "",
+                                                            },
+                                                        }}
+                                                        sx={{ width: "100%" }}
+                                                    />
+                                                </LocalizationProvider>
+                                            </Grid>
 
-                                    {/* Overtime Out */}
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                            <TimePicker
-                                                label="Overtime Out"
-                                                value={overtimeOut}
-                                                views={['hours', 'minutes', 'seconds']}
-                                                onChange={(newValue) => setOvertimeOut(newValue)}
-                                                slotProps={{
-                                                    textField: {
-                                                        error: overtimeOutError,
-                                                        helperText: overtimeOutError ? "Enter a valid time" : "",
-                                                    },
-                                                }}
-                                                sx={{ width: "100%" }}
-                                            />
-                                        </LocalizationProvider>
+                                            {/* Overtime Out */}
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                    <TimePicker
+                                                        label="Overtime Out"
+                                                        value={overtimeOut}
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        onChange={(newValue) => setOvertimeOut(newValue)}
+                                                        slotProps={{
+                                                            textField: {
+                                                                error: overtimeOutError,
+                                                                helperText: overtimeOutError ? "Enter a valid time" : "",
+                                                            },
+                                                        }}
+                                                        sx={{ width: "100%" }}
+                                                    />
+                                                </LocalizationProvider>
+                                            </Grid>
+                                        </>
+                                    )}
+                                    <Grid size={12}>
+                                        <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
+                                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
+                                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Attendance </p>
+                                            </Button>
+                                        </Box>
                                     </Grid>
-                                </>
-                            )}
-                            <Grid size={12}>
-                                <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
-                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
-                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Attendance </p>
-                                    </Button>
-                                </Box>
+                                </Grid>
+                            </Box>
+                        </TabPanel>
+                        {/* Individual Logs */}
+                        <TabPanel value="2" sx={{ px: 0 }}>
+                            <Grid container spacing={2}>
+                                {/* Date */}
+                                <Grid size={12}>
+                                    <LocalizationProvider
+                                        dateAdapter={AdapterDayjs}
+                                    >
+                                        <DatePicker
+                                            label="Date"
+                                            value={selectedDate}
+                                            views={['year', 'month', 'day']}
+                                            onChange={(newValue) => setSelectedDate(newValue,)}
+                                            slotProps={{
+                                                textField: {
+                                                    error: selectedDateError,
+                                                    helperText: selectedDateError ? "Enter a valid date" : "",
+                                                }
+                                            }}
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                                {/* Type */}
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextField
+                                        required
+                                        select
+                                        id="attendance-type"
+                                        label="Attendance Type"
+                                        value={selectedType}
+                                        error={selectedTypeError}
+                                        onChange={(event) => setSelectedType(event.target.value)}
+                                        sx={{ width: "100%" }}
+                                        helperText={selectedTypeError ? "Enter a valid attendance type" : ''}
+                                    >
+                                        <MenuItem value="Duty In">Duty In</MenuItem>
+                                        <MenuItem value="Duty Out">Duty Out</MenuItem>
+                                        <MenuItem value="Overtime In">Overtime In</MenuItem>
+                                        <MenuItem value="Overtime Out">Overtime Out</MenuItem>
+                                    </TextField>
+                                </Grid>
+                                {/* Timestamp */}
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <TimePicker
+                                            label="Time"
+                                            value={logTimestamp}
+                                            views={['hours', 'minutes', 'seconds']}
+                                            onChange={(newValue) => setLogTimestamp(newValue)}
+                                            slotProps={{
+                                                textField: {
+                                                    error: logTimestampError,
+                                                    helperText: logTimestampError ? "Enter a valid time" : "",
+                                                },
+                                            }}
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                                <Grid size={12}>
+                                    <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
+                                        <Button variant="contained" onClick={checkAddLog} sx={{ backgroundColor: '#177604', color: 'white' }} >
+                                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Attendance </p>
+                                        </Button>
+                                    </Box>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </Box>
+                        </TabPanel>
+                    </TabContext>
                 </DialogContent>
             </Dialog >
         </>

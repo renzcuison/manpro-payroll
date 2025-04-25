@@ -334,6 +334,42 @@ class AttendanceController extends Controller
         }
     }
 
+    public function addAttendanceLog(Request $request)
+    {
+        Log::info("AttendanceController::addAttendanceLog");
+        Log::info($request);
+
+        $user = Auth::user();
+        $empId = $request->input('employee');
+        $employee = UsersModel::with(['workShift', 'workHours'])->find($empId);
+
+        if (!$employee || !$employee->workShift || !$employee->workHours) {
+            return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
+        }
+
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
+
+                AttendanceLogsModel::create([
+                    'action' => $request->input('action'),
+                    'timestamp' => $request->input('timestamp'),
+                    'user_id' => $empId,
+                    'work_hour_id' => $employee->workHours->id
+                ]);
+
+                DB::commit();
+                return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error recording attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Failed to record attendance: ' . $e->getMessage()], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
     public function editEmployeeAttendance(Request $request)
     {
         //Log::info("AttendanceController::editEmployeeAttendance");
