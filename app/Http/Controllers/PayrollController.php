@@ -328,7 +328,7 @@ class PayrollController extends Controller
     public function payrollDetails(Request $request)
     {
         log::info("PayrollController::payrollDetails");
-        log::info($request);
+        // log::info($request);
 
         $startDate = $request->currentStartDate;
         $endDate = $request->currentEndDate;
@@ -450,6 +450,7 @@ class PayrollController extends Controller
         $paidLeaves = [];
         $unpaidLeaves = [];
         $leaveEarnings = 0;
+        $daysOnLeave = 0;
 
         $leaveParams = [
             'employee_id' => $employee->id,
@@ -470,6 +471,14 @@ class PayrollController extends Controller
         $paidLeaves = $leaveDeductions['paid_leaves'];
         $unpaidLeaves = $leaveDeductions['unpaid_leaves'];
         $leaveEarnings = $leaveDeductions['leave_earnings'];
+
+        foreach ($unpaidLeaves as $unpaidLeave) {
+            $daysOnLeave += $unpaidLeave['days'];
+        }
+
+        foreach ($paidLeaves as $paidLeave) {
+            $daysOnLeave += $paidLeave['days'];
+        }
 
         // ============== RESPONSE PREP ==============
         $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
@@ -528,7 +537,7 @@ class PayrollController extends Controller
         ];
 
         $deductions = [
-            ['deduction' => '1', 'name' => "Absents ({$numberOfAbsentDays} days)", 'amount' => $absents],
+            ['deduction' => '1', 'name' => "Absents (" . ($numberOfAbsentDays - $daysOnLeave) . " days)", 'amount' => $absents],
             ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
             ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
         ];
