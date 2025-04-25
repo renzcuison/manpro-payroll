@@ -127,7 +127,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }).then((res) => {
             if (res.isConfirmed) {
                 axiosInstance
-                    .get(`announcements/toggleHide/${code}`, {
+                    .post(`announcements/toggleHide`, { unique_code: code }, {
                         headers
                     })
                     .then((response) => {

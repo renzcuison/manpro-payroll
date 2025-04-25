@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-
 class AnnouncementsController extends Controller
 {
+    // Authentication
     public function checkUser()
     {
         // Log::info("AnnouncementsController::checkUser");
@@ -32,6 +32,7 @@ class AnnouncementsController extends Controller
         return false;
     }
 
+    // Lists
     public function getAnnouncements()
     {
         // Log::info("AnnouncementsController::getAnnouncements");
@@ -124,80 +125,7 @@ class AnnouncementsController extends Controller
         return response()->json(['status' => 200, 'announcements' => $announcementData]);
     }
 
-    public function getAnnouncementDetails($code)
-    {
-        //Log::info("AnnouncementsController::getAnnouncementDetails");
-        $user = Auth::user();
-
-        if ($this->checkUser()) {
-            $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->with('user')
-                ->firstOrFail();
-
-            // Author Information
-            $author = $announcement->user;
-            $announcement->author_name = implode(' ', array_filter([
-                $author->first_name ?? null,
-                $author->middle_name ?? null,
-                $author->last_name ?? null,
-                $author->suffix ?? null,
-            ]));
-            $announcement->author_title = $author->jobTitle->name;
-
-            $announcementData = $announcement->toArray();
-            unset($announcementData['user']);
-
-            return response()->json(['status' => 200, 'announcement' => $announcementData]);
-        } else {
-            return response()->json(['status' => 200, 'announcement' => null]);
-        }
-    }
-
-    public function getEmployeeAnnouncementDetails($code)
-    {
-        //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
-
-        $user = Auth::user();
-
-        $announcement = AnnouncementsModel::where('unique_code', $code)
-            ->with(['acknowledgements', 'branches', 'departments', 'user'])
-            ->firstOrFail();
-
-        $acknowledgement = $announcement->acknowledgements()
-            ->where('user_id', $user->id)
-            ->first();
-
-        // Acknowledgement Status
-        $acknowledged = $acknowledgement !== null;
-        $acknowledgementTimestamp = $acknowledged ? $acknowledgement->created_at : null;
-
-        $announcement->acknowledged = $acknowledged;
-        $announcement->ack_timestamp = $acknowledgementTimestamp;
-
-        // Branch, Department Matchup
-        $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
-        $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
-        $announcement->branch_matched = in_array($user->branch_id, $branches);
-        $announcement->department_matched = in_array($user->department_id, $departments);
-
-        // Author Information
-        $author = $announcement->user;
-        $announcement->author_name = implode(' ', array_filter([
-            $author->first_name ?? null,
-            $author->middle_name ?? null,
-            $author->last_name ?? null,
-            $author->suffix ?? null,
-        ]));
-        $announcement->author_title = $author->jobTitle ? $author->jobTitle->name : "Administrator";
-
-        // Final Data Prep
-        $announcementData = $announcement->toArray();
-        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments'], $announcementData['user']);
-
-        return response()->json(['status' => 200, 'announcement' => $announcementData]);
-    }
-
+    // Management
     public function saveAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::saveAnnouncement");
@@ -250,7 +178,7 @@ class AnnouncementsController extends Controller
                 DB::rollBack();
 
                 Log::error("Error saving: " . $e->getMessage());
-
+                return response()->json(['status' => 500, 'message' => 'Error Saving Announcement'], 500);
                 throw $e;
             }
         } else {
@@ -335,7 +263,7 @@ class AnnouncementsController extends Controller
 
                 DB::beginTransaction();
 
-                $announcement = AnnouncementsModel::where('unique_code', $request->input('announcement'))->first();
+                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
                 $announcement->status = "Published";
                 $announcement->save();
 
@@ -370,14 +298,14 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function toggleHide($code)
+    public function toggleHide(Request $request)
     {
         //Log::info("AnnouncementsController::toggleHide");
         $user = Auth::user();
 
         if ($this->checkUser()) {
 
-            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
+            $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
 
             if (!$announcement) {
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
@@ -390,6 +318,81 @@ class AnnouncementsController extends Controller
         } else {
             return response()->json(['status' => 200]);
         }
+    }
+
+    // Details
+    public function getAnnouncementDetails($code)
+    {
+        //Log::info("AnnouncementsController::getAnnouncementDetails");
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->with('user')
+                ->firstOrFail();
+
+            // Author Information
+            $author = $announcement->user;
+            $announcement->author_name = implode(' ', array_filter([
+                $author->first_name ?? null,
+                $author->middle_name ?? null,
+                $author->last_name ?? null,
+                $author->suffix ?? null,
+            ]));
+            $announcement->author_title = $author->jobTitle->name;
+
+            $announcementData = $announcement->toArray();
+            unset($announcementData['user']);
+
+            return response()->json(['status' => 200, 'announcement' => $announcementData]);
+        } else {
+            return response()->json(['status' => 200, 'announcement' => null]);
+        }
+    }
+
+    public function getEmployeeAnnouncementDetails($code)
+    {
+        //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
+
+        $user = Auth::user();
+
+        $announcement = AnnouncementsModel::where('unique_code', $code)
+            ->with(['acknowledgements', 'branches', 'departments', 'user'])
+            ->firstOrFail();
+
+        $acknowledgement = $announcement->acknowledgements()
+            ->where('user_id', $user->id)
+            ->first();
+
+        // Acknowledgement Status
+        $acknowledged = $acknowledgement !== null;
+        $acknowledgementTimestamp = $acknowledged ? $acknowledgement->created_at : null;
+
+        $announcement->acknowledged = $acknowledged;
+        $announcement->ack_timestamp = $acknowledgementTimestamp;
+
+        // Branch, Department Matchup
+        $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
+        $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
+
+        $announcement->branch_matched = in_array($user->branch_id, $branches);
+        $announcement->department_matched = in_array($user->department_id, $departments);
+
+        // Author Information
+        $author = $announcement->user;
+        $announcement->author_name = implode(' ', array_filter([
+            $author->first_name ?? null,
+            $author->middle_name ?? null,
+            $author->last_name ?? null,
+            $author->suffix ?? null,
+        ]));
+        $announcement->author_title = $author->jobTitle ? $author->jobTitle->name : "Administrator";
+
+        // Final Data Prep
+        $announcementData = $announcement->toArray();
+        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments'], $announcementData['user']);
+
+        return response()->json(['status' => 200, 'announcement' => $announcementData]);
     }
 
     public function getAnnouncementBranchDepts($code)
@@ -424,6 +427,24 @@ class AnnouncementsController extends Controller
         } else {
             return response()->json(['status' => 200, 'branches' => null, 'departments' => null]);
         }
+    }
+
+    // Files
+    public function downloadFile($id)
+    {
+        //Log::info('AnnouncementsController::downloadFile');
+        $media  = Media::find($id);
+
+        if (!$media) {
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        $filePath = $media->getPath();
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        return response()->download($filePath, $media->file_name);
     }
 
     public function getThumbnail($code)
@@ -561,23 +582,7 @@ class AnnouncementsController extends Controller
         ]);
     }
 
-    public function downloadFile($id)
-    {
-        //Log::info('AnnouncementsController::downloadFile');
-        $media  = Media::find($id);
-
-        if (!$media) {
-            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
-        }
-
-        $filePath = $media->getPath();
-        if (!file_exists($filePath)) {
-            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
-        }
-
-        return response()->download($filePath, $media->file_name);
-    }
-
+    // Acknowledgements
     public function acknowledgeAnnouncement(Request $request)
     {
         //Log::info("AnnouncementsController::acknowledgeAnnouncement");
@@ -672,6 +677,7 @@ class AnnouncementsController extends Controller
         }
     }
 
+    // Utility
     function generateRandomCode($length)
     {
         // log::info("AnnouncementsController::generateRandomCode");
