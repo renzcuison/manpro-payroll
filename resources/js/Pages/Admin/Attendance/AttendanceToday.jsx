@@ -261,7 +261,7 @@ const AttendanceToday = () => {
                                                                     </TableCell>
                                                                     <TableCell align="center">
                                                                         {isRegular
-                                                                            ? currentTime.isAfter(breakEnd) ? firstOut : "Ongoing"
+                                                                            ? currentTime.isBefore(breakEnd) ? "-" : firstOut
                                                                             : secondOut
                                                                         }
                                                                     </TableCell>
