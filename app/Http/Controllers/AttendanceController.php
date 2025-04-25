@@ -251,7 +251,7 @@ class AttendanceController extends Controller
                     ['action' => 'Overtime Out', 'timestamp' => $request->input('overtime_out')],
                 ];
 
-                Log::info($logs);
+                //Log::info($logs);
 
                 foreach ($logs as $log) {
                     if ($log['timestamp']) {
@@ -313,8 +313,8 @@ class AttendanceController extends Controller
 
     public function deleteEmployeeAttendance(Request $request)
     {
-        Log::info("AttendanceController::deleteEmployeeAttendance");
-        Log::info($request);
+        //Log::info("AttendanceController::deleteEmployeeAttendance");
+        //Log::info($request);
 
         $user = Auth::user();
         $attendance = AttendanceLogsModel::with('user')->find($request->input('log_id'));

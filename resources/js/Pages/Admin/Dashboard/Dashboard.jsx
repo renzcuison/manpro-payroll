@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Box, TablePagination, TableHead, Avatar, CircularProgress } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Box, TablePagination, TableHead, Avatar, CircularProgress, Typography, Divider, FormControl, TextField } from "@mui/material";
 
 import { Chart as ChartJS } from 'chart.js/auto';
 import { Doughnut } from 'react-chartjs-2';
@@ -22,6 +22,8 @@ const Dashboard = () => {
 
     const chartRef = useRef(null);
 
+    const [adminName, setAdminName] = useState('Admin');
+
     const [headCount, setHeadCount] = useState(0);
     const [applicationCount, setApplicationCount] = useState();
     const [announcementCount, setAnnouncementCount] = useState();
@@ -38,10 +40,11 @@ const Dashboard = () => {
     const [salaryRange, setSalaryRange] = useState([]);
 
     const [attendance, setAttendance] = useState([]);
+    const [searchName, setSearchName] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
     const [attendanceLoading, setAttendanceLoading] = useState(true);
+
 
     useEffect(() => {
         getDashboardData();
@@ -58,6 +61,8 @@ const Dashboard = () => {
         axiosInstance
             .get(`adminDashboard/getDashboardData`, { headers })
             .then((response) => {
+                setAdminName(response.data.admin_name);
+
                 setHeadCount(response.data.counter.head_count);
                 setApplicationCount(response.data.counter.application_count);
                 setAnnouncementCount(response.data.counter.announcement_count);
@@ -162,6 +167,8 @@ const Dashboard = () => {
         },
     };
 
+    // Attendance Name Filter
+
     // Attendance Pagination Controls
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -170,7 +177,13 @@ const Dashboard = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-    const paginatedAttendance = attendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    const filteredAttendance = attendance.filter((attend) => {
+        const fullName = `${attend.first_name} ${attend.middle_name || ''} ${attend.last_name} ${attend.suffix || ''}`.toLowerCase();
+        return fullName.includes(searchName.toLowerCase());
+    });
+
+    const paginatedAttendance = filteredAttendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     // "../../../images/avatarpic.jpg"
     const [blobMap, setBlobMap] = useState({});
@@ -233,10 +246,25 @@ const Dashboard = () => {
     return (
         <Layout>
             <Box sx={{ mx: 12 }}>
-                <div className="content-heading  d-flex justify-content-between p-0">
-                    <h5 className="pt-3">Dashboard</h5>
-                </div>
-
+                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box display="flex" sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#177604" }}>
+                            {`Welcome ${adminName}`}
+                        </Typography>
+                        <Typography variant="h6">
+                            Dashboard
+                        </Typography>
+                    </Box>
+                    <Box display="flex" sx={{ flexDirection: "column", alignItems: "center" }}>
+                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#177604" }}>
+                            {dayjs().format('dddd')}
+                        </Typography>
+                        <Typography sx={{ fontWeight: "bold", color: "#177604" }}>
+                            {dayjs().format('MMMM DD, YYYY')}
+                        </Typography>
+                    </Box>
+                </Box>
+                <Divider />
                 <div className="row g-2" style={{ marginTop: 25 }}>
                     {/* Data Counts */}
                     <div className="col-lg-9 col-sm-12">
@@ -355,8 +383,15 @@ const Dashboard = () => {
                 <div className="row">
                     <div className="col-lg-12 col-sm-12" style={{ marginBottom: 10 }}>
                         <Box sx={{ p: 3, backgroundColor: "white", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "10px" }}>
-                            <h5 className="block-title">Today</h5>
-                            <TableContainer sx={{ mt: 2, maxHeight: "450px" }}>
+                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                <h5 className="block-title">Today</h5>
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                                    </FormControl>
+                                </Box>
+                            </Box>
+                            <TableContainer sx={{ mt: 2, height: "400px" }}>
                                 <Table stickyHeader className="table table-md table-striped table-vcenter">
                                     <TableHead>
                                         <TableRow>
@@ -420,7 +455,7 @@ const Dashboard = () => {
                                                             </TableCell>
                                                             <TableCell align="center">
                                                                 {isRegular
-                                                                    ? currentTime.isAfter(breakEnd) ? firstOut : "Ongoing"
+                                                                    ? currentTime.isBefore(breakEnd) ? "-" : firstOut
                                                                     : secondOut
                                                                 }
                                                             </TableCell>

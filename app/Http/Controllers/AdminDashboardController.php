@@ -49,6 +49,8 @@ class AdminDashboardController extends Controller
             $attendance = [];
 
             $today = Carbon::now();
+            // Admin Name
+            $adminName = $user->first_name;
 
             // ---- Counter Rows ---- //
             // Get Employees
@@ -178,7 +180,8 @@ class AdminDashboardController extends Controller
                 'average' => $average,
                 'attendance' => $attendance,
                 'branches' => $branches,
-                'salary_range' => $salaryRange
+                'salary_range' => $salaryRange,
+                'admin_name' => $adminName,
             ]);
         }
     }
