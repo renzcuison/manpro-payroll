@@ -91,7 +91,6 @@ const AttendanceView = () => {
         axiosInstance.get(`/employee/getEmployeeShortDetails`, { params: data, headers })
             .then((response) => {
                 if (response.data.status === 200) {
-                    console.log(response.data.employee);
                     setEmployee(response.data.employee);
                 }
             }).catch((error) => {

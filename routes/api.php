@@ -174,6 +174,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
         Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
 
+        Route::get('/getAttendanceAdderLogs', [AttendanceController::class, 'getAttendanceAdderLogs']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
         Route::post('/editEmployeeAttendance', [AttendanceController::class, 'editEmployeeAttendance']);
         Route::post('/deleteEmployeeAttendance', [AttendanceController::class, 'deleteEmployeeAttendance']);

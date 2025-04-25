@@ -45,6 +45,39 @@ const AddAttendanceModal = ({ open, close, employee }) => {
 
     const [overtimeView, setOvertimeView] = useState(false);
 
+    useEffect(() => {
+        getAttendanceAdderLogs();
+    }, [selectedDate]);
+
+    const getAttendanceAdderLogs = () => {
+        let data = { employee: employee.id, date: selectedDate.format('YYYY-MM-DD') };
+        axiosInstance.get(`/attendance/getAttendanceAdderLogs`, { params: data, headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const attendance = response.data.attendance;
+                    setFirstTimeIn(attendance.first_in ? dayjs(attendance.first_in) : null);
+                    setFirstTimeOut(attendance.first_out ? dayjs(attendance.first_out) : null);
+                    setSecondTimeIn(attendance.second_in ? dayjs(attendance.second_in) : null);
+                    setSecondTimeOut(attendance.second_out ? dayjs(attendance.second_out) : null);
+                    setOvertimeIn(attendance.overtime_in ? dayjs(attendance.overtime_in) : null);
+                    setOvertimeOut(attendance.overtime_out ? dayjs(attendance.overtime_out) : null);
+                    setOvertimeView(attendance.overtime_in || attendance.overtime_out);
+                }
+            }).catch((error) => {
+                console.error('Error fetching employee:', error);
+            });
+    };
+
+    const formatTimestamp = (timestamp, selectedDate) => {
+        const formattedTS = timestamp ? selectedDate
+            .set("hour", timestamp.hour())
+            .set("minute", timestamp.minute())
+            .set("second", timestamp.second())
+            .format("YYYY-MM-DD HH:mm:ss")
+            : null;
+        return formattedTS;
+    }
+
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -151,16 +184,6 @@ const AddAttendanceModal = ({ open, close, employee }) => {
             });
         }
     };
-
-    const formatTimestamp = (timestamp, selectedDate) => {
-        const formattedTS = timestamp ? selectedDate
-            .set("hour", timestamp.hour())
-            .set("minute", timestamp.minute())
-            .set("second", timestamp.second())
-            .format("YYYY-MM-DD HH:mm:ss")
-            : null;
-        return formattedTS;
-    }
 
     const saveInput = (event) => {
         event.preventDefault();
