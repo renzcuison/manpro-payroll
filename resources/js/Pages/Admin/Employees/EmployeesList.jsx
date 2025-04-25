@@ -111,7 +111,7 @@ const EmployeesList = () => {
 
     return (
         <Layout title={"EmployeesList"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
@@ -234,8 +234,8 @@ const EmployeesList = () => {
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="employee table">
+                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400, maxHeight: 500 }}>
+                                    <Table stickyHeader aria-label="employee table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center" scope="col">Name</TableCell>
@@ -250,40 +250,58 @@ const EmployeesList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {filteredEmployees.map((employee) => (
-                                                <TableRow
-                                                    key={employee.id}
-                                                    sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 },
-                                                        "&:hover": {
-                                                            backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                            cursor: "pointer",
-                                                        },
-                                                    }}
-                                                >
-                                                    <TableCell align="left">
-                                                        <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                            <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                <Avatar src={renderImage(employee.id, employee.avatar, employee.avatar_mime)} sx={{ mr: 2 }} />
-                                                                {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
-                                                            </Box>
-                                                        </Link>
+                                            {filteredEmployees.length > 0 ? (
+                                                filteredEmployees.map((employee) => (
+                                                    <TableRow
+                                                        key={employee.id}
+                                                        sx={{
+                                                            '&:last-child td, &:last-child th': { border: 0 },
+                                                            "&:hover": {
+                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                                cursor: "pointer",
+                                                            },
+                                                        }}
+                                                    >
+                                                        <TableCell align="left">
+                                                            <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                    <Avatar src={renderImage(employee.id, employee.avatar, employee.avatar_mime)} sx={{ mr: 2 }} />
+                                                                    {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
+                                                                </Box>
+                                                            </Link>
+                                                        </TableCell>
+                                                        {["Branch", "Department", "Role", "Status", "Type"].map(
+                                                            (column) =>
+                                                                selectedColumns.includes(column) && (
+                                                                    <TableCell key={column} align="center">
+                                                                        <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                                            {employee[column.toLowerCase()] || employee[`employment_${column.toLowerCase()}`] || '-'}
+                                                                        </Link>
+                                                                    </TableCell>
+                                                                )
+                                                        )}
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={selectedColumns.length + 1} align="center">
+                                                        No employees found.
                                                     </TableCell>
-                                                    {["Branch", "Department", "Role", "Status", "Type"].map(
-                                                        (column) =>
-                                                            selectedColumns.includes(column) && (
-                                                                <TableCell key={column} align="center">
-                                                                    <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                                        {employee[column.toLowerCase()] || employee[`employment_${column.toLowerCase()}`] || '-'}
-                                                                    </Link>
-                                                                </TableCell>
-                                                            )
-                                                    )}
                                                 </TableRow>
-                                            ))}
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                {filteredEmployees.length > 0 && (
+                                    <Box display="flex" sx={{ py: 2, pr: 2, width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
+                                        <Typography sx={{ mr: 2 }}>
+                                            Number of Employees:
+                                        </Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                                            {filteredEmployees.length}
+                                        </Typography>
+                                    </Box>
+                                )}
                             </>
                         )}
                     </Box>
