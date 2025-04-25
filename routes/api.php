@@ -192,6 +192,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
 
         Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
+
+        Route::post('/deletePayslip', [PayrollController::class, 'deletePayslip']);
     });
 
     Route::prefix('loans')->group(function () {

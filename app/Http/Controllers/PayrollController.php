@@ -1368,4 +1368,19 @@ class PayrollController extends Controller
             'leave_earnings' => $leaveEarnings,
         ];
     }
+
+    public function deletePayslip(Request $request)
+    {
+        // log::info("PayrollController::deletePayslip");
+        
+        $payslip = PayslipsModel::find(decrypt($request->uid));
+
+        if ($payslip) {
+            $payslip->delete();
+
+            return response()->json(['status' => 200, 'message' => 'Payslip soft-deleted.']);
+        }
+
+        return response()->json(['status' => 404, 'message' => 'Payslip not found.']);
+    }
 }

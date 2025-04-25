@@ -38,15 +38,19 @@ const PayrollRecords = () => {
     const [cutOff, setCutOff] = useState('');
 
     useEffect(() => {
-        axiosInstance.get('/payroll/getEmployeesPayrollRecords', { headers })
-            .then((response) => {
-                setRecords(response.data.records);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching payroll calculations:', error);
-            }); 
+        getRecords();
     }, []);
+
+    const getRecords = () => {
+        axiosInstance.get('/payroll/getEmployeesPayrollRecords', { headers })
+        .then((response) => {
+            setRecords(response.data.records);
+            setIsLoading(false);
+        })
+        .catch((error) => {
+            console.error('Error fetching payroll calculations:', error);
+        }); 
+    }
     
     const handleOpenViewPayrollModal = (id) => {
         setSelectedPayroll(id);
@@ -54,6 +58,7 @@ const PayrollRecords = () => {
     }
 
     const handleCloseViewPayrollModal = () => {
+        getRecords();
         setOpenViewPayrollModal(false);
     }
 
