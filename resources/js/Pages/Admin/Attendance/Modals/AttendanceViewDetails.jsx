@@ -208,9 +208,16 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography sx={{ mr: 2 }}>
-                                    Logs
-                                </Typography>
+                                <Box display="flex" sx={{ alignItems: "center" }}>
+                                    <Typography sx={{ mr: 2 }}>
+                                        Logs
+                                    </Typography>
+                                    {/* <Button variant="contained" color="primary" onClick={() => console.log("Editing Attendances")} >
+                                        <p className="m-0">
+                                            Edit
+                                        </p>
+                                    </Button> */}
+                                </Box>
                             </Grid>
                             <Grid size={12}>
                                 <TableContainer sx={{ border: "solid 1px #e0e0e0", maxHeight: 400 }}>

@@ -176,6 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
         Route::post('/editEmployeeAttendance', [AttendanceController::class, 'editEmployeeAttendance']);
+        Route::post('/deleteEmployeeAttendance', [AttendanceController::class, 'deleteEmployeeAttendance']);
     });
 
     Route::prefix('payroll')->group(function () {
