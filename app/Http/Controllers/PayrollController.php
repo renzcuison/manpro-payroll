@@ -13,6 +13,7 @@ use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
+use App\Models\EmployeeAllowancesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -512,7 +513,22 @@ class PayrollController extends Controller
             $tardinessTime = 0;
         }
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness;
+        $allowances = [];
+        $totalAllowance = 0;
+
+        $rawAllowance = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
+
+        foreach ( $rawAllowance as $allowance ) {
+
+            $totalAllowance = $totalAllowance + $allowance->allowance->amount;
+
+            $allowances[] = [
+                'name' => $allowance->allowance->name,
+                'amount' => $allowance->allowance->amount,
+            ];
+        }
+
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $payroll = [
@@ -553,6 +569,7 @@ class PayrollController extends Controller
             'payroll' => $payroll,
             'benefits' => $benefits,
             'earnings' => $earnings,
+            'allowances' => $allowances,
             'deductions' => $deductions,
             'summaries' => $summaries,
             'paid_leaves' => $paidLeaves,

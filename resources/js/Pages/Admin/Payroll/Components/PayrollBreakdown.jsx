@@ -2,7 +2,7 @@ import { Box, Grid, Typography, FormControl, InputLabel, Table, TableBody, Table
 import React, { useEffect, useRef, useState } from "react";
 import "react-quill/dist/quill.snow.css";
 
-const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deductions, benefits }) => {
+const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deductions, benefits, allowances }) => {
 
     return (
         <>
@@ -24,6 +24,17 @@ const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deducti
                                         </TableCell>
                                     </TableRow>
                                 ))}
+
+                                {allowances.map(
+                                    (allowance) => (
+                                        <TableRow key={allowance.name} >
+                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}> {allowance.name} </TableCell>
+                                            <TableCell className="text-center bg-light">
+                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right", }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2, } ).format(allowance.amount)} />
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                )}
 
                                 {paidLeaves.map(
                                     (paidLeave) => (

@@ -171,6 +171,10 @@ const Sidebar = ({ children, closeMini }) => {
                 href: `/admin/payroll/records?`,
                 text: 'Records',
             },
+            {
+                href: `/admin/payroll/records?`,
+                text: 'Summary',
+            },
         ]
     }]
 
