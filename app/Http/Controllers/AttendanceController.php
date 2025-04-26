@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 use Carbon\Carbon;
+use stdClass;
 
 class AttendanceController extends Controller
 {
@@ -109,6 +110,62 @@ class AttendanceController extends Controller
         $attendances = $query->orderBy('timestamp', 'desc')->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    public function getAttendanceAdderLogs(Request $request)
+    {
+        $user = Auth::user();
+        $empId = $request->input('employee');
+        $employee = UsersModel::find($empId);
+
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            $attendances = AttendanceLogsModel::with('workHour')
+                ->where('user_id', $empId)
+                ->whereDate('timestamp', $request->input('date'))
+                ->orderBy('timestamp', 'asc')
+                ->get();
+
+            $firstIn = null;
+            $firstOut = null;
+            $secondIn = null;
+            $secondOut = null;
+            $overtimeIn = null;
+            $overtimeOut = null;
+
+            if ($attendances->isNotEmpty()) {
+                $dutyIns = $attendances->filter(function ($log) {
+                    return $log->action === 'Duty In';
+                })->values();
+                $dutyOuts = $attendances->filter(function ($log) {
+                    return $log->action === 'Duty Out';
+                })->values();
+
+                $firstIn = $dutyIns->get(0)->timestamp ?? null;
+                $secondIn = $dutyIns->get(1)->timestamp ?? null;
+
+                $firstOut = $dutyOuts->get(0)->timestamp ?? null;
+                $secondOut = $dutyOuts->get(1)->timestamp ?? null;
+
+                // Handle overtime
+                $overtimeIn = $attendances->firstWhere('action', 'Overtime In')->timestamp ?? null;
+                $overOut = $attendances->last(function ($log) {
+                    return $log->action === 'Overtime Out';
+                });
+                $overtimeOut = $overOut->timestamp ?? null;
+            }
+
+            $attendanceData = new stdClass();
+            $attendanceData->first_in = $firstIn;
+            $attendanceData->first_out = $firstOut;
+            $attendanceData->second_in = $secondIn;
+            $attendanceData->second_out = $secondOut;
+            $attendanceData->overtime_in = $overtimeIn;
+            $attendanceData->overtime_out = $overtimeOut;
+
+            return response()->json(['status' => 200, 'attendance' => $attendanceData]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
     }
 
     // Log Sublists
@@ -264,6 +321,42 @@ class AttendanceController extends Controller
                         ]);
                     }
                 }
+
+                DB::commit();
+                return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error recording attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Failed to record attendance: ' . $e->getMessage()], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function addAttendanceLog(Request $request)
+    {
+        //Log::info("AttendanceController::addAttendanceLog");
+        //Log::info($request);
+
+        $user = Auth::user();
+        $empId = $request->input('employee');
+        $employee = UsersModel::with(['workShift', 'workHours'])->find($empId);
+
+        if (!$employee || !$employee->workShift || !$employee->workHours) {
+            return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
+        }
+
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
+
+                AttendanceLogsModel::create([
+                    'action' => $request->input('action'),
+                    'timestamp' => $request->input('timestamp'),
+                    'user_id' => $empId,
+                    'work_hour_id' => $employee->workHours->id
+                ]);
 
                 DB::commit();
                 return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
