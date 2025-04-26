@@ -280,7 +280,7 @@ class AttendanceController extends Controller
     // Management
     public function recordEmployeeAttendance(Request $request)
     {
-        // Log::info("AttendanceController::recordEmployeeAttendance");
+        Log::info("AttendanceController::recordEmployeeAttendance");
         // Log::info($request);
 
         $user = Auth::user();
@@ -317,7 +317,7 @@ class AttendanceController extends Controller
                             'work_hour_id' => $employee->workShift->work_hour_id,
                             'action' => $log['action'],
                             'timestamp' => $log['timestamp'],
-                            'method' => 1,
+                            'method' => 0,
                         ]);
                     }
                 }
@@ -336,14 +336,14 @@ class AttendanceController extends Controller
 
     public function addAttendanceLog(Request $request)
     {
-        //Log::info("AttendanceController::addAttendanceLog");
+        Log::info("AttendanceController::addAttendanceLog");
         //Log::info($request);
 
         $user = Auth::user();
         $empId = $request->input('employee');
-        $employee = UsersModel::with(['workShift', 'workHours'])->find($empId);
+        $employee = UsersModel::with('workShift')->find($empId);
 
-        if (!$employee || !$employee->workShift || !$employee->workHours) {
+        if (!$employee || !$employee->workShift) {
             return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
         }
 
@@ -355,7 +355,8 @@ class AttendanceController extends Controller
                     'action' => $request->input('action'),
                     'timestamp' => $request->input('timestamp'),
                     'user_id' => $empId,
-                    'work_hour_id' => $employee->workHours->id
+                    'work_hour_id' => $employee->workShift->work_hour_id,
+                    'method' => 0,
                 ]);
 
                 DB::commit();
