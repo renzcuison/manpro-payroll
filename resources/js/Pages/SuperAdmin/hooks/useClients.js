@@ -38,12 +38,27 @@ export function useClients() {
         return data;
     }
 
+    async function assignPackageToCompany(packageID, companyID) {
+        const { data } = await axiosInstance.post(
+            `/super-admin/companies/${companyID}/packages/${packageID}`,
+            {
+                packageID: packageID,
+                companyID: companyID,
+            },
+            {
+                headers,
+            }
+        );
+        return data;
+    }
+
     return {
         clients,
         isLoading,
         refetch,
         storeClient,
         updateClient,
+        assignPackageToCompany,
     };
 }
 

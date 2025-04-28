@@ -216,7 +216,7 @@ const ClientsList = () => {
                                     headCells={headCells}
                                 />
                                 <TableBody>
-                                    {clients.length != 0 ? (
+                                    {clients?.length != 0 ? (
                                         stableSort(
                                             clients,
                                             getComparator(order, orderBy)
@@ -260,7 +260,11 @@ const ClientsList = () => {
                                                             }
                                                         </TableCell>
                                                         <TableCell>
-                                                            {client.status}
+                                                            {
+                                                                client.company
+                                                                    ?.package
+                                                                    ?.name
+                                                            }
                                                         </TableCell>
                                                         <TableCell>
                                                             {client.status}
@@ -289,7 +293,7 @@ const ClientsList = () => {
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
                             component="div"
-                            count={clients.length}
+                            count={clients?.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}

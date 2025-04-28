@@ -47,12 +47,9 @@ export function usePackages() {
         return response.data;
     }
 
-    async function assignFeature(packageID, featureID) {
-        const response = await axiosInstance.post(
-            `/super-admin/packages/${packageID}/assignFeature`,
-            {
-                feature_id: featureID,
-            },
+    async function deletePkg(id) {
+        const response = await axiosInstance.delete(
+            `/super-admin/packages/${id}`,
             {
                 headers,
             }
@@ -67,7 +64,7 @@ export function usePackages() {
         refetch,
         store,
         update,
-        assignFeature,
+        deletePkg,
     };
 }
 

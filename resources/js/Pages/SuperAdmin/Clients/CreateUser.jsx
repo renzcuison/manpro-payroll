@@ -91,7 +91,6 @@ function CreateUser({ clientData, setClientData }) {
 
     const values = watch();
 
-    console.log("das", values);
     useEffect(() => {
         if (clientData) {
             console.log("das", clientData);

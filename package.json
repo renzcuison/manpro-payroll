@@ -69,7 +69,8 @@
         "reactstrap": "^9.2.0",
         "sass": "^1.54.9",
         "sass-loader": "^13.0.2",
-        "sweetalert2": "^11.5.2",
+        "sweetalert2": "^11.19.1",
+        "sweetalert2-react-content": "^5.1.0",
         "twilio-client": "^1.15.1",
         "yup": "^1.6.1"
     },
