@@ -92,7 +92,7 @@ const ContentView = ({ open, close, contentId, status }) => {
     const renderImage = (source, type) => {
         switch (type) {
             case "Image":
-                return file;
+                return file.url;
             case "Document":
                 const docExtension = source.split('.').pop().toLowerCase();
                 if (docExtension === 'pdf') {
@@ -143,10 +143,19 @@ const ContentView = ({ open, close, contentId, status }) => {
         return null;
     };
 
+    // Document File Size
+    const getFileSize = (bytes) => {
+        if (!bytes) return "Size not available";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+        return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    };
+
     useEffect(() => {
         return () => {
-            if (file && file.startsWith('blob:')) {
-                URL.revokeObjectURL(file);
+            if (file && file.url.startsWith('blob:')) {
+                URL.revokeObjectURL(file.url);
             }
         };
     }, [file]);
@@ -175,8 +184,8 @@ const ContentView = ({ open, close, contentId, status }) => {
                     ["Image", "Document", "PowerPoint"].includes(resContent?.content?.type) &&
                     resContent?.file
                 ) {
-                    if (file && file.startsWith('blob:')) {
-                        URL.revokeObjectURL(file);
+                    if (file && file.url.startsWith('blob:')) {
+                        URL.revokeObjectURL(file.url);
                     }
                     const byteCharacters = atob(resContent.file);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -186,7 +195,11 @@ const ContentView = ({ open, close, contentId, status }) => {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: resContent.file_mime });
 
-                    setFile(URL.createObjectURL(blob));
+                    const filePath = resContent.content.source;
+                    const fileName = filePath.split('/').pop()
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    setFile({ url: blobUrl, name: fileName });
                 } else {
                     setFile(null);
                 }
@@ -321,6 +334,7 @@ const ContentView = ({ open, close, contentId, status }) => {
         setLoadItem(false);
         setOpenFormItemEditModal(false);
         if (reload) {
+            setExitReload(true);
             getContentDetails();
         }
     }
@@ -392,7 +406,7 @@ const ContentView = ({ open, close, contentId, status }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '900px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> {content?.title ?? "Content"} </Typography>
@@ -410,7 +424,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                             <Grid container spacing={2} sx={{ mt: 2 }}>
                                 {/* Media Display for Non-Forms */}
                                 {content.content.type !== "Form" && (
-                                    <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                                    <Grid size={{ xs: 12 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                                         {content.content.type === "Video" ? (
                                             <Box
                                                 sx={{
@@ -430,14 +444,14 @@ const ContentView = ({ open, close, contentId, status }) => {
                                             >
                                                 {renderVideo(content.content.source)}
                                             </Box>
-                                        ) : (
+                                        ) : content.content.type === "Image" ? (
                                             <CardMedia
                                                 component="img"
                                                 sx={{
                                                     mb: 2,
                                                     width: "100%",
-                                                    maxWidth: ["Document", "PowerPoint"].includes(content.content.type) ? "200px" : "600px", // Smaller for documents, larger for images
-                                                    aspectRatio: ["Document", "PowerPoint"].includes(content.content.type) ? "4 / 3" : "16 / 9",
+                                                    maxWidth: "600px",
+                                                    aspectRatio: "16 / 9",
                                                     objectFit: "contain",
                                                     borderRadius: "8px",
                                                     backgroundColor: "transparent",
@@ -446,30 +460,74 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     "&:hover": {
                                                         transform: "scale(1.02)",
                                                         boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
-                                                        backgroundColor: ["Document", "PowerPoint"].includes(content.content.type) ? "#e0e0e0" : "transparent",
+                                                        backgroundColor: "transparent",
                                                     },
                                                 }}
                                                 image={renderImage(content.content.source, content.content.type)}
                                                 title={content.title || "Content Item"}
                                                 alt={content.title || "Content Item"}
-                                                onClick={
-                                                    ["Document", "PowerPoint"].includes(content.content.type)
-                                                        ? () => window.open(file, "_blank")
-                                                        : undefined
-                                                }
                                             />
-                                        )}
-                                        {["Document", "PowerPoint"].includes(content.content.type) && (
-                                            <Typography variant="caption" sx={{ mt: 1, color: "text.secondary", fontStyle: "italic" }}>
-                                                Click to open file
-                                            </Typography>
+                                        ) : (
+                                            <Box
+                                                sx={{
+                                                    mb: 2,
+                                                    width: "100%",
+                                                    maxWidth: "600px",
+                                                    borderRadius: "8px",
+                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "scale(1.02)",
+                                                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                                                    },
+                                                }}
+                                                onClick={() => {
+                                                    window.open(file.url, "_blank");
+                                                    handleTrainingViews(content.id, true);
+                                                }}
+                                            >
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        p: 2,
+                                                    }}
+                                                >
+                                                    <CardMedia
+                                                        component="img"
+                                                        sx={{
+                                                            width: "30%",
+                                                            maxWidth: "200px",
+                                                            aspectRatio: "16 / 9",
+                                                            objectFit: "contain",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "transparent",
+                                                            mr: 2,
+                                                        }}
+                                                        image={renderImage(content.content.source, content.content.type)}
+                                                        title={content.title || "Content Item"}
+                                                        alt={content.title || "Content Item"}
+                                                    />
+                                                    <Stack sx={{ flex: 1 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                                                            {file.name}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: "text.secondary", mb: 1 }}>
+                                                            {getFileSize(content.file_size)}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                            Click to Open Document
+                                                        </Typography>
+                                                    </Stack>
+                                                </Box>
+                                            </Box>
                                         )}
                                     </Grid>
                                 )}
                                 {/* Content Information */}
-                                <Grid container item spacing={2} xs={12}>
+                                <Grid container spacing={2} size={{ xs: 12 }}>
                                     {/* Header and Options */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                                             <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                                 Content Details
@@ -564,46 +622,46 @@ const ContentView = ({ open, close, contentId, status }) => {
                                     </Grid>
                                     {/* Additional Form Information */}
                                     {content.content.type === 'Form' && (
-                                        <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={4}>
+                                        <Grid container size={{ xs: 12 }} spacing={2}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title={content.content.require_pass ? 'Availability' : 'Attempt Limit'}
                                                     info={content.content.require_pass ? 'Until Passed' : content.content.attempts_allowed ?? 'N/A'}
                                                 />
                                             </Grid>
-                                            <Grid item xs={4}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title="Passing Score"
                                                     info={`${content.content.passing_score ?? 'N/A'} %`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={4}>
+                                            <Grid size={{ xs: 4 }}>
                                                 <InfoBox
                                                     title="Duration Per Attempt"
                                                     info={`${content.duration ?? 'N/A'} min`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <InfoBox
                                                     title="Item Count"
                                                     info={content.item_count}
                                                 />
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <InfoBox
                                                     title="Total Points"
                                                     info={`${content.total_points} pts`}
                                                 />
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid size={{ xs: 12 }}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Progress Viewer */}
                                     {status !== 'Pending' && (
-                                        <Grid container item xs={12} spacing={2}>
-                                            <Grid item xs={7}>
+                                        <Grid container size={{ xs: 12 }} spacing={2}>
+                                            <Grid size={{ xs: 7 }}>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                                     Progress Statistics
                                                 </Typography>
@@ -624,7 +682,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     height={200}
                                                 />
                                             </Grid>
-                                            <Grid item xs={5}>
+                                            <Grid size={{ xs: 5 }}>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                                     Employee Progress (Recent)
                                                 </Typography>
@@ -666,13 +724,13 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                     )}
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid size={{ xs: 12 }}>
                                                 <Divider />
                                             </Grid>
                                         </Grid>
                                     )}
                                     {/* Description */}
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
                                             Description
                                         </Typography>
@@ -690,22 +748,44 @@ const ContentView = ({ open, close, contentId, status }) => {
                                 </Grid>
                                 {/* Form Items */}
                                 {content.content.type == "Form" && (
-                                    <Grid container item xs={12} spacing={2}>
-                                        <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid container size={{ xs: 12 }} spacing={2}>
+                                        <Grid size={{ xs: 12 }} sx={{ my: 0 }} >
                                             <Divider />
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             {formItems.length == 0 ? (
                                                 <Typography sx={{ pb: 1, placeSelf: "center", color: "text.secondary" }}>
                                                     No Items Found
                                                 </Typography>
                                             ) : (
-                                                <Typography>
-                                                    Items
-                                                </Typography>
+                                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+                                                        Items
+                                                    </Typography>
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+
+                                                        onClick={() => {
+                                                            if (expanded.length === formItems.length) {
+                                                                setExpanded([]);
+                                                            } else {
+                                                                setExpanded(formItems.map((_, index) => index));
+                                                            }
+                                                        }}
+                                                        endIcon={
+                                                            expanded.length === formItems.length ?
+                                                                <ExpandLess /> :
+                                                                <ExpandMore />
+                                                        }
+                                                        sx={{ textTransform: 'none', fontSize: '0.875rem', color: "white" }}
+                                                    >
+                                                        {expanded.length === formItems.length ? "Collapse All" : "Expand All"}
+                                                    </Button>
+                                                </Box>
                                             )}
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             {formItems.length > 0 ? (
                                                 formItems.map((item, index) => {
 
@@ -859,21 +939,28 @@ const ContentView = ({ open, close, contentId, status }) => {
 
                                                             {/* Expanded Content */}
                                                             {expanded.includes(index) && (
-                                                                <Box sx={{ mt: 1, p: 1, borderTop: "1px solid #e0e0e0" }}>
-                                                                    <Typography
-                                                                        variant="body2"
-                                                                        color="text.secondary"
-                                                                        sx={{
-                                                                            mb: 2,
-                                                                            whiteSpace: "pre-wrap",
-                                                                            "& *": { margin: 0, padding: 0 },
-                                                                        }}
-                                                                        dangerouslySetInnerHTML={{ __html: item.description }}
-                                                                    />
+                                                                <Box sx={{ mt: 2, p: 2, border: "1px solid #e0e0e0", backgroundColor: "#fafafa", borderRadius: "8px" }}>
+                                                                    {/* Full Description */}
+                                                                    <Box sx={{ mb: 2 }}>
+                                                                        <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "text.primary", mb: 0.5 }}>
+                                                                            Full Description
+                                                                        </Typography>
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            color="text.secondary"
+                                                                            sx={{
+                                                                                whiteSpace: "pre-wrap",
+                                                                                "& *": { margin: 0, padding: 0 },
+                                                                            }}
+                                                                            dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                        />
+                                                                    </Box>
+
+                                                                    {/* Choices/Answer Section */}
                                                                     {item.choices.length > 0 && (
-                                                                        <>
-                                                                            <Typography variant="caption" sx={{ mb: 1 }}>
-                                                                                {item.type == "FillInTheBlank" ? "Answer" : "Choices"}
+                                                                        <Box>
+                                                                            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                                                {item.type === "FillInTheBlank" ? "Answer" : "Choices"}
                                                                             </Typography>
                                                                             {item.choices.map((choice, index) => (
                                                                                 <Box
@@ -882,16 +969,24 @@ const ContentView = ({ open, close, contentId, status }) => {
                                                                                         mt: 1,
                                                                                         p: 1,
                                                                                         width: "100%",
-                                                                                        border: item.type != "FillInTheBlank" && choice.is_correct ? "1px solid #42a5f5" : "1px solid #e0e0e0",
+                                                                                        border: "1px solid #e0e0e0",
                                                                                         borderRadius: "4px",
+                                                                                        backgroundColor: item.type !== "FillInTheBlank" && choice.is_correct ? "#e8f5e9" : "white",
+                                                                                        borderColor: item.type !== "FillInTheBlank" && choice.is_correct ? "#2e7d32" : "#e0e0e0",
                                                                                     }}
                                                                                 >
-                                                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                                    <Typography
+                                                                                        variant="body2"
+                                                                                        sx={{
+                                                                                            color: item.type !== "FillInTheBlank" && choice.is_correct ? "#2e7d32" : "text.primary",
+                                                                                            fontWeight: item.type !== "FillInTheBlank" && choice.is_correct ? "medium" : "normal",
+                                                                                        }}
+                                                                                    >
                                                                                         {choice.description}
                                                                                     </Typography>
                                                                                 </Box>
                                                                             ))}
-                                                                        </>
+                                                                        </Box>
                                                                     )}
                                                                 </Box>
                                                             )}
@@ -947,7 +1042,7 @@ const ContentView = ({ open, close, contentId, status }) => {
                     <FormAnalytics
                         open={openFormAnalyticsModal}
                         close={handleCloseFormAnalyticsModal}
-                        formData={content}
+                        contentId={content.id}
                     />
                 )}
             </Dialog>

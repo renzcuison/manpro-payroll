@@ -137,7 +137,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={URL.createObjectURL(file)}
                     alt={`${contentType} Preview`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ width: "100%", objectFit: "contain" }}
                     onError={() => setFile(null)}
                 />
             );
@@ -150,7 +150,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                     <img
                         src={PDFImage}
                         alt="PDF Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             } else if (fileExtension.match(/\.docx?$/)) {
@@ -158,7 +158,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                     <img
                         src={DocImage}
                         alt="Document Icon"
-                        style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                        style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                     />
                 );
             }
@@ -166,7 +166,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={DocImage}
                     alt="Document Icon"
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -176,7 +176,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <img
                     src={PPTImage}
                     alt={`${contentType} Icon`}
-                    style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                    style={{ maxWidth: "50%", maxHeight: "90px", objectFit: "contain" }}
                 />
             );
         }
@@ -421,7 +421,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Add Training Content </Typography>
@@ -432,27 +432,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                 <DialogContent sx={{ padding: 5, mb: 3 }}>
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={2} sx={{ mt: 1 }}>
-                            {/* Content Type */}
-                            <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="content-type-select-label"> Content Type </InputLabel>
-                                    <Select
-                                        labelId="content-type-select-label"
-                                        id="content-type-select"
-                                        value={contentType}
-                                        label="Content Type"
-                                        onChange={(event) => handleTypeChange(event)}
-                                    >
-                                        <MenuItem value="Video"> Video </MenuItem>
-                                        <MenuItem value="Image"> Image </MenuItem>
-                                        <MenuItem value="Document"> Document </MenuItem>
-                                        <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
-                                        <MenuItem value="Form"> Form </MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
                             {/* Title Field */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 9 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -473,12 +454,31 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                     </FormHelperText>
                                 </FormControl>
                             </Grid>
+                            {/* Content Type */}
+                            <Grid size={{ xs: 3 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="content-type-select-label"> Content Type </InputLabel>
+                                    <Select
+                                        labelId="content-type-select-label"
+                                        id="content-type-select"
+                                        value={contentType}
+                                        label="Content Type"
+                                        onChange={(event) => handleTypeChange(event)}
+                                    >
+                                        <MenuItem value="Video"> Video </MenuItem>
+                                        <MenuItem value="Image"> Image </MenuItem>
+                                        <MenuItem value="Document"> Document </MenuItem>
+                                        <MenuItem value="PowerPoint"> PowerPoint </MenuItem>
+                                        <MenuItem value="Form"> Form </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                             {/* Type-Specific Fields */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 {contentType === "Video" ? (
                                     <Grid container direction="row" alignItems="center" spacing={2}>
                                         {/* Upload Field */}
-                                        <Grid item sm={9}>
+                                        <Grid size={{ xs: 9 }}>
                                             <FormControl fullWidth sx={{ display: "flex" }}>
                                                 <TextField
                                                     fullWidth
@@ -503,7 +503,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                             </FormControl>
                                         </Grid>
                                         {/* Video Thumbnail */}
-                                        <Grid item sm={3}>
+                                        <Grid size={{ xs: 3 }}>
                                             <Stack sx={{ placeContent: "center", placeItems: "center" }}>
                                                 <Box
                                                     sx={{
@@ -513,8 +513,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         padding: thumbnailUrl ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: thumbnailUrl ? 0 : "4px",
-                                                        width: thumbnailUrl ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: thumbnailUrl ? "auto" : "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >
@@ -522,7 +522,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         <img
                                                             src={thumbnailUrl}
                                                             alt="Video Thumbnail"
-                                                            style={{ maxWidth: "100%", maxHeight: "90px", objectFit: "contain" }}
+                                                            style={{ width: "100%", objectFit: "contain" }}
                                                             onError={() => setThumbnailUrl(null)}
                                                         />
                                                     ) : (
@@ -538,7 +538,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                 ) : ["Image", "Document", "PowerPoint"].includes(contentType) ? (
                                     <Grid container direction="row" alignItems="center" spacing={2}>
                                         {/* Upload Field */}
-                                        <Grid item xs={9}>
+                                        <Grid size={{ xs: 9 }}>
                                             <FormControl fullWidth sx={{ display: "flex" }}>
                                                 <TextField
                                                     fullWidth
@@ -582,7 +582,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                             </FormControl>
                                         </Grid>
                                         {/* File Preview */}
-                                        <Grid item xs={3}>
+                                        <Grid size={{ xs: 3 }}>
                                             <Stack sx={{ placeContent: "center", placeItems: "center" }}>
                                                 <Box
                                                     sx={{
@@ -592,8 +592,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                         padding: file ? 0 : 2,
                                                         border: "2px solid #e0e0e0",
                                                         borderRadius: file ? 0 : "4px",
-                                                        width: file ? "auto" : "80%",
-                                                        height: "90px",
+                                                        width: "100%",
+                                                        aspectRatio: "16 / 9",
                                                         overflow: "hidden",
                                                     }}
                                                 >
@@ -625,7 +625,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                     </Grid>
                                 ) : contentType === "Form" ? (
                                     <Grid container direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
-                                        <Grid item xs={4}>
+                                        <Grid size={{ xs: 4 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="attempt-policy-select-label">Attempt Policy</InputLabel>
                                                 <Select
@@ -641,7 +641,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                 </Select>
                                             </FormControl>
                                         </Grid>
-                                        <Grid item xs={4}>
+                                        <Grid size={{ xs: 4 }}>
                                             <FormControl fullWidth>
                                                 <TextField
                                                     required
@@ -669,8 +669,8 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                 />
                                             </FormControl>
                                         </Grid>
-                                        <Grid item container xs={4} spacing={1}>
-                                            <Grid item xs={6}>
+                                        <Grid container size={{ xs: 4 }} spacing={1}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <FormControl fullWidth>
                                                     <TextField
                                                         required
@@ -703,7 +703,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                     />
                                                 </FormControl>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid size={{ xs: 6 }}>
                                                 <FormControl fullWidth>
                                                     <TextField
                                                         required
@@ -736,7 +736,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                                 </FormControl>
                                             </Grid>
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid size={{ xs: 12 }}>
                                             <Box display="flex" sx={{ alignItems: "center" }}>
                                                 <InfoOutlined sx={{ color: "text.secondary" }} />
                                                 <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
@@ -748,7 +748,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                                 ) : null}
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -791,7 +791,7 @@ const ContentAdd = ({ open, close, trainingCode }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

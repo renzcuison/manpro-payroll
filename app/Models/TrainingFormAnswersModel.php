@@ -32,4 +32,9 @@ class TrainingFormAnswersModel extends Model
     {
         return $this->belongsTo(TrainingFormChoicesModel::class, 'form_choice_id');
     }
+
+    public function item()
+    {
+        return $this->belongsTo(TrainingFormItemsModel::class, 'form_item_id');
+    }
 }

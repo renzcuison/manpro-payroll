@@ -33,21 +33,17 @@
     "file": "assets/admin-T7M93j7i.png",
     "src": "resources/images/admin.png"
   },
-  "resources/images/home-logo.png": {
-    "file": "assets/home-logo-Dq_K6Svh.png",
-    "src": "resources/images/home-logo.png"
-  },
   "resources/images/logo.png": {
     "file": "assets/logo-D0iV6wbb.png",
     "src": "resources/images/logo.png"
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-BYfD3kCV.js",
+    "file": "assets/app-BX67e1fI.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
     "css": [
-      "assets/app-VX9PnRxB.css"
+      "assets/app-DozTQrgM.css"
     ],
     "assets": [
       "assets/admin-T7M93j7i.png",

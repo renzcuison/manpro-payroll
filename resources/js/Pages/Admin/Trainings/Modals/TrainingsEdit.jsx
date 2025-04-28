@@ -187,8 +187,8 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 2 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Edit Training </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
@@ -199,7 +199,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" >
                         <Grid container columnSpacing={2} rowSpacing={3} sx={{ mt: 1 }}>
                             {/* Title Field */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -221,7 +221,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Cover Image */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -267,7 +267,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </FormControl>
                             </Grid>
                             {/* Start Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -284,6 +284,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         }}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: fromDateError,
                                                 readOnly: true,
                                             }
@@ -292,7 +293,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* End Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -304,6 +305,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: toDateError,
                                                 readOnly: true,
                                             }
@@ -312,10 +314,11 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* Duration */}
-                            <Grid item container xs={4} spacing={1}>
-                                <Grid item xs={6}>
+                            <Grid container size={{ xs: 4 }} spacing={1}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             label="Duration"
                                             value={trainingHours}
@@ -346,9 +349,10 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                         />
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             value={trainingMinutes}
                                             onChange={(event) => {
@@ -384,7 +388,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                                 </Grid>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -427,7 +431,7 @@ const TrainingsEdit = ({ open, close, trainingInfo }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

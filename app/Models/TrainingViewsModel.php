@@ -26,7 +26,7 @@ class TrainingViewsModel extends Model
 
     public function content()
     {
-        return $this->belongsTo(TrainingContentModel::class, 'training_media_id');
+        return $this->belongsTo(TrainingContentModel::class, 'training_content_id');
     }
 
     public function user()

@@ -1,13 +1,8 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField, Typography, CircularProgress, FormGroup, FormControl, MenuItem, Checkbox, ListItemText } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
-import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -189,8 +184,8 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                         backgroundColor: '#f8f9fa',
                         boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
                         borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "500px" },
-                        maxWidth: '600px',
+                        minWidth: { xs: "100%", sm: "700px" },
+                        maxWidth: '800px',
                         marginBottom: '5%'
                     }
                 }}>
@@ -208,21 +203,21 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                 <DialogContent sx={{ padding: 5, mt: 2 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
-                            <Card sx={{ width: 350 }}>
+                            <Card sx={{ width: 500 }}>
                                 {imageLoading ? (
                                     <Box
                                         sx={{
                                             display: 'flex',
                                             justifyContent: 'center',
                                             alignItems: 'center',
-                                            height: 150
+                                            height: 210
                                         }}
                                     >
                                         <CircularProgress />
                                     </Box>
                                 ) : (
                                     <CardMedia
-                                        sx={{ height: 150 }}
+                                        sx={{ height: 210 }}
                                         image={imagePath}
                                         title="Thumbnail"
                                     />
@@ -237,7 +232,9 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                         </Box>
                     </Box>
                     <Box component="form" sx={{ my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                        <Typography sx={{ mb: 2 }}>Select Recipients:</Typography>
+                        <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 2 }}>
+                            Select Recipients
+                        </Typography>
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -326,7 +323,6 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Publish </p>
                             </Button>
                         </Box>
-
                     </Box>
                 </DialogContent>
             </Dialog >

@@ -26,20 +26,6 @@ const DocumentsList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [dataUpdated, setDataUpdated] = useState(false);
 
-    const [documents, setDocuments] = useState([]);
-    
-    useEffect(() => {
-        axiosInstance.get('/benefits/getBenefits', { headers })
-            .then((response) => {
-                setDocuments(response.data.benefits);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error('Error fetching clients:', error);
-                setIsLoading(false);
-            });
-    }, []);
-
     const handleUpdateDocuments = (newBenefit) => {
         setDocuments((prevBenefits) => [...prevBenefits, newBenefit]);
     };

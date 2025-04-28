@@ -32,8 +32,6 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import LeaveCreditAdd from "./LeaveCreditAdd";
-import LeaveCreditEdit from "./LeaveCreditEdit";
 import EmployeeAddBenefit from "./EmployeeAddBenefit";
 
 import dayjs from "dayjs";
@@ -110,7 +108,7 @@ const EmployeeBenefits = ({ open, close, employee }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}>
-                            Benefit Details
+                            Employee Benefit
                         </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>

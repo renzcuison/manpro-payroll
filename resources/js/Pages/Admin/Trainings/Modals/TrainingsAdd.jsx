@@ -186,8 +186,8 @@ const TrainingsAdd = ({ open, close }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "700px" }, maxWidth: '800px', marginBottom: '5%' } }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "900px" }, maxWidth: '1000px', marginBottom: '5%' } }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 2 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}> Create Training </Typography>
                         <IconButton onClick={() => close(false)}> <i className="si si-close"></i> </IconButton>
@@ -198,7 +198,7 @@ const TrainingsAdd = ({ open, close }) => {
                     <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" sx={{ mt: 1 }} >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Title Field */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -220,7 +220,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Cover Image */}
-                            <Grid item xs={6}>
+                            <Grid size={{ xs: 6 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -264,7 +264,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </FormControl>
                             </Grid>
                             {/* Start Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -281,6 +281,7 @@ const TrainingsAdd = ({ open, close }) => {
                                         }}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: fromDateError,
                                                 readOnly: true,
                                             }
@@ -289,7 +290,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* End Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -301,6 +302,7 @@ const TrainingsAdd = ({ open, close }) => {
                                         onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{
                                             textField: {
+                                                fullWidth: true,
                                                 error: toDateError,
                                                 readOnly: true,
                                             }
@@ -309,10 +311,11 @@ const TrainingsAdd = ({ open, close }) => {
                                 </LocalizationProvider>
                             </Grid>
                             {/* Duration */}
-                            <Grid item container xs={4} spacing={1}>
-                                <Grid item xs={6}>
+                            <Grid container size={{ xs: 4 }} spacing={1}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             label="Duration"
                                             value={trainingHours}
@@ -343,9 +346,10 @@ const TrainingsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField
+                                            fullWidth
                                             type="number"
                                             value={trainingMinutes}
                                             onChange={(event) => {
@@ -381,7 +385,7 @@ const TrainingsAdd = ({ open, close }) => {
                                 </Grid>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <FormControl error={descriptionError} fullWidth>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -424,7 +428,7 @@ const TrainingsAdd = ({ open, close }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center", alignItems: "center",

@@ -239,7 +239,7 @@ const DocumentCreate = ({ open, close }) => {
                             </Grid>
 
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl error={descriptionError} sx={{ width: '100%' }}>
                                     <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
                                         <ReactQuill
@@ -278,7 +278,7 @@ const DocumentCreate = ({ open, close }) => {
                             </Grid>
 
                             {/* Attachment Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center", width: "100%" }} >
@@ -318,7 +318,7 @@ const DocumentCreate = ({ open, close }) => {
                             </Grid>
 
                             {/* Image Upload */}
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center", width: "100%" }} >

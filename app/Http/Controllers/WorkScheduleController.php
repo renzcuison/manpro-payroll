@@ -103,6 +103,8 @@ class WorkScheduleController extends Controller
         $workHours = WorkHoursModel::select(
             'first_time_in',
             'first_time_out',
+            'break_start',
+            'break_end',
             'second_time_in',
             'second_time_out',
             'over_time_in',
@@ -203,7 +205,7 @@ class WorkScheduleController extends Controller
         // log::info("WorkScheduleController::getWorkShiftDetails");
 
         if ($this->checkUser()) {
-            $workShift = WorkShiftsModel::where('id', $request->shift)->first();
+            $workShift = WorkShiftsModel::where('id', $request->selectedShift)->where('client_id', $request->client)->first();
             $workHours = WorkHoursModel::find($workShift->work_hour_id);
             return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
         }
@@ -471,7 +473,7 @@ class WorkScheduleController extends Controller
 
             try {
                 DB::beginTransaction();
- 
+
                 $workGroup->work_shift_id = $request->workShift;
                 $workGroup->save();
 

@@ -1,44 +1,27 @@
 import {
     Box,
-    Button,
     IconButton,
     Dialog,
     DialogTitle,
     DialogContent,
     Grid,
-    TextField,
     Typography,
-    CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
     MenuItem,
     Divider,
     Stack,
     Tooltip,
-    TableContainer,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell,
-    Table,
     Menu,
     ImageList,
     ImageListItem,
-    ImageListItemBar
+    ImageListItemBar,
+    CircularProgress
 } from "@mui/material";
-import { PictureAsPdf, Description, InsertPhoto, MoreVert, Download } from "@mui/icons-material";
+import { MoreVert, Download } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import moment from "moment";
+import InfoBox from "../../../../components/General/InfoBox";
 
 import PdfImage from '../../../../../../public/media/assets/PDF_file_icon.png';
 import DocImage from '../../../../../../public/media/assets/Docx_file_icon.png';
@@ -48,7 +31,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
-import { icon } from "@fortawesome/fontawesome-svg-core";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -58,7 +40,6 @@ import AnnouncementEdit from './AnnouncementEdit';
 import AnnouncementAcknowledgements from "./AnnouncementAcknowledgements";
 
 const AnnouncementManage = ({ open, close, announceInfo }) => {
-
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -347,8 +328,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         backgroundColor: '#f8f9fa',
                         boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
                         borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "850px" },
-                        maxWidth: '900px',
+                        minWidth: { xs: "100%", sm: "800px" },
+                        maxWidth: '1000px',
                         maxHeight: '750px',
                         marginBottom: '5%'
                     }
@@ -356,7 +337,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
-                            {" "}Announcement Details{" "}
+                            {announcement.title || "Announcement"}
                         </Typography>
                         <IconButton onClick={() => close(exitReload)}>
                             <i className="si si-close"></i>
@@ -368,34 +349,40 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     <Box>
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
-                            <Grid item xs={5}>
+                            <Grid size={{ xs: 5 }}>
                                 <Box sx={{
                                     position: 'relative',
                                     width: '100%',
-                                    height: 200,
+                                    height: 210,
                                     borderRadius: "4px",
                                     border: '2px solid #e0e0e0',
                                 }}>
-                                    <img
-                                        src={imagePath}
-                                        alt={`${announcement.title} thumbnail`}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            borderRadius: "4px",
-                                        }}
-                                    />
+                                    {imageLoading ?
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                            <CircularProgress />
+                                        </Box>
+                                        :
+                                        <img
+                                            src={imagePath}
+                                            alt={`${announcement.title} thumbnail`}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: "4px",
+                                            }}
+                                        />
+                                    }
                                 </Box>
                             </Grid>
                             {/* Core Information */}
-                            <Grid item container xs={7} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                <Grid item container spacing={1} sx={{ mb: 1 }}>
+                            <Grid container size={{ xs: 7 }} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                <Grid container spacing={1} sx={{ mb: 1 }}>
                                     {/* Title and Action Menu */}
-                                    <Grid item xs={12}>
+                                    <Grid size={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                            <Typography variant="h6" component="div">
-                                                {announcement.title}
+                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                Announcement Details
                                             </Typography>
                                             <IconButton
                                                 id="basic-button"
@@ -404,6 +391,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 aria-haspopup="true"
                                                 aria-expanded={open ? 'true' : undefined}
                                                 onClick={handleMenuClick}
+                                                sx={{ m: 0 }}
                                             >
                                                 <MoreVert />
                                             </IconButton>
@@ -462,109 +450,92 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             </Menu>
                                         </Stack>
                                     </Grid>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Announcement Status */}
-                                    <Grid item xs={5} align="left">
-                                        Status
-                                    </Grid>
-                                    <Grid item xs={7} align="left">
-                                        <Typography
-                                            sx={{
-                                                fontWeight: "bold",
-                                                color:
-                                                    announcement.status == "Pending"
-                                                        ? "#e9ae20"
-                                                        : "#177604"
-                                            }}
-                                        >
-                                            {announcement.status == "Pending" ? "PENDING" : "PUBLISHED"}
-                                        </Typography>
+                                    <Grid size={12}>
+                                        <InfoBox
+                                            title="Status"
+                                            info={announcement.status == "Pending" ? "PENDING" : "PUBLISHED"}
+                                            color={announcement.status == "Pending" ? "#e9ae20" : "#177604"}
+                                            compact
+                                            clean
+                                        />
                                     </Grid>
                                     {/* Visibility */}
                                     {announcement.status != "Pending" && (
-                                        <>
-                                            <Grid item xs={5} align="left">
-                                                Visibility
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "bold",
-                                                        color:
-                                                            announcement.status == "Published"
-                                                                ? "#177604"
-                                                                : "#f57c00"
-                                                    }}
-                                                >
-                                                    {announcement.status == "Published" ? "VISIBLE" : "HIDDEN"}
-                                                </Typography>
-                                            </Grid>
-                                        </>
+                                        <Grid size={12}>
+                                            <InfoBox
+                                                title="Visibility"
+                                                info={announcement.status == "Published" ? "VISIBLE" : "HIDDEN"}
+                                                color={announcement.status == "Published" ? "#177604" : "#f57c00"}
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
                                     )}
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
                                     {/* Publishment Details*/}
                                     {announcement.status != "Pending" ? (
-                                        <Grid item container xs={12} spacing={1}>
-                                            <Grid item xs={12} align="left">
-                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                        <Grid container size={12} spacing={1}>
+                                            <Grid size={12} align="left">
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                     Publishment Details
                                                 </Typography>
                                             </Grid>
                                             {/* Branches */}
-                                            <Grid item xs={5} align="left">
-                                                Branches
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {branches.length > 0 ? branches.join(', ') : 'N/A'}
-                                                </Typography>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Branches"
+                                                    info={branches.length > 0 ? branches.join(', ') : 'N/A'}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Departments */}
-                                            <Grid item xs={5} align="left">
-                                                Departments
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography sx={{ fontWeight: "bold", }}>
-                                                    {departments.length > 0 ? departments.join(', ') : 'N/A'}
-                                                </Typography>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Departments"
+                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             {/* Acknowledgement Count */}
-                                            <Grid item xs={5} align="left">
-                                                Acknowledged by
-                                            </Grid>
-                                            <Grid item xs={7} align="left">
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "bold",
-                                                    }}
-                                                >
-                                                    {`${announceInfo.acknowledged} of ${announceInfo.recipients} Recipients`}
-                                                </Typography>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Acknowledged by"
+                                                    info={`${announceInfo.acknowledged} of ${announceInfo.recipients} Recipients`}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                         </Grid>
                                     ) :
-                                        <Grid item xs={12} align="center">
+                                        <Grid size={12} align="center">
                                             <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                 -- Publishing Data Unavailable --
                                             </Typography>
-                                        </Grid>}
+                                        </Grid>
+                                    }
                                 </Grid>
                             </Grid>
-                            <Grid item xs={12} sx={{ my: 0 }} >
+                            <Grid size={12} sx={{ my: 0 }} >
                                 <Divider />
                             </Grid>
                             {/* Description*/}
-                            <Grid item xs={12} sx={{ mb: 1 }} align="left">
-                                Description
+                            <Grid size={12} sx={{ mb: 1 }} align="left">
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    Description
+                                </Typography>
                             </Grid>
-                            <Grid item xs={12}>
-                                <div
-                                    id="description"
-                                    style={{
+                            <Grid size={12}>
+                                <Typography
+                                    variant="body1"
+                                    sx={{
                                         wordWrap: 'break-word',
                                         wordBreak: 'break-word',
                                         overflowWrap: 'break-word',
@@ -576,14 +547,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             {/* Images */}
                             {images.length > 0 ? (
                                 <>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
-                                    <Grid item xs={12} sx={{ mb: 1 }} align="left">
-                                        Images
+                                    <Grid size={12} sx={{ mb: 1 }} align="left">
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                            Images
+                                        </Typography>
                                     </Grid>
-                                    <Grid item md={12} align="left">
-                                        <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                    <Grid size={12} align="left">
+                                        <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                             {images.map((image) => (
                                                 <ImageListItem
                                                     key={image.id}
@@ -624,14 +597,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                             {/* Attachments */}
                             {attachments.length > 0 ? (
                                 <>
-                                    <Grid item xs={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }} >
                                         <Divider />
                                     </Grid>
-                                    <Grid item xs={12} sx={{ mb: 1 }} align="left">
-                                        Documents
+                                    <Grid size={12} sx={{ mb: 1 }} align="left">
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                            Documents
+                                        </Typography>
                                     </Grid>
-                                    <Grid item md={12} align="left">
-                                        <ImageList cols={7} gap={4} sx={{ width: '100%' }}>
+                                    <Grid size={12} align="left">
+                                        <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
                                             {attachments.map((attachment) => {
                                                 const fileIcon = getFileIcon(attachment.filename);
                                                 return (

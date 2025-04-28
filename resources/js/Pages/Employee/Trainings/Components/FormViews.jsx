@@ -35,9 +35,9 @@ import {
     CardActionArea,
     Paper
 } from "@mui/material";
-import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save, BarChart, Assessment, History } from "@mui/icons-material";
+import { AccessTime, ArrowBack, CheckCircle, ExitToApp, Save, BarChart, Assessment, History, Grading } from "@mui/icons-material";
 import { Form, useLocation, useNavigate } from "react-router-dom";
-import { Gauge, LineChart } from '@mui/x-charts';
+import { Gauge, LineChart, gaugeClasses, areaElementClasses } from '@mui/x-charts';
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -47,6 +47,7 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import FormItem from "./FormItem";
 import InfoBox from "../../../../components/General/InfoBox";
+import ReviewItem from "./ReviewItem";
 
 
 const FormViews = ({ content, formItems, attemptData, handleFormFinished, contentReload }) => {
@@ -57,9 +58,15 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
     const formInfo = content.content;
     const [analyticView, setAnalyticView] = useState(false);
     const [submissionView, setSubmissionView] = useState(false);
+
     const durationInSeconds = (content?.duration || 15) * 60;
     const [formTimer, setFormTimer] = useState(durationInSeconds);
     const [viewType, setViewType] = useState('Overview');
+
+    const [overviewReload, setOverviewReload] = useState(false);
+    const [resultData, setResultData] = useState(null);
+    const [reviewData, setReviewData] = useState(null);
+    const totalPoints = formItems.reduce((sum, item) => sum + (item.value || 0), 0);
 
     // Local Storage
     let attemptedQuiz = null;
@@ -102,17 +109,15 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
         return result.trim();
     };
 
-    // Attempt Initialization
+    // View Initialization
     useEffect(() => {
         attemptedQuiz = localStorage.getItem('quizAttempted');
         if (attemptedQuiz) {
             if (attemptedQuiz == content.id) {
                 setViewType('Attempt');
-            } else {
-                setViewType('Overview');
             }
         }
-    }, [content.id]); // Runs when content.id changes
+    }, [content.id]);
 
     // EVENTS
     // Start Attempt
@@ -151,7 +156,6 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
 
     // Record Answer
     const handleAnswer = (id, answer) => {
-        console.log(`Received Answer for Item ${id}: ${answer}`);
         const storedAnswers = JSON.parse(localStorage.getItem('quizAnswerData')) || {};
         storedAnswers[id] = answer;
         localStorage.setItem('quizAnswerData', JSON.stringify(storedAnswers));
@@ -239,15 +243,40 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         localStorage.removeItem('quizStartTime');
                         localStorage.removeItem('quizViewType');
                         localStorage.removeItem('quizAnswerData');
-                        setViewType('Overview');
+
+                        const resData = response.data.results;
+                        // Results Page Prep
+                        setViewType('Results');
+                        setOverviewReload(true);
+                        setResultData(resData);
 
                         // Form Clear Conditions
                         const allAttempts = !formInfo.require_pass && (((attemptData?.response_count ?? 0) + 1) == formInfo.attempts_allowed);
-                        if (response.data.passed || allAttempts) {
+                        if (resData.passed || allAttempts) {
                             handleFormFinished(content.id, true);
                         }
-                        contentReload(content.id);
                     });
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                document.body.setAttribute("aria-hidden", "true");
+            });
+    };
+
+    // Attempt Review
+    const handleAttemptReview = (id, attemptNo) => {
+        axiosInstance.get(`/trainings/getEmployeeFormReviewer`, { headers, params: { attempt_id: id, form_id: content.training_form_id } })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const revData = response.data.review_data;
+                    const newRevData = {
+                        ...revData,
+                        attempt_number: attemptNo
+                    };
+                    console.log(revData);
+                    setReviewData(newRevData);
+                    setViewType('Review');
                 }
             })
             .catch((error) => {
@@ -304,9 +333,9 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     {/* Primary Details */}
-                    <Grid item container xs={12} spacing={2}>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
                         {/* Availability */}
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <InfoBox
                                 title={formInfo.require_pass ? 'Availability' : 'Attempt Limit'}
                                 info={
@@ -317,35 +346,35 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             />
                         </Grid>
                         {/* Duration */}
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <InfoBox
                                 title="Attempt Duration"
                                 info={`${content.duration} minute${content.duration > 1 ? 's' : ''}`}
                             />
                         </Grid>
                         {/* Item Count */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Item Count"
                                 info={formItems.length}
                             />
                         </Grid>
                         {/* Total Points */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Total Points"
-                                info={formItems.reduce((sum, item) => sum + (item.value || 0), 0)}
+                                info={totalPoints}
                             />
                         </Grid>
                         {/* Passing Score */}
-                        <Grid item xs={3}>
+                        <Grid size={{ xs: 3 }}>
                             <InfoBox
                                 title="Passing Score"
                                 info={`${formInfo.passing_score}%`}
                             />
                         </Grid>
                         {/* Button */}
-                        <Grid item xs={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Grid size={{ xs: 3 }} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -360,12 +389,12 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                         {/* Analytics */}
                         {analyticView && (
                             <>
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Divider />
                                 </Grid>
-                                <Grid item container xs={12} spacing={2}>
+                                <Grid container size={{ xs: 12 }} spacing={2}>
                                     {/* Attempt Count */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -403,7 +432,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         </Paper>
                                     </Grid>
                                     {/* Average Score */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -420,22 +449,48 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                             }}
                                         >
                                             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', height: '100%', }} >
-                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }} >
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }} >
                                                     <Assessment sx={{ mr: 1, color: 'text.secondary', width: 28, height: 28 }} />
                                                     <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: '0.5px', }} >
                                                         Avg. Score
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, }} >
-                                                    <Typography variant="h3" sx={{ fontWeight: 700, color: '#177604', mb: 1, letterSpacing: '-0.5px', }} >
-                                                        {(attemptData?.response_count ?? 0) == 0 ? "-" : `${(attemptData?.average_score ?? 0).toFixed(2).replace(/\.?0+$/, '')} pt${(attemptData?.average_score ?? 0).toFixed(2) > 1 ? 's' : ''}`}
-                                                    </Typography>
+                                                    <Gauge
+                                                        value={(attemptData?.response_count ?? 0) === 0 ? 0 : Number((attemptData?.average_score ?? 0).toFixed(1))}
+                                                        valueMax={totalPoints}
+                                                        height={140}
+                                                        width={140}
+                                                        cornerRadius="8px"
+                                                        sx={(theme) => ({
+                                                            [`& .${gaugeClasses.valueText}`]: {
+                                                                fontSize: 20,
+                                                                fontWeight: "bold",
+                                                                fill: "text.secondary"
+                                                            },
+                                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                                fill: (attemptData?.average_score ?? 0) >= (totalPoints * 0.75) ? '#177604'
+                                                                    : (attemptData?.average_score ?? 0) >= (totalPoints * 0.50) ? '#e9ae20'
+                                                                        : (attemptData?.average_score ?? 0) >= (totalPoints * 0.25) ? '#f57c00'
+                                                                            : '#f44336'
+                                                            },
+                                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                                fill: `#e0e0e0`
+                                                            },
+                                                        })}
+                                                        margin={{ top: 0 }}
+                                                        startAngle={-110}
+                                                        endAngle={110}
+                                                        innerRadius="70%"
+                                                        outerRadius="100%"
+                                                        text={({ value }) => `${value}pt${value > 1 ? 's' : ''}`}
+                                                    />
                                                 </Box>
                                             </Box>
                                         </Paper>
                                     </Grid>
                                     {/* Average Duration */}
-                                    <Grid item xs={12} sm={6} md={3}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                         <Paper
                                             elevation={0}
                                             sx={{
@@ -467,81 +522,87 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                         </Paper>
                                     </Grid>
                                     {/* Attempt History */}
-                                    <Grid item xs={3}>
-                                        <Paper
-                                            elevation={0}
+                                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                                        <Box
                                             sx={{
-                                                p: 1,
-                                                bgcolor: 'white',
-                                                borderRadius: '8px',
-                                                border: '1px solid #e0e0e0',
                                                 height: 180,
-                                                overflow: 'hidden',
-                                                boxShadow: 1,
+                                                border: "solid 1px #e0e0e0",
+                                                borderRadius: "8px",
+                                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24)',
+                                                overflowY: 'auto',
+                                                overflowX: 'hidden',
+                                                scrollbarWidth: 'thin',
+                                                scrollbarColor: '#777 #f5f5f5',
+                                                '&::-webkit-scrollbar': {
+                                                    width: '6px',
+                                                },
+                                                '&::-webkit-scrollbar-thumb': {
+                                                    backgroundColor: '#777',
+                                                    borderRadius: '3px',
+                                                },
+                                                '&::-webkit-scrollbar-track': {
+                                                    backgroundColor: '#f5f5f5',
+                                                },
                                             }}
                                         >
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                                {/* Header */}
-                                                <Box
+                                            {attemptData?.responses?.length > 0 ? (
+                                                <Table
+                                                    stickyHeader
+                                                    size="small"
                                                     sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'flex-start',
-                                                        alignItems: 'center',
-                                                        mb: 1,
-                                                        px: 1,
-                                                        py: 0.5,
-                                                        borderBottom: '1px solid #e0e0e0',
+                                                        tableLayout: 'fixed',
+                                                        width: '100%',
                                                     }}
                                                 >
-                                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                        Attempt History
-                                                    </Typography>
-                                                </Box>
-
-                                                {/* Attempt List */}
-                                                <Box
-                                                    sx={{
-                                                        flexGrow: 1,
-                                                        maxHeight: 'calc(180px - 48px)',
-                                                        overflowY: 'auto',
-                                                        scrollbarWidth: 'thin',
-                                                        scrollbarColor: '#777 #f5f5f5',
-                                                        '&::-webkit-scrollbar': {
-                                                            width: '6px',
-                                                        },
-                                                        '&::-webkit-scrollbar-thumb': {
-                                                            backgroundColor: '#777',
-                                                            borderRadius: '3px',
-                                                        },
-                                                        '&::-webkit-scrollbar-track': {
-                                                            backgroundColor: '#f5f5f5',
-                                                        },
-                                                    }}
-                                                >
-                                                    {attemptData?.responses?.length > 0 ? (
-                                                        attemptData.responses.map((response, index) => (
-                                                            <Box
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell sx={{ pl: 1, width: '65%', fontWeight: 'bold' }}>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                    Attempt Date
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="center" sx={{ width: '35%', fontWeight: 'bold' }}>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                    Score
+                                                                </Typography>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {attemptData.responses.map((response, index) => (
+                                                            <TableRow
                                                                 key={index}
+                                                                onClick={() => handleAttemptReview(response.id, (index + 1))}
                                                                 sx={{
-                                                                    mb: 1,
-                                                                    p: '8px',
-                                                                    border: '1px solid #e0e0e0',
-                                                                    borderRadius: '8px',
-                                                                    backgroundColor: 'white',
+                                                                    cursor: 'pointer',
+                                                                    transition: "background-color 0.3s ease",
+                                                                    '&:hover': {
+                                                                        backgroundColor: "#f5f5f5"
+                                                                    }
                                                                 }}
                                                             >
-                                                                <Box display="flex" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                    {/* Attempt Date */}
-                                                                    <Box display="flex" alignItems="center" sx={{ width: '70%' }}>
-                                                                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                                                                            {dayjs(response.created_at).format('MM/DD/YYYY hh:mm A')}
-                                                                        </Typography>
-                                                                    </Box>
-                                                                    {/* Score */}
+                                                                <TableCell
+                                                                    sx={{
+                                                                        width: '65%',
+                                                                        whiteSpace: 'normal',
+                                                                        wordBreak: 'break-word',
+                                                                        p: 1,
+                                                                    }}
+                                                                >
+                                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                                        {dayjs(response.created_at).format('MM/DD/YYYY hh:mm A')}
+                                                                    </Typography>
+                                                                </TableCell>
+                                                                <TableCell
+                                                                    sx={{
+                                                                        width: '35%',
+                                                                        whiteSpace: 'normal',
+                                                                        wordBreak: 'break-word',
+                                                                        p: 1,
+                                                                    }}
+                                                                >
                                                                     <Box
                                                                         sx={{
-                                                                            width: '30%',
-                                                                            mr: 1,
                                                                             px: 1,
                                                                             py: 0.5,
                                                                             borderRadius: '12px',
@@ -554,27 +615,27 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                                     >
                                                                         {`${response.score} pt${response.score > 1 ? 's' : ''}`}
                                                                     </Box>
-                                                                </Box>
-                                                            </Box>
-                                                        ))
-                                                    ) : (
-                                                        <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 2 }}>
-                                                            No attempts recorded
-                                                        </Typography>
-                                                    )}
-                                                </Box>
-                                            </Box>
-                                        </Paper>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            ) : (
+                                                <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', lineHeight: 'calc(180px - 48px)' }}>
+                                                    No attempts recorded
+                                                </Typography>
+                                            )}
+                                        </Box>
                                     </Grid>
                                 </Grid>
                             </>
                         )}
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider />
                     </Grid>
                     {/* Description */}
-                    <Grid item xs={12} >
+                    <Grid size={{ xs: 12 }} >
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Description
                         </Typography>
@@ -589,11 +650,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             dangerouslySetInnerHTML={{ __html: content.description }}
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider />
                     </Grid>
                     {/* Form Result Summary / Form Start Prompt */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
                             Answer Form
                         </Typography>
@@ -641,28 +702,28 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
             return (
                 <>
                     {/* Attempt Count */}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title="Attempt No."
                             info={`${(attemptData?.response_count ?? 0) + 1} ${formInfo.require_pass ? '' : ` of ${formInfo.attempts_allowed}`}`}
                         />
                     </Grid>
                     {/* Item Count */}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title='No. of Items'
                             info={formItems.length}
                         />
                     </Grid>
                     {/* Passing Score*/}
-                    <Grid item xs={3}>
+                    <Grid size={{ xs: 3 }}>
                         <InfoBox
                             title='Passing Score'
                             info={`${formInfo.passing_score}%`}
                         />
                     </Grid>
                     {/* Timer */}
-                    <Grid item xs={3} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
+                    <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center' }}>
                         <Box
                             display="flex"
                             sx={{
@@ -686,11 +747,11 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             </Typography>
                         </Box>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Divider sx={{ mt: 1 }} />
                     </Grid>
                     {/* Form Items and Submission */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Box
                             sx={{
                                 maxHeight: '690px',
@@ -715,7 +776,7 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                             {/* Form Items */}
                             <Grid container spacing={2}>
                                 {formItems.map((item, index) => (
-                                    <Grid item xs={12} key={index}>
+                                    <Grid size={{ xs: 12 }} key={index}>
                                         <FormItem
                                             itemData={item}
                                             handleAnswer={handleAnswer}
@@ -762,15 +823,6 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                                                 Save your progress or submit when ready. Results will be calculated upon submission.
                                             </Typography>
                                             <Box display="flex" sx={{ alignItems: "center", mt: 1 }}>
-                                                {/* Force Exit Button (TEMPORARY, REMOVE LATER) */}
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={handleTimerEnd}
-                                                    sx={{ ml: 1, backgroundColor: "#d32f2f" }}
-                                                    startIcon={<ExitToApp />}
-                                                >
-                                                    End Attempt (Temp)
-                                                </Button>
                                                 <Button
                                                     variant="contained"
                                                     onClick={() => setSubmissionView(true)}
@@ -789,9 +841,349 @@ const FormViews = ({ content, formItems, attemptData, handleFormFinished, conten
                 </>
             );
         case 'Results':
-            return (<></>);
+            return (
+                <>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
+                        {/* Score Meter, Interactions*/}
+                        <Grid container size={{ xs: 5 }}>
+                            {/* Score Meter */}
+                            <Grid size={{ xs: 12 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Result
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
+                                    <Gauge
+                                        value={resultData.score_percentage}
+                                        height={250}
+                                        width={300}
+                                        cornerRadius="8px"
+                                        sx={(theme) => ({
+                                            [`& .${gaugeClasses.valueText}`]: {
+                                                fontSize: 32,
+                                                fontWeight: "bold",
+                                                fill: "text.secondary"
+                                            },
+                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                fill: resultData?.passed ? '#177604' : '#f44336'
+                                            },
+                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                fill: `#e0e0e0`
+                                            },
+                                        })}
+                                        startAngle={-110}
+                                        endAngle={110}
+                                        innerRadius="70%"
+                                        outerRadius="100%"
+                                        text={({ value }) => `${Math.round(value)}%`}
+                                    />
+                                </Box>
+                            </Grid>
+                            {/* Score Information and Interactions */}
+                            <Grid size={{ xs: 12 }}>
+                                <Box sx={{ width: "100%", placeContent: "center", placeItems: "center", mb: 5 }}>
+                                    <Typography variant="h6">
+                                        {`You scored ${resultData.total_score} out of ${resultData.total_points}`}
+                                    </Typography>
+                                    <Typography variant="h6">
+                                        {`The passing score is ${formInfo.passing_score}%`}
+                                    </Typography>
+                                    <Box display="flex" sx={{ mt: 2, alignItems: "center" }}>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleAttemptReview(resultData.reviewer_num, ((attemptData?.response_count ?? 0) + 1))}
+                                            sx={{ ml: 1, backgroundColor: "#177604" }}
+                                            startIcon={<Grading />}
+                                        >
+                                            Review Attempt
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => contentReload(content.id)}
+                                            sx={{ ml: 1, backgroundColor: "#f57c00" }}
+                                            startIcon={<ExitToApp />}
+                                        >
+                                            Return to Overview
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                        {/* Attempt Data */}
+                        <Grid container size={{ xs: 7 }} spacing={1}>
+                            {/* Current Attempt */}
+                            <Grid size={{ xs: 12 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Attempt Data
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "space-between" }}>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Attempt No."
+                                            info={((attemptData?.response_count ?? 0) + 1)}
+                                        />
+                                    </Box>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Duration"
+                                            info={formatDuration(resultData.duration)}
+                                        />
+                                    </Box>
+                                    <Box sx={{ width: "32%" }}>
+                                        <InfoBox
+                                            title="Unanswered Items"
+                                            info={resultData.empty_answers}
+                                        />
+                                    </Box>
+                                </Box>
+                            </Grid>
+                            {/* Attempt History */}
+                            <Grid size={{ xs: 12 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                    Attempt History
+                                </Typography>
+                                <Box display="flex" sx={{ width: "100%", justifyContent: "center", alignItems: "center" }}>
+                                    <LineChart
+                                        xAxis={[
+                                            {
+                                                data: [
+                                                    0,
+                                                    ...attemptData.responses.map((_, index) => index + 1),
+                                                    attemptData.responses.length + 1,
+                                                ],
+                                                valueFormatter: (value) => {
+                                                    if (value === 0) {
+                                                        return "-";
+                                                    }
+                                                    if (value === attemptData.responses.length + 1) {
+                                                        return dayjs(resultData.created_at).format('MM/DD/YYYY \nhh:mm A');
+                                                    }
+                                                    return dayjs(attemptData.responses[value - 1].created_at).format('MM/DD/YYYY \nhh:mm A');
+                                                },
+                                                label: 'Attempt',
+                                                labelStyle: {
+                                                    transform: 'translateY(25px)',
+                                                },
+                                                tickMinStep: 1,
+                                            },
+                                        ]}
+                                        yAxis={[
+                                            {
+                                                label: 'Score (pts)',
+                                                max: (resultData.total_points)
+                                            },
+                                        ]}
+                                        series={[
+                                            {
+                                                curve: "monotoneX",
+                                                data: [
+                                                    0,
+                                                    ...attemptData.responses.map(response => response.score),
+                                                    resultData.total_score,
+                                                ],
+                                                color: '#177604',
+                                                area: true,
+                                                valueFormatter: (value) => {
+                                                    return `${value} pt${value > 1 ? 's' : ''}`;
+                                                },
+                                            },
+                                        ]}
+                                        grid={{ horizontal: true }}
+                                        width={700}
+                                        height={300}
+                                        margin={{ left: 50, top: 10, bottom: 50, right: 50 }}
+                                        sx={{
+                                            [`& .${areaElementClasses.root}`]: {
+                                                fill: 'rgba(23, 118, 4, 0.8)',
+                                            },
+                                            '& .MuiLineElement-root': {
+                                                strokeWidth: 3,
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </>
+            );
         case 'Review':
-            return (<></>);
+            return (
+                <>
+                    <Grid container size={{ xs: 12 }} spacing={2}>
+                        <Grid size={{ xs: 12 }}>
+                            <Box display="flex" sx={{ width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    Attempt Review
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => {
+                                        if (overviewReload) {
+                                            contentReload(content.id);
+                                        } else {
+                                            setViewType('Overview');
+                                        }
+                                    }}
+                                    sx={{ backgroundColor: "#f57c00" }}
+                                    startIcon={<ExitToApp />}
+                                >
+                                    Return to Overview
+                                </Button>
+                            </Box>
+                        </Grid>
+                        {/* Attempt No. */}
+                        <Grid size={{ xs: 1 }}>
+                            <Box
+                                display="flex"
+                                sx={{
+                                    p: 1, width: "100%", height: 100,
+                                    flexDirection: "column", alignItems: "center",
+                                    border: "solid 1px #e0e0e0", borderRadius: "8px"
+                                }}>
+                                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1 }}>
+                                    Attempt
+                                </Typography>
+                                <Typography variant="h3" sx={{ fontWeight: "bold", color: "#177604" }}>
+                                    {reviewData.attempt_number}
+                                </Typography>
+                            </Box>
+                        </Grid>
+                        <Grid container size={{ xs: 4 }}>
+                            <Box display="flex" sx={{ width: "100%", height: 100, alignItems: "center", border: "solid 1px #e0e0e0", borderRadius: "8px", }} >
+                                <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", }} >
+                                    <Box sx={{ px: 2, py: 0.5, width: "100%", borderBottom: "solid 1px #e0e0e0", }} >
+                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                            Submission Details
+                                        </Typography>
+                                    </Box>
+                                    <Grid container columnSpacing={2} rowSpacing={1} sx={{ flexGrow: 1, p: 2, pt: 1 }} >
+                                        <Grid size={{ xs: 12 }}>
+                                            <InfoBox
+                                                title="Submitted On"
+                                                info={dayjs(reviewData.submit_time).format('MMM DD, YYYY  hh:mm A')}
+                                                clean
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12 }}>
+                                            <InfoBox
+                                                title="Time Taken"
+                                                info={formatDuration(reviewData.duration)}
+                                                clean
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            </Box>
+                        </Grid>
+                        {/* Score, Tally */}
+                        <Grid size={{ xs: 7 }}>
+                            <Box display="flex" sx={{ width: "100%", height: 100, alignItems: "center", border: "solid 1px #e0e0e0", borderRadius: "8px", }} >
+                                {/* Score Gauge */}
+                                <Box
+                                    sx={{
+                                        position: "relative",
+                                        width: "32%",
+                                        height: "100%",
+                                        borderRight: "solid 1px #e0e0e0",
+                                        display: "grid",
+                                        placeContent: "center",
+                                        placeItems: "center",
+                                    }}
+                                >
+                                    <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, position: "absolute", top: 7, left: 10, }} >
+                                        Score
+                                    </Typography>
+                                    <Gauge
+                                        value={reviewData.score}
+                                        valueMax={totalPoints}
+                                        height={100}
+                                        width={100}
+                                        cornerRadius="8px"
+                                        sx={(theme) => ({
+                                            [`& .${gaugeClasses.valueText}`]: {
+                                                fontSize: 18,
+                                                fontWeight: "bold",
+                                                fill: "text.secondary",
+                                            },
+                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                fill: reviewData.score >= (totalPoints * (formInfo.passing_score / 100))
+                                                    ? '#177604'
+                                                    : '#f44336',
+                                            },
+                                            [`& .${gaugeClasses.referenceArc}`]: {
+                                                fill: "#e0e0e0",
+                                            },
+                                        })}
+                                        margin={{ top: 10, bottom: 0 }}
+                                        startAngle={-110}
+                                        endAngle={110}
+                                        innerRadius="80%"
+                                        outerRadius="120%"
+                                        text={({ value }) => `${value}pt${value > 1 ? 's' : ''}`}
+                                    />
+                                </Box>
+                                {/* Answer Tally */}
+                                <Box sx={{ width: "68%", height: "100%", display: "flex", flexDirection: "column", }} >
+                                    <Box sx={{ px: 2, py: 0.5, width: "100%", borderBottom: "solid 1px #e0e0e0", }} >
+                                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                            Answer Tally
+                                        </Typography>
+                                    </Box>
+                                    <Grid container columnSpacing={2} rowSpacing={1} sx={{ flexGrow: 1, p: 2, pt: 1 }} >
+                                        {[
+                                            { title: "Correct", info: reviewData.correct_items },
+                                            { title: "Incorrect", info: reviewData.incorrect_items },
+                                            { title: "Partial", info: reviewData.partial_items },
+                                            { title: "Missed", info: reviewData.incorrect_items },
+                                        ].map((item, index) => (
+                                            <Grid key={index} size={{ xs: 6 }}>
+                                                <InfoBox title={item.title} info={item.info} clean />
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Box>
+                            </Box>
+                        </Grid>
+                        {/* Answers */}
+                        <Grid size={{ xs: 12 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                Answers
+                            </Typography>
+                            <Box
+                                sx={{
+                                    maxHeight: '690px',
+                                    overflowY: 'auto',
+                                    pr: 1,
+                                    mb: 10,
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        background: '#f1f1f1',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        background: '#888',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb:hover': {
+                                        background: '#555',
+                                    },
+                                }}
+                            >
+                                <Grid container spacing={2}>
+                                    {reviewData.items.map((item, index) => (
+                                        <Grid key={index} size={{ xs: 12 }}>
+                                            <ReviewItem itemData={item} />
+                                        </Grid>
+                                    )
+                                    )}
+                                </Grid>
+                            </Box>
+                        </Grid>
+                    </Grid>
+                </>
+            );
         default:
             return (<></>);
     }

@@ -1,54 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
-    Box,
-    Typography,
-    Button,
-    Menu,
-    MenuItem,
-    TextField,
-    Stack,
-    Grid,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
-    Card,
-    CardMedia,
-    CardContent,
-    CardActions,
-    Pagination,
-    IconButton,
-    CardActionArea
-} from "@mui/material";
-import { MoreVert } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { Box, Typography, Button, Grid, CircularProgress, Card, CardMedia, CardContent, CardActions, Pagination, CardActionArea } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import {
-    Link,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
-import { first } from "lodash";
-import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -57,13 +10,13 @@ import AnnouncementAdd from './Modals/AnnouncementAdd';
 import AnnouncementPublish from './Modals/AnnouncementPublish';
 import AnnouncementEdit from './Modals/AnnouncementEdit';
 import AnnouncementManage from './Modals/AnnouncementManage';
+import { Person } from "@mui/icons-material";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
 const AnnouncementList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
 
     // ---------------- Announcement Data States
     const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +50,6 @@ const AnnouncementList = () => {
                 console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
-
     }
 
     // ---------------- Announcement Image API
@@ -237,7 +189,7 @@ const AnnouncementList = () => {
                                     {pageAnnouncements.length > 0 ? (
                                         pageAnnouncements.map(
                                             (announcement, index) => (
-                                                <Grid item key={index} xs={12} sm={6} lg={4}>
+                                                <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea onClick={() => handleOpenAnnouncementManage(announcement)}>
                                                         <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                                                             {/* Card Thumbnail */}
@@ -247,48 +199,46 @@ const AnnouncementList = () => {
                                                                         display: 'flex',
                                                                         justifyContent: 'center',
                                                                         alignItems: 'center',
-                                                                        height: '180px'
+                                                                        height: '210px'
                                                                     }}
                                                                 >
                                                                     <CircularProgress />
                                                                 </Box>
                                                             ) : (
                                                                 <CardMedia
-                                                                    sx={{ height: '180px' }}
+                                                                    sx={{ height: '210px' }}
                                                                     image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
                                                                     title={`${announcement.title}_Thumbnail`}
                                                                 />
                                                             )}
                                                             {/* Card Content */}
                                                             <CardContent>
+
                                                                 {/* Announcement Title */}
                                                                 <Typography variant="h6" component="div" noWrap sx={{ textOverflow: "ellipsis" }}>
                                                                     {announcement.title}
                                                                 </Typography>
+
                                                                 {/* Announcement Status */}
-                                                                <Typography sx={{
-                                                                    fontWeight: "bold",
-                                                                    color:
-                                                                        announcement.status == "Pending"
-                                                                            ? "#e9ae20"
-                                                                            : announcement.status == "Published"
-                                                                                ? "#177604"
-                                                                                : "#f57c00"
-                                                                }}>
+                                                                <Typography sx={{ fontWeight: "bold", color: announcement.status == "Pending" ? "#e9ae20" : announcement.status == "Published" ? "#177604" : "#f57c00" }}>
                                                                     {announcement.status}
                                                                 </Typography>
                                                             </CardContent>
                                                             {/* Acknowledgement and Options */}
                                                             <CardActions sx={{ width: "100%", paddingX: "16px", justifyContent: "space-between", alignItems: "center" }}>
-                                                                <Box display="flex" sx={{
-                                                                    mt: 2,
-                                                                    alignItems: 'center',
-                                                                }}>
-                                                                    <Typography variant="body2" color="text.secondary">
-                                                                        {announcement.status == "Pending"
-                                                                            ? "Not Yet Published"
-                                                                            : `${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
-                                                                    </Typography>
+                                                                <Box display="flex" sx={{ mt: 2, alignItems: 'center' }}>
+                                                                    {announcement.status == "Pending" ? (
+                                                                        <Typography variant="body2" color="text.secondary">
+                                                                            Not Yet Published
+                                                                        </Typography>
+                                                                    ) : (
+                                                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                                                            <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                                                            <Typography variant="body2" color="text.secondary">
+                                                                                {`${announcement.acknowledged}/${announcement.recipients} Acknowledged`}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                    )}
                                                                 </Box>
                                                             </CardActions>
                                                         </Card>
@@ -325,18 +275,12 @@ const AnnouncementList = () => {
                     </Box>
                 </Box>
             </Box>
+
             {openAddAnnouncementModal && (
-                <AnnouncementAdd
-                    open={openAddAnnouncementModal}
-                    close={handleCloseAnnouncementModal}
-                />
+                <AnnouncementAdd open={openAddAnnouncementModal} close={handleCloseAnnouncementModal} />
             )}
             {openAnnouncementManage && (
-                <AnnouncementManage
-                    open={true}
-                    close={handleCloseAnnouncementManage}
-                    announceInfo={openAnnouncementManage}
-                />
+                <AnnouncementManage open={true} close={handleCloseAnnouncementManage} announceInfo={openAnnouncementManage} />
             )}
         </Layout>
     );

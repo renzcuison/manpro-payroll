@@ -21,6 +21,8 @@ const AttendanceSummary = () => {
     const [month, setMonth] = useState(dayjs().month());
     const [year, setYear] = useState(dayjs());
 
+    const [searchName, setSearchName] = useState('');
+
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState(0);
@@ -80,6 +82,12 @@ const AttendanceSummary = () => {
         }
     }
 
+    // Filtering the attendance summary by search name
+    const filteredAttendance = attendanceSummary.filter((attendance) => {
+        const fullName = `${attendance.emp_first_name} ${attendance.emp_middle_name || ''} ${attendance.emp_last_name} ${attendance.emp_suffix || ''}`.toLowerCase();
+        return fullName.includes(searchName.toLowerCase());
+    });
+
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -93,8 +101,8 @@ const AttendanceSummary = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                            <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
-                                <Grid item xs={6}>
+                            <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2}>
+                                <Grid xs={6}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <FormControl fullWidth>
                                             <TextField
@@ -137,7 +145,7 @@ const AttendanceSummary = () => {
                                         </FormControl>
                                     </LocalizationProvider>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid xs={6}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="Year"
@@ -159,49 +167,10 @@ const AttendanceSummary = () => {
                                     </LocalizationProvider>
                                 </Grid>
                             </Grid>
-                            <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: "100%" }}>
-                                        <InputLabel id="branch-select-label"> Branch </InputLabel>
-                                        <Select
-                                            labelId="branch-select-label"
-                                            id="branch-select"
-                                            value={selectedBranch}
-                                            label="Branch"
-                                            onChange={(event) => setSelectedBranch(event.target.value)}
-                                        >
-                                            <MenuItem value="0"> All </MenuItem>
-                                            {branches.map((branch, index) => (
-                                                <MenuItem
-                                                    key={index}
-                                                    value={branch.id}
-                                                >
-                                                    {`${branch.name} (${branch.acronym})`}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: "100%" }}>
-                                        <InputLabel id="department-select-label"> Department </InputLabel>
-                                        <Select
-                                            labelId="department-select-label"
-                                            id="department-select"
-                                            value={selectedDepartment}
-                                            label="Department"
-                                            onChange={(event) => setSelectedDepartment(event.target.value)}
-                                        >
-                                            <MenuItem value="0"> All </MenuItem>
-                                            {departments.map((department, index) => (
-                                                <MenuItem
-                                                    key={index}
-                                                    value={department.id}
-                                                >
-                                                    {`${department.name} (${department.acronym})`}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
+                            <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
+                                <Grid xs={6}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
@@ -212,8 +181,8 @@ const AttendanceSummary = () => {
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                <Table aria-label="simple table">
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400, maxHeight: 500 }}>
+                                <Table stickyHeader aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
                                             <TableCell align="center">Name</TableCell>
@@ -223,17 +192,18 @@ const AttendanceSummary = () => {
                                             <TableCell align="center">Hours</TableCell>
                                             <TableCell align="center">Tardiness</TableCell>
                                             <TableCell align="center">Absences</TableCell>
+                                            <TableCell align="center">Overtime</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {!Array.isArray(attendanceSummary) || attendanceSummary.length === 0 ? (
+                                        {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} align="center">
+                                                <TableCell colSpan={8} align="center">
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            attendanceSummary.map((attendance) => (
+                                            filteredAttendance.map((attendance) => (
                                                 <TableRow
                                                     key={attendance.emp_id}
                                                     onClick={() => navigate(`/admin/attendance/${attendance.emp_user_name}`)}
@@ -253,6 +223,7 @@ const AttendanceSummary = () => {
                                                     <TableCell align="center">{formatTime(attendance.total_rendered)}</TableCell>
                                                     <TableCell align="center">{formatTime(attendance.total_late)}</TableCell>
                                                     <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
+                                                    <TableCell align="center">{formatTime(attendance.total_overtime)}</TableCell>
                                                 </TableRow>
                                             ))
                                         )}
@@ -268,4 +239,4 @@ const AttendanceSummary = () => {
     )
 }
 
-export default AttendanceSummary
+export default AttendanceSummary;

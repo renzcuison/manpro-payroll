@@ -18,102 +18,23 @@ const useIsActive = (path) => {
     return location.pathname.startsWith(path);
 };
 
-const sidebarItems = [
+const AttendanceItems = [
     {
         id: 1,
-        text: "Employees",
-        icon: "si si-users",
+        text: "Attendance",
+        icon: "fa fa-check",
         children: [
             {
-                href: `/hr/employees?`,
-                text: "List of Employees",
-                icon: "si si-user",
+                href: `/employee/attendance-logs`,
+                text: "Logs",
             },
             {
-                href: `/hr/employees-benefits?`,
-                text: "List of Benefits",
-                icon: "si si-user",
-            },
-            {
-                href: `/hr/employees-deductions?`,
-                text: "List of Deductions",
-                icon: "si si-user",
-            },
-        ],
-    },
-    {
-        id: 2,
-        text: "Applications",
-        icon: "fa fa-pencil-square-o",
-        children: [
-            {
-                href: `/hr/applications?`,
-                text: "Request",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-list?`,
-                text: "List",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-leave?`,
-                text: "Leave Credit",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/applications-overtime?`,
+                href: `/employee/attendance-overtime`,
                 text: "Overtime",
-                icon: "fa fa-cogs",
-            },
-        ],
-    },
-];
-
-const payrollItems = [
-    {
-        id: 3,
-        text: "Payroll",
-        icon: "fa fa-money",
-        children: [
-            {
-                href: `/hr/payroll-process?`,
-                text: "Process",
-                icon: "fa fa-cogs",
             },
             {
-                href: `/hr/payroll-records?month=${moment().format(
-                    "M"
-                )}&cutoff=${1}&year=${moment().year()}&`,
-                text: "Records",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/hr/payroll-summary?month=${moment().format(
-                    "M"
-                )}&cutoff=${1}&year=${moment().year()}&`,
+                href: `/employee/attendance-summary`,
                 text: "Summary",
-                icon: "fa fa-cogs",
-            },
-        ],
-    },
-];
-
-const settingsItems = [
-    {
-        id: 4,
-        text: "Settings",
-        icon: "fa fa-gear",
-        children: [
-            {
-                href: `/personal-details?`,
-                text: "Personal Details",
-                icon: "fa fa-cogs",
-            },
-            {
-                href: `/change-password?`,
-                text: "Change Password",
-                icon: "fa fa-cogs",
             },
         ],
     },
@@ -121,7 +42,7 @@ const settingsItems = [
 
 const evaluationItems = [
     {
-        id: 4,
+        id: 2,
         text: "Performance Evaluation",
         icon: "fa fa-check",
         children: [
@@ -137,68 +58,22 @@ const evaluationItems = [
     },
 ];
 
-const AttendanceItems = [
-    {
-        id: 5,
-        text: "Attendance",
-        icon: "fa fa-check",
-        children: [
-            {
-                href: `/employee/attendance-logs`,
-                text: "Attendance Logs",
-            },
-            {
-                href: `/employee/attendance-summary`,
-                text: "Attendance Summary",
-            },
-        ],
-    },
-];
-
 const StyledNav = styled(NavLink)(({ isActive }) => ({
     backgroundColor: "transparent",
-    ":hover": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
-    "&.active": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
+    ":hover": { backgroundColor: "rgb(233, 171, 19,0.7)", "& #navName": { color: "white" }},
+    "&.active": { backgroundColor: "rgb(233, 171, 19,0.7)", "& #navName": { color: "white" }},
 }));
 
 const Sidebar = ({ children, closeMini }) => {
     const { user } = useUser();
-    const navigate = useNavigate();
-    const dayToday = moment().format("DD");
-    const handleNavigate = (link) => {
-        navigate(link);
-    };
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [workshifts, setWorkshifts] = useState([]);
-
-    const isAttendanceActive = useIsActive("/hr/attendance");
-    const isAttendanceEmployeeActive = useIsActive("/hr/attendance-employee");
-
-    const isReportsActive = useIsActive("/reports");
-    const isReportEditActive = useIsActive("/report-edit");
-    const isReportCreateActive = useIsActive("/report-create");
 
     const [imagePath, setImagePath] = useState('');
 
     // Load Session Data
     useEffect(() => {
-        const storedAvatar = sessionStorage.getItem('avatar');
-        if (storedAvatar) {
-            setImagePath(storedAvatar);
-        } else {
-            getMyAvatar();
-        }
-    }, []);
-
-    const getMyAvatar = () => {
         axiosInstance.get(`/employee/getMyAvatar`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
@@ -214,7 +89,6 @@ const Sidebar = ({ children, closeMini }) => {
 
                         const newBlob = URL.createObjectURL(blob)
                         setImagePath(newBlob);
-                        sessionStorage.setItem('avatar', newBlob);
                     } else {
                         setImagePath(null);
                     }
@@ -222,14 +96,20 @@ const Sidebar = ({ children, closeMini }) => {
             })
             .catch((error) => {
                 console.error('Error fetching avatar:', error);
+                setImagePath(null);
             });
-    }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (imagePath && imagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePath);
+            }
+        };
+    }, [imagePath]);
 
     return (
-        <nav
-            id="sidebar"
-            style={{ zIndex: 1, height: "100vh", overflow: "hidden" }}
-        >
+        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">
@@ -255,19 +135,7 @@ const Sidebar = ({ children, closeMini }) => {
                         <div className="sidebar-mini-hidden-b text-center">
                             <div className="sidebar-mini-hidden-b text-center">
                                 <Box display="flex" flexDirection="column" alignItems="center">
-                                    <Avatar
-                                        src={imagePath ? imagePath : HomeLogo}
-                                        alt={`${user.first_name} ${user.last_name}`}
-                                        sx={{
-                                            width: 64,
-                                            height: 64,
-                                            objectFit: 'contain',
-                                            bgcolor: 'grey.300',
-                                            '& .MuiAvatar-img': {
-                                                objectFit: 'cover',
-                                            },
-                                        }}
-                                    />
+                                    <Avatar src={imagePath ? imagePath : HomeLogo} alt={`${user.first_name} ${user.last_name}`} sx={{ width: 64, height: 64, objectFit: 'contain', bgcolor: 'grey.300', '& .MuiAvatar-img': { objectFit: 'cover' }, }} />
                                     <ul className="list-inline mt-10">
                                         <li className="list-inline-item">
                                             {/* <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.fname)} {capitalize(user.lname)}</a> */}
@@ -306,9 +174,9 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-money" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide"> Payroll Details </span>
                             </StyledNav>
 
-                            <StyledNav to={`/employee/loans`} >
+                            {/* <StyledNav to={`/employee/loans`} >
                                 <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span>
-                            </StyledNav>
+                            </StyledNav> */}
 
                             <StyledNav to={`/employee/announcements`}>
                                 <i className="fa fa-file-text-o" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide" > Announcements </span>

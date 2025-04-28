@@ -20,21 +20,16 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const AddAttendanceModal = ({ open, close, employee }) => {
+const AddAttendanceModal = ({ open, close, employee, fixedDate = null }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [selectedAction, setSelectedAction] = useState("");
-    const [timestamp, setTimestamp] = useState(dayjs());
-
+    const [timestamp, setTimestamp] = useState(fixedDate ? dayjs(fixedDate) : dayjs());
 
     const [selectedActionError, setSelectedActionError] = useState(false);
     const [timestampError, setTimestampError] = useState(false);
-
-    useEffect(() => {
-        console.log(employee);
-    }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -97,24 +92,26 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                 headers,
             })
             .then((response) => {
-                document.activeElement.blur();
-                document.body.removeAttribute("aria-hidden");
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "Success!",
-                    text: `Attendance successfully recorded`,
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        close(true);
-                        document.body.setAttribute("aria-hidden", "true");
-                    } else {
-                        document.body.setAttribute("aria-hidden", "true");
-                    }
-                });
+                if (response.data.status == 200) {
+                    document.activeElement.blur();
+                    document.body.removeAttribute("aria-hidden");
+                    Swal.fire({
+                        customClass: { container: "my-swal" },
+                        title: "Success!",
+                        text: `Attendance successfully recorded`,
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            close(true);
+                            document.body.setAttribute("aria-hidden", "true");
+                        } else {
+                            document.body.setAttribute("aria-hidden", "true");
+                        }
+                    });
+                }
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -169,20 +166,19 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
                             <FormControl>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DateTimePicker
                                         label="Time"
                                         value={timestamp}
                                         error={timestampError}
-                                        timeSteps={{ minutes: 1 }}
+                                        views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                        timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
                                         onChange={(newValue) => {
                                             setTimestamp(newValue);
                                         }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
+                                        minDate={fixedDate ? dayjs(fixedDate).startOf('day') : undefined}
+                                        maxDate={fixedDate ? dayjs(fixedDate).endOf('day') : undefined}
+                                        renderInput={(params) => <TextField {...params} />}
                                     />
                                 </LocalizationProvider>
                             </FormControl>

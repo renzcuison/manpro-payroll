@@ -82,8 +82,8 @@ const ContentProgressView = ({ open, close, contentId }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: "20px",
-                        minWidth: { xs: "100%", sm: "750px" },
-                        maxWidth: "850px",
+                        minWidth: { xs: "100%", sm: "900px" },
+                        maxWidth: "950px",
                         marginBottom: "5%",
                     },
                 }}
@@ -132,7 +132,7 @@ const ContentProgressView = ({ open, close, contentId }) => {
                                         <Table stickyHeader size="small">
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell sx={{ width: '40%', fontWeight: 'bold' }}>
+                                                    <TableCell sx={{ width: '35%', fontWeight: 'bold' }}>
                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                             Employee
                                                         </Typography>
@@ -158,7 +158,7 @@ const ContentProgressView = ({ open, close, contentId }) => {
                                                 {contentViews.length > 0 ? (
                                                     contentViews.map((view, index) => (
                                                         <TableRow key={index}>
-                                                            <TableCell sx={{ width: '40%' }}>
+                                                            <TableCell sx={{ width: '35%' }}>
                                                                 <Box display="flex" sx={{ alignItems: 'center' }}>
                                                                     <Avatar
                                                                         alt={`${view.emp_first_name}_Avatar`}
@@ -168,7 +168,7 @@ const ContentProgressView = ({ open, close, contentId }) => {
                                                                     {`${view.emp_first_name} ${view.emp_middle_name || ''} ${view.emp_last_name} ${view.emp_suffix || ''}`}
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell sx={{ width: '10%' }}>
+                                                            <TableCell sx={{ width: '15%' }}>
                                                                 <Typography sx={{ fontWeight: "bold", color: view.status == "Finished" ? "#177604" : view.status == "Viewed" ? "#f57c00" : "#000" }}>
                                                                     {view.status}
                                                                 </Typography>

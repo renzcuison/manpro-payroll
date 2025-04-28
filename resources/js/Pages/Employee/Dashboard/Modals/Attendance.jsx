@@ -12,16 +12,16 @@ import {
     TableHead,
     TableBody,
     TableRow,
-    TableCell,
+    TableCell
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import AttendanceButton from "./Components/AttendanceButton";
 import Swal from "sweetalert2";
 import moment from "moment";
-import { AccessTime } from "@mui/icons-material";
 import dayjs from "dayjs";
 import AttendanceTable from "./Components/AttendanceTable";
+import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
     //const navigate = useNavigate();
@@ -34,6 +34,7 @@ const Attendance = ({ open, close }) => {
     const [workHour, setWorkHour] = useState([]);
     const [firstShiftExpired, setFirstShiftExpired] = useState(false);
     const [secondShiftExpired, setSecondShiftExpired] = useState(false);
+    const [overtimeExpired, setOvertimeExpired] = useState(false);
 
     useEffect(() => {
         axiosInstance
@@ -49,13 +50,17 @@ const Attendance = ({ open, close }) => {
 
     //--------------------- Work Shift Expiration Checks
     useEffect(() => {
-        // Ends First Shift Period
+        // End First Shift Period
         if (exactTime > workHour.first_time_out) {
             setFirstShiftExpired(true);
         }
         // End Second Shift Period for Split
         if (exactTime > workHour.second_time_out) {
             setSecondShiftExpired(true);
+        }
+        // End Overtime Period
+        if (exactTime > workHour.over_time_out) {
+            setOvertimeExpired(true);
         }
     }, [workHour]);
 
@@ -237,15 +242,18 @@ const Attendance = ({ open, close }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        padding: "16px",
-                        backgroundColor: "#f8f9fa",
-                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                        borderRadius: "20px",
-                        minWidth: "400px",
-                        maxWidth: "450px",
-                        marginBottom: "5%",
+                slotProps={{
+                    paper: {
+                        sx: {
+                            py: "16px",
+                            px: { xs: "4px", md: "16px" },
+                            backgroundColor: "#f8f9fa",
+                            boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                            borderRadius: { xs: 0, md: "20px" },
+                            minWidth: { xs: "100%", md: "450px" },
+                            maxWidth: { xs: "100%", md: "500px" },
+                            marginBottom: "5%",
+                        },
                     },
                 }}
             >
@@ -274,35 +282,42 @@ const Attendance = ({ open, close }) => {
                             justifyContent: "flex-start",
                             alignItems: "flex-start",
                         }}
+                        spacing={1}
                     >
                         <Grid
                             container
-                            direction={{ xs: "column", sm: "row" }}
-                            alignItems={{ xs: "flex-start", sm: "flex-start" }}
-                            sx={{ pb: 1, borderBottom: "1px solid #e0e0e0" }}
+                            direction="row"
+                            alignItems="flex-start"
                             rowSpacing={1}
+                            size={{ xs: 12 }}
                         >
-                            <Grid item xs={12} sm={4}>
-                                Date:
+                            <Grid size={5}>
+                                <Typography>
+                                    Date
+                                </Typography>
                             </Grid>
-                            <Grid item xs={12} sm={8}>
-                                <Typography sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" }, }}>
+                            <Grid size={7}>
+                                <Typography sx={{ fontWeight: "bold", textAlign: "right", }}>
                                     {formattedDate}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
-                                Time:
+                            <Grid size={5}>
+                                <Typography>
+                                    Time
+                                </Typography>
                             </Grid>
-                            <Grid item xs={12} sm={8}>
+                            <Grid size={7}>
                                 <Typography
-                                    sx={{ fontWeight: "bold", textAlign: { xs: "left", sm: "right" } }}>
+                                    sx={{ fontWeight: "bold", textAlign: "right" }}>
                                     {formattedTime}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={7}>
-                                Status:
+                            <Grid size={5}>
+                                <Typography>
+                                    Status
+                                </Typography>
                             </Grid>
-                            <Grid item xs={5}>
+                            <Grid size={7}>
                                 <Typography
                                     sx={{
                                         fontWeight: "bold",
@@ -310,14 +325,18 @@ const Attendance = ({ open, close }) => {
                                         color: onDuty ? "#177604" : "#f44336",
                                     }}
                                 >
-                                    {onDuty ? "On Duty" : "Off Duty"}
+                                    {onDuty ? "ON DUTY" : "OFF DUTY"}
                                 </Typography>
                             </Grid>
                         </Grid>
-
-                        {workShift.shift_type === "Regular" ? (
+                        <Grid size={12} sx={{ my: 0 }}>
+                            <Divider />
+                        </Grid>
+                        {workShift.shift_type == "Regular" && (
                             <>
-                                {/* Regular Shift */}
+                                {/* Regular Shift Attendance */}
+                                {/* Shift has not yet expired*/}
+                                {/* Shift has expired, but the user is On Duty and the Time In occured before the shift ended*/}
                                 {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) && (
                                     <AttendanceButton
                                         label="Attendance"
@@ -327,11 +346,16 @@ const Attendance = ({ open, close }) => {
                                     />
                                 )}
                             </>
-                        ) : null}
-
-                        {workShift.shift_type === "Split" ? (
+                        )}
+                        {workShift.shift_type == "Split" && (
                             <>
-                                {/* Top: First Shift, Bottom: Second Shift */}
+                                {/* Second Shift Attendance */}
+                                {/* Top: First Shift */}
+                                {/* First Shift has not yet expired */}
+                                {/* First shift has expired, but the user is On Duty and the Time In occured before the first shift ended */}
+                                {/* Bottom: Second Shift */}
+                                {/* Second Shift has not yet expired */}
+                                {/* Second shift has expired, but the user is On Duty and the Time In occured before the second time out */}
                                 {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) ? (
                                     <AttendanceButton
                                         label={workShift.first_label}
@@ -349,50 +373,62 @@ const Attendance = ({ open, close }) => {
                                 ) : null
                                 }
                             </>
-                        ) : null}
-
-                        {/* Overtime and End of Day*/}
+                        )}
+                        {/* Overtime and End of Day Functions */}
                         {((workShift?.shift_type == "Regular" && firstShiftExpired && !(onDuty && latestTime < workHour?.first_time_out))
-                            || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) ? (
-                            firstDutyFinished ? (
-                                (() => {
-                                    if (exactTime < workHour?.over_time_in) {
-                                        return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Overtime Available at{" "}
-                                                {dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
-                                            </Box>
-                                        );
-                                    } else if (exactTime >= workHour?.over_time_in && exactTime <= workHour?.over_time_out) {
-                                        return (
-                                            <AttendanceButton
-                                                label="Overtime"
-                                                onDuty={onDuty}
-                                                shiftType="Overtime"
-                                                onTimeInOut={handleTimeInOut}
-                                            />
-                                        );
-                                    } else {
-                                        return (
-                                            <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                                Day has ended
-                                            </Box>
-                                        );
-                                    }
-                                })()
-                            ) : (
-                                <Box sx={{ pt: 2, width: "100%", textAlign: "center", }} >
-                                    Day has ended
-                                </Box>
-                            )
-                        ) : null}
+                            || (workShift?.shift_type == "Split" && secondShiftExpired && !(onDuty && latestTime < workHour?.second_time_out))) && (
+                                firstDutyFinished ? (
+                                    (() => {
+                                        if (exactTime < workHour?.over_time_in) {
+                                            return (
+                                                <Grid size={12}>
+                                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }}>
+                                                        <Typography>
+                                                            Overtime Available at{" "}{dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A")}
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid>
+                                            );
+                                        } else if (!overtimeExpired || (overtimeExpired && onDuty && latestTime < workHour?.over_time_out)) {
+                                            return (
+                                                <AttendanceButton
+                                                    label="Overtime"
+                                                    onDuty={onDuty}
+                                                    shiftType="Overtime"
+                                                    onTimeInOut={handleTimeInOut}
+                                                />
+                                            );
+                                        } else {
+                                            return (
+                                                <Grid size={12}>
+                                                    <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                                        <Typography>
+                                                            The Day Has Ended
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid>
+                                            );
+                                        }
+                                    })()
+                                ) : (
+                                    <Grid size={12}>
+                                        <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                            <Typography>
+                                                The Day Has Ended
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                )
+                            )}
                     </Grid>
                     {/*Attendance Logs------------------------------*/}
                     {employeeAttendance.length > 0 ? (
                         <>
-                            <Divider sx={{ my: 1 }} />
+                            <Divider sx={{ mt: 1, mb: 2 }} />
                             <Box>
-                                Today's Attendance:
+                                <Typography sx={{ mb: 1 }}>
+                                    Today's Attendance
+                                </Typography>
                             </Box>
                             {(() => {
                                 const timeToSeconds = (timeStr) => {
@@ -488,6 +524,90 @@ const Attendance = ({ open, close }) => {
                             No Attendance For Today
                         </Box>
                     )}
+                    <Divider sx={{ mt: 1, mb: 2 }} />
+                    <Box>
+                        <Typography sx={{ mb: 1 }}>
+                            Your Schedule
+                        </Typography>
+                    </Box>
+                    <TableContainer sx={{ maxHeight: "350px", overflowY: "auto", border: "solid 1px #e0e0e0" }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ pl: 1, width: "40%" }}>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                Shift Info
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={{ pl: 0, width: "30%" }}>
+                                        <Box >
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                Start
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={{ pl: 0, width: "30%" }}>
+                                        <Box >
+                                            <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                                                End
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                        {workShift ? workShift.first_label : "Shift"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                </TableRow>
+                                {workShift?.shift_type == "Split" ? (
+                                    <TableRow>
+                                        <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                            {workShift ? workShift.second_label : "Second Shift"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    <TableRow>
+                                        <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                            Break
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                <TableRow>
+                                    <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
+                                        Overtime In
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                    <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
+                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </DialogContent>
             </Dialog>
         </>

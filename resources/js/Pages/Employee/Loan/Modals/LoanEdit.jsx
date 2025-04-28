@@ -33,7 +33,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
     const [reason, setReason] = useState(loanDetails.reason);
     const [paymentTerm, setPaymentTerm] = useState(loanDetails.payment_term);
     const [paidAmount] = useState(loanDetails.paid_amount || 0); // Read-only
-    const [remainingAmount, setRemainingAmount] = useState(loanDetails.remaining_amount || loanDetails.loan_amount); // Read-only, updates with loanAmount
+    const [remainingAmount, setRemainingAmount] = useState(loanDetails.remaining_amount || loanDetails.loan_amount); // Read-only
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [fileNames, setFileNames] = useState([]);
@@ -58,7 +58,8 @@ const LoanEdit = ({ open, close, loanDetails }) => {
             });
 
         // Update remaining amount whenever loanAmount changes
-        setRemainingAmount(parseFloat(loanAmount) - parseFloat(paidAmount));
+        const effectiveLoanAmount = loanAmount && parseFloat(loanAmount) > 0 ? parseFloat(loanAmount) : parseFloat(loanDetails.loan_amount);
+        setRemainingAmount(effectiveLoanAmount - parseFloat(paidAmount));
     }, [loanAmount, paidAmount, loanDetails.id]);
 
     // Attachment Handlers
@@ -146,10 +147,15 @@ const LoanEdit = ({ open, close, loanDetails }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        // Requirement Checks
-        setLoanAmountError(!loanAmount || loanAmount <= 0);
-        setReasonError(!reason);
-        setPaymentTermError(!paymentTerm || paymentTerm <= 0);
+        // Validate inputs, default to original values if invalid
+        const effectiveLoanAmount = loanAmount && parseFloat(loanAmount) > 0 ? parseFloat(loanAmount) : null;
+        const effectiveReason = reason && reason.trim() ? reason.trim() : null;
+        const effectivePaymentTerm = paymentTerm && parseInt(paymentTerm, 10) > 0 ? parseInt(paymentTerm, 10) : null;
+
+        // Set error states
+        setLoanAmountError(!effectiveLoanAmount);
+        setReasonError(!effectiveReason);
+        setPaymentTermError(!effectivePaymentTerm);
 
         let fileRequirementsMet = true;
         let deleteAllOldFiles = true;
@@ -164,7 +170,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
             setFileError(false);
         }
 
-        if (!loanAmount || loanAmount <= 0 || !reason || !paymentTerm || paymentTerm <= 0) {
+        if (!effectiveLoanAmount || !effectiveReason || !effectivePaymentTerm) {
             formError(null, "All required fields must be filled with valid values!");
         } else if (!fileRequirementsMet) {
             formError(null, "You must include at least one supporting file!");
@@ -191,12 +197,18 @@ const LoanEdit = ({ open, close, loanDetails }) => {
     // Final Submission
     const saveInput = (event) => {
         event.preventDefault();
-    
+
         const formData = new FormData();
         formData.append("id", loanDetails.id);
-        formData.append("loan_amount", parseFloat(loanAmount).toFixed(2)); // Ensure numeric
-        formData.append("reason", reason);
-        formData.append("payment_term", parseInt(paymentTerm, 10)); // Ensure integer
+        // Use original values if current values are invalid
+        const effectiveLoanAmount = loanAmount && parseFloat(loanAmount) > 0 ? parseFloat(loanAmount).toFixed(2) : parseFloat(loanDetails.loan_amount).toFixed(2);
+        const effectiveReason = reason && reason.trim() ? reason.trim() : loanDetails.reason;
+        const effectivePaymentTerm = paymentTerm && parseInt(paymentTerm, 10) > 0 ? parseInt(paymentTerm, 10) : loanDetails.payment_term;
+
+        formData.append("loan_amount", effectiveLoanAmount);
+        formData.append("reason", effectiveReason);
+        formData.append("payment_term", effectivePaymentTerm);
+
         if (attachment.length > 0) {
             attachment.forEach(file => {
                 formData.append('attachment[]', file);
@@ -211,22 +223,18 @@ const LoanEdit = ({ open, close, loanDetails }) => {
             deleteAttachments.forEach(del => {
                 formData.append('deleteAttachments[]', del);
             });
-        } else {
-            formData.append('deleteAttachments[]', null);
         }
         if (deleteImages.length > 0) {
             deleteImages.forEach(del => {
                 formData.append('deleteImages[]', del);
             });
-        } else {
-            formData.append('deleteImages[]', null);
         }
-    
+
         // Log formData for debugging
         for (let pair of formData.entries()) {
             console.log(pair[0] + ': ' + pair[1]);
         }
-    
+
         axiosInstance
             .post("/loans/editLoanApplication", formData, { headers })
             .then((response) => {
@@ -273,7 +281,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
             }}
         >
             <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center",}}>
                     <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                         Edit Loan Application
                     </Typography>
@@ -284,10 +292,10 @@ const LoanEdit = ({ open, close, loanDetails }) => {
             </DialogTitle>
 
             <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
-                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
+                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" sx={{ mt: 1 }}>
                     <Grid container columnSpacing={2} rowSpacing={3}>
                         {/* Loan Amount */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 6 }} sm={8}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -303,7 +311,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Payment Term */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 6 }} sm={8}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -319,7 +327,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Paid Amount (Read-Only) */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 6 }} sm={8}>
                             <FormControl fullWidth>
                                 <TextField
                                     label="Paid Amount"
@@ -332,7 +340,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Remaining Amount (Read-Only) */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 6 }} sm={8}>
                             <FormControl fullWidth>
                                 <TextField
                                     label="Remaining Amount"
@@ -345,7 +353,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Reason */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }} sm={8}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -362,7 +370,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Attachment Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }} sm={8}>
                             {fileError && (
                                 <Typography variant="caption" color="error" sx={{ pb: 3 }}>
                                     You must include at least one supporting file!
@@ -483,7 +491,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Image Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }} sm={8}>
                             <FormControl fullWidth>
                                 <Box sx={{ width: "100%" }}>
                                     <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
@@ -599,7 +607,7 @@ const LoanEdit = ({ open, close, loanDetails }) => {
                             </FormControl>
                         </Grid>
                         {/* Submit Button */}
-                        <Grid item xs={12} align="center">
+                        <Grid item size={{ xs: 12 }} align="center">
                             <Button
                                 type="submit"
                                 variant="contained"

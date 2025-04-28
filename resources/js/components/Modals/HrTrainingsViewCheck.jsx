@@ -227,7 +227,7 @@ const HrTrainingsViewCheck = ({ open, close, data, userID }) => {
                 <DialogContent>
                     <Stack>
                         <Grid container justifyContent="center" alignItems="center">
-                            <Grid item xs={12}>
+                            <Grid item size={12}>
                                 <Typography className="text-center" variant="h3">{data.title.toUpperCase()}</Typography>
                                 <Typography className="text-center" variant="h6">{data.description}</Typography>
                             </Grid>

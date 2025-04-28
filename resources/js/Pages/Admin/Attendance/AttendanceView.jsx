@@ -51,12 +51,23 @@ const AttendanceView = () => {
     // ---------------- Attendance Details
     const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
 
-    const handleOpenAttendanceDetails = (date) => {
-        setOpenAttendanceDetails(date);
+    const handleOpenAttendanceDetails = (summary) => {
+        const ongoing = summary.date == currentDate;
+        const viewInfo = {
+            date: summary.date,
+            ongoing: ongoing,
+            total_rendered: summary.total_rendered,
+            total_overtime: summary.total_overtime,
+            total_late: summary.late_time,
+        };
+        setOpenAttendanceDetails(viewInfo);
     };
 
-    const handleCloseAttendanceDetails = () => {
+    const handleCloseAttendanceDetails = (reload) => {
         setOpenAttendanceDetails(null);
+        if (reload) {
+            getEmployeeAttendance();
+        }
     };
 
     // ---------------- Add Attendance
@@ -66,9 +77,11 @@ const AttendanceView = () => {
         setOpenAddAttendance(true);
     };
 
-    const handleCloseAddAttendance = () => {
-        getEmployeeAttendance();
+    const handleCloseAddAttendance = (reload) => {
         setOpenAddAttendance(false);
+        if (reload) {
+            getEmployeeAttendance();
+        }
     };
 
     // ---------------- Employee API
@@ -88,7 +101,7 @@ const AttendanceView = () => {
 
     //--------------- Attendance API
     const getEmployeeAttendance = () => {
-        axiosInstance.get( "/attendance/getEmployeeAttendanceSummary", { headers, params: { employee: employee.id, summary_from_date: summaryFromDate.format("YYYY-MM-DD"), summary_to_date: summaryToDate.format("YYYY-MM-DD")}})
+        axiosInstance.get("/attendance/getEmployeeAttendanceSummary", { headers, params: { employee: employee.id, summary_from_date: summaryFromDate.format("YYYY-MM-DD"), summary_to_date: summaryToDate.format("YYYY-MM-DD") } })
             .then((response) => {
                 setSummaryData(response.data.summary);
                 setIsLoading(false);
@@ -239,7 +252,7 @@ const AttendanceView = () => {
                                                     (summary, index) => (
                                                         <TableRow
                                                             key={index}
-                                                            onClick={() => handleOpenAttendanceDetails(summary.date)}
+                                                            onClick={() => handleOpenAttendanceDetails(summary)}
                                                             sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer", }, }}
                                                         >
                                                             <TableCell align="center"> {dayjs(summary.date).format("MMMM D, YYYY")} </TableCell>
@@ -247,8 +260,8 @@ const AttendanceView = () => {
                                                             <TableCell align="center"> {summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out" : "-"} </TableCell>
                                                             <TableCell align="center"> {formatTime(summary.total_rendered)} </TableCell>
                                                             <TableCell align="center"> {summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"} </TableCell>
-                                                            <TableCell align="center"> {summary.overtime_out ? dayjs(summary.time_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"} </TableCell>
-                                                            <TableCell align="center"> {formatTime(summary.total_ot)} </TableCell>
+                                                            <TableCell align="center"> {summary.overtime_out ? dayjs(summary.overtime_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"} </TableCell>
+                                                            <TableCell align="center"> {formatTime(summary.total_overtime)} </TableCell>
                                                             <TableCell align="center">
                                                                 <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }} >
                                                                     {summary.date == currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
@@ -271,8 +284,8 @@ const AttendanceView = () => {
                 </Box>
             </Box>
 
-            { openAttendanceDetails && ( <AttendanceViewDetails open={true} close={handleCloseAttendanceDetails} date={openAttendanceDetails} employee={employee.id} /> ) }
-            { openAddAttendance && ( <AddAttendanceModal open={true} close={handleCloseAddAttendance} employee={employee.id} /> ) }
+            {openAttendanceDetails && (<AttendanceViewDetails open={true} close={handleCloseAttendanceDetails} viewInfo={openAttendanceDetails} employee={employee.id} />)}
+            {openAddAttendance && (<AddAttendanceModal open={true} close={handleCloseAddAttendance} employee={employee.id} />)}
         </Layout>
     )
 }

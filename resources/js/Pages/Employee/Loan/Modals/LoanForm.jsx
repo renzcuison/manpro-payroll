@@ -208,10 +208,10 @@ const LoanForm = ({ open, close }) => {
             </DialogTitle>
 
             <DialogContent sx={{ padding: 5, mt: 2, mb: 3, overflowY: 'auto' }}>
-                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
+                <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" sx={{ mt: 1 }}>
                     <Grid container columnSpacing={2} rowSpacing={3}>
                         {/* Loan Amount */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 12 }} sm={6}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -240,9 +240,10 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Payment Term */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 12 }} sm={6}>
                             <FormControl fullWidth>
                                 <TextField
+                                
                                     required
                                     label="Payment Term (Months)"
                                     type="number"
@@ -269,7 +270,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Reason */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }}>
                             <FormControl fullWidth>
                                 <TextField
                                     required
@@ -286,7 +287,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Attachment Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }}>
                             <FormControl fullWidth>
                                 <Box sx={{ width: '100%' }}>
                                     <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
@@ -350,7 +351,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Image Upload */}
-                        <Grid item xs={12}>
+                        <Grid item size={{ xs: 12 }}>
                             <FormControl fullWidth>
                                 <Box sx={{ width: '100%' }}>
                                     <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
@@ -414,7 +415,7 @@ const LoanForm = ({ open, close }) => {
                         </Grid>
 
                         {/* Submit Button */}
-                        <Grid item xs={12} align="center">
+                        <Grid item size={{ xs: 12 }} align="center">
                             <Button
                                 type="submit"
                                 variant="contained"

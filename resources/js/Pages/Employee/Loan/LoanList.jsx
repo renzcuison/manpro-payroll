@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress, IconButton, Menu, MenuItem } from '@mui/material';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, IconButton } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Menu, MenuItem } from '@mui/material';
 import { MoreVert } from '@mui/icons-material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
@@ -77,12 +77,12 @@ const LoanList = () => {
     const handleCancelLoan = (loanId) => {
         Swal.fire({
             customClass: { container: 'my-swal' },
-            title: 'Are you sure?',
-            text: 'Do you want to cancel this loan application?',
+            title: 'Cancel Loan?',
+            text: 'This action cannot be undone',
             icon: 'warning',
             showConfirmButton: true,
-            confirmButtonText: 'Yes, cancel it',
-            confirmButtonColor: '#f44336',
+            confirmButtonText: 'Cancel',
+            confirmButtonColor: '#E9AE20',
             showCancelButton: true,
             cancelButtonText: 'No',
         }).then((result) => {
@@ -93,13 +93,13 @@ const LoanList = () => {
                         Swal.fire({
                             customClass: { container: 'my-swal' },
                             title: 'Success!',
-                            text: 'Loan application has been cancelled.',
+                            text: 'Your loan application has been cancelled.',
                             icon: 'success',
                             showConfirmButton: true,
                             confirmButtonText: 'Okay',
                             confirmButtonColor: '#177604',
                         }).then(() => {
-                            fetchLoanApplications(); // Refresh the list
+                            fetchLoanApplications();
                         });
                     })
                     .catch((error) => {
@@ -126,7 +126,6 @@ const LoanList = () => {
         axiosInstance
             .get('/loans/getLoanApplications', { headers })
             .then((response) => {
-                // Sort loans by created_at in descending order (newest first)
                 const sortedLoans = (response.data.loans || []).sort((a, b) => 
                     new Date(b.created_at) - new Date(a.created_at)
                 );
@@ -160,151 +159,149 @@ const LoanList = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    minHeight: 200,
+                                }}
+                            >
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                    Loan Amount
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '80px', padding: '6px', fontSize: '14px' }}>
-                                                    Payment Term
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                    Paid Amount
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                    Remaining Amount
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '80px', padding: '6px', fontSize: '14px' }}>
-                                                    Status
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '120px', padding: '6px', fontSize: '14px' }}>
-                                                    Date Created
-                                                </TableCell>
-                                                <TableCell align="center" sx={{ width: '60px', padding: '6px', fontSize: '14px' }}>
-                                                    Action
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {loans.length > 0 ? (
-                                                loans.map((loan) => {
-                                                    if (!menuStates[loan.id]) {
-                                                        menuStates[loan.id] = { open: false, anchorEl: null };
-                                                    }
+                            <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <Table aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="center">Loan Amount</TableCell>
+                                            <TableCell align="center">Payment Term</TableCell>
+                                            <TableCell align="center">Paid Amount</TableCell>
+                                            <TableCell align="center">Remaining Amount</TableCell>
+                                            <TableCell align="center">Status</TableCell>
+                                            <TableCell align="center">Date Created</TableCell>
+                                            <TableCell align="center">Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {loans.length > 0 ? (
+                                            loans.map((loan, index) => {
+                                                if (!menuStates[loan.id]) {
+                                                    menuStates[loan.id] = { open: false, anchorEl: null };
+                                                }
 
-                                                    return (
-                                                        <TableRow
-                                                            key={loan.id}
-                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }, cursor: 'pointer' }}
-                                                            onClick={() => handleOpenLoanDetails(loan.id)}
-                                                        >
-                                                            <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                                ₱{parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '80px', padding: '6px', fontSize: '14px' }}>
-                                                                {loan.payment_term ? `${loan.payment_term} months` : '-'}
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                                ₱{loan.paid_amount ? parseFloat(loan.paid_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '100px', padding: '6px', fontSize: '14px' }}>
-                                                                ₱{loan.remaining_amount ? parseFloat(loan.remaining_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '80px', padding: '6px', fontSize: '14px' }}>
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight: 'bold',
-                                                                        color:
-                                                                            loan.status === 'Approved'
-                                                                                ? '#177604'
-                                                                                : loan.status === 'Declined'
-                                                                                ? '#f44336'
-                                                                                : loan.status === 'Pending'
-                                                                                ? '#e9ae20'
-                                                                                : loan.status === 'Released'
-                                                                                ? '#42a5f5'
-                                                                                : loan.status === 'Paid'
-                                                                                ? '#4caf50'
-                                                                                : loan.status === 'Cancelled'
-                                                                                ? '#9e9e9e' // Grey color for Cancelled
-                                                                                : '#000000',
-                                                                    }}
-                                                                >
-                                                                    {loan.status || '-'}
-                                                                </Typography>
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '120px', padding: '6px', fontSize: '14px' }}>
-                                                                {loan.created_at ? new Date(loan.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ width: '60px', padding: '6px', fontSize: '14px' }}>
-                                                                {loan.status === 'Pending' ? (
-                                                                    <>
-                                                                        <IconButton
-                                                                            aria-label="more"
-                                                                            aria-controls={menuStates[loan.id]?.open ? `loan-menu-${loan.id}` : undefined}
-                                                                            aria-haspopup="true"
+                                                return (
+                                                    <TableRow
+                                                        key={loan.id}
+                                                        onClick={() => handleOpenLoanDetails(loan.id)}
+                                                        sx={{
+                                                            p: 1,
+                                                            backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                            '&:hover': {
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                                                                cursor: 'pointer',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <TableCell align="center">
+                                                            ₱{parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {loan.payment_term ? `${loan.payment_term} months` : '-'}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            ₱{loan.paid_amount ? parseFloat(loan.paid_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            ₱{loan.remaining_amount ? parseFloat(loan.remaining_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : parseFloat(loan.loan_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: 'bold',
+                                                                    color:
+                                                                        loan.status === 'Approved'
+                                                                            ? '#177604'
+                                                                            : loan.status === 'Declined'
+                                                                            ? '#f44336'
+                                                                            : loan.status === 'Pending'
+                                                                            ? '#e9ae20'
+                                                                            : loan.status === 'Released'
+                                                                            ? '#42a5f5'
+                                                                            : loan.status === 'Paid'
+                                                                            ? '#4caf50'
+                                                                            : loan.status === 'Cancelled'
+                                                                            ? '#9e9e9e'
+                                                                            : '#000000',
+                                                                }}
+                                                            >
+                                                                {loan.status || '-'}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {loan.created_at ? new Date(loan.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            {loan.status === 'Pending' ? (
+                                                                <>
+                                                                    <IconButton
+                                                                        aria-label="more"
+                                                                        aria-controls={menuStates[loan.id]?.open ? `loan-menu-${loan.id}` : undefined}
+                                                                        aria-haspopup="true"
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleMenuOpen(event, loan.id);
+                                                                        }}
+                                                                    >
+                                                                        <MoreVert />
+                                                                    </IconButton>
+                                                                    <Menu
+                                                                        id={`loan-menu-${loan.id}`}
+                                                                        anchorEl={menuStates[loan.id]?.anchorEl}
+                                                                        open={menuStates[loan.id]?.open || false}
+                                                                        onClose={(event) => {
+                                                                            event.stopPropagation();
+                                                                            handleMenuClose(loan.id);
+                                                                        }}
+                                                                        MenuListProps={{
+                                                                            'aria-labelledby': `loan-menu-${loan.id}`,
+                                                                        }}
+                                                                    >
+                                                                        <MenuItem
                                                                             onClick={(event) => {
                                                                                 event.stopPropagation();
-                                                                                handleMenuOpen(event, loan.id);
-                                                                            }}
-                                                                        >
-                                                                            <MoreVert />
-                                                                        </IconButton>
-                                                                        <Menu
-                                                                            id={`loan-menu-${loan.id}`}
-                                                                            anchorEl={menuStates[loan.id]?.anchorEl}
-                                                                            open={menuStates[loan.id]?.open || false}
-                                                                            onClose={(event) => {
-                                                                                event.stopPropagation();
+                                                                                handleOpenLoanEdit(loan);
                                                                                 handleMenuClose(loan.id);
                                                                             }}
-                                                                            MenuListProps={{
-                                                                                'aria-labelledby': `loan-menu-${loan.id}`,
+                                                                        >
+                                                                            Edit
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={(event) => {
+                                                                                event.stopPropagation();
+                                                                                handleCancelLoan(loan.id);
+                                                                                handleMenuClose(loan.id);
                                                                             }}
                                                                         >
-                                                                            <MenuItem
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    handleOpenLoanEdit(loan);
-                                                                                    handleMenuClose(loan.id);
-                                                                                }}
-                                                                            >
-                                                                                Edit
-                                                                            </MenuItem>
-                                                                            <MenuItem
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    handleCancelLoan(loan.id);
-                                                                                    handleMenuClose(loan.id);
-                                                                                }}
-                                                                            >
-                                                                                Cancel
-                                                                            </MenuItem>
-                                                                        </Menu>
-                                                                    </>
-                                                                ) : null}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                })
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', p: 1 }}>
-                                                        No Loan Applications Found
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </>
+                                                                            Cancel
+                                                                        </MenuItem>
+                                                                    </Menu>
+                                                                </>
+                                                            ) : null}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', p: 1 }}>
+                                                    No Loan Applications Found
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         )}
                     </Box>
                 </Box>

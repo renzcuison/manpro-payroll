@@ -22,8 +22,7 @@ const EmployeeBenefits = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [isLoading, setIsLoading] = useState(true);
-    const [dataUpdated, setDataUpdated] = useState(false);
-
+    
     const [openAddBenefitModal, setOpenAddBenefitModal] = useState(false);
 
     const [benefits, setBenefits] = useState([]);
@@ -87,9 +86,9 @@ const EmployeeBenefits = () => {
                                         <TableBody>
                                             {benefits.map((benefit) => (
                                                 <TableRow
-                                                    key={benefit.id}
+                                                    key={benefit.uid}
                                                     component={Link}
-                                                    to={`/admin/employees/benefits/${benefit.name}`}
+                                                    to={`/admin/employees/benefits/${benefit.uid}`}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
                                                 >
                                                     <TableCell align="left">{benefit.name}</TableCell>

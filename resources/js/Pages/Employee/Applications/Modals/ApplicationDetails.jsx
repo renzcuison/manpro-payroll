@@ -1,21 +1,11 @@
 import {
     Box,
-    Button,
     IconButton,
     Dialog,
     DialogTitle,
     DialogContent,
     Grid,
-    TextField,
     Typography,
-    CircularProgress,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    FormControlLabel,
-    Switch,
-    Select,
-    MenuItem,
     Divider,
     Stack,
     Tooltip
@@ -23,18 +13,13 @@ import {
 import { PictureAsPdf, Description, InsertPhoto, GridOn, FileDownload } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { useLocation, useNavigate } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import Swal from "sweetalert2";
-import moment from "moment";
+import { useNavigate } from "react-router-dom";
 
+import InfoBox from "../../../../components/General/InfoBox"
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
-import { icon } from "@fortawesome/fontawesome-svg-core";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
@@ -122,19 +107,24 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "500px" },
-                        maxWidth: '600px',
-                        marginBottom: '5%'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            px: { xs: 0, md: 2 },
+                            pt: 1,
+                            backgroundColor: '#f8f9fa',
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: '20px' },
+                            minWidth: { xs: "100%", sm: "500px" },
+                            maxWidth: '600px',
+                            marginBottom: '5%',
+                        }
                     }
-                }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                }}
+            >
+                <DialogTitle sx={{ paddingBottom: 1, mt: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
+                        <Typography variant="h4" sx={{ my: 1, fontWeight: "bold" }}>
                             {" "}Application Details{" "}
                         </Typography>
                         <IconButton onClick={close}>
@@ -143,123 +133,104 @@ const ApplicationDetails = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ mt: 2, mb: 3 }}>
                     <Grid container rowSpacing={2}>
                         {/* Application Type */}
-                        <Grid item xs={5} align="left">
-                            Type
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Type"
+                                info={appDetails.type_name}
+                                compact
+                                clean
+                            />
                         </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {appDetails.type_name}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12} sx={{ my: 0 }} >
+                        <Grid xs={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
                         {/* Request Date*/}
-                        <Grid item xs={5} align="left">
-                            Requested
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Stack direction="row">
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.created_at).format("MMM D, YYYY")}
-                                </Typography>
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.created_at).format("h:mm A")}
-                                </Typography>
-                            </Stack>
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Requested"
+                                info={dayjs(appDetails.created_at).format("MMM D, YYYY  h:mm A")}
+                                compact
+                                clean
+                            />
                         </Grid>
                         {/* Start Date */}
-                        <Grid item xs={5} align="left">
-                            Starts
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Stack direction="row">
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.duration_start).format("MMM D, YYYY")}
-                                </Typography>
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.duration_start).format("h:mm A")}
-                                </Typography>
-                            </Stack>
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Starts"
+                                info={dayjs(appDetails.duration_start).format("MMM D, YYYY  h:mm A")}
+                                compact
+                                clean
+                            />
                         </Grid>
                         {/* End Date */}
-                        <Grid item xs={5} align="left">
-                            Ends
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Ends"
+                                info={dayjs(appDetails.duration_end).format("MMM D, YYYY  h:mm A")}
+                                compact
+                                clean
+                            />
                         </Grid>
-                        <Grid item xs={7} align="left">
-                            <Stack direction="row">
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.duration_end).format("MMM D, YYYY")}
-                                </Typography>
-                                <Typography sx={{ fontWeight: "bold", width: "50%" }}>
-                                    {dayjs(appDetails.duration_end).format("h:mm A")}
-                                </Typography>
-                            </Stack>
+                        {/* Credits Used */}
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Credits Used"
+                                info={appDetails.leave_used}
+                                compact
+                                clean
+                            />
                         </Grid>
-                        <Grid item xs={5} align="left">
-                            Credits Used
-                        </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography sx={{ fontWeight: "bold" }}>
-                                {appDetails.leave_used}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12} sx={{ my: 0 }} >
+                        <Grid size={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
                         {/* Application Status */}
-                        <Grid item xs={5} align="left">
-                            Status
+                        <Grid size={{ xs: 12 }}>
+                            <InfoBox
+                                title="Status"
+                                info={appDetails.status.toUpperCase()}
+                                compact
+                                clean
+                                color={
+                                    appDetails.status === "Approved"
+                                        ? "#177604"
+                                        : appDetails.status === "Declined"
+                                            ? "#f44336"
+                                            : appDetails.status === "Pending"
+                                                ? "#e9ae20"
+                                                : appDetails.status === "Cancelled"
+                                                    ? "#f57c00"
+                                                    : "#000000"
+                                }
+                            />
                         </Grid>
-                        <Grid item xs={7} align="left">
-                            <Typography
-                                sx={{
-                                    fontWeight: "bold",
-                                    color:
-                                        appDetails.status === "Approved"
-                                            ? "#177604"
-                                            : appDetails.status === "Declined"
-                                                ? "#f44336"
-                                                : appDetails.status === "Pending"
-                                                    ? "#e9ae20"
-                                                    : appDetails.status === "Cancelled"
-                                                        ? "#f57c00"
-                                                        : "#000000",
-                                }}
-                            >
-                                {appDetails.status.toUpperCase()}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12} sx={{ my: 0 }} >
+                        <Grid size={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
                         {/* Description */}
                         <Grid container item xs={12}>
-                            <Grid item xs={12}>
-                                <div
-                                    style={{
-                                        textDecoration: "underline",
-                                    }}
-                                >
+                            <Grid size={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                     Description
-                                </div>
+                                </Typography>
                             </Grid>
-                            <Grid item xs={12} sx={{ mt: 1 }}>
+                            <Grid size={12} sx={{ mt: 1 }}>
                                 {appDetails.description}
                             </Grid>
                         </Grid>
-                        <Grid item xs={12} sx={{ my: 0 }} >
+                        <Grid size={12} sx={{ my: 0 }} >
                             <Divider />
                         </Grid>
                         {/* Attachments */}
-                        <Grid container item xs={12}>
-                            <Grid item xs={12}>
-                                Attached Files
+                        <Grid container item size={12}>
+                            <Grid size={12}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                    Attached Files
+                                </Typography>
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                                 {files ? (
                                     <Stack direction="column" sx={{ width: '100%' }}>
                                         {files.map((file, index) => {

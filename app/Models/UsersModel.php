@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -12,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class UsersModel extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'users';
 
@@ -33,6 +34,9 @@ class UsersModel extends Authenticatable
         'user_type',
         'salary_type',
         'salary',
+        'is_fixed_salary',
+        'tin_number',
+        'deduct_tax',
 
         'profile_pic',
         'verify_code',
@@ -83,11 +87,6 @@ class UsersModel extends Authenticatable
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
 
-    public function tax()
-    {
-        return $this->hasOne(EmployeeTaxesModel::class, 'employee_id');
-    }
-
     public function workShift()
     {
         return $this->hasOneThrough(
@@ -110,6 +109,16 @@ class UsersModel extends Authenticatable
             'work_group_id', // Foreign key on users table
             'work_hour_id'   // Local key on work_shifts table
         );
+    }
+
+    public function allowances()
+    {
+        return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
+    }
+
+    public function leaveCredits()
+    {
+        return $this->hasMany(LeaveCreditsModel::class, 'user_id');
     }
 
     public function company(): HasOne

@@ -8,29 +8,20 @@ import {
     Grid,
     TextField,
     Typography,
-    InputAdornment,
-    CircularProgress,
-    FormGroup,
     FormControl,
-    InputLabel,
-    FormControlLabel,
     FormHelperText,
-    Switch,
-    Select,
     MenuItem,
     Stack,
     Checkbox
 } from "@mui/material";
-import { Cancel, InfoOutlined } from "@mui/icons-material";
+import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
-import { Form, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Swal from "sweetalert2";
-import moment from "moment";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -43,6 +34,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    console.log(appDetails);
     // Form Fields
     const [applicationTypes, setApplicationTypes] = useState([]);
     const [appType, setAppType] = useState(appDetails.type_id);
@@ -561,6 +553,16 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             formData.append('deleteImages[]', null);
         }
 
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Please wait...",
+            text: "Updating your application...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
         axiosInstance
             .post("/applications/editApplication", formData, {
                 headers,
@@ -587,7 +589,17 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
             })
             .catch((error) => {
                 console.error("Error:", error);
-                document.body.setAttribute("aria-hidden", "true");
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "Error!",
+                    text: "Failed to update your application. Please try again.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#d33",
+                }).then(() => {
+                    document.body.setAttribute("aria-hidden", "true");
+                });
             });
     };
 
@@ -597,17 +609,22 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                 open={open}
                 fullWidth
                 maxWidth="md"
-                PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "700px" },
-                        maxWidth: '800px',
-                        marginBottom: '5%'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            px: { xs: 0, md: 2 },
+                            pt: 1,
+                            backgroundColor: '#f8f9fa',
+                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                            borderRadius: { xs: 0, md: '20px' },
+                            minWidth: { xs: "100%", sm: "700px" },
+                            maxWidth: '800px',
+                            marginBottom: '5%',
+                        }
                     }
-                }}>
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                }}
+            >
+                <DialogTitle sx={{ paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
                         <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
                             {" "}Edit Application{" "}
@@ -618,7 +635,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <DialogContent sx={{ mt: 2, mb: 3 }}>
                     <Box
                         component="form"
                         onSubmit={checkInput}
@@ -627,7 +644,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                     >
                         <Grid container columnSpacing={2} rowSpacing={3}>
                             {/* Application Type Selector */}
-                            <Grid item xs={12} sx={{ mt: 1 }}>
+                            <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         required
@@ -637,7 +654,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                         value={appType}
                                         error={appTypeError || tenureshipError}
                                         onChange={(event) => handleTypeChange(event.target.value)}
-                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? s : ""}` : ""}
+                                        helperText={tenureshipError ? `You currently do not meet the tenureship requirement for this application. Your Tenureship: ${tenureship} month${tenureship > 1 ? 's' : ""}` : ""}
                                     >
                                         {applicationTypes
                                             .sort((a, b) => {
@@ -661,7 +678,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* From Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -682,11 +699,12 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
+                                        sx={{ width: "100%" }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
                             {/* To Date */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
@@ -707,11 +725,12 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                                 helperText: dateRangeError ? "A Date Within Range is Already Full" : "",
                                             }
                                         }}
+                                        sx={{ width: "100%" }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
                             {/* Leave Credits */}
-                            <Grid item xs={4}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <FormControl fullWidth>
                                     <TextField
                                         label="Credits Used/Available"
@@ -741,7 +760,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Description Field */}
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <TextField
                                         fullWidth
@@ -766,7 +785,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Attachment Upload */}
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                                 {/* File Requirement */}
                                 {fileError && <Typography variant="caption" color="error" sx={{ pb: 3 }}>
                                     You must include supporting files for this type of application!
@@ -919,7 +938,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                                 </FormControl>
                             </Grid>
                             {/* Image Upload */}
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
                                         <Stack direction="row" spacing={1}
@@ -1068,7 +1087,7 @@ const ApplicationEdit = ({ open, close, appDetails }) => {
                             {/* Submit Button */}
                             <Grid
                                 item
-                                xs={12}
+                                size={{ xs: 12 }}
                                 align="center"
                                 sx={{
                                     justifyContent: "center",

@@ -7,6 +7,7 @@ import Error404 from "../Pages/Errors/Error404";
 import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
+import AttendanceOvertime from "../Pages/Employee/Attendance/AttendanceOvertime";
 
 import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 
@@ -39,6 +40,7 @@ const EmployeeRoutes = ({ user }) => {
             {/* Attendance Routes ------------------------------------------ */}
             <Route path="attendance-logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
             <Route path="attendance-summary" element={<ProtectedRoute element={<AttendanceSummary />} user={user} />} />
+            <Route path="attendance-overtime" element={<ProtectedRoute element={<AttendanceOvertime />} user={user} />} />
 
             {/* Application Routes ----------------------------------------- */}
             <Route path="application-list" element={<ProtectedRoute element={<ApplicationList />} user={user} />} />

@@ -24,4 +24,9 @@ class ClientsModel extends Model
     {
         return $this->hasMany(UsersModel::class, 'client_id')->where('user_type', 'Employee');
     }
+
+    public function allowances()
+    {
+        return $this->hasMany(AllowancesModel::class, 'client_id');
+    }
 }

@@ -149,7 +149,7 @@ const WorkGroupView = () => {
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                     
-                        <Grid item xs={4}>
+                        <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                             {workShift ? (
                                 <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
 
@@ -160,42 +160,42 @@ const WorkGroupView = () => {
                                     ) : (
                                         <>
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> Group Name </Grid>
-                                                <Grid item xs={8}> {workGroup.name} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Group Name </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {workGroup.name} </Grid>
                                             </Grid>
 
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> Assigned Shift </Grid>
-                                                <Grid item xs={8}> {workShift.name} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Assigned Shift </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {workShift.name} </Grid>
                                             </Grid>
 
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> Shift Type </Grid>
-                                                <Grid item xs={8}> {workShift.shift_type} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Shift Type </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {workShift.shift_type} </Grid>
                                             </Grid>
 
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> {workShift.first_label} </Grid>
-                                                <Grid item xs={8}> {formatTime(workHours.first_time_in)} - {formatTime(workHours.first_time_out)} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> {workShift.first_label} </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {formatTime(workHours.first_time_in)} - {formatTime(workHours.first_time_out)} </Grid>
                                             </Grid>
 
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> Break </Grid>
-                                                <Grid item xs={8}> {formatTime(workHours.break_start)} - {formatTime(workHours.break_end)} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Break </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {formatTime(workHours.break_start)} - {formatTime(workHours.break_end)} </Grid>
                                             </Grid>
 
                                             {workShift?.shift_type === "Split" && (
                                                 <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid item xs={4}>{workShift.second_label}</Grid>
-                                                    <Grid item xs={8}>
+                                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>{workShift.second_label}</Grid>
+                                                    <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                                                     {formatTime(workHours.second_time_in)} - {formatTime(workHours.second_time_out)}
                                                     </Grid>
                                                 </Grid>
                                             )}
 
                                             <Grid container spacing={4} sx={{ p: 1 }}>
-                                                <Grid item xs={4}> Overtime </Grid>
-                                                <Grid item xs={8}> {formatTime(workHours.over_time_in)} - {formatTime(workHours.over_time_out)} </Grid>
+                                                <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Overtime </Grid>
+                                                <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> {formatTime(workHours.over_time_in)} - {formatTime(workHours.over_time_out)} </Grid>
                                             </Grid>
                                         </>
                                     )}
@@ -204,34 +204,34 @@ const WorkGroupView = () => {
                             ) : <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Group Name </Grid>
-                                        <Grid item xs={8}>{workGroup.name}</Grid>
+                                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Group Name </Grid>
+                                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>{workGroup.name}</Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Assigned Shift </Grid>
-                                        <Grid item xs={8}> Unassigned </Grid>
+                                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Assigned Shift </Grid>
+                                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> Unassigned </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Shift Type </Grid>
-                                        <Grid item xs={8}> N/A </Grid>
+                                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Shift Type </Grid>
+                                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> N/A </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Attendance </Grid>
-                                        <Grid item xs={8}> N/A </Grid>
+                                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Attendance </Grid>
+                                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> N/A </Grid>
                                     </Grid>
 
                                     <Grid container spacing={4} sx={{ p: 1 }}>
-                                        <Grid item xs={4}> Over Time </Grid>
-                                        <Grid item xs={8}> N/A </Grid>
+                                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> Over Time </Grid>
+                                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}> N/A </Grid>
                                     </Grid>
                                 </Box>
                             }
                         </Grid>
 
-                        <Grid item xs={8}>
+                        <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8}}>
                             <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
                                 {isLoading ? (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
