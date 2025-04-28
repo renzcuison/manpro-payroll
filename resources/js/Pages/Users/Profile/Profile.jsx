@@ -1,20 +1,39 @@
-import React, { useEffect, useState } from 'react'
-import { Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem, useMediaQuery, useTheme, IconButton } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
-import { Menu as MenuIcon } from '@mui/icons-material'
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PropTypes from 'prop-types';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import React, { useEffect, useState } from "react";
+import {
+    Box,
+    Typography,
+    Grid,
+    CircularProgress,
+    Avatar,
+    Button,
+    Menu,
+    MenuItem,
+    useMediaQuery,
+    useTheme,
+    IconButton,
+    Stack,
+} from "@mui/material";
+import Layout from "../../../components/Layout/Layout";
+import { Menu as MenuIcon } from "@mui/icons-material";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import PropTypes from "prop-types";
+import PageHead from "../../../components/Table/PageHead";
+import PageToolbar from "../../../components/Table/PageToolbar";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+    getComparator,
+    stableSort,
+} from "../../../components/utils/tableUtils";
 
-import ProfileEdit from './Modals/ProfileEdit';
+import ProfileEdit from "./Modals/ProfileEdit";
+import moment from "moment";
+import { useUser } from "../../../hooks/useUser";
 
 const EmployeeView = () => {
-    const { user } = useParams();
     const theme = useTheme();
-    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const medScreen = useMediaQuery(theme.breakpoints.up("md"));
+    const { user } = useUser();
+    console.log("USer: ", user);
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -22,19 +41,19 @@ const EmployeeView = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [employee, setEmployee] = useState('');
-    const [imagePath, setImagePath] = useState('');
+    const [employee, setEmployee] = useState("");
+    const [imagePath, setImagePath] = useState("");
 
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
 
-
     useEffect(() => {
-        getMyDetails();
+        // getMyDetails();
     }, []);
 
     const getMyDetails = () => {
         setAnchorEl(null);
-        axiosInstance.get(`/employee/getMyDetails`, { headers })
+        axiosInstance
+            .get(`/employee/getMyDetails`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
                     const empDetails = response.data.employee;
@@ -46,7 +65,9 @@ const EmployeeView = () => {
                             byteNumbers[i] = byteCharacters.charCodeAt(i);
                         }
                         const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
+                        const blob = new Blob([byteArray], {
+                            type: empDetails.avatar_mime,
+                        });
 
                         const newBlob = URL.createObjectURL(blob);
                         setImagePath(newBlob);
@@ -54,14 +75,15 @@ const EmployeeView = () => {
                         setImagePath(null);
                     }
                 }
-            }).catch((error) => {
-                console.error('Error fetching details:', error);
+            })
+            .catch((error) => {
+                console.error("Error fetching details:", error);
             });
     };
 
     useEffect(() => {
         return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
+            if (imagePath && imagePath.startsWith("blob:")) {
                 URL.revokeObjectURL(imagePath);
             }
         };
@@ -79,10 +101,20 @@ const EmployeeView = () => {
 
         return age;
     };
-
-    const formattedBirthDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
-    const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
-    const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
+    const formattedStartDate = user?.date_start
+        ? new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+          }).format(new Date(user.date_start))
+        : "";
+    const formattedEndDate = user.date_end
+        ? new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+          }).format(new Date(user.date_end))
+        : "";
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
@@ -95,235 +127,459 @@ const EmployeeView = () => {
     // Employee Profile
     const handleOpenProfileEditModal = () => {
         setOpenProfileEditModal(true);
-    }
+    };
     const handleCloseProfileEditModal = (reload) => {
         setOpenProfileEditModal(false);
         if (reload) {
             getMyDetails();
         }
-    }
+    };
 
     return (
         <Layout title={"EmployeeView"}>
-            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
+            <Box>
+                <Box
+                    sx={{
+                        mt: 5,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        px: 1,
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                        {" "}
+                        Employee Profile{" "}
+                    </Typography>
 
-                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > Employee Profile </Typography>
+                    {medScreen ? (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenActions}
+                        >
+                            Actions
+                        </Button>
+                    ) : (
+                        <IconButton
+                            variant="contained"
+                            onClick={handleOpenActions}
+                            sx={{ bgcolor: "#177604", borderRadius: "20%" }}
+                        >
+                            <MenuIcon sx={{ color: "white" }} />
+                        </IconButton>
+                    )}
 
-                        {medScreen ? (
-                            <Button variant="contained" color="primary" onClick={handleOpenActions}>Actions</Button>
-                        ) : (
-                            <IconButton variant="contained" onClick={handleOpenActions} sx={{ bgcolor: "#177604", borderRadius: "20%" }}><MenuIcon sx={{ color: "white" }} /></IconButton>
-                        )}
-
-                        <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
-                            <MenuItem onClick={handleOpenProfileEditModal}> Edit Profile </MenuItem>
-                        </Menu>
-                    </Box>
-
-                    <Grid container spacing={4} sx={{ mt: 2 }}>
-                        {/* Profile card */}
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                                <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Avatar
-                                        alt={`${employee.user_name} Profile Pic`}
-                                        src={imagePath}
-                                        sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }}
-                                    />
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-id-card"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        {employee.first_name} {employee.middle_name || ''} {employee.last_name} {employee.suffix || ''}
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-envelope"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        <Typography> {employee.email} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-mobile"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        <Typography> {employee.contact_number || ''} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-globe"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        <Typography> {employee.address || ''} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-birthday-cake"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        <Typography> {employee.birth_date ? `${formattedBirthDate} (${calculateAge(employee.birth_date)} Years Old)` : 'Not Indicated'} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={3} sx={{ p: 1 }}>
-                                    <Grid size={{ xs: 1, sm: 1, md: 1, lg: 1 }}>
-                                        <Typography> <i className="fa fa-venus-mars"></i> </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 11, sm: 11, md: 11, lg: 11 }}>
-                                        <Typography> {employee.gender || 'Not Indicated'} </Typography>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 8 }}>
-                            {employee.user_type == "Employee" ?
-                                <Box sx={{ mb: 3, py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 }, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                                    <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
-
-                                    <Grid container spacing={4}>
-                                        <Grid size={{ xs: 12, md: 4 }}>
-                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>
-                                                        {employee.total_payroll || "-"}
-                                                    </Avatar>
-                                                </Grid>
-                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Typography variant="h6"> Signed Payroll </Typography>
-                                                </Grid>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid size={{ xs: 12, md: 4 }}>
-                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>
-                                                        {employee.total_attendance || "-"}
-                                                    </Avatar>
-                                                </Grid>
-                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Typography variant="h6"> Attendance </Typography>
-                                                </Grid>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid size={{ xs: 12, md: 4 }}>
-                                            <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                                <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>
-                                                        {employee.total_applications || "-"}
-                                                    </Avatar>
-                                                </Grid>
-                                                <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Typography variant="h6"> Applications </Typography>
-                                                </Grid>
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-                                </Box> : null
-                            }
-
-                            <Box sx={{ py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 }, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employment Details </Typography>
-                                <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Role </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.role || '-'} </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Job Title </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.jobTitle || '-'} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Department </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.department || '-'} </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Branch </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.branch || '-'} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Type </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.employment_type || '-'} </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Status </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.employment_status || '-'} </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Work Group </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.work_group || '-'} </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 5, md: 2 }}>
-                                        <Typography> Employment Date </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 7, md: 2 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    </Grid>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleCloseActions}
+                    >
+                        <MenuItem onClick={handleOpenProfileEditModal}>
+                            {" "}
+                            Edit Profile{" "}
+                        </MenuItem>
+                    </Menu>
                 </Box>
 
+                <Grid container spacing={4} sx={{ mt: 2 }}>
+                    {/* Profile card */}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                        <Box
+                            sx={{
+                                p: 4,
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <Grid
+                                container
+                                sx={{
+                                    pt: 1,
+                                    pb: 4,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Avatar
+                                    alt={`${user.user_name} Profile Pic`}
+                                    src={
+                                        user?.media
+                                            ? user?.media[0].original_url
+                                            : imagePath
+                                    }
+                                    sx={{
+                                        width: "50%",
+                                        height: "auto",
+                                        aspectRatio: "1 / 1",
+                                        objectFit: "cover",
+                                        boxShadow: 3,
+                                    }}
+                                />
+                            </Grid>
+                            <Stack spacing={2}>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-id-card"></i>{" "}
+                                    <div>
+                                        {user.first_name}{" "}
+                                        {user.middle_name || ""}{" "}
+                                        {user.last_name} {user.suffix || ""}
+                                    </div>
+                                </Stack>
 
-                {openProfileEditModal &&
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-envelope"></i>{" "}
+                                    <Typography> {user.email} </Typography>
+                                </Stack>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-phone"></i>{" "}
+                                    <Typography>
+                                        {user.contact_number || ""}
+                                    </Typography>
+                                </Stack>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-globe"></i>
+
+                                    <Typography>
+                                        {user.address || ""}
+                                    </Typography>
+                                </Stack>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-birthday-cake"></i>
+
+                                    <Typography>
+                                        {" "}
+                                        {user.birth_date
+                                            ? `${moment(user.birth_date).format(
+                                                  "MM. DD, YYYY"
+                                              )} (${calculateAge(
+                                                  user.birth_date
+                                              )} Years Old)`
+                                            : "Not Indicated"}{" "}
+                                    </Typography>
+                                </Stack>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <i className="fa fa-venus-mars"></i>
+
+                                    <Typography>
+                                        {" "}
+                                        {user.gender || "Not Indicated"}{" "}
+                                    </Typography>
+                                </Stack>
+                            </Stack>
+                        </Box>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 8 }}>
+                        {user.user_type == "Employee" ? (
+                            <Box
+                                sx={{
+                                    mb: 3,
+                                    py: { xs: 2, md: 3 },
+                                    px: { xs: 2, md: 4 },
+                                    bgcolor: "#ffffff",
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                <Typography
+                                    variant="h5"
+                                    sx={{ mb: 3, fontWeight: "bold" }}
+                                >
+                                    {" "}
+                                    Summary{" "}
+                                </Typography>
+
+                                <Grid container spacing={4}>
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <Box
+                                            sx={{
+                                                bgcolor: "#ffffff",
+                                                borderRadius: "8px",
+                                            }}
+                                        >
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    pb: 2,
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Avatar
+                                                    sx={{
+                                                        width: 114,
+                                                        height: 114,
+                                                        bgcolor: "#7eb73d",
+                                                    }}
+                                                >
+                                                    {user.total_payroll || "-"}
+                                                </Avatar>
+                                            </Grid>
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Typography variant="h6">
+                                                    {" "}
+                                                    Signed Payroll{" "}
+                                                </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <Box
+                                            sx={{
+                                                bgcolor: "#ffffff",
+                                                borderRadius: "8px",
+                                            }}
+                                        >
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    pb: 2,
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Avatar
+                                                    sx={{
+                                                        width: 114,
+                                                        height: 114,
+                                                        bgcolor: "#eab000",
+                                                    }}
+                                                >
+                                                    {user.total_attendance ||
+                                                        "-"}
+                                                </Avatar>
+                                            </Grid>
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Typography variant="h6">
+                                                    {" "}
+                                                    Attendance{" "}
+                                                </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <Box
+                                            sx={{
+                                                bgcolor: "#ffffff",
+                                                borderRadius: "8px",
+                                            }}
+                                        >
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    pb: 2,
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Avatar
+                                                    sx={{
+                                                        width: 114,
+                                                        height: 114,
+                                                        bgcolor: "#de5146",
+                                                    }}
+                                                >
+                                                    {user.total_applications ||
+                                                        "-"}
+                                                </Avatar>
+                                            </Grid>
+                                            <Grid
+                                                container
+                                                sx={{
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Typography variant="h6">
+                                                    {" "}
+                                                    Applications{" "}
+                                                </Typography>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        ) : null}
+
+                        <Box
+                            sx={{
+                                py: { xs: 2, md: 3 },
+                                px: { xs: 2, md: 4 },
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <Typography
+                                variant="h5"
+                                sx={{ mb: 2, fontWeight: "bold" }}
+                            >
+                                {" "}
+                                Employment Details{" "}
+                            </Typography>
+                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Role </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.role || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Job Title </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.jobTitle || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Department </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.department || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Branch </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.branch || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Type </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.employment_type || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Status </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.employment_status || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+
+                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Work Group </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.work_group || "-"}{" "}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid size={{ xs: 5, md: 2 }}>
+                                    <Typography> Employment Date </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 7, md: 2 }}>
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                        {" "}
+                                        {user.date_start
+                                            ? `${formattedStartDate}`
+                                            : "-"}{" "}
+                                        {user.date_end
+                                            ? `- ${formattedEndDate}`
+                                            : ""}{" "}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Grid>
+                </Grid>
+
+                {openProfileEditModal && user && (
                     <ProfileEdit
                         open={openProfileEditModal}
                         close={handleCloseProfileEditModal}
-                        employee={employee}
-                        avatar={imagePath}
+                        employee={user}
+                        avatar={user?.media?.[0]?.original_url}
                         medScreen={medScreen}
                     />
-                }
-
+                )}
             </Box>
-        </Layout >
-    )
-}
+        </Layout>
+    );
+};
 
-export default EmployeeView
+export default EmployeeView;

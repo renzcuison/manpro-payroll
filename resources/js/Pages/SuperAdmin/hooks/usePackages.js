@@ -23,7 +23,9 @@ export function usePackages() {
         isFetched,
         isFetching,
         refetch,
-    } = useQuery(["packages"], () => getPackages());
+    } = useQuery(["packages"], () => getPackages(), {
+        refetchOnMount: "always",
+    });
 
     async function store(packageData) {
         const response = await axiosInstance.post(

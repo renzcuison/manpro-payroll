@@ -14,6 +14,7 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
+use App\Models\Company;
 use App\Models\LoanLimitHistoryModel;
 
 // use App\Models\NewModel;
@@ -139,8 +140,7 @@ class EmployeesController extends Controller
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $employees = $client->employees;
+            $employees = $user->company->users;
 
             $enrichedEmployees = $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
@@ -161,7 +161,7 @@ class EmployeesController extends Controller
                 return $employee;
             });
 
-            return response()->json(['status' => 200, 'employees' => $enrichedEmployees]);
+            return response()->json(['status' => 200, 'employees' => $employees]);
         }
 
         return response()->json(['status' => 200, 'employees' => null]);
@@ -210,11 +210,9 @@ class EmployeesController extends Controller
         if ($this->checkUserAdmin() && $validated) {
 
             $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
+            $company_id = Company::find($user->company->id);
 
             try {
-                DB::beginTransaction();
-
                 $password = Hash::make($request->password);
 
                 UsersModel::create([
@@ -231,10 +229,8 @@ class EmployeesController extends Controller
                     "password" => $password,
 
                     "user_type" => "Employee",
-                    "client_id" => $client->id,
+                    "company_id" => $company_id,
                 ]);
-
-                DB::commit();
 
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
@@ -375,52 +371,35 @@ class EmployeesController extends Controller
         //log::info("EmployeesController::editMyProfile");
         //log::info($request);
 
-        $user = Auth::user();
-
-        $employee = UsersModel::find($request->id);
+        $user = UsersModel::findOrFail($request->input('id'));
 
         try {
-            DB::beginTransaction();
 
-            $employee->first_name = $request->input('first_name');
-            $employee->middle_name = $request->input('middle_name');
-            $employee->last_name = $request->input('last_name');
-            $employee->suffix = $request->input('suffix');
+            $user->first_name = $request->input('first_name');
+            $user->middle_name = $request->input('middle_name');
+            $user->last_name = $request->input('last_name');
+            $user->suffix = $request->input('suffix');
 
-            $employee->birth_date = $request->input('birth_date');
-            $employee->gender = $request->input('gender');
+            $user->birth_date = $request->input('birth_date');
+            $user->gender = $request->input('gender');
 
-            $employee->contact_number = $request->input('contact_number');
-            $employee->address = $request->input('address');
+            $user->contact_number = $request->input('contact_number');
+            $user->address = $request->input('address');
 
-            $dateTime = now()->format('YmdHis');
-
+                // Save profile pic using spatie media library
             if ($request->hasFile('profile_pic')) {
+                
+			    $user->clearMediaCollection('profile_pic');
+                $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
 
-                $oldPicPath = $employee->profile_pic;
-
-                $profilePic = $request->file('profile_pic');
-                $profilePicName = pathinfo($profilePic->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $dateTime . '.' . $profilePic->getClientOriginalExtension();
-                $profilePicPath = $profilePic->storeAs('users/profile_pictures', $profilePicName, 'public');
-                $employee->profile_pic = $profilePicPath;
-
-                if ($oldPicPath && Storage::disk('public')->exists($oldPicPath)) {
-                    //Log::info("Attempting to delete: public/" . $oldPicPath);
-                    if (Storage::disk('public')->delete($oldPicPath)) {
-                        //Log::info("Old picture deleted successfully.");
-                    } else {
-                        //Log::warning("Failed to delete old picture: public/" . $oldPicPath);
-                    }
-                } else {
-                    //Log::warning("Old picture not found or path invalid: public/" . $oldPicPath);
-                }
             }
 
-            $employee->save();
+            $user->save();
 
-            DB::commit();
-
-            return response()->json(['status' => 200]);
+            return response()->json([
+                'user' => $user->load('media'),
+                'status' => 200
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 

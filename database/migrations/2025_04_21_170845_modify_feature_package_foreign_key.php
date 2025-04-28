@@ -13,14 +13,18 @@ return new class extends Migration
     {
 
         Schema::table('feature_package', function (Blueprint $table) {
-            // Drop existing foreign keys
-            $table->dropColumn(['package_id', 'feature_id']);
-        });
-        
-        Schema::table('feature_package', function (Blueprint $table) {
-            // Add new foreign keys with cascade
-            $table->foreignId('package_id')->constrained('packages')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('feature_id')->constrained('features')->onDelete('cascade')->onUpdate('cascade');
+            
+            $table->dropForeign(['package_id']);
+            $table->dropForeign(['feature_id']);
+
+            // Recreate the foreign keys with onDelete('cascade')
+            $table->foreign('package_id')
+                  ->references('id')->on('packages')
+                  ->onDelete('cascade');
+
+            $table->foreign('feature_id')
+                  ->references('id')->on('features')
+                  ->onDelete('cascade');
         });
     }
 
@@ -30,9 +34,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('feature_package', function (Blueprint $table) {
-            // Add new foreign keys with cascade
-            $table->foreignId('package_id')->constrained('packages')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('feature_id')->constrained('features')->onDelete('cascade')->onUpdate('cascade');
+            // Drop the updated foreign keys
+            $table->dropForeign(['package_id']);
+            $table->dropForeign(['feature_id']);
+
+            // Recreate the original foreign keys WITHOUT onDelete('cascade')
+            $table->foreign('package_id')
+                  ->references('id')->on('packages');
+
+            $table->foreign('feature_id')
+                  ->references('id')->on('features');
         });
     }
 };

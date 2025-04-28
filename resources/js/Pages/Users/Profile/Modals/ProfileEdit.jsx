@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
 import moment from 'moment';
 import dayjs from 'dayjs';
 import { Edit } from '@mui/icons-material';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const navigate = useNavigate();
@@ -43,6 +44,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
     const [profilePicError, setProfilePicError] = useState(false);
+    const queryClient = useQueryClient();
 
     const handleUpload = (event) => {
         const file = event.target.files[0];
@@ -154,6 +156,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then((res) => {
+                        queryClient.invalidateQueries(["user"])
                         close(true);
                     });
                 }

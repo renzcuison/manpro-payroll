@@ -35,11 +35,11 @@ export const superAdminSidebarMenu = [
         icon: <ImageIcon size={24} />,
         path: "/dashboard",
     },
-    {
-        title: "Subscriptions",
-        icon: <ImageIcon size={24} />,
-        path: "/super-admin/subscriptions",
-    },
+    // {
+    //     title: "Subscriptions",
+    //     icon: <ImageIcon size={24} />,
+    //     path: "/super-admin/subscriptions",
+    // },
     {
         title: "Users",
         icon: <ImageIcon size={24} />,

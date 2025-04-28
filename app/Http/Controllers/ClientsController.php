@@ -19,7 +19,7 @@ class ClientsController extends Controller
 {
     public function index(): JsonResponse
     {
-        $clients = UsersModel::with('company.package')->get();
+        $clients = UsersModel::with('company.package')->where('user_type', "Admin")->get();
         return response()->json($clients);
     }
 
@@ -263,7 +263,8 @@ class ClientsController extends Controller
                 'website' => 'required',
                 'description' => 'required',
             ]);
-            
+
+            $user = UsersModel::find($request->user_id);
             $company = new Company();
             $company->user_id = $request->user_id;
             $company->name = $request->name;
@@ -273,6 +274,9 @@ class ClientsController extends Controller
             $company->website = $request->website;
             $company->description = $request->description;
             $company->save();
+
+            $user->company_id = $company->id;
+            $user->save();
 
             return response()->json([ 'company' => $company, 'status' => 200 ]);
 

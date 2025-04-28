@@ -225,7 +225,7 @@ const ClientsList = () => {
                                                 page * rowsPerPage,
                                                 page * rowsPerPage + rowsPerPage
                                             )
-                                            .map((client, index) => {
+                                            ?.map((client, index) => {
                                                 return (
                                                     <TableRow
                                                         key={client.id}

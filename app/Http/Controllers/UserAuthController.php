@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Exception;
 
 use App\Models\UsersModel;
@@ -17,14 +18,15 @@ class UserAuthController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
-        $user->id = $user->user_id;
+        $user = Auth::user();
+        
+        $userData = $user->load('media','company.package');
         // if (!Storage::disk('public')->exists($user->profile_pic)) {
         //     $user->profile_pic = null;
         // }
         $user->token = $request->bearerToken();
         return [
-            'user' => $user
+            'user' => $userData
         ];
     }
 
@@ -116,6 +118,7 @@ class UserAuthController extends Controller
                 return response(["error" => "Wrong Username or Password"]);
             }
         } catch (\Throwable $th) {
+            Log::info($th->getMessage());
             return response()->json(['success' => 0,'message' => 'Error: '.$th->getMessage()]);
         }
     }

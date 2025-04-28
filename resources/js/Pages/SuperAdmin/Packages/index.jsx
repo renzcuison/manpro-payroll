@@ -24,7 +24,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 function Packages() {
-    const { packages, isFetching, deletePkg } = usePackages();
+    const { packages, isFetching, refetch, deletePkg } = usePackages();
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [snackBarOpen, setIsOpenSnackBar] = useState(false);
@@ -83,6 +83,7 @@ function Packages() {
                     deletePkg(selectedPackage.id)
                         .then((res) => {
                             console.log(res);
+                            refetch();
                         })
                         .catch((error) => {
                             console.error(error);
