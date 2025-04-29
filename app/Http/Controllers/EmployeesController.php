@@ -210,12 +210,12 @@ class EmployeesController extends Controller
         if ($this->checkUserAdmin() && $validated) {
 
             $user = Auth::user();
-            $company_id = Company::find($user->company->id);
+            $company = Company::find($user->company->id);
 
             try {
                 $password = Hash::make($request->password);
 
-                UsersModel::create([
+                $new_user = UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
                     "middle_name" => $request->middleName,
@@ -229,10 +229,10 @@ class EmployeesController extends Controller
                     "password" => $password,
 
                     "user_type" => "Employee",
-                    "company_id" => $company_id,
+                    "company_id" => $user->company->id,
                 ]);
 
-                return response()->json(['status' => 200]);
+                return response()->json(['status' => 200, 'user' => $new_user]);
             } catch (\Exception $e) {
                 DB::rollBack();
 

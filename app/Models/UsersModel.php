@@ -59,6 +59,7 @@ class UsersModel extends Authenticatable implements HasMedia
         'role_id',
         'job_title_id',
         'work_group_id',
+        'company_id'
     ];
 
     public function role()

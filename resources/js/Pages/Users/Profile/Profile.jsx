@@ -3,7 +3,6 @@ import {
     Box,
     Typography,
     Grid,
-    CircularProgress,
     Avatar,
     Button,
     Menu,
@@ -12,109 +11,28 @@ import {
     useTheme,
     IconButton,
     Stack,
+    Divider,
 } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
-import { Menu as MenuIcon } from "@mui/icons-material";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PropTypes from "prop-types";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
 
 import ProfileEdit from "./Modals/ProfileEdit";
-import moment from "moment";
 import { useUser } from "../../../hooks/useUser";
+import CompanyDetails from "./CompanyDetails";
+import EmploymentDetails from "./EmploymentDetails";
+import PackageDetails from "./PackageDetails";
+import PersonalDetails from "./PersonalDetails";
+import { MoreVert } from "@mui/icons-material";
+import EmployeeSummary from "./EmployeeSummary";
 
 const EmployeeView = () => {
     const theme = useTheme();
     const medScreen = useMediaQuery(theme.breakpoints.up("md"));
-    const { user } = useUser();
-    console.log("USer: ", user);
+    const { user, isLoading } = useUser();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    const [employee, setEmployee] = useState("");
-    const [imagePath, setImagePath] = useState("");
-
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
-
-    useEffect(() => {
-        // getMyDetails();
-    }, []);
-
-    const getMyDetails = () => {
-        setAnchorEl(null);
-        axiosInstance
-            .get(`/employee/getMyDetails`, { headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    const empDetails = response.data.employee;
-                    setEmployee(empDetails);
-                    if (empDetails.avatar && empDetails.avatar_mime) {
-                        const byteCharacters = window.atob(empDetails.avatar);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], {
-                            type: empDetails.avatar_mime,
-                        });
-
-                        const newBlob = URL.createObjectURL(blob);
-                        setImagePath(newBlob);
-                    } else {
-                        setImagePath(null);
-                    }
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching details:", error);
-            });
-    };
-
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith("blob:")) {
-                URL.revokeObjectURL(imagePath);
-            }
-        };
-    }, [imagePath]);
-
-    const calculateAge = (birthDate) => {
-        const birth = new Date(birthDate);
-        const today = new Date();
-        let age = today.getFullYear() - birth.getFullYear();
-        const m = today.getMonth() - birth.getMonth();
-
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-            age--;
-        }
-
-        return age;
-    };
-    const formattedStartDate = user?.date_start
-        ? new Intl.DateTimeFormat("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-          }).format(new Date(user.date_start))
-        : "";
-    const formattedEndDate = user.date_end
-        ? new Intl.DateTimeFormat("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-          }).format(new Date(user.date_end))
-        : "";
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
@@ -135,6 +53,10 @@ const EmployeeView = () => {
         }
     };
 
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <Layout title={"EmployeeView"}>
             <Box>
@@ -148,27 +70,12 @@ const EmployeeView = () => {
                     }}
                 >
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        {" "}
-                        Employee Profile{" "}
+                        Profile
                     </Typography>
 
-                    {medScreen ? (
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenActions}
-                        >
-                            Actions
-                        </Button>
-                    ) : (
-                        <IconButton
-                            variant="contained"
-                            onClick={handleOpenActions}
-                            sx={{ bgcolor: "#177604", borderRadius: "20%" }}
-                        >
-                            <MenuIcon sx={{ color: "white" }} />
-                        </IconButton>
-                    )}
+                    <IconButton variant="contained" onClick={handleOpenActions}>
+                        <MoreVert />
+                    </IconButton>
 
                     <Menu
                         anchorEl={anchorEl}
@@ -181,390 +88,29 @@ const EmployeeView = () => {
                         </MenuItem>
                     </Menu>
                 </Box>
-
+                <Divider sx={{ borderStyle: "dashed", mt: 2, mb: 3 }} />
                 <Grid container spacing={4} sx={{ mt: 2 }}>
                     {/* Profile card */}
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Box
-                            sx={{
-                                p: 4,
-                                bgcolor: "#ffffff",
-                                borderRadius: "8px",
-                            }}
-                        >
-                            <Grid
-                                container
-                                sx={{
-                                    pt: 1,
-                                    pb: 4,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Avatar
-                                    alt={`${user.user_name} Profile Pic`}
-                                    src={
-                                        user?.media
-                                            ? user?.media[0].original_url
-                                            : imagePath
-                                    }
-                                    sx={{
-                                        width: "50%",
-                                        height: "auto",
-                                        aspectRatio: "1 / 1",
-                                        objectFit: "cover",
-                                        boxShadow: 3,
-                                    }}
-                                />
-                            </Grid>
-                            <Stack spacing={2}>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-id-card"></i>{" "}
-                                    <div>
-                                        {user.first_name}{" "}
-                                        {user.middle_name || ""}{" "}
-                                        {user.last_name} {user.suffix || ""}
-                                    </div>
-                                </Stack>
-
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-envelope"></i>{" "}
-                                    <Typography> {user.email} </Typography>
-                                </Stack>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-phone"></i>{" "}
-                                    <Typography>
-                                        {user.contact_number || ""}
-                                    </Typography>
-                                </Stack>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-globe"></i>
-
-                                    <Typography>
-                                        {user.address || ""}
-                                    </Typography>
-                                </Stack>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-birthday-cake"></i>
-
-                                    <Typography>
-                                        {" "}
-                                        {user.birth_date
-                                            ? `${moment(user.birth_date).format(
-                                                  "MM. DD, YYYY"
-                                              )} (${calculateAge(
-                                                  user.birth_date
-                                              )} Years Old)`
-                                            : "Not Indicated"}{" "}
-                                    </Typography>
-                                </Stack>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <i className="fa fa-venus-mars"></i>
-
-                                    <Typography>
-                                        {" "}
-                                        {user.gender || "Not Indicated"}{" "}
-                                    </Typography>
-                                </Stack>
-                            </Stack>
-                        </Box>
+                        <PersonalDetails user={user} />
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 8 }}>
-                        {user.user_type == "Employee" ? (
-                            <Box
-                                sx={{
-                                    mb: 3,
-                                    py: { xs: 2, md: 3 },
-                                    px: { xs: 2, md: 4 },
-                                    bgcolor: "#ffffff",
-                                    borderRadius: "8px",
-                                }}
-                            >
-                                <Typography
-                                    variant="h5"
-                                    sx={{ mb: 3, fontWeight: "bold" }}
-                                >
-                                    {" "}
-                                    Summary{" "}
-                                </Typography>
-
-                                <Grid container spacing={4}>
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#ffffff",
-                                                borderRadius: "8px",
-                                            }}
-                                        >
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    pb: 2,
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Avatar
-                                                    sx={{
-                                                        width: 114,
-                                                        height: 114,
-                                                        bgcolor: "#7eb73d",
-                                                    }}
-                                                >
-                                                    {user.total_payroll || "-"}
-                                                </Avatar>
-                                            </Grid>
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Typography variant="h6">
-                                                    {" "}
-                                                    Signed Payroll{" "}
-                                                </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#ffffff",
-                                                borderRadius: "8px",
-                                            }}
-                                        >
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    pb: 2,
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Avatar
-                                                    sx={{
-                                                        width: 114,
-                                                        height: 114,
-                                                        bgcolor: "#eab000",
-                                                    }}
-                                                >
-                                                    {user.total_attendance ||
-                                                        "-"}
-                                                </Avatar>
-                                            </Grid>
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Typography variant="h6">
-                                                    {" "}
-                                                    Attendance{" "}
-                                                </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#ffffff",
-                                                borderRadius: "8px",
-                                            }}
-                                        >
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    pb: 2,
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Avatar
-                                                    sx={{
-                                                        width: 114,
-                                                        height: 114,
-                                                        bgcolor: "#de5146",
-                                                    }}
-                                                >
-                                                    {user.total_applications ||
-                                                        "-"}
-                                                </Avatar>
-                                            </Grid>
-                                            <Grid
-                                                container
-                                                sx={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Typography variant="h6">
-                                                    {" "}
-                                                    Applications{" "}
-                                                </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        ) : null}
-
-                        <Box
-                            sx={{
-                                py: { xs: 2, md: 3 },
-                                px: { xs: 2, md: 4 },
-                                bgcolor: "#ffffff",
-                                borderRadius: "8px",
-                            }}
-                        >
-                            <Typography
-                                variant="h5"
-                                sx={{ mb: 2, fontWeight: "bold" }}
-                            >
-                                {" "}
-                                Employment Details{" "}
-                            </Typography>
-                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Role </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.role || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Job Title </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.jobTitle || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Department </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.department || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Branch </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.branch || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Type </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.employment_type || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Status </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.employment_status || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-
-                            <Grid container columnSpacing={4} sx={{ py: 1 }}>
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Work Group </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.work_group || "-"}{" "}
-                                    </Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 5, md: 2 }}>
-                                    <Typography> Employment Date </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 7, md: 2 }}>
-                                    <Typography sx={{ fontWeight: "bold" }}>
-                                        {" "}
-                                        {user.date_start
-                                            ? `${formattedStartDate}`
-                                            : "-"}{" "}
-                                        {user.date_end
-                                            ? `- ${formattedEndDate}`
-                                            : ""}{" "}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-                        </Box>
+                        <Stack spacing={2}>
+                            {user.user_type == "Employee" ? (
+                                <EmployeeSummary user={user} />
+                            ) : null}
+                            {user.user_type == "Admin" ? (
+                                <>
+                                    <CompanyDetails company={user?.company} />
+                                    <PackageDetails
+                                        packageData={user?.company?.package}
+                                    />
+                                </>
+                            ) : (
+                                <EmploymentDetails user={user} />
+                            )}
+                        </Stack>
                     </Grid>
                 </Grid>
 
