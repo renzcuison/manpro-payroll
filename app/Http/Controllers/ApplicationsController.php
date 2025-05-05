@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -689,31 +690,26 @@ class ApplicationsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $applications = ApplicationsOvertimeModel::where('client_id', $user->client_id)
-                ->with(['user', 'timeIn', 'timeOut'])
-                ->where('status', 'Pending')
-                ->get();
 
-            $appData = [];
-            foreach ($applications as $app) {
+            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->get();
+
+            $applications = [];
+            foreach ($rawApplications as $app) {
                 $appUser = $app->user;
                 $timeIn = $app->timeIn;
                 $timeOut = $app->timeOut;
 
-                $appData[] = [
-                    'id' => $app->id,
+                $applications[] = [
+                    'application' => encrypt($app->id),
                     'time_in' => $timeIn->timestamp,
                     'time_out' => $timeOut->timestamp,
                     'reason' => $app->reason ?? '',
                     'requested' => $app->created_at,
-                    'emp_user_name' => $appUser->user_name,
-                    'emp_first_name' => $appUser->first_name ?? '',
-                    'emp_middle_name' => $appUser->middle_name ?? '',
-                    'emp_last_name' => $appUser->last_name ?? '',
-                    'emp_suffix' => $appUser->suffix ?? '',
+                    'status' => $app->status,
+                    'emp_name' => ($appUser->first_name ?? '') . ' ' . ($appUser->middle_name ?? '') . ' ' . ($appUser->last_name ?? '') . ' ' . ($appUser->suffix ?? '')
                 ];
             }
-            return response()->json(['status' => 200, 'applications' => $appData]);
+            return response()->json(['status' => 200, 'applications' => $applications]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
@@ -721,12 +717,13 @@ class ApplicationsController extends Controller
 
     public function manageOvertimeApplication(Request $request)
     {
-        Log::info("ApplicationsController::manageOvertimeApplication");
-        Log::info($request);
+        // Log::info("ApplicationsController::manageOvertimeApplication");
+        // Log::info($request);
 
         $user = Auth::user();
 
-        $overtime = ApplicationsOvertimeModel::find($request->input('app_id'));
+        $id = decrypt($request->input('app_id'));
+        $overtime = ApplicationsOvertimeModel::find($id);
 
         if ($this->checkUser() && ($user->client_id == $overtime->client_id)) {
             $status = $request->input('app_response');
@@ -735,6 +732,7 @@ class ApplicationsController extends Controller
             switch ($status) {
                 case "Approve":
                     $overtime->status = "Approved";
+                    $overtime->approved_hours = $request->input('totalHours');
                     $message = "Overtime approved successfully";
                     break;
                 case "Decline":

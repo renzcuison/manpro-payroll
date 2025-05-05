@@ -20,6 +20,7 @@ class ApplicationsOvertimeModel extends Model
         'time_out_id',
         'reason',
         'status',
+        'approved_hours',
     ];
 
     public function user()
