@@ -305,12 +305,6 @@ const OverallPayrollSummary = ({
             (breakdownTotals.tax || 0) -
             (breakdownTotals.loan || 0);
     }, [breakdownTotals]);
-
-    const getApproverPayload = () => ({
-        approved_by_one: selectedApprovers[0]?.name || null,
-        approved_by_two: selectedApprovers[1]?.name || null,
-        approved_by_three: selectedApprovers[2]?.name || null,
-    });
       
     return (
         <Dialog
