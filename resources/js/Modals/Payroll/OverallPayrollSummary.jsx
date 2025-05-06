@@ -39,7 +39,6 @@ const OverallPayrollSummary = ({
 
     const fetchSignatories = useCallback(async () => {
         if (!open) return;
-        setLoadingSignatories(true);
         console.log("Fetching signatories...");
         try {
             const response = await axiosInstance.get('/signatories', { headers });
@@ -55,8 +54,6 @@ const OverallPayrollSummary = ({
         } catch (err) {
             console.error("Error fetching signatories:", err);
             setSignatories([]);
-        } finally {
-            setLoadingSignatories(false);
         }
     }, [headers, open]);
 
@@ -80,14 +77,6 @@ const OverallPayrollSummary = ({
 
     const preparedByOptions = useMemo(() => (
         Array.isArray(signatories) ? [...new Set(signatories.map(s => s.prepared_by).filter(Boolean))] : []
-    ), [signatories]);
-
-    const approvedByOptions = useMemo(() => (
-         Array.isArray(signatories) ? [...new Set([
-             ...signatories.map(s => s.approved_by_one),
-             ...signatories.map(s => s.approved_by_two),
-             ...signatories.map(s => s.approved_by_three)
-         ].filter(Boolean))] : []
     ), [signatories]);
 
 
@@ -134,9 +123,11 @@ const OverallPayrollSummary = ({
                                 .print-hide, .add-signatory-button { display: none !important; }
                                 .signatory-dropdown { display: none !important; }
                                 .signatory-text { display: block !important; }
+                                .print-signatory-row { display: flex !important; flex-direction: column; margin-top: 40px; page-break-inside: avoid; }
+                                .print-signatory-box { min-width: 200px; }
+                                .dropdown-box {display: flex; flex-direction: row; gap: 50px; flex-wrap: wrap;}
+                                .label {font-weight: bold;}
 
-                                .print-signatory-row { display: flex !important; justify-content: space-around; margin-top: 40px; page-break-inside: avoid; }
-                                .print-signatory-box { text-align: center; min-width: 200px; }
                                 table { width: 100%; border-collapse: collapse; table-layout: auto; word-wrap: break-word; page-break-inside: auto; }
                                 tr { page-break-inside: avoid; page-break-after: auto; }
                                 th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: center; font-size: 10px; page-break-inside: avoid; word-break: break-word; }
@@ -194,8 +185,18 @@ const OverallPayrollSummary = ({
     };
 
     const updateApproverName = (id, name) => {
-        setSelectedApprovers(prev => prev.map(a => a.id === id ? { ...a, name } : a));
+        setSelectedApprovers(prev =>
+          prev.map(a => (a.id === id ? { ...a, name } : a))
+        );
     };
+
+    const approvedByOptions = useMemo(() => (
+        Array.isArray(signatories) ? [...new Set([
+            ...signatories.map(s => s.approved_by_one),
+            ...signatories.map(s => s.approved_by_two),
+            ...signatories.map(s => s.approved_by_three)
+        ].filter(Boolean))] : []
+    ), [signatories]);
 
     const handleDownloadPDF = async () => {
         if (!dialogRef.current) return;
@@ -292,28 +293,25 @@ const OverallPayrollSummary = ({
          });
      }, [records]);
 
-      const breakdownGrandTotal = useMemo(() => {
-         return (breakdownTotals.payroll || 0) +
-                (breakdownTotals.sssEmployer || 0) +
-                (breakdownTotals.philhealthEmployer || 0) +
-                (breakdownTotals.pagibigEmployer || 0) +
-                (breakdownTotals.insuranceEmployer || 0) +
-                (breakdownTotals.allowance || 0) +
-                (breakdownTotals.bonuses || 0) -
-                (breakdownTotals.advance || 0) -
-                (breakdownTotals.tax || 0) -
-                (breakdownTotals.loan || 0);
-     }, [breakdownTotals]);
+    const breakdownGrandTotal = useMemo(() => {
+        return (breakdownTotals.payroll || 0) +
+            (breakdownTotals.sssEmployer || 0) +
+            (breakdownTotals.philhealthEmployer || 0) +
+            (breakdownTotals.pagibigEmployer || 0) +
+            (breakdownTotals.insuranceEmployer || 0) +
+            (breakdownTotals.allowance || 0) +
+            (breakdownTotals.bonuses || 0) -
+            (breakdownTotals.advance || 0) -
+            (breakdownTotals.tax || 0) -
+            (breakdownTotals.loan || 0);
+    }, [breakdownTotals]);
 
-    const handleAddSignatory = (role) => {
-        console.log(`Button clicked to add: ${role}`);
-        if (onAddSignatoryClick) {
-            onAddSignatoryClick(role);
-        } else {
-        alert(`Implement the modal/logic to add a new ${role}. After successful addition, call fetchSignatories() to refresh the list.`);
-        }
-    };
-
+    const getApproverPayload = () => ({
+        approved_by_one: selectedApprovers[0]?.name || null,
+        approved_by_two: selectedApprovers[1]?.name || null,
+        approved_by_three: selectedApprovers[2]?.name || null,
+    });
+      
     return (
         <Dialog
             open={open}
@@ -344,7 +342,7 @@ const OverallPayrollSummary = ({
                   <DialogContent sx={{ p: 0, overflow: 'visible' }}>
                      {loadingSignatories && <LoadingSpinner />}
 
-                       <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 0 }}>
+                        <TableContainer style={{ overflowX: 'auto' }} sx={{ mt: 0 }}>
                            <Table size="small" className="table table-md table-striped table-vcenter table-bordered">
                                <TableBody className='table-body-head'>
                                    <TableRow>
@@ -379,130 +377,171 @@ const OverallPayrollSummary = ({
                                 </TableBody>
                            </Table>
                         </TableContainer>
-                           <Typography className='breakdown' sx={{ mb: 1, fontWeight: 'bold', fontStyle: 'italic', fontSize: '12px', mt: 3 }}>Breakdown Summary:</Typography>
-                           <Box className="breakdown-summary" sx={{ p: 2, border: '1px solid #eee', borderRadius: '4px', fontSize: '11px' }}>
-                                <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
-                                <p>SSS Employer Share: {formatCurrency(breakdownTotals.sssEmployer)}</p>
-                                <p>Philhealth Employer Share: {formatCurrency(breakdownTotals.philhealthEmployer)}</p>
-                                <p>Pagibig Employer Share: {formatCurrency(breakdownTotals.pagibigEmployer)}</p>
-                                <p>Insurance Employer Share: {formatCurrency(breakdownTotals.insuranceEmployer)}</p>
-                                <p>Allowance: {formatCurrency(breakdownTotals.allowance)}</p>
-                                <p>Bonuses: {formatCurrency(breakdownTotals.bonuses)}</p>
-                                <p>Advance: ({formatCurrency(breakdownTotals.advance)})</p>
-                                <p>Tax: ({formatCurrency(breakdownTotals.tax)})</p>
-                                <p>Loan: ({formatCurrency(breakdownTotals.loan)})</p>
-                                <p style={{ marginTop: '8px', fontWeight: 'bold' }}> Total: {formatCurrency(breakdownGrandTotal)} </p>
-                           </Box>
+                        <Typography className='breakdown' sx={{ mb: 1, fontWeight: 'bold', fontStyle: 'italic', fontSize: '12px', mt: 3 }}>Breakdown Summary:</Typography>
+                        <Box className="breakdown-summary" sx={{ p: 2, border: '1px solid #eee', borderRadius: '4px', fontSize: '11px' }}>
+                            <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
+                            <p>SSS Employer Share: {formatCurrency(breakdownTotals.sssEmployer)}</p>
+                            <p>Philhealth Employer Share: {formatCurrency(breakdownTotals.philhealthEmployer)}</p>
+                            <p>Pagibig Employer Share: {formatCurrency(breakdownTotals.pagibigEmployer)}</p>
+                            <p>Insurance Employer Share: {formatCurrency(breakdownTotals.insuranceEmployer)}</p>
+                            <p>Allowance: {formatCurrency(breakdownTotals.allowance)}</p>
+                            <p>Bonuses: {formatCurrency(breakdownTotals.bonuses)}</p>
+                            <p>Advance: ({formatCurrency(breakdownTotals.advance)})</p>
+                            <p>Tax: ({formatCurrency(breakdownTotals.tax)})</p>
+                            <p>Loan: ({formatCurrency(breakdownTotals.loan)})</p>
+                            <p style={{ marginTop: '8px', fontWeight: 'bold' }}> Total: {formatCurrency(breakdownGrandTotal)} </p>
+                        </Box>
 
-                       <Box className="print-signatory-row" sx={{ mt: 4, display: "flex", justifyContent: 'space-around', flexWrap: 'wrap', gap: 2 }}>
-                           <Box className="print-signatory-box" sx={{ textAlign: 'center', minWidth: 220 }}>
-                               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-                                   <Typography sx={{ fontSize: '12px', mr: 1 }}>Prepared By:</Typography>
-                                    <Tooltip title="Add New Preparer">
-                                         <IconButton
-                                             size="small"
-                                             onClick={() => handleAddSignatory('preparer')}
-                                             className="add-signatory-button print-hide"
-                                             sx={{ p: '2px' }}
-                                             disabled={loadingSignatories}
-                                         >
-                                             <AddCircleOutlineIcon fontSize="small" />
-                                         </IconButton>
-                                    </Tooltip>
-                               </Box>
-
-                               <Typography
-                                   className="signatory-text"
-                                   data-role="preparer"
-                                   sx={{
-                                       display: 'none',
-                                       pt: 1,
-                                       minHeight: '20px',
-                                       fontSize: '12px',
-                                       fontWeight: 'bold',
-                                       textAlign: 'center',
-                                       borderTop: localPreparedBy ? 'none' : '1px solid #000',
-                                   }}
-                               >
-                                   {localPreparedBy || <>&nbsp;</>}
-                               </Typography>
-
-                               <FormControl size="small" className="signatory-dropdown print-hide" sx={{ minWidth: 180 }}>
-                                   <Select
-                                       displayEmpty
-                                       value={localPreparedBy}
-                                       onChange={(e) => setLocalPreparedBy(e.target.value)}
-                                       sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
-                                       disabled={loadingSignatories}
-                                       renderValue={(selected) => {
-                                            if (!selected) {
-                                              return <em>Select Preparer</em>;
-                                            }
-                                            return selected;
-                                          }}
-                                    >
-                                       <MenuItem value="" disabled><em>Select Preparer</em></MenuItem>
-                                       {preparedByOptions.map((name, idx) => ( <MenuItem key={`prep-${idx}`} value={name}>{name}</MenuItem> ))}
-                                   </Select>
-                               </FormControl>
-                           </Box>
-
-                           <Box className="print-signatory-box" sx={{ textAlign: 'center', minWidth: 220 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-                                     <Typography sx={{ fontSize: '12px', mr: 1 }}>Approved By:</Typography>
-                                     <Tooltip title="Add New Approver">
-                                         <IconButton
-                                             size="small"
-                                             onClick={() => handleAddSignatory('approver')}
-                                             className="add-signatory-button print-hide"
-                                             sx={{ p: '2px'}}
-                                             disabled={loadingSignatories}
-                                         >
-                                             <AddCircleOutlineIcon fontSize="small" />
-                                         </IconButton>
-                                     </Tooltip>
-                                 </Box>
-
-                               <Typography
-                                   className="signatory-text"
-                                   data-role="approver"
-                                   sx={{
-                                       display: 'none',
-                                       pt: 1,
-                                       minHeight: '20px',
-                                       fontSize: '12px',
-                                       fontWeight: 'bold',
-                                       textAlign: 'center',
-                                       borderTop: localApprovedBy ? 'none' : '1px solid #000',
-                                   }}
-                               >
-                                   {localApprovedBy || <>&nbsp;</>}
-                               </Typography>
-
-                               <FormControl size="small" className="signatory-dropdown print-hide" sx={{ minWidth: 180 }}>
-                                    <Select
-                                        displayEmpty
-                                        value={localApprovedBy}
-                                        onChange={(e) => setLocalApprovedBy(e.target.value)}
-                                        sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
+                        <Box className="print-signatory-row" sx={{ mt: 4, display: "flex", flexDirection: "column", justifyContent: "start",flexWrap: 'wrap', gap: 2 }}>
+                            <Box className="print-signatory-box" sx={{ minWidth: 220, }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Typography className='label' sx={{ fontSize: '12px', mr: 1 }}>Prepared By:</Typography>
+                                    <Tooltip title="Add Another Preparer">
+                                        <IconButton
+                                        size="small"
+                                        onClick={addPreparer}
+                                        className="add-signatory-button print-hide"
+                                        sx={{ p: '2px' }}
                                         disabled={loadingSignatories}
-                                         renderValue={(selected) => {
-                                             if (!selected) {
-                                               return <em>Select Approver</em>;
-                                             }
-                                             return selected;
-                                           }}
-                                    >
-                                       <MenuItem value="" disabled><em>Select Approver</em></MenuItem>
-                                       {approvedByOptions.map((name, idx) => ( <MenuItem key={`appr-${idx}`} value={name}>{name}</MenuItem> ))}
-                                   </Select>
-                               </FormControl>
-                               {selectedApprovers.length > 1 && (
-                                        <IconButton onClick={() => removeApprover(approver.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
-                                            <RemoveCircleOutlineIcon fontSize="small" />
+                                        >
+                                        <AddCircleOutlineIcon fontSize="small" />
                                         </IconButton>
-                                    )}
-                           </Box>
+                                    </Tooltip>
+                                </Box>
+                                
+                                <Box className="dropdown-box" sx={{display: "flex", flexDirection:"row", flexWrap: "wrap"}}>
+                                    {selectedPreparers.map((preparer, index) => (
+                                        <Box key={preparer.id} sx={{ alignItems: 'center', mb: 1,  }}>
+                                            <Typography
+                                                className="signatory-text"
+                                                data-role="preparer"
+                                                data-id={preparer.id}
+                                                sx={{
+                                                    display: 'none',
+                                                    pt: 1,
+                                                    minHeight: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    flexGrow: 1,
+                                                    borderTop: preparer.name ? 'none' : '1px solid #000',
+                                                    mr: 0.5
+                                                }}
+                                            >
+                                                {preparer.name || <>&nbsp;</>}
+                                            </Typography>
+                                            <FormControl size="small" className="signatory-dropdown print-hide">
+                                                <Select
+                                                    displayEmpty
+                                                    value={preparer.name}
+                                                    onChange={(e) => updatePreparerName(preparer.id, e.target.value)}
+                                                    sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
+                                                    disabled={loadingSignatories}
+                                                    renderValue={(selected) => {
+                                                        if (!selected) {
+                                                            return <em>Select Preparer</em>;
+                                                        }
+                                                        return selected;
+                                                    }}
+                                                >
+                                                    <MenuItem value="" disabled><em>Select Preparer</em></MenuItem>
+                                                    {preparedByOptions.map((name, idx) => ( <MenuItem key={`prep-opt-${idx}`} value={name}>{name}</MenuItem> ))}
+                                                </Select>
+                                            </FormControl>
+                                            {selectedPreparers.length > 1 && (
+                                                <Tooltip title="Remove Preparer">
+                                                    <IconButton onClick={() => removePreparer(preparer.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
+                                                        <i className="si si-minus"></i>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
+
+                            </Box>
+
+                            <Box className="print-signatory-box" sx={{ minWidth: 220 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Typography className='label' sx={{ fontSize: '12px', mr: 1 }}>Approved By:</Typography>
+                                    <Tooltip title="Add Another Approver">
+                                        <IconButton
+                                        size="small"
+                                        onClick={addApprover}
+                                        className="add-signatory-button print-hide"
+                                        sx={{ p: '2px'}}
+                                        disabled={loadingSignatories}
+                                        >
+                                        <AddCircleOutlineIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+
+                                <Box className="dropdown-box" sx={{display: "flex", flexDirection:"row", flexWrap: "wrap"}}>
+                                    {selectedApprovers.map((approver, index) => (
+                                        <Box key={approver.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                            <Typography
+                                                className="signatory-text"
+                                                data-role="approver"
+                                                data-id={approver.id}
+                                                sx={{
+                                                    display: 'none',
+                                                    pt: 1,
+                                                    minHeight: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    flexGrow: 1,
+                                                    borderTop: approver.name ? 'none' : '1px solid #000',
+                                                    mr: 0.5
+                                                }}
+                                            >
+                                                {approver.name || <>&nbsp;</>}
+                                            </Typography>
+                                            <FormControl size="small" className="signatory-dropdown print-hide">
+                                                <Select
+                                                    displayEmpty
+                                                    value={approver.name}
+                                                    onChange={(e) => updateApproverName(approver.id, e.target.value)}
+                                                    sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
+                                                    disabled={loadingSignatories}
+                                                    renderValue={(selected) => {
+                                                        if (!selected) {
+                                                        return <em>Select Approver</em>;
+                                                        }
+                                                        return selected;
+                                                    }}
+                                                    >
+                                                    <MenuItem value="" disabled><em>Select Approver</em></MenuItem>
+
+                                                    {approvedByOptions.map((name, idx) => {
+                                                        const isSelected = selectedApprovers.some(
+                                                        (a) => a.name === name && a.id !== approver.id
+                                                        );
+                                                        return (
+                                                        <MenuItem
+                                                            key={`appr-opt-${idx}`}
+                                                            value={name}
+                                                            disabled={isSelected}
+                                                        >
+                                                            {name}
+                                                        </MenuItem>
+                                                        );
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                            {selectedApprovers.length > 1 && (
+                                                <Tooltip title="Remove Approver">
+                                                    <IconButton onClick={() => removeApprover(approver.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
+                                                        <i className="si si-minus"></i>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
+
+                            </Box>
                         </Box>
                   </DialogContent>
              </Box>
