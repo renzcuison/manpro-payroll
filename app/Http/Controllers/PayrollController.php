@@ -10,12 +10,12 @@ use App\Models\PayslipEarningsModel;
 use App\Models\PayslipDeductionsModel;
 use App\Models\PayslipAllowancesModel;
 
-
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
 use App\Models\EmployeeBenefitsModel;
 use App\Models\EmployeeAllowancesModel;
+use App\Models\ApplicationsOvertimeModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -1061,75 +1061,18 @@ class PayrollController extends Controller
     public function getAttendanceOvertime($start_date, $end_date, $employeeId)
     {
         // Log::info("AttendanceController::getAttendanceOvertime");
-    
-        $user = Auth::user();
-        $totalOvertimeMinutes = 0;
-        $totalOvertimeHours = 0; // Initialize total overtime hours
-    
-        $logs = AttendanceLogsModel::with('workHour')
-            ->where('user_id', $employeeId)
-            ->whereIn('action', ['Overtime In', 'Overtime Out'])
-            ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
-            ->orderBy('timestamp')
-            ->get();
-    
-        // Group logs by date
-        $groupedLogs = $logs->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'));
-    
-        // Process each day's logs
-        foreach ($groupedLogs as $date => $dailyLogs) {
-            $in = null;
-            $out = null;
-            $dailyOvertimeMinutes = 0; // Initialize daily overtime minutes
-    
-            // Find the first Overtime In and Overtime Out for the day
-            foreach ($dailyLogs as $log) {
-                if ($log->action === 'Overtime In' && !$in) {
-                    $in = $log;
-                } elseif ($log->action === 'Overtime Out' && !$out) {
-                    $out = $log;
-                }
-            }
-    
-            // Process if both In and Out are found
-            if ($in && $out && $in->workHour && $out->workHour) {
-                $timeIn = Carbon::parse($in->timestamp);
-                $timeOut = Carbon::parse($out->timestamp);
-    
-                $overtimeStart = Carbon::parse($in->workHour->over_time_in)->setDate($timeIn->year, $timeIn->month, $timeIn->day);
-                $overtimeEnd = Carbon::parse($out->workHour->over_time_out)->setDate($timeOut->year, $timeOut->month, $timeOut->day);
-    
-                $today = Carbon::today();
-                $fixedTimeIn = $timeIn->setDate($today->year, $today->month, $today->day);
-                $fixedTimeOut = $timeOut->setDate($today->year, $today->month, $today->day);
-                $fixedOvertimeStart = $overtimeStart->setDate($today->year, $today->month, $today->day);
-                $fixedOvertimeEnd = $overtimeEnd->setDate($today->year, $today->month, $today->day);
-    
-                if ($fixedTimeIn->format('H:i:s') < $fixedOvertimeEnd->format('H:i:s') && $fixedTimeOut->format('H:i:s') > $fixedOvertimeStart->format('H:i:s')) {
-                    $renderedStart = max($fixedTimeIn, $fixedOvertimeStart);
-                    $renderedEnd = min($fixedTimeOut, $fixedOvertimeEnd);
-                    $minutes = $renderedEnd->diffInMinutes($renderedStart);
-                    $dailyOvertimeMinutes = max($minutes, 0);
-    
-                    // Log::info("Overtime on {$date}: {$dailyOvertimeMinutes} minutes");
-    
-                    $dailyOvertimeHours = $dailyOvertimeMinutes / 59;
-    
-                    $dailyOvertimeHoursWhole = floor($dailyOvertimeHours);
-                    // Log::info("Overtime on {$date}: {$dailyOvertimeHours} hours");
-                    // Log::info("Overtime on {$date}: {$dailyOvertimeHoursWhole} hours");
-    
-                    $totalOvertimeMinutes += $dailyOvertimeMinutes;
-                    $totalOvertimeHours += $dailyOvertimeHoursWhole;
 
-                    // Log::info("================================================");
-                }
-            }
-        }
+        $user = Auth::user();
+
+        $totalOvertimeHours = ApplicationsOvertimeModel::where('status', 'Approved')
+            ->where('client_id', $user->client_id)
+            ->where('user_id', $employeeId)
+            ->whereBetween('date', [ date('Y-m-d', strtotime($start_date)), date('Y-m-d', strtotime($end_date)) ])
+            ->sum('approved_hours');
     
-        // Return both total overtime minutes and hours
         return $totalOvertimeHours;
     }
+    
     
     public function storeSignature(Request $request, $id)
     {

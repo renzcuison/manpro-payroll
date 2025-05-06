@@ -103,19 +103,14 @@ const OvertimeAppsList = () => {
                             <>
                                 <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }}>
                                     <Table>
-                                        <PageHead
-                                            order={order}
-                                            orderBy={orderBy}
-                                            onRequestSort={handleRequestSort}
-                                            headCells={headCells}
-                                        />
+                                        <PageHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} headCells={headCells} />
                                         <TableBody>
                                             {overtimes.length > 0 ? (
                                                 stableSort(overtimes, getComparator(order, orderBy))
                                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                                     .map((overtime, index) => (
                                                         <TableRow
-                                                            key={overtime.id}
+                                                            key={overtime.application}
                                                             onClick={() => handleOpenOvertimeManage(overtime)}
                                                             sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }}
                                                         >
@@ -145,12 +140,7 @@ const OvertimeAppsList = () => {
                                     page={page}
                                     onPageChange={handleChangePage}
                                     onRowsPerPageChange={handleChangeRowsPerPage}
-                                    sx={{
-                                        ".MuiTablePagination-actions": { mb: 2 },
-                                        ".MuiInputBase-root": { mb: 2 },
-                                        bgcolor: "#ffffff",
-                                        borderRadius: "8px",
-                                    }}
+                                    sx={{ ".MuiTablePagination-actions": { mb: 2 }, ".MuiInputBase-root": { mb: 2 }, bgcolor: "#ffffff", borderRadius: "8px" }}
                                 />
                             </>
                         )}
@@ -159,11 +149,7 @@ const OvertimeAppsList = () => {
             </Box>
 
             {openOvertimeManage && (
-                <OvertimeManage
-                    open={openOvertimeManage}
-                    close={handleCloseOvertimeManage}
-                    overtime={loadOvertime}
-                />
+                <OvertimeManage open={openOvertimeManage} close={handleCloseOvertimeManage} overtime={loadOvertime} />
             )}
         </Layout>
     );

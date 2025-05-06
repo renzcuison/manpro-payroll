@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('applications_overtime', function (Blueprint $table) {
             $table->integer('approved_hours')->after('status')->nullable();
+            $table->date('date')->after('approved_hours')->nullable(); 
         });
     }
 
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('applications_overtime', function (Blueprint $table) {
             $table->dropColumn('approved_hours');
+            $table->dropColumn('date');
         });
     }
 };

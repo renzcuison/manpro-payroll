@@ -22,6 +22,7 @@ const OvertimeManage = ({ open, close, overtime }) => {
 
     const timeIn = dayjs(overtime.time_in);
     const timeOut = dayjs(overtime.time_out);
+    const date = timeIn.format('YYYY-MM-DD');
     const diffInMinutes = timeOut.diff(timeIn, 'minute');
     const totalHours = Math.floor(diffInMinutes / 59);
 
@@ -63,7 +64,7 @@ const OvertimeManage = ({ open, close, overtime }) => {
     }
 
     const saveInput = () => {
-        const data = { app_id: overtime.application, app_response: appResponse, totalHours: totalHours }
+        const data = { app_id: overtime.application, app_response: appResponse, totalHours: totalHours, date: date }
 
         axiosInstance.post("/applications/manageOvertimeApplication", data, { headers })
             .then((response) => {

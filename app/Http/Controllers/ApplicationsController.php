@@ -717,8 +717,8 @@ class ApplicationsController extends Controller
 
     public function manageOvertimeApplication(Request $request)
     {
-        // Log::info("ApplicationsController::manageOvertimeApplication");
-        // Log::info($request);
+        Log::info("ApplicationsController::manageOvertimeApplication");
+        Log::info($request);
 
         $user = Auth::user();
 
@@ -733,6 +733,7 @@ class ApplicationsController extends Controller
                 case "Approve":
                     $overtime->status = "Approved";
                     $overtime->approved_hours = $request->input('totalHours');
+                    $overtime->date = $request->input('date');
                     $message = "Overtime approved successfully";
                     break;
                 case "Decline":

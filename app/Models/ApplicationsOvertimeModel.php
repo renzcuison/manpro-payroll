@@ -21,6 +21,7 @@ class ApplicationsOvertimeModel extends Model
         'reason',
         'status',
         'approved_hours',
+        'date',
     ];
 
     public function user()
