@@ -577,7 +577,7 @@ class TrainingFormsController extends Controller
             $totalScore = array_sum(array_map(fn($itemScores) => array_sum($itemScores), $evaluation['scores']));
             $passingScore = $evaluation['passing_score'];
             $totalPoints = $evaluation['total_points'];
-            Log::info($evaluation);
+            //Log::info($evaluation);
 
             // Log::info($totalScore);
             // Log::info($passingScore);

@@ -733,17 +733,15 @@ class LoanApplicationsController extends Controller
             return response()->json(['status' => 404, 'message' => 'Loan not found'], 404);
         }
 
+        if ($loan->employee_id !== $user->id) {
+            Log::warning("Unauthorized attempt to respond to proposal for Loan ID: $loanId by User ID: {$user->id}");
+            return response()->json(['status' => 403, 'message' => 'Unauthorized access to loan proposal'], 403);
+        }
+
         $proposal = LoanProposalsModel::where('loan_application_id', $loanId)->first();
         if (!$proposal) {
             Log::warning("Proposal not found for Loan ID: $loanId");
             return response()->json(['status' => 404, 'message' => 'Proposal not found'], 404);
-        }
-
-        // Find an admin user
-        $admin = User::where('user_type', 'Admin')->first();
-        if (!$admin) {
-            Log::error("No admin user found for setting approved_by");
-            return response()->json(['status' => 500, 'message' => 'No admin user found'], 500);
         }
 
         // Update statuses
@@ -756,10 +754,10 @@ class LoanApplicationsController extends Controller
 
         $loan->status = $newStatus;
         if ($action === 'approve') {
-            $loan->approved_by = $admin->id; // Set admin's ID
+            $loan->approved_by = $proposal->created_by; // Use the ID of the admin who created the proposal
             $loan->loan_amount = $data['proposed_loan_amount'];
             $loan->payment_term = $data['proposed_payment_term'];
-            Log::info("Loan approved by Admin ID: {$admin->id} for Loan ID: $loanId");
+            Log::info("Loan approved by Admin ID: {$proposal->created_by} for Loan ID: $loanId");
         }
         $loan->save();
 

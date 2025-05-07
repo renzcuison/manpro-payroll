@@ -273,8 +273,8 @@ const PayrollProcessFilter = ({ open, close, passFilter, currentStartDate, curre
                                     value={selectedCutOff}
                                     onChange={(event) => setSelectedCutOff(event.target.value)}
                                 >
-                                    <MenuItem key="first" value="first"> First </MenuItem>
-                                    <MenuItem key="second" value="second"> Second </MenuItem>
+                                    <MenuItem key="First" value="First"> First </MenuItem>
+                                    <MenuItem key="Second" value="Second"> Second </MenuItem>
                                 </TextField>
                             </FormControl>
                         </FormGroup>

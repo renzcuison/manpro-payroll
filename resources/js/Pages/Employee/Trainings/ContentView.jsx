@@ -1,49 +1,21 @@
 import React, { useEffect, useState } from "react";
 import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    TablePagination,
     Box,
     Typography,
     Button,
-    Menu,
-    MenuItem,
-    TextField,
     Stack,
     Grid,
-    Chip,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    breadcrumbsClasses,
-    Card,
     CardMedia,
-    CardContent,
-    CardActions,
-    Pagination,
     IconButton,
     Divider,
-    ImageList,
-    ImageListItem,
-    ImageListItemBar,
     Tooltip,
-    CardActionArea
+    useTheme,
+    useMediaQuery
 } from "@mui/material";
-import { TaskAlt, MoreVert, Download, WarningAmber, OndemandVideo, Image, Description, Quiz, Lock, Pending, CheckBox, ArrowBackIos, ArrowForwardIos, HourglassBottom } from "@mui/icons-material";
-import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
+import { OndemandVideo, Image, Description, Quiz, Lock, CheckBox, ArrowBackIos, ArrowForwardIos, HourglassBottom, KeyboardReturn } from "@mui/icons-material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
 import Swal from "sweetalert2";
 import {
     Link,
@@ -51,11 +23,6 @@ import {
     useParams,
     useSearchParams,
 } from "react-router-dom";
-import {
-    getComparator,
-    stableSort,
-} from "../../../components/utils/tableUtils";
-import { first } from "lodash";
 
 import PDFImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
@@ -68,6 +35,9 @@ const ContentView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
+    const theme = useTheme();
+    const medScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const capSize = medScreen ? "h4" : "h5";
 
     // Content Information
     const [isLoading, setIsLoading] = useState(true);
@@ -394,27 +364,45 @@ const ContentView = () => {
     return (
         <Layout title={"ContentView"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {title}
+                        <Typography
+                            variant={capSize}
+                            sx={{
+                                fontWeight: "bold",
+                                whiteSpace: "normal",
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                                lineHeight: 1.5,
+                                paddingRight: { xs: 0, md: 2 },
+                            }}
+                        >
+                            {title || "Training"}
                         </Typography>
                         <Link to={`/employee/training/${code}`}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                            >
-                                <p className="m-0">
-                                    Return to Training
-                                </p>
-                            </Button>
+                            {medScreen ? (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    <p className="m-0">
+                                        Return to Training
+                                    </p>
+                                </Button>
+                            ) : (
+                                <Tooltip title="Return to Training">
+                                    <IconButton sx={{ p: 1, borderRadius: "4px", bgcolor: "#177604" }}>
+                                        <KeyboardReturn sx={{ color: "white" }} />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
                         </Link>
                     </Box>
 
-                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "hidden" }} >
+                    <Box display="flex" sx={{ mt: 6, mb: 5, bgcolor: "white", borderRadius: "8px", maxHeight: "1000px", overflow: "auto" }} >
                         <>
                             {/* Content List */}
-                            {contentListOn && (
+                            {(contentListOn && medScreen) && (
                                 <Box
                                     sx={{
                                         width: '20%',
@@ -432,8 +420,8 @@ const ContentView = () => {
                                         sx={{
                                             maxHeight: 'calc(100% - 32px)',
                                             overflowY: 'auto',
-                                            pr: 3,
-                                            pl: 2,
+                                            pr: 2,
+                                            pl: 1,
                                             scrollbarWidth: 'thin',
                                             scrollbarColor: '#e9ae20 #fafafa',
                                             '&::-webkit-scrollbar': { width: '6px' },
@@ -531,29 +519,30 @@ const ContentView = () => {
                                 </Box>
                             )}
                             {/* Content Display */}
-                            <Box sx={{ width: contentListOn ? '80%' : '100%', mt: 2, mb: 2, p: 3, position: 'relative', }} >
-
+                            <Box sx={{ width: (contentListOn && medScreen) ? '80%' : '100%', mt: 2, mb: 2, p: { xs: 2, md: 3 }, position: 'relative', }} >
                                 {/* Content List Toggle */}
-                                <Box
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        backgroundColor: '#177604',
-                                        height: 40,
-                                        borderRadius: contentListOn ? { borderTopRightRadius: '8px', borderBottomRightRadius: '8px' } : '8px',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        ml: contentListOn ? 0 : 1,
-                                    }}
-                                >
-                                    <Tooltip title={contentListOn ? 'Hide Content List' : 'Show Content List'}>
-                                        <IconButton onClick={toggleContentList} sx={{ color: 'white' }} >
-                                            {contentListOn ? <ArrowBackIos /> : <ArrowForwardIos />}
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
+                                {medScreen && (
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            backgroundColor: '#177604',
+                                            height: 40,
+                                            borderRadius: contentListOn ? { borderTopRightRadius: '8px', borderBottomRightRadius: '8px' } : '8px',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            ml: contentListOn ? 0 : 1,
+                                        }}
+                                    >
+                                        <Tooltip title={contentListOn ? 'Hide Content List' : 'Show Content List'}>
+                                            <IconButton onClick={toggleContentList} sx={{ color: 'white' }} >
+                                                {contentListOn ? <ArrowBackIos /> : <ArrowForwardIos />}
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                )}
                                 {/* Content Details */}
                                 {isLoading ? (
                                     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
@@ -561,10 +550,20 @@ const ContentView = () => {
                                     </Box>
                                 ) : (
                                     <Box sx={{ minHeight: "450px" }}>
-                                        <Grid container spacing={2} sx={{ mt: 3, px: contentListOn ? 0 : 2 }}>
+                                        <Grid container spacing={2} sx={{ mt: { xs: 0, md: 3 }, px: contentListOn ? 0 : 2 }}>
                                             {/* Title */}
-                                            <Grid size={{ xs: 12 }}>
-                                                <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                                            <Grid size={12}>
+                                                <Typography
+                                                    variant={capSize}
+                                                    sx={{
+                                                        fontWeight: "bold",
+                                                        whiteSpace: "normal",
+                                                        wordBreak: "break-word",
+                                                        overflowWrap: "break-word",
+                                                        lineHeight: 1.5,
+                                                        mb: 1,
+                                                    }}
+                                                >
                                                     {content.title || "-"}
                                                 </Typography>
                                             </Grid>
@@ -582,13 +581,13 @@ const ContentView = () => {
                                             ) :
                                                 <>
                                                     {/* Primary Content */}
-                                                    <Grid size={{ xs: 12 }} sx={{ placeContent: "center", placeItems: "center" }}>
+                                                    <Grid size={12} sx={{ placeContent: "center", placeItems: "center" }}>
                                                         <Box sx={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
                                                             {content.content.type === "Video" ? (
                                                                 <Box
                                                                     sx={{
-                                                                        maxWidth: '720px',
-                                                                        width: "90%",
+                                                                        maxWidth: medScreen ? '720px' : '100%',
+                                                                        width: medScreen ? "90%" : '100%',
                                                                         aspectRatio: "16 / 9",
                                                                         placeSelf: "center",
                                                                         mb: 1,
@@ -600,8 +599,8 @@ const ContentView = () => {
                                                                 <CardMedia
                                                                     component="img"
                                                                     sx={{
-                                                                        maxWidth: '640px',
-                                                                        width: "80%",
+                                                                        maxWidth: medScreen ? '640px' : '100%',
+                                                                        width: medScreen ? "80%" : '100%',
                                                                         aspectRatio: !["Document", "PowerPoint"].includes(content.content.type) ? "16 / 9" : "4 / 3",
                                                                         objectFit: "contain",
                                                                         borderRadius: "4px",
@@ -670,15 +669,109 @@ const ContentView = () => {
                                                                     </Box>
                                                                 </Box>
                                                             )}
-                                                            {prevContentId && (
-                                                                <Tooltip title="View Previous Content">
+                                                            {medScreen && (
+                                                                <>
+                                                                    {prevContentId && (
+                                                                        <Tooltip title="View Previous Content">
+                                                                            <Box
+                                                                                onClick={() => handleContentChange(prevContentId, true)}
+                                                                                sx={{
+                                                                                    position: "absolute",
+                                                                                    height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
+                                                                                    top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
+                                                                                    left: 0,
+                                                                                    display: "flex",
+                                                                                    alignItems: "center",
+                                                                                    justifyContent: "center",
+                                                                                    py: 1,
+                                                                                    pl: 1.5,
+                                                                                    backgroundColor: "#fff",
+                                                                                    border: "1px solid rgba(0, 0, 0, 0.1)",
+                                                                                    borderRadius: "8px",
+                                                                                    cursor: "pointer",
+                                                                                    opacity: medScreen ? 0.5 : 1,
+                                                                                    transition: "background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, color 0.3s ease, opacity 0.3s ease",
+                                                                                    color: "#e0e0e0",
+                                                                                    "&:hover": {
+                                                                                        color: "#fff",
+                                                                                        backgroundColor: "#177604",
+                                                                                        transform: "scale(1.05)",
+                                                                                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                                                                        opacity: 1,
+                                                                                    },
+                                                                                }}
+                                                                            >
+                                                                                <ArrowBackIos sx={{ fontSize: "2rem" }} />
+                                                                            </Box>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                    {nextContentId && (
+                                                                        <Tooltip title="View Next Content">
+                                                                            <Box
+                                                                                onClick={() => handleContentChange(nextContentId, content.is_finished, true)}
+                                                                                sx={{
+                                                                                    position: "absolute",
+                                                                                    height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
+                                                                                    top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
+                                                                                    right: 0,
+                                                                                    display: "flex",
+                                                                                    alignItems: "center",
+                                                                                    justifyContent: "center",
+                                                                                    p: 1,
+                                                                                    backgroundColor: "#fff",
+                                                                                    border: "1px solid rgba(0, 0, 0, 0.1)",
+                                                                                    borderRadius: "8px",
+                                                                                    cursor: "pointer",
+                                                                                    opacity: medScreen ? 0.5 : 1,
+                                                                                    transition: "background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, color 0.3s ease, opacity 0.3s ease",
+                                                                                    color: "#e0e0e0",
+                                                                                    "&:hover": {
+                                                                                        color: "#fff",
+                                                                                        backgroundColor: content.is_finished ? "#177604" : "#e0e0e0",
+                                                                                        transform: "scale(1.05)",
+                                                                                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                                                                        opacity: 1,
+                                                                                    },
+                                                                                }}
+                                                                            >
+                                                                                {content.is_finished ? (
+                                                                                    <ArrowForwardIos sx={{ fontSize: "2rem" }} />
+                                                                                ) : (
+                                                                                    <Lock sx={{ fontSize: "2rem" }} />
+                                                                                )}
+                                                                            </Box>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </Box>
+                                                    </Grid>
+                                                    <Grid size={12}>
+                                                        <Divider />
+                                                    </Grid>
+                                                    {/* Description */}
+                                                    <Grid size={12} >
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
+                                                            Description
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="body1"
+                                                            sx={{
+                                                                wordWrap: 'break-word',
+                                                                wordBreak: 'break-word',
+                                                                overflowWrap: 'break-word',
+                                                                whiteSpace: 'pre-wrap',
+                                                            }}
+                                                            dangerouslySetInnerHTML={{ __html: content.description }}
+                                                        />
+                                                    </Grid>
+                                                    {!medScreen && (
+                                                        <Grid size={12}>
+                                                            <Box display="flex" sx={{ width: "100%", justifyContent: prevContentId ? "space-between" : "flex-end", alignItems: "center" }}>
+                                                                {prevContentId && (
                                                                     <Box
                                                                         onClick={() => handleContentChange(prevContentId, true)}
                                                                         sx={{
-                                                                            position: "absolute",
-                                                                            height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
-                                                                            top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
-                                                                            left: 0,
                                                                             display: "flex",
                                                                             alignItems: "center",
                                                                             justifyContent: "center",
@@ -698,19 +791,13 @@ const ContentView = () => {
                                                                             },
                                                                         }}
                                                                     >
-                                                                        <ArrowBackIos sx={{ fontSize: "2rem" }} />
+                                                                        <ArrowBackIos sx={{ fontSize: "1rem" }} />
                                                                     </Box>
-                                                                </Tooltip>
-                                                            )}
-                                                            {nextContentId && (
-                                                                <Tooltip title="View Next Content">
+                                                                )}
+                                                                {nextContentId && (
                                                                     <Box
                                                                         onClick={() => handleContentChange(nextContentId, content.is_finished, true)}
                                                                         sx={{
-                                                                            position: "absolute",
-                                                                            height: ["Document", "PowerPoint"].includes(content.content.type) ? "40%" : "20%",
-                                                                            top: ["Document", "PowerPoint"].includes(content.content.type) ? "30%" : "40%",
-                                                                            right: 0,
                                                                             display: "flex",
                                                                             alignItems: "center",
                                                                             justifyContent: "center",
@@ -730,34 +817,15 @@ const ContentView = () => {
                                                                         }}
                                                                     >
                                                                         {content.is_finished ? (
-                                                                            <ArrowForwardIos sx={{ fontSize: "2rem" }} />
+                                                                            <ArrowForwardIos sx={{ fontSize: "1rem" }} />
                                                                         ) : (
-                                                                            <Lock sx={{ fontSize: "2rem" }} />
+                                                                            <Lock sx={{ fontSize: "1rem" }} />
                                                                         )}
                                                                     </Box>
-                                                                </Tooltip>
-                                                            )}
-                                                        </Box>
-                                                    </Grid>
-                                                    <Grid size={{ xs: 12 }}>
-                                                        <Divider />
-                                                    </Grid>
-                                                    {/* Description */}
-                                                    <Grid size={{ xs: 12 }} >
-                                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                                                            Description
-                                                        </Typography>
-                                                        <Typography
-                                                            variant="body1"
-                                                            sx={{
-                                                                wordWrap: 'break-word',
-                                                                wordBreak: 'break-word',
-                                                                overflowWrap: 'break-word',
-                                                                whiteSpace: 'pre-wrap',
-                                                            }}
-                                                            dangerouslySetInnerHTML={{ __html: content.description }}
-                                                        />
-                                                    </Grid>
+                                                                )}
+                                                            </Box>
+                                                        </Grid>
+                                                    )}
                                                 </>
                                             }
                                         </Grid>

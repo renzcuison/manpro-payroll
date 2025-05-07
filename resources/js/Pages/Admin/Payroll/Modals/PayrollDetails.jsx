@@ -9,7 +9,7 @@ import HomeLogo from "../../../../../images/ManPro.png";
 import PayrollBreakdown from "../Components/PayrollBreakdown";
 import PayrollInformation from "../Components/PayrollInformation";
 
-const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, currentEndDate, }) => {
+const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, currentEndDate, cutOff}) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -17,6 +17,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
     const [employee, setEmployee] = useState([]);
     const [benefits, setBenefits] = useState([]);
     const [summaries, setSummaries] = useState([]);
+    const [allowances, setAllowances] = useState([]);
 
     const [paidLeaves, setPaidLeaves] = useState([]);
     const [unpaidLeaves, setUnpaidLeaves] = useState([]);
@@ -34,6 +35,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
             selectedPayroll: selectedPayroll,
             currentStartDate: currentStartDate,
             currentEndDate: currentEndDate,
+            cutOff: cutOff,
         };
 
         axiosInstance.get(`/payroll/payrollDetails`, { params: data, headers })
@@ -41,7 +43,8 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
                 setPayroll(response.data.payroll);
                 setBenefits(response.data.benefits);
                 setSummaries(response.data.summaries);
-
+                setAllowances(response.data.allowances);
+                
                 setPaidLeaves(response.data.paid_leaves);
                 setUnpaidLeaves(response.data.unpaid_leaves);
 
@@ -96,6 +99,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
             selectedPayroll: selectedPayroll,
             currentStartDate: currentStartDate,
             currentEndDate: currentEndDate,
+            cutOff: cutOff,
         };
 
         axiosInstance.post("/payroll/savePayroll", data, { headers })
@@ -143,7 +147,7 @@ const PayrollDetails = ({ open, close, selectedPayroll, currentStartDate, curren
 
                                 <PayrollInformation payroll={payroll} employee={employee} />
 
-                                <PayrollBreakdown payroll={payroll} employee={employee} paidLeaves={paidLeaves} unpaidLeaves={unpaidLeaves} earnings={earnings} deductions={deductions} benefits={benefits} />
+                                <PayrollBreakdown payroll={payroll} employee={employee} paidLeaves={paidLeaves} unpaidLeaves={unpaidLeaves} earnings={earnings} deductions={deductions} benefits={benefits} allowances={allowances} />
 
                                 <div className="row" style={{ marginTop: "10px" }}>
                                     {summaries.map((summary) => (

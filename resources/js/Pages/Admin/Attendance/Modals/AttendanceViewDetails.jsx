@@ -29,7 +29,6 @@ import moment from "moment";
 import dayjs from "dayjs";
 
 import InfoBox from "../../../../components/General/InfoBox";
-import AddAttendanceModal from "./AddAttendanceModal";
 import EditAttendanceModal from "./EditAttendanceModal";
 
 const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
@@ -61,18 +60,6 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
             .catch((error) => {
                 console.error("Error fetching employee:", error);
             });
-    }
-
-    const [openAddAttendance, setOpenAddAttendance] = useState(false);
-    const handleOpenAddAttendance = () => {
-        setOpenAddAttendance(true);
-    };
-    const handleCloseAddAttendance = (reload) => {
-        setOpenAddAttendance(false);
-        if (reload) {
-            getAttendance();
-            setExitReload(true);
-        }
     }
 
     const [openEditAttendance, setOpenEditAttendance] = useState(false);
@@ -225,11 +212,11 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
                                     <Typography sx={{ mr: 2 }}>
                                         Logs
                                     </Typography>
-                                    <Button variant="contained" color="primary" onClick={handleOpenAddAttendance} >
+                                    {/* <Button variant="contained" color="primary" onClick={() => console.log("Editing Attendances")} >
                                         <p className="m-0">
-                                            <i className="fa fa-plus"></i> Add {" "}
+                                            Edit
                                         </p>
-                                    </Button>
+                                    </Button> */}
                                 </Box>
                             </Grid>
                             <Grid size={12}>
@@ -282,7 +269,6 @@ const AttendanceViewDetails = ({ open, close, viewInfo, employee }) => {
                         </Grid>
                     )}
                 </DialogContent>
-                {openAddAttendance && (<AddAttendanceModal open={openAddAttendance} close={handleCloseAddAttendance} employee={employee} fixedDate={viewInfo.date} />)}
                 {openEditAttendance && (<EditAttendanceModal open={openEditAttendance} close={handleCloseEditAttendance} date={dayjs(viewInfo.date)} attendanceInfo={loadAttendance} />)}
             </Dialog>
         </>

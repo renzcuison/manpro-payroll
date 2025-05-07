@@ -129,7 +129,7 @@ const AnnouncementPublish = ({ open, close, announceInfo }) => {
 
     const saveInput = () => {
         const data = {
-            announcement: announceInfo.unique_code,
+            unique_code: announceInfo.unique_code,
             departments: selectedDepartments,
             branches: selectedBranches,
         };

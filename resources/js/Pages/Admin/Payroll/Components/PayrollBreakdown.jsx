@@ -2,7 +2,7 @@ import { Box, Grid, Typography, FormControl, InputLabel, Table, TableBody, Table
 import React, { useEffect, useRef, useState } from "react";
 import "react-quill/dist/quill.snow.css";
 
-const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deductions, benefits }) => {
+const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deductions, benefits, allowances }) => {
 
     return (
         <>
@@ -24,6 +24,17 @@ const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deducti
                                         </TableCell>
                                     </TableRow>
                                 ))}
+
+                                {allowances.map(
+                                    (allowance) => (
+                                        <TableRow key={allowance.name} >
+                                            <TableCell className="text-center bg-light" sx={{ width: "50%" }}> {allowance.name} </TableCell>
+                                            <TableCell className="text-center bg-light">
+                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right", }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2, } ).format(allowance.amount)} />
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                )}
 
                                 {paidLeaves.map(
                                     (paidLeave) => (
@@ -119,103 +130,28 @@ const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deducti
                         <Table className="table table-md table-vcenter table-bordered">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={2}
-                                        className="text-center"
-                                    >
-                                        {" "}
-                                        Loans{" "}
-                                    </TableCell>
+                                    <TableCell colSpan={2} className="text-center"> {" "} Loans{" "} </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 <TableRow>
-                                    <TableCell
-                                        className="text-center bg-light"
-                                        sx={{
-                                            border: "1px solid #ccc",
-                                        }}
-                                    >
-                                        Balance
-                                    </TableCell>
+                                    <TableCell className="text-center bg-light" sx={{ border: "1px solid #ccc" }}> Balance </TableCell>
                                     <TableCell className="text-center bg-light">
-                                        <input
-                                            id="demo-simple-select"
-                                            style={{
-                                                backgroundColor:
-                                                    "white",
-                                                height: 30,
-                                                textAlign:
-                                                    "right",
-                                            }}
-                                            readOnly
-                                            className="form-control"
-                                            type="text"
-                                            value={new Intl.NumberFormat(
-                                                "en-US",
-                                                {
-                                                    style: "currency",
-                                                    currency:
-                                                        "PHP",
-                                                    minimumFractionDigits: 2,
-                                                }
-                                            ).format(0)}
-                                        />
+                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(0)} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell
-                                        className="text-center bg-light"
-                                        sx={{
-                                            border: "1px solid #ccc",
-                                        }}
-                                    >
-                                        Payment
-                                    </TableCell>
+                                    <TableCell className="text-center bg-light" sx={{ border: "1px solid #ccc" }}> Payment </TableCell>
                                     <TableCell className="text-center bg-light">
-                                        <input
-                                            id="demo-simple-select"
-                                            style={{
-                                                backgroundColor:
-                                                    "white",
-                                                height: 30,
-                                                textAlign:
-                                                    "right",
-                                            }}
-                                            readOnly
-                                            className="form-control"
-                                            type="text"
-                                            value={new Intl.NumberFormat(
-                                                "en-US",
-                                                {
-                                                    style: "currency",
-                                                    currency:
-                                                        "PHP",
-                                                    minimumFractionDigits: 2,
-                                                }
-                                            ).format(0)}
-                                        />
+                                        <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(0)} />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell
-                                        className="text-center bg-light"
-                                        sx={{
-                                            border: "1px solid #ccc",
-                                        }}
-                                    >
-                                        Remaining
-                                    </TableCell>
+                                    <TableCell className="text-center bg-light" sx={{ border: "1px solid #ccc" }}> Remaining </TableCell>
                                     <TableCell className="text-center bg-light">
                                         <input
                                             id="demo-simple-select"
-                                            style={{
-                                                backgroundColor:
-                                                    "white",
-                                                height: 30,
-                                                textAlign:
-                                                    "right",
-                                            }}
+                                            style={{ backgroundColor: "white", height: 30, textAlign: "right" }}
                                             readOnly
                                             className="form-control"
                                             type="text"
@@ -310,12 +246,7 @@ const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deducti
                             </TableHead>
                             <TableBody>
                                 <TableRow>
-                                    <TableCell
-                                        className="text-center bg-light"
-                                        sx={{
-                                            border: "1px solid #ccc",
-                                        }}
-                                    >
+                                    <TableCell className="text-center bg-light" sx={{ width: "50%" }} >
                                         Tax
                                     </TableCell>
                                     <TableCell className="text-center bg-light">

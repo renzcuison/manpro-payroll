@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AttendanceLogsModel extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'attendance_logs';
 
@@ -24,8 +25,6 @@ class AttendanceLogsModel extends Model
         // 'enroll_number',
         // 'enrolled_machine_number',
         // 'verify_mode',
-
-        'deleted_at',
     ];
 
     public function user()

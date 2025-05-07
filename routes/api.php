@@ -15,6 +15,7 @@ use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
+use App\Http\Controllers\SignatoryController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -109,6 +110,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
@@ -173,8 +175,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
         Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
 
+        Route::get('/getAttendanceAdderLogs', [AttendanceController::class, 'getAttendanceAdderLogs']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
+        Route::post('/addAttendanceLog', [AttendanceController::class, 'addAttendanceLog']);
         Route::post('/editEmployeeAttendance', [AttendanceController::class, 'editEmployeeAttendance']);
+        Route::post('/deleteEmployeeAttendance', [AttendanceController::class, 'deleteEmployeeAttendance']);
     });
 
     Route::prefix('payroll')->group(function () {
@@ -182,6 +187,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/payrollProcess', [PayrollController::class, 'payrollProcess']);
 
         Route::get('/getPayrollRecord', [PayrollController::class, 'getPayrollRecord']);
+        Route::get('/getPayrollSummary', [PayrollController::class, 'getPayrollSummary']);
         Route::get('/getEmployeePayrollRecords', [PayrollController::class, 'getEmployeePayrollRecords']);
         Route::get('/getEmployeesPayrollRecords', [PayrollController::class, 'getEmployeesPayrollRecords']);
 
@@ -189,6 +195,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/savePayrolls', [PayrollController::class, 'savePayrolls']);
 
         Route::post('/storeSignature/{id}', [PayrollController::class, 'storeSignature']);
+
+        Route::post('/deletePayslip', [PayrollController::class, 'deletePayslip']);
     });
 
     Route::prefix('loans')->group(function () {
@@ -240,11 +248,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getMyLeaveCredits', [ApplicationsController::class, 'getMyLeaveCredits']);
         Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class, 'getLeaveCredits']);
         Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class, 'getLeaveCreditLogs']);
-        
+
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
-        
+
 
         // Overtime Applications
         Route::post('/saveOvertimeApplication', [ApplicationsController::class, 'saveOvertimeApplication']);
@@ -260,9 +268,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         // Management
         Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
-        Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
-        Route::get('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
+        Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
+        Route::post('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
 
         // Details
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
@@ -606,6 +614,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
+
+    Route::get('/signatories', [SignatoryController::class, 'index']);
+    Route::post('/addSignatory', [SignatoryController::class, 'store']);
 });
 
 
@@ -623,6 +634,8 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
+
+
 
 
 require __DIR__ . '/super-admin.php';

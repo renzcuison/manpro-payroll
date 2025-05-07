@@ -49,6 +49,8 @@ class AdminDashboardController extends Controller
             $attendance = [];
 
             $today = Carbon::now();
+            // Admin Name
+            $adminName = $user->first_name;
 
             // ---- Counter Rows ---- //
             // Get Employees
@@ -178,7 +180,8 @@ class AdminDashboardController extends Controller
                 'average' => $average,
                 'attendance' => $attendance,
                 'branches' => $branches,
-                'salary_range' => $salaryRange
+                'salary_range' => $salaryRange,
+                'admin_name' => $adminName,
             ]);
         }
     }
@@ -207,6 +210,8 @@ class AdminDashboardController extends Controller
                     $firstTimeOut = null;
                     $secondTimeIn = null;
                     $secondTimeOut = null;
+                    $breakStart = null;
+                    $breakEnd = null;
                     $isLate = false;
 
                     $workHours = $logs->first()->workHour;
@@ -214,9 +219,15 @@ class AdminDashboardController extends Controller
 
                     if ($workHours->shift_type == "Regular") {
                         $firstTimeIn = $logs->firstWhere('action', 'Duty In');
-                        $firstTimeOut = $logs->last(function ($log) {
-                            return $log->action === 'Duty Out';
+
+                        $breakEndTime = Carbon::parse($workHours->break_end)->startOfDay();
+                        $firstTimeOut = $logs->last(function ($log) use ($breakEndTime, $workHours) {
+                            return $log->action === 'Duty Out' &&
+                                Carbon::parse($log->created_at)->greaterThan($breakEndTime->copy()->setTimeFromTimeString($workHours->break_end));
                         });
+
+                        $breakStart = $workHours->break_start;
+                        $breakEnd = $workHours->break_end;
                     } else {
                         // Date Normalizers
                         $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
@@ -274,6 +285,8 @@ class AdminDashboardController extends Controller
                         'first_time_out' => $firstTimeOut ? $firstTimeOut->timestamp : null,
                         'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
                         'second_time_out' => $secondTimeOut ? $secondTimeOut->timestamp : null,
+                        'break_start' => $breakStart ?? null,
+                        'break_end' => $breakEnd ?? null,
                         'is_late' => $isLate,
                     ];
                 })->values()->all();

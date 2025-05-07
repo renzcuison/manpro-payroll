@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayslipsModel extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'payslips';
 
@@ -18,6 +19,7 @@ class PayslipsModel extends Model
 
         'period_start',
         'period_end',
+        'cut_off',
         'working_days',
 
         'total_earnings',
@@ -37,6 +39,11 @@ class PayslipsModel extends Model
         return $this->hasMany(PayslipBenefitsModel::class, 'payslip_id');
     }
 
+    public function allowances()
+    {
+        return $this->hasMany(PayslipAllowancesModel::class, 'payslip_id');
+    }
+
     public function deductions()
     {
         return $this->hasMany(PayslipDeductionsModel::class, 'payslip_id');
@@ -50,5 +57,15 @@ class PayslipsModel extends Model
     public function leaves()
     {
         return $this->hasMany(PayslipLeavesModel::class, 'payslip_id');
+    }
+
+    public function paidLeaves()
+    {
+        return $this->hasMany(PayslipLeavesModel::class, 'payslip_id')->where('is_paid', true);
+    }
+
+    public function unpaidLeaves()
+    {
+        return $this->hasMany(PayslipLeavesModel::class, 'payslip_id')->where('is_paid', false);
     }
 }

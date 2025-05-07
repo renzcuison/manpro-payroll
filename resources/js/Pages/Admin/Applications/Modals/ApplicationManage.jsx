@@ -255,7 +255,7 @@ const ApplicationManage = ({ open, close, appId }) => {
                         borderRadius: '20px',
                         minWidth: { xs: "100%", sm: "900px" },
                         maxWidth: '1000px',
-                        maxHeight: '750px',
+                        maxHeight: '1000px',
                         marginBottom: '5%'
                     }
                 }}>

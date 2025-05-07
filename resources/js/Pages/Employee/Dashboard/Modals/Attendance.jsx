@@ -24,17 +24,40 @@ import AttendanceTable from "./Components/AttendanceTable";
 import { AccessTime } from "@mui/icons-material";
 
 const Attendance = ({ open, close }) => {
-    //const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [refreshTrigger, setRefreshTrigger] = useState(false);
 
-    //--------------------- Work Shift API
+    // Date and Time Management
+    const [currentDateTime, setCurrentDateTime] = useState(new Date());
+    const formattedDate = currentDateTime.toDateString();
+    const formattedTime = currentDateTime.toLocaleTimeString();
+    const formattedDateTime = currentDateTime.toString();
+
+    // Exact Time
+    const hours = String(currentDateTime.getHours()).padStart(2, "0");
+    const minutes = String(currentDateTime.getMinutes()).padStart(2, "0");
+    const seconds = String(currentDateTime.getSeconds()).padStart(2, "0");
+    const exactTime = `${hours}:${minutes}:${seconds}`;
+
+    // Time Interval (second)
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setCurrentDateTime(new Date());
+        }, 1000);
+        return () => clearInterval(intervalId);
+    }, []);
+
+    // Work Shift API and State
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
     const [workShift, setWorkShift] = useState([]);
     const [workHour, setWorkHour] = useState([]);
     const [firstShiftExpired, setFirstShiftExpired] = useState(false);
     const [secondShiftExpired, setSecondShiftExpired] = useState(false);
     const [overtimeExpired, setOvertimeExpired] = useState(false);
+
+    const [firstNightShift, setFirstNightShift] = useState(false);
+    const [secondNightShift, setSecondNightShift] = useState(false);
+    const [overtimeNightShift, setOvertimeNightShift] = useState(false);
 
     useEffect(() => {
         axiosInstance
@@ -48,28 +71,70 @@ const Attendance = ({ open, close }) => {
             });
     }, [refreshTrigger]);
 
-    //--------------------- Work Shift Expiration Checks
+    // Night Shift, Expiry Checks
     useEffect(() => {
-        // End First Shift Period
-        if (exactTime > workHour.first_time_out) {
-            setFirstShiftExpired(true);
-        }
-        // End Second Shift Period for Split
-        if (exactTime > workHour.second_time_out) {
-            setSecondShiftExpired(true);
-        }
-        // End Overtime Period
-        if (exactTime > workHour.over_time_out) {
-            setOvertimeExpired(true);
-        }
-    }, [workHour]);
+        const currentDate = dayjs().format(`YYYY-MM-DD`);
+        const currentTime = dayjs(`${currentDate} ${exactTime}`);
 
-    //---------------------- Attendance API
+        if (workHour.first_time_in && workHour.first_time_out) {
+            const firstIn = dayjs(`${currentDate} ${workHour.first_time_in}`);
+            const firstOut = dayjs(`${currentDate} ${workHour.first_time_out}`);
+
+            const isFirstNightShift = firstIn.isAfter(firstOut);
+            setFirstNightShift(isFirstNightShift);
+
+            if (isFirstNightShift) { // Night Shift Handling
+                /*
+                Night Shift Expiry Period
+                - Current Time is after previous day's Shift Period (uses current day as shift passes through midnight), AND
+                - Current Time is before the current day's shift starts + with 2 hour offset for Early Time-Ins
+                 */
+                const firstInOffset = firstIn.subtract(2, 'hour');
+                setFirstShiftExpired(currentTime.isAfter(firstOut) && currentTime.isBefore(firstInOffset));
+            } else { // Same Day Comparison
+                setFirstShiftExpired(currentTime.isAfter(firstOut));
+            }
+        }
+
+        if (workHour.second_time_in && workHour.second_time_out) {
+            const secondIn = dayjs(`${currentDate} ${workHour.second_time_in}`);
+            const secondOut = dayjs(`${currentDate} ${workHour.second_time_out}`);
+
+            const isSecondNightShift = secondIn.isAfter(secondOut);
+            setSecondNightShift(isSecondNightShift);
+
+            if (isSecondNightShift) {
+                const secondInOffset = secondIn.subtract(2, 'hour');
+                setSecondShiftExpired(currentTime.isAfter(secondOut) && currentTime.isBefore(secondInOffset));
+            } else {
+                setSecondShiftExpired(currentTime.isAfter(secondOut));
+            }
+        }
+
+        if (workHour.over_time_in && workHour.over_time_out) {
+            const overtimeIn = dayjs(`${currentDate} ${workHour.over_time_in}`);
+            const overtimeOut = dayjs(`${currentDate} ${workHour.over_time_out}`);
+
+            const isOvertimeNightShift = overtimeIn.isAfter(overtimeOut);
+            setOvertimeNightShift(isOvertimeNightShift);
+
+            if (isOvertimeNightShift) {
+                const overtimeInOffset = overtimeIn.subtract(2, 'hour');
+                setOvertimeNightShift(currentTime.isAfter(overtimeOut) && currentTime.isBefore(overtimeInOffset));
+            } else {
+                setOvertimeNightShift(currentTime.isAfter(overtimeOut));
+            }
+        }
+
+    }, [workHour, exactTime]);
+
+    // Attendance API and State
     const [employeeAttendance, setEmployeeAttendance] = useState([]);
     const [onDuty, setOnDuty] = useState(false);
     const [firstDutyFinished, setFirstDutyFinished] = useState(false);
     const [latestAttendanceTime, setlatestAttendanceTime] = useState();
     const [latestAction, setLatestAction] = useState('');
+    const [latestTime, setLatestTime] = useState();
 
     useEffect(() => {
         axiosInstance
@@ -80,32 +145,21 @@ const Attendance = ({ open, close }) => {
             .then((response) => {
                 setEmployeeAttendance(response.data.attendance);
                 if (response.data.attendance.length > 0) {
-                    // Check if a 'Duty Out' entry exists ---------------------------------
-                    const dutyOutEntry = response.data.attendance.find(
-                        (log) => log.action === "Duty Out"
-                    );
+                    // Check if a 'Duty Out' entry exists
+                    const dutyOutEntry = response.data.attendance.find((log) => log.action === "Duty Out");
                     if (dutyOutEntry) {
                         setFirstDutyFinished(true);
                     }
-                    // Check the Latest Log Entry ----------------------------------------
-                    const latestAttendance =
-                        response.data.attendance[
-                        response.data.attendance.length - 1
-                        ];
+                    // Check the Latest Log Entry
+                    const latestAttendance = response.data.attendance[response.data.attendance.length - 1];
 
-                    if (
-                        ["Duty In", "Overtime In"].includes(
-                            latestAttendance.action
-                        )
-                    ) {
+                    if (["Duty In", "Overtime In"].includes(latestAttendance.action)) {
                         setOnDuty(true);
                     } else {
                         setOnDuty(false);
                     }
                     setLatestAction(latestAttendance.action);
                     setlatestAttendanceTime(latestAttendance.timestamp);
-                } else {
-                    console.error("No attendance records found.");
                 }
             })
             .catch((error) => {
@@ -113,22 +167,7 @@ const Attendance = ({ open, close }) => {
             });
     }, [refreshTrigger]);
 
-    //---------------------- Date and Time
-    const [currentDateTime, setCurrentDateTime] = useState(new Date());
-    const formattedDate = currentDateTime.toDateString();
-    const formattedTime = currentDateTime.toLocaleTimeString();
-    const formattedDateTime = currentDateTime.toString();
-
-    //--------------------- Exact Time
-    const hours = String(currentDateTime.getHours()).padStart(2, "0");
-    const minutes = String(currentDateTime.getMinutes()).padStart(2, "0");
-    const seconds = String(currentDateTime.getSeconds()).padStart(2, "0");
-
-    const exactTime = `${hours}:${minutes}:${seconds}`;
-
-    //--------------------- Latest Attendance Time
-    const [latestTime, setLatestTime] = useState();
-
+    // Latest Attendance Time Formatting
     useEffect(() => {
         if (latestAttendanceTime) {
             const momentTime = moment(
@@ -140,18 +179,9 @@ const Attendance = ({ open, close }) => {
         }
     }, [latestAttendanceTime]);
 
-    //--------------------- Time Interval (second)
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            setCurrentDateTime(new Date());
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    }, []);
-
-    // ---------------------- Time In/Out
+    // Time In/Out Handler
     const handleTimeInOut = (shift, timeIn) => {
-        // The employee attempts to 'Time In' for the second shift when the first shift is still available --
+        // The employee attempts to 'Time In' for the second shift when the first shift is still available
         if (shift == "Second" && (!firstShiftExpired || (onDuty && latestTime < workHour.first_time_out))) {
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -163,8 +193,7 @@ const Attendance = ({ open, close }) => {
                 cancelButtonText: "Okay",
                 cancelButtonColor: "#177604",
             });
-
-            // The employee attempts to 'Time Out' when they are not timed in yet -------------------------------
+            // The employee attempts to 'Time Out' when they are not timed in yet
         } else if (!onDuty && !timeIn) {
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -176,16 +205,13 @@ const Attendance = ({ open, close }) => {
                 cancelButtonText: "Okay",
                 cancelButtonColor: "#177604",
             });
-
-            // The user makes a valid Time In/Out attempt -------------------------------------------------------
+            // The user makes a valid Time In/Out attempt
         } else {
             document.activeElement.blur();
-
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: `${timeIn ? "Time in" : "Time out"}`,
-                text: `Are you sure you want to ${timeIn ? "time in" : "time out"
-                    }?`,
+                text: `Are you sure you want to ${timeIn ? "time in" : "time out"}?`,
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: `${timeIn ? "Time in" : "Time out"}`,
@@ -205,37 +231,34 @@ const Attendance = ({ open, close }) => {
                                 : "Duty Out"
                             }`,
                     };
-
                     axiosInstance
                         .post("/attendance/saveEmployeeAttendance", data, {
                             headers,
                         })
                         .then((response) => {
-                            // Trigger refresh by toggling refreshTrigger
+                            if (response.data.status == 200) {
+                                document.activeElement.blur();
+                                Swal.fire({
+                                    customClass: { container: "my-swal" },
+                                    title: `${timeIn ? "Timed In" : "Timed Out"} Successfully!`,
+                                    text: "Your attendance has been recorded",
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    confirmButtonText: "Okay",
+                                    confirmButtonColor: "#177604",
+                                });
+                            }
                             setRefreshTrigger((prev) => !prev);
                         })
                         .catch((error) => {
                             console.error("Error:", error);
                         });
-
-                    document.activeElement.blur();
-
-                    Swal.fire({
-                        customClass: { container: "my-swal" },
-                        title: `${timeIn ? "Timed In" : "Timed Out"
-                            } Successfully!`,
-                        text: "Your attendance has been recorded",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
-                    });
                 }
             });
         }
     };
 
-    // ----------------------- Modal Rendering
+
     return (
         <>
             <Dialog
@@ -412,9 +435,9 @@ const Attendance = ({ open, close }) => {
                                     })()
                                 ) : (
                                     <Grid size={12}>
-                                        <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
+                                        <Box sx={{ pt: 1, width: "100%", textAlign: "center", }} >
                                             <Typography>
-                                                The Day Has Ended
+                                                {firstNightShift ? `Time In Period for Next Shift Opens at ${dayjs(`2023-01-01 ${workHour.first_time_in}`).subtract(2, 'hour').format('hh:mm:ss A')}` : "The Day Has Ended"}
                                             </Typography>
                                         </Box>
                                     </Grid>
@@ -537,7 +560,7 @@ const Attendance = ({ open, close }) => {
                                     <TableCell sx={{ pl: 1, width: "40%" }}>
                                         <Box>
                                             <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>
-                                                Shift Info
+                                                Shift
                                             </Typography>
                                         </Box>
                                     </TableCell>
@@ -563,10 +586,10 @@ const Attendance = ({ open, close }) => {
                                         {workShift ? workShift.first_label : "Shift"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.first_time_in ? dayjs(`2023-01-01 ${workHour.first_time_in}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.first_time_out ? dayjs(`2023-01-01 ${workHour.first_time_out}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                 </TableRow>
                                 {workShift?.shift_type == "Split" ? (
@@ -575,10 +598,10 @@ const Attendance = ({ open, close }) => {
                                             {workShift ? workShift.second_label : "Second Shift"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.second_time_in ? dayjs(`2023-01-01 ${workHour.second_time_in}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.second_time_out ? dayjs(`2023-01-01 ${workHour.second_time_out}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -587,22 +610,22 @@ const Attendance = ({ open, close }) => {
                                             Break
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.break_start ? dayjs(`2023-01-01 ${workHour.break_start}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                         <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                            {workHour ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
+                                            {workHour.break_end ? dayjs(`2023-01-01 ${workHour.break_end}`).format("hh:mm:ss A") : "-"}
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 <TableRow>
                                     <TableCell align="left" sx={{ pl: 1, width: "40%" }} >
-                                        Overtime In
+                                        Overtime
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.over_time_in ? dayjs(`2023-01-01 ${workHour.over_time_in}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                     <TableCell align="left" sx={{ pl: 0, width: "30%" }}>
-                                        {workHour ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
+                                        {workHour.over_time_out ? dayjs(`2023-01-01 ${workHour.over_time_out}`).format("hh:mm:ss A") : "-"}
                                     </TableCell>
                                 </TableRow>
                             </TableBody>

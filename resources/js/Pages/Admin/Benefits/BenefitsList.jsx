@@ -85,12 +85,8 @@ const EmployeeBenefits = () => {
 
                                         <TableBody>
                                             {benefits.map((benefit) => (
-                                                <TableRow
-                                                    key={benefit.uid}
-                                                    component={Link}
-                                                    to={`/admin/employees/benefits/${benefit.uid}`}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }}
-                                                >
+                                                // <TableRow key={benefit.uid} component={Link} to={`/admin/employees/benefits/${benefit.uid}`} sx={{ '&:last-child td, &:last-child th': { border: 0 }, textDecoration: 'none', color: 'inherit' }} >
+                                                <TableRow key={benefit.uid} >
                                                     <TableCell align="left">{benefit.name}</TableCell>
                                                     <TableCell align="center">{benefit.type}</TableCell>
 

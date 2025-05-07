@@ -20,9 +20,16 @@ class ApplicationsOvertimeModel extends Model
         'time_out_id',
         'reason',
         'status',
+        'approved_hours',
+        'date',
     ];
 
     public function user()
+    {
+        return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
+    public function employee()
     {
         return $this->belongsTo(UsersModel::class, 'user_id');
     }

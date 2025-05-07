@@ -5,16 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ApplicationsOvertimeModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\AttendanceLogsMobileModel;
-use App\Models\ClientsModel;
 use App\Models\UsersModel;
-use App\Models\WorkDaysModel;
-use App\Models\WorkHoursModel;
-use App\Models\WorkGroupsModel;
-use App\Models\WorkShiftsModel;
-use App\Models\BranchesModel;
-use App\Models\JobTitlesModel;
-use App\Models\DepartmentsModel;
-use App\Models\EmployeeRolesModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 use Carbon\Carbon;
+use stdClass;
 
 class AttendanceController extends Controller
 {
@@ -62,7 +54,7 @@ class AttendanceController extends Controller
     public function getAttendanceLogs(Request $request)
     {
         // Log::info("AttendanceController::getAttendanceLogs");
-        Log::info($request);
+        // Log::info($request);
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
@@ -118,6 +110,62 @@ class AttendanceController extends Controller
         $attendances = $query->orderBy('timestamp', 'desc')->get();
 
         return response()->json(['status' => 200, 'attendances' => $attendances]);
+    }
+
+    public function getAttendanceAdderLogs(Request $request)
+    {
+        $user = Auth::user();
+        $empId = $request->input('employee');
+        $employee = UsersModel::find($empId);
+
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            $attendances = AttendanceLogsModel::with('workHour')
+                ->where('user_id', $empId)
+                ->whereDate('timestamp', $request->input('date'))
+                ->orderBy('timestamp', 'asc')
+                ->get();
+
+            $firstIn = null;
+            $firstOut = null;
+            $secondIn = null;
+            $secondOut = null;
+            $overtimeIn = null;
+            $overtimeOut = null;
+
+            if ($attendances->isNotEmpty()) {
+                $dutyIns = $attendances->filter(function ($log) {
+                    return $log->action === 'Duty In';
+                })->values();
+                $dutyOuts = $attendances->filter(function ($log) {
+                    return $log->action === 'Duty Out';
+                })->values();
+
+                $firstIn = $dutyIns->get(0)->timestamp ?? null;
+                $secondIn = $dutyIns->get(1)->timestamp ?? null;
+
+                $firstOut = $dutyOuts->get(0)->timestamp ?? null;
+                $secondOut = $dutyOuts->get(1)->timestamp ?? null;
+
+                // Handle overtime
+                $overtimeIn = $attendances->firstWhere('action', 'Overtime In')->timestamp ?? null;
+                $overOut = $attendances->last(function ($log) {
+                    return $log->action === 'Overtime Out';
+                });
+                $overtimeOut = $overOut->timestamp ?? null;
+            }
+
+            $attendanceData = new stdClass();
+            $attendanceData->first_in = $firstIn;
+            $attendanceData->first_out = $firstOut;
+            $attendanceData->second_in = $secondIn;
+            $attendanceData->second_out = $secondOut;
+            $attendanceData->overtime_in = $overtimeIn;
+            $attendanceData->overtime_out = $overtimeOut;
+
+            return response()->json(['status' => 200, 'attendance' => $attendanceData]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
     }
 
     // Log Sublists
@@ -232,30 +280,91 @@ class AttendanceController extends Controller
     // Management
     public function recordEmployeeAttendance(Request $request)
     {
-        //log::info("AttendanceController::recordEmployeeAttendance");
+        Log::info("AttendanceController::recordEmployeeAttendance");
+        // Log::info($request);
 
         $user = Auth::user();
-        $employee = UsersModel::find($request->input('employee'));
+        $empId = $request->input('employee');
+        $employee = UsersModel::with('workShift')->find($empId);
+
+        if (!$employee || !$employee->workShift) {
+            return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
+        }
+
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
+
+                AttendanceLogsModel::where('user_id', $empId)
+                    ->whereDate('timestamp', $request->input('date'))
+                    ->delete();
+
+                $logs = [
+                    ['action' => 'Duty In', 'timestamp' => $request->input('first_in')],
+                    ['action' => 'Duty Out', 'timestamp' => $request->input('first_out')],
+                    ['action' => 'Duty In', 'timestamp' => $request->input('second_in')],
+                    ['action' => 'Duty Out', 'timestamp' => $request->input('second_out')],
+                    ['action' => 'Overtime In', 'timestamp' => $request->input('overtime_in')],
+                    ['action' => 'Overtime Out', 'timestamp' => $request->input('overtime_out')],
+                ];
+
+                //Log::info($logs);
+
+                foreach ($logs as $log) {
+                    if ($log['timestamp']) {
+                        AttendanceLogsModel::create([
+                            'user_id' => $employee->id,
+                            'work_hour_id' => $employee->workShift->work_hour_id,
+                            'action' => $log['action'],
+                            'timestamp' => $log['timestamp'],
+                            'method' => 0,
+                        ]);
+                    }
+                }
+
+                DB::commit();
+                return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error recording attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Failed to record attendance: ' . $e->getMessage()], 500);
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
+
+    public function addAttendanceLog(Request $request)
+    {
+        Log::info("AttendanceController::addAttendanceLog");
+        //Log::info($request);
+
+        $user = Auth::user();
+        $empId = $request->input('employee');
+        $employee = UsersModel::with('workShift')->find($empId);
+
+        if (!$employee || !$employee->workShift) {
+            return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
+        }
 
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
             try {
                 DB::beginTransaction();
 
                 AttendanceLogsModel::create([
-                    "user_id" => $employee->id,
-                    "work_hour_id" => $employee->workShift->work_hour_id,
-                    "action" => $request->input('action'),
-                    "timestamp" => $request->input('timestamp'),
-                    "method" => 1,
+                    'action' => $request->input('action'),
+                    'timestamp' => $request->input('timestamp'),
+                    'user_id' => $empId,
+                    'work_hour_id' => $employee->workShift->work_hour_id,
+                    'method' => 0,
                 ]);
 
                 DB::commit();
-
-                return response()->json(['status' => 200]);
+                return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
-                return response()->json(['status' => 500, 'message' => 'Error recording attendance log'], 500);
-                throw $e;
+                Log::error('Error recording attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Failed to record attendance: ' . $e->getMessage()], 500);
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
@@ -264,8 +373,8 @@ class AttendanceController extends Controller
 
     public function editEmployeeAttendance(Request $request)
     {
-        // Log::info("AttendanceController::editEmployeeAttendance");
-        // Log::info($request);
+        //Log::info("AttendanceController::editEmployeeAttendance");
+        //Log::info($request);
 
         $user = Auth::user();
         $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
@@ -274,49 +383,55 @@ class AttendanceController extends Controller
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
             try {
                 DB::beginTransaction();
+
+                $newType = $request->input('new_type');
                 $newTime = Carbon::parse($request->input('timestamp'));
+
+                $attendance->action = $newType;
                 $attendance->timestamp = $newTime;
-                Log::info($attendance->timestamp);
                 $attendance->save();
+
                 DB::commit();
+
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
+                Log::error('Error updating attendance', ['error' => $e->getMessage()]);
                 return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
                 throw $e;
             }
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+    }
 
-        // $validated = $request->validate(['action' => 'required']);
+    public function deleteEmployeeAttendance(Request $request)
+    {
+        //Log::info("AttendanceController::deleteEmployeeAttendance");
+        //Log::info($request);
 
-        // $user = Auth::user();
+        $user = Auth::user();
+        $attendance = AttendanceLogsModel::with('user')->find($request->input('log_id'));
+        $employee = $attendance->user;
 
-        // if ($this->checkUserAdmin() && $validated) {
-        //     $employee = UsersModel::where('client_id', $user->client_id)->where('id', $request->input('employee'))->first();
-        //     try {
-        //         DB::beginTransaction();
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
 
-        //         AttendanceLogsModel::create([
-        //             "user_id" => $employee->id,
-        //             "work_hour_id" => $employee->workShift->work_hour_id,
-        //             "action" => $request->input('action'),
-        //             "timestamp" => $request->input('timestamp'),
-        //             "method" => 1,
-        //         ]);
+                $attendance->delete();
 
-        //         DB::commit();
+                DB::commit();
 
-        //         return response()->json(['status' => 200]);
-        //     } catch (\Exception $e) {
-        //         DB::rollBack();
-
-        //         //Log::error("Error saving: " . $e->getMessage());
-
-        //         throw $e;
-        //     }
-        // }
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error deleting attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Error deleting attendance log'], 500);
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
     }
 
     // Summaries

@@ -19,4 +19,9 @@ class PayslipLeavesModel extends Model
         'amount',
         'is_paid',
     ];
+
+    public function applicationType()
+    {
+        return $this->belongsTo(ApplicationTypesModel::class, 'application_type_id');
+    }
 }
