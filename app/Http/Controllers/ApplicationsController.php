@@ -686,7 +686,7 @@ class ApplicationsController extends Controller
 
     public function getOvertimeApplications()
     {
-        // Log::info("ApplicationsController::saveOvertimeApplication");
+        Log::info("ApplicationsController::saveOvertimeApplication");
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -695,7 +695,7 @@ class ApplicationsController extends Controller
 
             $applications = [];
             foreach ($rawApplications as $app) {
-                $appUser = $app->user;
+                $employee = $app->employee;
                 $timeIn = $app->timeIn;
                 $timeOut = $app->timeOut;
 
@@ -706,7 +706,10 @@ class ApplicationsController extends Controller
                     'reason' => $app->reason ?? '',
                     'requested' => $app->created_at,
                     'status' => $app->status,
-                    'emp_name' => ($appUser->first_name ?? '') . ' ' . ($appUser->middle_name ?? '') . ' ' . ($appUser->last_name ?? '') . ' ' . ($appUser->suffix ?? '')
+                    'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
+                    'emp_branch' => $employee->branch->name,
+                    'emp_department' => $employee->department->name,
+                    'emp_job_title' => $employee->jobTitle->name,
                 ];
             }
             return response()->json(['status' => 200, 'applications' => $applications]);

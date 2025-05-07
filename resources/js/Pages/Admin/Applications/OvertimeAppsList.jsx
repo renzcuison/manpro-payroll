@@ -17,7 +17,7 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
-import OvertimeManage from "./Modals/OvertimeManage";
+import ViewOvertime from "./Modals/ViewOvertime";
 
 const headCells = [
     { id: "time_in", label: "Date", sortable: true },
@@ -37,7 +37,7 @@ const OvertimeAppsList = () => {
     const [orderBy, setOrderBy] = useState("emp_name");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [openOvertimeManage, setOpenOvertimeManage] = useState(false);
+    const [openViewOvertime, setOpenViewOvertime] = useState(false);
     const [loadOvertime, setLoadOvertime] = useState(null);
     const [searchName, setSearchName] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(["Pending", "Approved", "Declined"]);
@@ -75,13 +75,13 @@ const OvertimeAppsList = () => {
         setPage(0);
     };
 
-    const handleOpenOvertimeManage = (overtime) => {
+    const handleOpenViewOvertime = (overtime) => {
         setLoadOvertime(overtime);
-        setOpenOvertimeManage(true);
+        setOpenViewOvertime(true);
     };
 
-    const handleCloseOvertimeManage = (reload) => {
-        setOpenOvertimeManage(false);
+    const handleCloseViewOvertime = (reload) => {
+        setOpenViewOvertime(false);
         if (reload) {
             fetchOvertime();
         }
@@ -159,7 +159,7 @@ const OvertimeAppsList = () => {
                                                     .map((overtime, index) => (
                                                         <TableRow
                                                             key={overtime.application}
-                                                            onClick={() => handleOpenOvertimeManage(overtime)}
+                                                            onClick={() => handleOpenViewOvertime(overtime)}
                                                             sx={{
                                                                 p: 1,
                                                                 backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff",
@@ -214,8 +214,8 @@ const OvertimeAppsList = () => {
                 </Box>
             </Box>
 
-            {openOvertimeManage && (
-                <OvertimeManage open={openOvertimeManage} close={handleCloseOvertimeManage} overtime={loadOvertime} />
+            {openViewOvertime && (
+                <ViewOvertime open={openViewOvertime} close={handleCloseViewOvertime} overtime={loadOvertime} />
             )}
         </Layout>
     );

@@ -29,6 +29,11 @@ class ApplicationsOvertimeModel extends Model
         return $this->belongsTo(UsersModel::class, 'user_id');
     }
 
+    public function employee()
+    {
+        return $this->belongsTo(UsersModel::class, 'user_id');
+    }
+
     public function timeIn()
     {
         return $this->belongsTo(AttendanceLogsModel::class, 'time_in_id');
