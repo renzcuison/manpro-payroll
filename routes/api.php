@@ -15,6 +15,7 @@ use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
+use App\Http\Controllers\SignatoryController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -613,6 +614,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
+
+    Route::get('/signatories', [SignatoryController::class, 'index']);
+    Route::post('/addSignatory', [SignatoryController::class, 'store']);
 });
 
 
@@ -630,6 +634,8 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
+
+
 
 
 require __DIR__ . '/super-admin.php';
