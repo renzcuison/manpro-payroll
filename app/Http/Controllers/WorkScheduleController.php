@@ -171,8 +171,17 @@ class WorkScheduleController extends Controller
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
             $workShifts = WorkShiftsModel::where('client_id', $client->id)->where('deleted_at', null)->get();
+            $workHourIds = WorkShiftsModel::where('client_id', $client->id)
+                ->whereNull('deleted_at')
+                ->pluck('work_hour_id');
 
-            return response()->json(['status' => 200, 'workShifts' => $workShifts]);
+            $workHours_timeframe = WorkHoursModel::whereIn('id', $workHourIds)
+                ->select('shift_type', 'first_time_in', 'first_time_out', 'second_time_in', 'second_time_out', 'break_start', 'break_end', 'over_time_in', 'over_time_out')
+                ->get();
+            
+            // Log::info('This is workhours:', ['workhours time frame' => $workHours_timeframe]);
+
+            return response()->json(['status' => 200, 'workShifts' => $workShifts, 'workHours_timeframe' => $workHours_timeframe]);
         }
 
         return response()->json(['status' => 200, 'workShifts' => null]);
@@ -207,10 +216,11 @@ class WorkScheduleController extends Controller
         if ($this->checkUser()) {
             $workShift = WorkShiftsModel::where('id', $request->selectedShift)->where('client_id', $request->client)->first();
             $workHours = WorkHoursModel::find($workShift->work_hour_id);
+
             return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
         }
 
-        return response()->json(['status' => 200, 'workShifts' => null, 'workHours' => null]);
+        return response()->json(['status' => 200, 'workShift' => null, 'workHours' => null]);
     }
 
     public function saveSplitWorkShift(Request $request)
@@ -369,6 +379,8 @@ class WorkScheduleController extends Controller
 
             $workGroup = WorkGroupsModel::where('id', $request->group)->where('client_id', $client->id)->where('deleted_at', null)->first();
 
+            $workShift = WorkShiftsModel::where('id', $workGroup->work_shift_id)->where('client_id', $client->id)->where('deleted_at', null)->first();
+
             $employees = UsersModel::where('work_group_id', $workGroup->id)
                 ->select('user_name', 'first_name', 'middle_name', 'last_name', 'suffix', 'branch_id', 'department_id', 'role_id', 'job_title_id')
                 ->get()
@@ -394,7 +406,7 @@ class WorkScheduleController extends Controller
                     ];
                 });
 
-            return response()->json(['status' => 200, 'workGroup' => $workGroup, 'employees' => $employees]);
+            return response()->json(['status' => 200, 'workGroup' => $workGroup, 'employees' => $employees, 'workShift_Name' => $workShift]);
         }
 
         return response()->json(['status' => 200, 'workGroup' => null, 'workShift' => null, 'workHours' => null, 'employees' => null]);
