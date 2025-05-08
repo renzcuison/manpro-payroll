@@ -8,6 +8,7 @@ import ClientsAdd from "../Pages/SuperAdmin/Clients/ClientsAdd";
 import ClientsList from "../Pages/SuperAdmin/Clients/ClientsList";
 import Packages from "../Pages/SuperAdmin/Packages";
 import SubscriptionList from "../Pages/SuperAdmin/Subscriptions";
+import AllUsers from "../Pages/SuperAdmin/All Users";
 
 const SuperAdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -44,6 +45,11 @@ const SuperAdminRoutes = ({ user }) => {
                         user={user}
                     />
                 }
+            />
+
+            <Route
+                path="users"
+                element={<ProtectedRoute element={<AllUsers />} user={user} />}
             />
         </Routes>
     );
