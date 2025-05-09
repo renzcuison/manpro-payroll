@@ -257,15 +257,6 @@ class AdminDashboardController extends Controller
                         });
                     }
 
-                    /*
-                    log::info("=============================");
-
-                    log::info("firstTimeIn");
-                    log::info($firstTimeIn->timestamp);
-
-                    log::info("schedule");
-                    log::info(Carbon::parse("$date {$workHours->first_time_in}"));
-                    */
                     $firstAttendance = $firstTimeIn ?: $secondTimeIn;
 
                     if ($firstAttendance->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
@@ -363,10 +354,7 @@ class AdminDashboardController extends Controller
                         ];
                     }
                     return null;
-                })
-                    ->filter()
-                    ->values()
-                    ->all();
+                })->filter()->values()->all();
 
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;
