@@ -9,6 +9,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { useParams } from 'react-router-dom';
 
 const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDetails }) => {
     const navigate = useNavigate();
@@ -42,7 +43,10 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
     const [selectedShiftError, setSelectedShiftError] = useState(false);
     const [selectedShift, setSelectedShift] = useState("");
 
+    const { client } = useParams();
+
     useEffect(() => {
+        console.log("workGroup: "+workGroup)
         axiosInstance.get(`/workshedule/getWorkShifts`, { headers })
             .then((response) => {
                 if ( response.data.status === 200 ) {
@@ -66,45 +70,50 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
         getWorkShift(selectedWorkShift);
     };
 
-    const getWorkShift = (selectedWorkShift) => {
-
-        const data = { shift, selectedWorkShift };
-
+    const getWorkShift = (selectedShift) => {
+        if (!selectedShift) return;
+    
+        const data = { client, selectedShift };
+    
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
+                const { workShift, workHours } = response.data;
+    
+                setShiftName(workShift?.name || '');
 
-                setShiftName(response.data.workShift.name);
-
-                if ( response.data.workShift.shift_type == 'Regular') {
+                console.log("Workshift: " + workShift?.shift_type)
+    
+                if (workShift?.shift_type === 'Regular') {
                     setShiftType("regular");
+                    setFirstLabel(workShift?.first_label || '');
+                    setSecondLabel(workShift?.second_label || '');
+    
+                    setRegularTimeIn(dayjs(workHours?.first_time_in || '00:00:00', 'HH:mm:ss'));
+                    setRegularTimeOut(dayjs(workHours?.first_time_out || '00:00:00', 'HH:mm:ss'));
+                    setBreakStart(dayjs(workHours?.break_start || '00:00:00', 'HH:mm:ss'));
+                    setBreakEnd(dayjs(workHours?.break_end || '00:00:00', 'HH:mm:ss'));
                 } else {
                     setShiftType("split");
-                    setFirstLabel(response.data.workShift.first_label);
-                    setSecondLabel(response.data.workShift.second_label);
-
-                    const firstTimeIn = dayjs(response.data.workHours.first_time_in, 'HH:mm:ss');
-                    const firstTimeOut = dayjs(response.data.workHours.first_time_out, 'HH:mm:ss');
-                    const secondTimeIn = dayjs(response.data.workHours.second_time_in, 'HH:mm:ss');
-                    const secondTimeOut = dayjs(response.data.workHours.second_time_out, 'HH:mm:ss');
-
-                    setSplitFirstTimeIn(firstTimeIn);
-                    setSplitFirstTimeOut(firstTimeOut);
-                    setSplitSecondTimeIn(secondTimeIn);
-                    setSplitSecondTimeOut(secondTimeOut);
+                    setFirstLabel(workShift?.first_label || '');
+                    setSecondLabel(workShift?.second_label || '');
+    
+                    setSplitFirstTimeIn(dayjs(workHours?.first_time_in || '00:00:00', 'HH:mm:ss'));
+                    setSplitFirstTimeOut(dayjs(workHours?.first_time_out || '00:00:00', 'HH:mm:ss'));
+                    setSplitSecondTimeIn(dayjs(workHours?.second_time_in || '00:00:00', 'HH:mm:ss'));
+                    setSplitSecondTimeOut(dayjs(workHours?.second_time_out || '00:00:00', 'HH:mm:ss'));
                 }
-
-                const overTimeIn = dayjs(response.data.workHours.over_time_in, 'HH:mm:ss');
-                const overTimeOut = dayjs(response.data.workHours.over_time_out, 'HH:mm:ss');
-
-                setOverTimeIn(overTimeIn);
-                setOverTimeOut(overTimeOut);
-                
-                setIsLoading(false);
+    
+                setOverTimeIn(dayjs(workHours?.over_time_in || '00:00:00', 'HH:mm:ss'));
+                setOverTimeOut(dayjs(workHours?.over_time_out || '00:00:00', 'HH:mm:ss'));
             })
             .catch((error) => {
                 console.error('Error fetching work shifts:', error);
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-    }
+    };
+    
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -226,7 +235,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                             <>
                                 {shiftType === "regular" && (
                                     <>
-                                        <Typography>Work Hours</Typography>
+                                        <Typography>Work</Typography>
                                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                             '& label.Mui-focused': {color: '#97a5ba'},
                                             '& .MuiOutlinedInput-root': {
@@ -241,7 +250,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                                 <TextField
                                                     required
                                                     id="firstLabel"
-                                                    label="First Label"
+                                                    label=""
                                                     variant="outlined"
                                                     value="Attendance"
                                                     InputProps={{ readOnly: true }}
@@ -299,7 +308,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                                 <TextField
                                                     required
                                                     id="breakTimeLabel"
-                                                    label="Break Time"
+                                                    label=""
                                                     variant="outlined"
                                                     value="Break Time"
                                                     InputProps={{ readOnly: true }}
@@ -361,7 +370,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                             }}>
                                                 <TextField
                                                     id="firstLabel"
-                                                    label="First Label"
+                                                    label=""
                                                     variant="outlined"
                                                     value={firstLabel}
                                                     InputProps={{ readOnly: true }}
@@ -419,7 +428,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                                 <TextField
                                                     required
                                                     id="secondLabel"
-                                                    label="Second Label"
+                                                    label="Label"
                                                     variant="outlined"
                                                     value={secondLabel}
                                                     InputProps={{ readOnly: true }}
@@ -478,7 +487,7 @@ const AssignShift = ({ open, close, currentShift, workGroup, onUpdateWorkGroupDe
                                     }}>
                                         <TextField
                                             id="overTimeLabel"
-                                            label="Over Time"
+                                            label=""
                                             variant="outlined"
                                             value="Over Time"
                                             InputProps={{ readOnly: true }}
