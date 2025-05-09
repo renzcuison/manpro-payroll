@@ -339,9 +339,9 @@ const Sidebar = ({ children, closeMini }) => {
                         <div className="sidebar-mini-hidden-b text-center">
                             <Box display="flex" flexDirection="column" alignItems="center" >
                                 <Avatar
-                                    src={ user.media[0] ? user.media?.[0]?.original_url : imagePath }
-                                    alt={`${user.first_name} ${user.last_name}`}
-                                    sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" }, }}
+                                    src={user?.media?.[0]?.original_url || imagePath}
+                                    alt={`${user?.first_name || ''} ${user?.last_name || ''}`}
+                                    sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" } }}
                                 />
                                 <ul className="list-inline mt-10">
                                     <li className="list-inline-item">
@@ -354,7 +354,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </Box>
                         </div>
                     </div>
-
+                    
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             {user.user_type === "Admin" ? (
