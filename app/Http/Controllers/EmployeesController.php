@@ -141,7 +141,10 @@ class EmployeesController extends Controller
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
-            $employees = $user->company->users;
+            // $employees = $user->company->users;
+
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
 
             $enrichedEmployees = $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
