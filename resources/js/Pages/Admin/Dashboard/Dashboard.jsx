@@ -29,7 +29,7 @@ import { Pie } from "react-chartjs-2";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import Typewriter from "../../../components/Typewriter";
+
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
@@ -70,28 +70,7 @@ const Dashboard = () => {
         axiosInstance
             .get(`adminDashboard/getDashboardData`, { headers })
             .then((response) => {
-                setAdminName(response.data.admin_name);
 
-                setHeadCount(response.data.counter.head_count);
-                setApplicationCount(response.data.counter.application_count);
-                setAnnouncementCount(response.data.counter.announcement_count);
-                setTrainingCount(response.data.counter.training_count);
-
-                setPresentCount(response.data.attendance.present_count);
-                setOnLeaveCount(response.data.attendance.onleave_count);
-
-                const brNames = {};
-                const brCount = {};
-                for (const [branchId, branch] of Object.entries(
-                    response.data.branches
-                )) {
-                    brNames[branchId] = branch.name;
-                    brCount[branchId] = branch.employees || 0;
-                }
-                setBranchNames(brNames);
-                setBranchCount(brCount);
-
-                setSalaryRange(response.data.salary_range);
             });
     };
 
