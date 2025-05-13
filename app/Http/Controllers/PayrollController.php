@@ -577,9 +577,7 @@ class PayrollController extends Controller
             // Log::info($log);
         // }
 
-        Log::info($holidayPay);
-        Log::info($holidayOTPay);
-        return $holidayPay;
+        return [ 'holidayPay' => $holidayPay, 'holidayOTPay' => $holidayOTPay, 'holidayOTMins' => $overtime ];
     }
 
     public function payrollDetails(Request $request)
@@ -703,8 +701,6 @@ class PayrollController extends Controller
 
         $absents = $perDay * $numberOfAbsentDays;
 
-        $holidayPay = $this->calculateHolidayPay($logs, $perMin);
-
         // ============== LEAVES ==============
         $paidLeaves = [];
         $unpaidLeaves = [];
@@ -744,12 +740,17 @@ class PayrollController extends Controller
 
         $basicPay = $perCutOff - $leaveEarnings;
         $overTimePay = ($perMin * 1.25) * $totalOvertime;
-        $holidayPay = 0;
+
+        $holidayPays = $this->calculateHolidayPay($logs, $perMin);
+        $holidayPay = $holidayPays['holidayPay'];
+        $holidayOTPay = $holidayPays['holidayOTPay'];
+        $holidayOTMins = $holidayPays['holidayOTMins'];
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} mins)", 'amount' => $overTimePay],
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
+            ['earning' => '4', 'name' => "Holiday OT Pay ({$holidayOTMins} mins)", 'amount' => $holidayOTPay],
         ];
 
         $tardiness = 0;
