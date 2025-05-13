@@ -145,6 +145,10 @@ class EmployeesController extends Controller
 
             $client = ClientsModel::find($user->client_id);
             $employees = $client->employees;
+            // $employees = $user->company->users;
+
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
 
            $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
