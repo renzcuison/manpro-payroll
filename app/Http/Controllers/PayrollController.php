@@ -328,6 +328,55 @@ class PayrollController extends Controller
         return $incomeTax;
     }
 
+    public function calculateHolidayPay($logs)
+    {
+        // Log::info("PayrollController::calculateHolidayPay");
+
+        $holidayLogs = [];
+        $holidays = [
+            ['name' => 'New Year’s Day', 'date' => '2025-01-01'],
+            ['name' => 'Maundy Thursday', 'date' => '2025-04-17'],
+            ['name' => 'Good Friday', 'date' => '2025-04-18'],
+            ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
+            ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Independence Day', 'date' => '2025-06-12'],
+            ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
+            ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
+            ['name' => 'Christmas Day', 'date' => '2025-12-25'],
+            ['name' => 'Rizal Day', 'date' => '2025-12-30'],
+            ['name' => 'Chinese New Year', 'date' => '2025-01-29'],
+            ['name' => 'EDSA People Power Revolution Anniversary', 'date' => '2025-02-25'],
+            ['name' => 'Black Saturday', 'date' => '2025-04-19'],
+            ['name' => 'Ninoy Aquino Day', 'date' => '2025-08-21'],
+            ['name' => 'All Saints’ Day', 'date' => '2025-11-01'],
+            ['name' => 'Feast of the Immaculate Conception of Mary', 'date' => '2025-12-08'],
+            ['name' => 'Christmas Eve', 'date' => '2025-12-24'],
+            ['name' => 'New Year’s Eve', 'date' => '2025-12-31'],
+            ['name' => 'Eid’l Fitr', 'date' => '2025-03-31'],
+            ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
+        ];
+
+        foreach ($logs as $log) {
+            $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
+
+            foreach ($holidays as $holiday) {
+                if ($logDate === $holiday['date']) {
+                    $holidayLog = (object) $log;
+                    $holidayLogs[] = $holidayLog;
+                    break;
+                }
+            }
+        }
+
+        $distinctDays = collect($holidayLogs)->groupBy(function ($log) {
+            return Carbon::parse($log->timestamp)->toDateString();
+        });
+
+        foreach ($distinctDays as $log) {
+            Log::info($log);
+        }
+    }
+
     public function payrollDetails(Request $request)
     {
         // log::info("PayrollController::payrollDetails");
@@ -380,6 +429,8 @@ class PayrollController extends Controller
         $distinctDays = $logs->groupBy(function ($log) {
             return Carbon::parse($log->timestamp)->toDateString();
         });
+
+        $holidayPay = $this->calculateHolidayPay($logs);
 
         $numberOfPresent = $distinctDays->count();
 
@@ -488,7 +539,6 @@ class PayrollController extends Controller
 
         $basicPay = $perCutOff - $leaveEarnings;
         $overTimePay = ($perHour * 1.25) * $totalOvertime;
-        $holidayPay = 0;
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
@@ -1072,7 +1122,6 @@ class PayrollController extends Controller
     
         return $totalOvertimeHours;
     }
-    
     
     public function storeSignature(Request $request, $id)
     {
