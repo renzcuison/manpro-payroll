@@ -71,8 +71,11 @@ class PayrollController extends Controller
         $numberOfHolidayWeekday = 0;
 
         // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
+        // $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
         // $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
+
+        $holidays = $this->getHolidaysWeekdays($startDate->year, $endDate->year);
+
 
         $currentDate = $startDate->copy();
 
@@ -102,6 +105,117 @@ class PayrollController extends Controller
             'numberOfHoliday' => $numberOfHoliday,
         ];
     }
+
+    public function getHolidaysWeekdays($startYear, $endYear)
+    {
+        $holidays = [
+            [
+                "date" => "2025-01-01",
+                "localName" => "Bagong Taon",
+                "name" => "New Year's Day",
+            ],
+            [
+                "date" => "2025-01-29",
+                "localName" => "Chinese New Year",
+                "name" => "Chinese New Year",
+            ],
+            [
+                "date" => "2025-04-01",
+                "localName" => "Eid’l Fitr",
+                "name" => "Feast of Ramadhan",
+            ],
+            [
+                "date" => "2025-04-09",
+                "localName" => "Araw ng Kagitingan",
+                "name" => "Day of Valor",
+            ],
+            [
+                "date" => "2025-04-17",
+                "localName" => "Huwebes Santo",
+                "name" => "Maundy Thursday",
+            ],
+            [
+                "date" => "2025-04-18",
+                "localName" => "Biyernes Santo",
+                "name" => "Good Friday",
+            ],
+            [
+                "date" => "2025-04-19",
+                "localName" => "Sabado de Gloria",
+                "name" => "Holy Saturday",
+            ],
+            [
+                "date" => "2025-05-01",
+                "localName" => "Araw ng Paggawa",
+                "name" => "Labor Day",
+            ],
+            [
+                "date" => "2025-05-12",
+                "localName" => "Araw ng Eleksyon",
+                "name" => "Election Day",
+            ],
+            [
+                "date" => "2025-06-12",
+                "localName" => "Araw ng Kalayaan",
+                "name" => "Independence Day",
+            ],
+            [
+                "date" => "2025-08-21",
+                "localName" => 'Araw ng Kamatayan ni Senador Benigno Simeon "Ninoy" Aquino Jr.',
+                "name" => "Ninoy Aquino Day",
+            ],
+            [
+                "date" => "2025-08-25",
+                "localName" => "Araw ng mga Bayani",
+                "name" => "National Heroes Day",
+            ],
+            [
+                "date" => "2025-10-31",
+                "localName" => "All Saints' Day Eve",
+                "name" => "All Saints' Day Eve",
+            ],
+            [
+                "date" => "2025-11-01",
+                "localName" => "Araw ng mga Santo",
+                "name" => "All Saints' Day",
+            ],
+            [
+                "date" => "2025-11-30",
+                "localName" => "Araw ni Gat Andres Bonifacio",
+                "name" => "Bonifacio Day",
+            ],
+            [
+                "date" => "2025-12-08",
+                "localName" => "Kapistahan ng Immaculada Concepcion",
+                "name" => "Feast of the Immaculate Conception of Mary",
+            ],
+            [
+                "date" => "2025-12-24",
+                "localName" => "Christmas Eve",
+                "name" => "Christmas Eve",
+            ],
+            [
+                "date" => "2025-12-25",
+                "localName" => "Araw ng Pasko",
+                "name" => "Christmas Day",
+            ],
+            [
+                "date" => "2025-12-30",
+                "localName" => "Araw ng Kamatayan ni Dr. Jose Rizal",
+                "name" => "Rizal Day",
+            ],
+            [
+                "date" => "2025-12-31",
+                "localName" => "Huling Araw ng Taon",
+                "name" => "Last Day of The Year",
+            ],
+        ];
+
+        return collect($holidays)->filter(function ($holiday) {
+            return Carbon::parse($holiday['date'])->isWeekday();
+        })->pluck('date')->toArray();
+    }
+
 
     public function getNagerHolidays($startYear, $endYear)
     {
