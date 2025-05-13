@@ -17,6 +17,7 @@ class WorkGroupsModel extends Model
         'name',
 
         'work_shift_id',
+        'rounded_perimeter_id',
         'client_id',
         'deleted_at',
     ];
@@ -24,5 +25,9 @@ class WorkGroupsModel extends Model
     public function shift()
     {
         return $this->belongsTo(WorkShiftsModel::class, 'work_shift_id');
+    }
+    public function roundedPerimeter()
+    {
+        return $this->belongsTo(RoundedPerimeterModel::class, 'rounded_perimeter_id');
     }
 }
