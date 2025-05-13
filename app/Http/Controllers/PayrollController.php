@@ -442,6 +442,146 @@ class PayrollController extends Controller
         return $incomeTax;
     }
 
+    public function calculateHolidayPay($logs, $perMin)
+    {
+        // Log::info("PayrollController::calculateHolidayPay");
+
+        $holidayLogs = [];
+        $holidays = [
+            ['name' => 'New Year’s Day', 'date' => '2025-01-01'],
+            ['name' => 'Maundy Thursday', 'date' => '2025-04-17'],
+            ['name' => 'Good Friday', 'date' => '2025-04-18'],
+            ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
+            ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Independence Day', 'date' => '2025-06-12'],
+            ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
+            ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
+            ['name' => 'Christmas Day', 'date' => '2025-12-25'],
+            ['name' => 'Rizal Day', 'date' => '2025-12-30'],
+            ['name' => 'Chinese New Year', 'date' => '2025-01-29'],
+            ['name' => 'EDSA People Power Revolution Anniversary', 'date' => '2025-02-25'],
+            ['name' => 'Black Saturday', 'date' => '2025-04-19'],
+            ['name' => 'Ninoy Aquino Day', 'date' => '2025-08-21'],
+            ['name' => 'All Saints’ Day', 'date' => '2025-11-01'],
+            ['name' => 'Feast of the Immaculate Conception of Mary', 'date' => '2025-12-08'],
+            ['name' => 'Christmas Eve', 'date' => '2025-12-24'],
+            ['name' => 'New Year’s Eve', 'date' => '2025-12-31'],
+            ['name' => 'Eid’l Fitr', 'date' => '2025-03-31'],
+            ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
+        ];
+
+        
+        foreach ($logs as $log) {
+            $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
+
+            foreach ($holidays as $holiday) {
+                if ($logDate === $holiday['date']) {
+                    $holidayLog = (object) $log;
+                    $holidayLogs[] = $holidayLog;
+                    break;
+                }
+            }
+        }
+
+        $timeIn = "";
+        $timeOut = "";
+        $overTimeIn = "";
+        $overTimeOut = "";
+
+        $morning = 0;
+        $afternoon = 0;
+        $overtime = 0;
+        
+        foreach ($holidayLogs as $log) {
+            switch ($log->action) {
+                case 'Duty In':
+                    $timeIn = $log->timestamp;
+                    break;
+
+                case 'Duty Out':
+                    $timeOut = $log->timestamp;
+                    break;
+
+                case 'Overtime In':
+                    $overTimeIn = $log->timestamp;
+                    break;
+
+                case 'Overtime Out':
+                    $overTimeOut = $log->timestamp;
+                    break;
+            }
+        }
+
+        // Log::info("Time In: " . $timeIn);
+        // Log::info("Time Out: " . $timeOut);
+        // Log::info("Overtime In: " . $overTimeIn);
+        // Log::info("Overtime Out: " . $overTimeOut);
+
+        if ($timeIn && $timeOut) {
+            $timeInCarbon = Carbon::parse($timeIn);
+            $timeOutCarbon = Carbon::parse($timeOut);
+
+            $morningStart = $timeInCarbon->copy()->setTime(8, 30);
+            $morningEnd   = $timeInCarbon->copy()->setTime(12, 0);
+
+            $afternoonStart = $timeInCarbon->copy()->setTime(13, 0);
+            $afternoonEnd   = $timeInCarbon->copy()->setTime(17, 30);
+
+            $actualStart = $timeInCarbon->greaterThan($morningStart) ? $timeInCarbon : $morningStart;
+            $actualEnd = $timeOutCarbon->lessThan($morningEnd) ? $timeOutCarbon : $morningEnd;
+            if ($actualStart < $actualEnd) {
+                $morning = $actualStart->diffInMinutes($actualEnd);
+            }
+
+            $actualStart = $timeInCarbon->greaterThan($afternoonStart) ? $timeInCarbon : $afternoonStart;
+            $actualEnd = $timeOutCarbon->lessThan($afternoonEnd) ? $timeOutCarbon : $afternoonEnd;
+            if ($actualStart < $actualEnd) {
+                $afternoon = $actualStart->diffInMinutes($actualEnd);
+            }
+        }
+
+        if ($overTimeIn && $overTimeOut) {
+            $overtimeInCarbon = Carbon::parse($overTimeIn);
+            $overtimeOutCarbon = Carbon::parse($overTimeOut);
+
+            $overtimeStart = $overtimeInCarbon->copy()->setTime(17, 30);
+            $overtimeEnd   = $overtimeInCarbon->copy()->setTime(22, 0);
+
+            $actualStart = $overtimeInCarbon->greaterThan($overtimeStart) ? $overtimeInCarbon : $overtimeStart;
+            $actualEnd = $overtimeOutCarbon->lessThan($overtimeEnd) ? $overtimeOutCarbon : $overtimeEnd;
+
+            if ($actualStart < $actualEnd) {
+                $overtime = $actualStart->diffInMinutes($actualEnd);
+            }
+        }
+
+        $totalMinutes = $morning + $afternoon;
+
+        
+        Log::info("Total rendered minutes: $totalMinutes");
+        Log::info("Per Minute: $perMin");
+
+        $holidayPay = $totalMinutes * $perMin;
+        $holidayOTPay = $overtime * $perMin * 2 * 1.3;
+
+
+        Log::info("Overtime rendered minutes: $overtime");
+
+
+
+        // $distinctDays = collect($holidayLogs)->groupBy(function ($log) {
+        //     return Carbon::parse($log->timestamp)->toDateString();
+        // });
+
+        // foreach ($distinctDays as $log) {
+            // Log::info($log);
+        // }
+
+        Log::info($holidayPay);
+        Log::info($holidayOTPay);
+        return $holidayPay;
+    }
+
     public function payrollDetails(Request $request)
     {
         // log::info("PayrollController::payrollDetails");
@@ -505,16 +645,16 @@ class PayrollController extends Controller
         $numberOfHoliday = $payrollData['numberOfHoliday'];
 
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
-        $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+        $numberOfAbsentDays = max(0, $numberOfWorkingDays - $numberOfPresent);
 
-        // log::info("===========================");
-        // log::info("numberOfDays         : " . $numberOfDays);
-        // log::info("numberOfSaturday     : " . $numberOfSaturday);
-        // log::info("numberOfSunday       : " . $numberOfSunday);
-        // log::info("numberOfHoliday      : " . $numberOfHoliday);
-        // log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
-        // log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
-        // log::info("===========================");
+        log::info("===========================");
+        log::info("numberOfDays         : " . $numberOfDays);
+        log::info("numberOfSaturday     : " . $numberOfSaturday);
+        log::info("numberOfSunday       : " . $numberOfSunday);
+        log::info("numberOfHoliday      : " . $numberOfHoliday);
+        log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
+        log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
+        log::info("===========================");
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -562,6 +702,8 @@ class PayrollController extends Controller
         $perMin = $perHour / 60;
 
         $absents = $perDay * $numberOfAbsentDays;
+
+        $holidayPay = $this->calculateHolidayPay($logs, $perMin);
 
         // ============== LEAVES ==============
         $paidLeaves = [];
@@ -1186,7 +1328,6 @@ class PayrollController extends Controller
     
         return $totalOvertimeMinutes;
     }
-    
     
     public function storeSignature(Request $request, $id)
     {

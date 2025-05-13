@@ -399,7 +399,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         id="startDate"
-                                        label="Start Date"
+                                        label="Date Hired"
                                         value={startDate}
                                         onChange={(newValue) => {
                                             setStartDate(newValue);
@@ -427,7 +427,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                     <MenuItem key="Probationary" value="Probationary"> Probationary </MenuItem>
                                     <MenuItem key="Regular" value="Regular"> Regular </MenuItem>
                                     <MenuItem key="Part-Time" value="Part-Time"> Part-Time </MenuItem>
-                                    <MenuItem key="Full-Time" value="Full-Time"> Full-Time </MenuItem>
+                                    <MenuItem key="Resigned" value="Resigned"> Resigned </MenuItem>
                                 </TextField>
                             </FormControl>
 
@@ -442,8 +442,8 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                     onChange={(event) => setSelectedStatus(event.target.value)}
                                 >
                                     <MenuItem key="Active" value="Active"> Active </MenuItem>
-                                    <MenuItem key="Resigned" value="Resigned"> Resigned </MenuItem>
-                                    <MenuItem key="Terminated" value="Terminated"> Terminated </MenuItem>
+                                    <MenuItem key="Suspended" value="Suspended"> Suspended </MenuItem>
+                                    <MenuItem key="Inactive" value="Inactive"> Inactive </MenuItem>
                                 </TextField>
                             </FormControl>
 
