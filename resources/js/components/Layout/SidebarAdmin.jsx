@@ -354,7 +354,7 @@ const Sidebar = ({ children, closeMini }) => {
                             >
                                 <Avatar
                                     src={
-                                        user.media[0]
+                                        user.media?.[0]
                                             ? user.media?.[0]?.original_url
                                             : imagePath
                                     }

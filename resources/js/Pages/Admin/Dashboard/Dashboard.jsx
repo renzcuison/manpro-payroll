@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
@@ -18,6 +18,19 @@ import {
     Divider,
     FormControl,
     TextField,
+    Stack,
+    Grid,
+    useMediaQuery,
+    useTheme,
+    Paper,
+    IconButton,
+    List,
+    ListItem,
+    ListItemAvatar,
+    ListItemText,
+    Tabs,
+    Tab,
+    Chip,
 } from "@mui/material";
 
 import { Chart as ChartJS } from "chart.js/auto";
@@ -29,13 +42,74 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import Typewriter from "../../../components/Typewriter";
+import {
+    Calendar,
+    CalendarCheck,
+    CalendarCheck2Icon,
+    CalendarMinus,
+    CalendarPlus,
+    Check,
+    Clock,
+    MoreVertical,
+    Users,
+    UsersIcon,
+} from "lucide-react";
+import { CloseRounded } from "@mui/icons-material";
+import { useUsers } from "../../SuperAdmin/hooks/useUsers";
+import moment from "moment";
+import {
+    PiCalendar,
+    PiCalendarFill,
+    PiCalendarHeart,
+    PiCalendarStar,
+} from "react-icons/pi";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
+
+const events = [
+    {
+        title: "Labor Day",
+        type: "holiday",
+        description: "Happy New Year!",
+        startTime: "2022-01-01T00:00:00.000Z",
+        endTime: "2022-01-01T23:59:59.999Z",
+        color: "#FF69B4",
+    },
+
+    {
+        title: "Monthly Business Review",
+        type: "schedule",
+        description: "This is event 1",
+        startTime: "2022-01-02T10:00:00.000Z",
+        endTime: "2022-01-02T11:00:00.000Z",
+        color: "#FF69B4",
+    },
+    {
+        title: "Department Reporting",
+        type: "schedule",
+        description: "This is event 2",
+        startTime: "2022-01-02T12:00:00.000Z",
+        endTime: "2022-01-02T13:00:00.000Z",
+        color: "#FF69B4",
+    },
+    {
+        title: "Election Day",
+        type: "holiday",
+        description: "Happy New Year!",
+        startTime: "2025-05-12T00:00:00.000Z",
+        endTime: "2025-05-12T23:59:59.999Z",
+        color: "#FF69B4",
+    },
+];
 
 const Dashboard = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const [value, setValue] = useState("one");
 
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
     const chartRef = useRef(null);
 
     const [adminName, setAdminName] = useState("Admin");
@@ -60,6 +134,66 @@ const Dashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [attendanceLoading, setAttendanceLoading] = useState(true);
+
+    const { data, isFetched } = useUsers();
+
+    const latestEmployees = useMemo(() => {
+        if (data) {
+            return data
+                .filter((user) => user.department_id !== null)
+                .slice(0, 3);
+        }
+    }, [data, isFetched]);
+
+    const branches = useMemo(() => {
+        if (data) {
+            const groupedData = data
+                .filter(
+                    (user) =>
+                        user.department_id !== null && user.branch !== null
+                )
+                .reduce((group, user) => {
+                    const branch = user.branch;
+                    if (!group[branch.name]) {
+                        group[branch.name] = [];
+                    }
+                    group[branch.name].push(user);
+                    return group;
+                }, {});
+
+            return Object.entries(groupedData).map(([branch, users]) => ({
+                branch,
+                users,
+            }));
+        }
+    }, [data, isFetched]);
+
+    const departments = useMemo(() => {
+        if (data) {
+            const groupedData = data
+                .filter(
+                    (user) =>
+                        user.department_id !== null && user.branch !== null
+                )
+                .reduce((group, user) => {
+                    const department = user.department;
+                    if (!group[department.name]) {
+                        group[department.name] = [];
+                    }
+                    group[department.name].push(user);
+                    return group;
+                }, {});
+
+            return Object.entries(groupedData).map(([department, users]) => ({
+                department,
+                users,
+            }));
+        }
+    }, [data, isFetched]);
+
+    console.log("latestEmployees: ", latestEmployees);
+
+    const theme = useTheme();
 
     useEffect(() => {
         getDashboardData();
@@ -212,8 +346,6 @@ const Dashboard = () => {
         },
     };
 
-    // Attendance Name Filter
-
     // Attendance Pagination Controls
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -302,34 +434,97 @@ const Dashboard = () => {
         };
     }, []);
 
+    const infoCardsData = [
+        {
+            title: "Total Employees",
+            value: 143,
+            icon: <Users size={42} />,
+        },
+        {
+            title: "Present",
+            value: 90,
+            icon: <Check size={42} />,
+        },
+        {
+            title: "Late",
+            value: 13,
+            icon: <Clock size={42} />,
+        },
+        {
+            title: "On Leave",
+            value: 13,
+            icon: <CalendarCheck size={42} />,
+        },
+        {
+            title: "Absent",
+            value: 53,
+            icon: <CalendarMinus size={42} />,
+        },
+    ];
+
+    const medScreen = useMediaQuery(theme.breakpoints.up("md"));
+    const xlScreen = useMediaQuery(theme.breakpoints.up("xl"));
+
     return (
         <Layout>
-            <Box sx={{ mx: 12 }}>
-                <Box
-                    display="flex"
-                    sx={{
-                        width: "100%",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
+            <Grid container spacing={3} sx={{ mb: 5 }}>
+                <Grid
+                    size={{ xs: 12, lg: 9 }}
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
                     <Box
-                        display="flex"
+                        component={Stack}
                         sx={{
-                            flexDirection: "column",
-                            alignItems: "flex-start",
+                            background:
+                                "linear-gradient(to right bottom, #2e7d32, #e9ab13b3)",
+                            p: 5,
+                            borderRadius: 5,
                         }}
+                        spacing={2}
                     >
                         <Typography
                             variant="h5"
-                            sx={{ fontWeight: "bold", color: "#177604" }}
+                            sx={{
+                                color: "primary.contrastText",
+                            }}
                         >
-                            Welcome{" "}
-                            <Typewriter text={adminName} delay={300} infinite />
+                            Welcome{", "}
+                            <Box
+                                component={"span"}
+                                sx={{
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                <Typewriter
+                                    text={adminName}
+                                    delay={300}
+                                    infinite
+                                />
+                            </Box>
                         </Typography>
-                        <Typography variant="h6">Dashboard</Typography>
-                    </Box>
-                    <Box
+
+                        <Stack>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    color: "#d1d1d1",
+                                    fontStyle: "italic",
+                                }}
+                            >
+                                Qoute of the day:
+                            </Typography>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: "primary.contrastText",
+                                    fontWeight: 600,
+                                    fontFamily: "revert",
+                                }}
+                            >
+                                "Focus on being productive instead of busy."
+                            </Typography>
+                        </Stack>
+                        {/* <Box
                         display="flex"
                         sx={{ flexDirection: "column", alignItems: "center" }}
                     >
@@ -344,640 +539,504 @@ const Dashboard = () => {
                         >
                             {dayjs().format("MMMM DD, YYYY")}
                         </Typography>
+                    </Box> */}
                     </Box>
-                </Box>
-                <Divider />
-                <div className="row g-2" style={{ marginTop: 25 }}>
-                    {/* Data Counts */}
-                    <div className="col-lg-9 col-sm-12">
-                        {/* First Data Row */}
-                        <div className="row g-2">
-                            {/* Head Count */}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to="/admin/employees"
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {headCount ? headCount : 0}{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Head Count{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Application Count*/}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to={"/admin/applications"}
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {applicationCount
-                                                    ? applicationCount
-                                                    : 0}{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Applications{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Announcement Count */}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to={"/admin/announcements"}
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {announcementCount
-                                                    ? announcementCount
-                                                    : 0}{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Announcements{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Second Data Row*/}
-                        <div className="row g-2" style={{ marginTop: 25 }}>
-                            {/* Trainings */}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to={"/hr/trainings"}
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {trainingCount
-                                                    ? trainingCount
-                                                    : 0}{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Trainings{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Average Age */}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to={`/hr/employees`}
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {averageAge
-                                                    ? averageAge
-                                                    : 0}{" "}
-                                                years{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Average Employee Age{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Average Tenureship */}
-                            <div className="col-lg-4 col-sm-12">
-                                <div
-                                    className="block"
-                                    style={{
-                                        backgroundColor: "white",
-                                        boxShadow:
-                                            "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                        height: "165px",
-                                        borderLeft: "4px solid #2a800f",
-                                        paddingLeft: "12px",
-                                    }}
-                                >
-                                    <div className="block-content block-content-full">
-                                        <Link
-                                            to={`/hr/employees`}
-                                            style={{ color: "#777777" }}
-                                        >
-                                            <div
-                                                className="font-size-h2 font-w600"
-                                                style={{ paddingTop: 13 }}
-                                            >
-                                                {" "}
-                                                {averageTenure
-                                                    ? averageTenure
-                                                    : 0}{" "}
-                                                years{" "}
-                                            </div>
-                                            <div className="font-size-h5 font-w600">
-                                                {" "}
-                                                Average Employee Tenure{" "}
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Attendance Pie */}
-                    <div className="col-lg-3 col-sm-12">
-                        <div
-                            className="block"
-                            style={{
-                                backgroundColor: "white",
-                                boxShadow:
-                                    "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                            }}
-                        >
-                            <div className="block-header">
-                                <h5 className="block-title">
-                                    Employee Attendance
-                                </h5>
-                            </div>
-                            <div
-                                className="block-content block-content-full"
-                                style={{
-                                    minHeight: "300px",
-                                    overflowY: "auto",
+                    <Stack direction={medScreen ? "row" : "column"} spacing={2}>
+                        {infoCardsData.map((info, index) => (
+                            <Paper
+                                sx={{
+                                    p: 2,
+                                    width: "100%",
+                                    borderRadius: 3,
+                                    textDecoration: "none",
+                                    transition: "background-color 0.3s ease",
+                                    "&:hover": {
+                                        backgroundColor: "#d1d1d1",
+                                        color: "primary.contrastText",
+                                    },
                                 }}
+                                key={index}
                             >
-                                <Doughnut
-                                    key={`attendance-${presentCount}-${onLeaveCount}-${headCount}`}
-                                    data={attendancePieChart}
-                                    options={attendancePieOptions}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* Chart Row */}
-                <div className="row" style={{ marginTop: 25 }}>
-                    {/* Branch Chart */}
-                    <div
-                        className="col-lg-7 col-sm-12"
-                        style={{ marginBottom: 30 }}
-                    >
-                        <div
-                            className="block"
-                            style={{
-                                backgroundColor: "white",
-                                boxShadow:
-                                    "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                            }}
-                        >
-                            <div className="block-header">
-                                <h5 className="block-title">
-                                    Employee Count by Branch
-                                </h5>
-                            </div>
-                            <div
-                                className="block-content block-content-full"
-                                style={{
-                                    minHeight: "300px",
-                                    overflowY: "auto",
-                                }}
-                            >
-                                <Bar
-                                    key={`branch-${Object.values(
-                                        branchCount
-                                    ).join(",")}`}
-                                    data={branchBarChart}
-                                    options={branchBarOptions}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{ color: "#8a8a8a", fontWeight: 600 }}
+                                >
+                                    {info.title}
+                                </Typography>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Typography
+                                        variant="h3"
+                                        sx={{
+                                            color: "#4d4d4d",
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        {info.value}
+                                    </Typography>
 
-                    {/* Salary Chart */}
-                    <div
-                        className="col-lg-5 col-sm-12"
-                        style={{ marginBottom: 30 }}
-                    >
-                        <div
-                            className="block"
-                            style={{
-                                backgroundColor: "white",
-                                boxShadow:
-                                    "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                            }}
-                        >
-                            <div className="block-header">
-                                <h5 className="block-title">
-                                    Employee Count by Salary Range
-                                </h5>
-                            </div>
-                            <div
-                                className="block-content block-content-full"
-                                style={{
-                                    minHeight: "300px",
-                                    overflowY: "auto",
-                                }}
-                            >
-                                <Pie
-                                    key={`salary-${salaryRange.join(",")}`}
-                                    data={salaryPieChart}
-                                    options={salaryPieOptions}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* Attendance */}
-                <div className="row">
-                    <div
-                        className="col-lg-12 col-sm-12"
-                        style={{ marginBottom: 10 }}
-                    >
-                        <Box
+                                    <Typography
+                                        variant="h3"
+                                        sx={{
+                                            color: "primary.light",
+                                        }}
+                                    >
+                                        {info.icon}
+                                    </Typography>
+                                </Box>
+                            </Paper>
+                        ))}
+                    </Stack>
+
+                    <Stack direction={xlScreen ? "row" : "column"} spacing={2}>
+                        <Paper
                             sx={{
                                 p: 3,
-                                backgroundColor: "white",
-                                boxShadow:
-                                    "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-                                borderRadius: "10px",
+                                borderRadius: 3,
+                                width: "100%",
+                                display: "flex",
+                                flexDirection: "column",
                             }}
                         >
                             <Box
-                                display="flex"
                                 sx={{
-                                    width: "100%",
+                                    display: "flex",
+                                    flexDirection: "row",
                                     justifyContent: "space-between",
                                     alignItems: "center",
                                 }}
                             >
-                                <h5 className="block-title">Today</h5>
-                                <Box
-                                    sx={{
-                                        borderBottom: 1,
-                                        borderColor: "divider",
-                                    }}
+                                <Typography
+                                    variant="h6"
+                                    sx={{ color: "#4d4d4d", fontWeight: 600 }}
                                 >
-                                    <FormControl
-                                        sx={{
-                                            width: "100%",
-                                            "& label.Mui-focused": {
-                                                color: "#97a5ba",
-                                            },
-                                            "& .MuiOutlinedInput-root": {
-                                                "&.Mui-focused fieldset": {
-                                                    borderColor: "#97a5ba",
-                                                },
-                                            },
-                                        }}
+                                    New Employees
+                                </Typography>
+                                <IconButton>
+                                    <MoreVertical />
+                                </IconButton>
+                            </Box>
+                            <List
+                                sx={{
+                                    bgcolor: "background.paper",
+                                }}
+                            >
+                                {latestEmployees?.map((emp, index) => (
+                                    <React.Fragment>
+                                        <ListItem
+                                            alignItems="flex-start"
+                                            secondaryAction={
+                                                <>
+                                                    <Typography variant="caption">
+                                                        Joined
+                                                    </Typography>
+                                                    <Typography>
+                                                        {moment(
+                                                            emp.created_at
+                                                        ).format(
+                                                            "MMM. DD, YYYY"
+                                                        )}
+                                                    </Typography>
+                                                </>
+                                            }
+                                            sx={{ px: 0 }}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    alt="Remy Sharp"
+                                                    src={
+                                                        emp.media
+                                                            ? emp.media?.[0]
+                                                                  .original_url
+                                                            : ""
+                                                    }
+                                                />
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{ fontWeight: 600 }}
+                                                    >
+                                                        {emp.first_name}{" "}
+                                                        {emp.last_name}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "text.primary",
+                                                                display:
+                                                                    "inline",
+                                                            }}
+                                                        >
+                                                            {emp.job_title.name}
+                                                        </Typography>
+                                                    </React.Fragment>
+                                                }
+                                            />
+                                        </ListItem>
+                                        <Divider
+                                            variant="inset"
+                                            component="li"
+                                        />
+                                    </React.Fragment>
+                                ))}
+                            </List>
+                        </Paper>
+                        <Paper
+                            sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                width: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{ color: "#4d4d4d", fontWeight: 600 }}
+                                >
+                                    Departments
+                                </Typography>
+                                <IconButton>
+                                    <MoreVertical />
+                                </IconButton>
+                            </Box>
+                            <List
+                                sx={{
+                                    bgcolor: "background.paper",
+                                }}
+                            >
+                                {departments?.map((item, index) => (
+                                    <React.Fragment>
+                                        <ListItem
+                                            alignItems="flex-start"
+                                            secondaryAction={
+                                                !xlScreen ? (
+                                                    <>
+                                                        <Typography variant="caption">
+                                                            Joined
+                                                        </Typography>
+                                                        <Typography>
+                                                            {moment(
+                                                                item.created_at
+                                                            ).format(
+                                                                "MMM. DD, YYYY"
+                                                            )}
+                                                        </Typography>
+                                                    </>
+                                                ) : (
+                                                    <></>
+                                                )
+                                            }
+                                            sx={{ px: 0 }}
+                                        >
+                                            <ListItemText
+                                                primary={`${item.department} `}
+                                                secondary={
+                                                    <React.Fragment></React.Fragment>
+                                                }
+                                            />
+                                        </ListItem>
+                                        <Divider component="li" />
+                                    </React.Fragment>
+                                ))}
+                            </List>
+                        </Paper>
+                        <Paper
+                            sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                width: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{ color: "#4d4d4d", fontWeight: 600 }}
+                                >
+                                    Branches
+                                </Typography>
+                                <IconButton>
+                                    <MoreVertical />
+                                </IconButton>
+                            </Box>
+
+                            <List
+                                sx={{
+                                    bgcolor: "background.paper",
+                                }}
+                            >
+                                {branches?.map((emp, index) => (
+                                    <React.Fragment>
+                                        <ListItem
+                                            alignItems="flex-start"
+                                            secondaryAction={
+                                                !xlScreen ? (
+                                                    <>
+                                                        <Typography variant="caption">
+                                                            Joined
+                                                        </Typography>
+                                                        <Typography>
+                                                            {moment(
+                                                                emp.created_at
+                                                            ).format(
+                                                                "MMM. DD, YYYY"
+                                                            )}
+                                                        </Typography>
+                                                    </>
+                                                ) : (
+                                                    <></>
+                                                )
+                                            }
+                                            sx={{ px: 0 }}
+                                        >
+                                            <ListItemText
+                                                primary={`${emp.branch} `}
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "text.primary",
+                                                                display:
+                                                                    "inline",
+                                                            }}
+                                                        >
+                                                            {emp.user_type}
+                                                        </Typography>
+                                                    </React.Fragment>
+                                                }
+                                            />
+                                        </ListItem>
+                                        <Divider component="li" />
+                                    </React.Fragment>
+                                ))}
+                            </List>
+                        </Paper>
+                    </Stack>
+                </Grid>
+                <Grid
+                    size={{ xs: 12, lg: 3 }}
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 5,
+                            height: "100%",
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontWeight: 600,
+                                color: "#4d4d4d",
+                            }}
+                        >
+                            Schedules & Holidays
+                        </Typography>
+
+                        <List
+                            sx={{
+                                bgcolor: "background.paper",
+                            }}
+                        >
+                            {events?.map((item, index) => (
+                                <React.Fragment>
+                                    <ListItem
+                                        alignItems="flex-start"
+                                        secondaryAction={
+                                            <>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ color: "#8a8a8a" }}
+                                                >
+                                                    {moment(
+                                                        item.startTime
+                                                    ).format("MMM. DD, YYYY")}
+                                                </Typography>
+                                            </>
+                                        }
+                                        sx={{ px: 0 }}
                                     >
-                                        <TextField
-                                            id="searchName"
-                                            label="Search Name"
-                                            variant="outlined"
-                                            value={searchName}
-                                            onChange={(e) =>
-                                                setSearchName(e.target.value)
+                                        <ListItemAvatar>
+                                            <Typography
+                                                sx={{
+                                                    color: "primary.main",
+                                                }}
+                                            >
+                                                {item.type == "schedule" ? (
+                                                    <PiCalendarHeart
+                                                        size={32}
+                                                    />
+                                                ) : (
+                                                    <PiCalendarStar size={32} />
+                                                )}
+                                            </Typography>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
+                                                <Typography
+                                                    variant="body1"
+                                                    sx={{ fontWeight: "bold" }}
+                                                >
+                                                    {item.title}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Typography variant="caption">
+                                                    {item.description}
+                                                </Typography>
                                             }
                                         />
-                                    </FormControl>
-                                </Box>
-                            </Box>
-                            <TableContainer sx={{ mt: 2, height: "400px" }}>
-                                <Table
-                                    stickyHeader
-                                    className="table table-md table-striped table-vcenter"
-                                >
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell
-                                                align="left"
-                                                sx={{ width: "40%" }}
-                                            >
-                                                Name
-                                            </TableCell>
-                                            <TableCell
-                                                align="center"
-                                                sx={{ width: "15%" }}
-                                            >
-                                                First Time In
-                                            </TableCell>
-                                            <TableCell
-                                                align="center"
-                                                sx={{ width: "15%" }}
-                                            >
-                                                First Time Out
-                                            </TableCell>
-                                            <TableCell
-                                                align="center"
-                                                sx={{ width: "15%" }}
-                                            >
-                                                Second Time In
-                                            </TableCell>
-                                            <TableCell
-                                                align="center"
-                                                sx={{ width: "15%" }}
-                                            >
-                                                Second Time Out
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    {attendanceLoading ? (
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell colSpan={5}>
-                                                    <Box
+                                    </ListItem>
+                                    <Divider variant="inset" component="li" />
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                <Grid
+                    size={{ xs: 12, lg: 8 }}
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                    <Paper sx={{ p: 3, borderRadius: 5 }}>
+                        <Typography
+                            variant="h5"
+                            sx={{ fontWeight: 600, color: "#4d4d4d" }}
+                        >
+                            Overview Summary
+                        </Typography>
+                        <Tabs
+                            value={value}
+                            onChange={handleChange}
+                            textColor="primary"
+                            indicatorColor="primary"
+                            aria-label="secondary tabs example"
+                        >
+                            <Tab value="one" label="Item One" />
+                            <Tab value="two" label="Item Two" />
+                            <Tab value="three" label="Item Three" />
+                        </Tabs>
+                    </Paper>
+                </Grid>
+                <Grid
+                    size={{ xs: 12, lg: 4 }}
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 5,
+                            height: "100%",
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontWeight: 600,
+                                color: "#4d4d4d",
+                            }}
+                        >
+                            Birthdays & Milestones
+                        </Typography>
+                        <List
+                            sx={{
+                                bgcolor: "background.paper",
+                            }}
+                        >
+                            {latestEmployees?.map((emp, index) => (
+                                <React.Fragment>
+                                    <ListItem
+                                        alignItems="flex-start"
+                                        secondaryAction={
+                                            <>
+                                                <Typography variant="caption">
+                                                    Joined
+                                                </Typography>
+                                                <Typography>
+                                                    {moment(
+                                                        emp.created_at
+                                                    ).format("MMM. DD, YYYY")}
+                                                </Typography>
+                                            </>
+                                        }
+                                        sx={{ px: 0 }}
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar
+                                                alt="Remy Sharp"
+                                                src={
+                                                    emp.media
+                                                        ? emp.media?.[0]
+                                                              .original_url
+                                                        : ""
+                                                }
+                                            />
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
+                                                <Typography
+                                                    variant="body1"
+                                                    sx={{ fontWeight: 600 }}
+                                                >
+                                                    {emp.first_name}{" "}
+                                                    {emp.last_name}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <React.Fragment>
+                                                    <Typography
+                                                        component="span"
+                                                        variant="body2"
                                                         sx={{
-                                                            display: "flex",
-                                                            justifyContent:
-                                                                "center",
-                                                            alignItems:
-                                                                "center",
-                                                            minHeight: 200,
+                                                            color: "text.primary",
+                                                            display: "inline",
                                                         }}
                                                     >
-                                                        <CircularProgress />
-                                                    </Box>
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    ) : (
-                                        <TableBody>
-                                            {paginatedAttendance.length > 0 ? (
-                                                paginatedAttendance.map(
-                                                    (attend, index) => {
-                                                        const isRegular =
-                                                            attend.shift_type ==
-                                                            "Regular";
-                                                        const currentTime =
-                                                            dayjs();
-                                                        const currentDate =
-                                                            currentTime.format(
-                                                                "YYYY-MM-DD"
-                                                            );
-
-                                                        const firstIn =
-                                                            attend.first_time_in
-                                                                ? dayjs(
-                                                                      attend.first_time_in
-                                                                  ).format(
-                                                                      "hh:mm:ss A"
-                                                                  )
-                                                                : "-";
-                                                        const firstOut =
-                                                            attend.first_time_out
-                                                                ? dayjs(
-                                                                      attend.first_time_out
-                                                                  ).format(
-                                                                      "hh:mm:ss A"
-                                                                  )
-                                                                : attend.first_time_in
-                                                                ? "Ongoing"
-                                                                : "-";
-
-                                                        const secondIn =
-                                                            attend.second_time_in
-                                                                ? dayjs(
-                                                                      attend.second_time_in
-                                                                  ).format(
-                                                                      "hh:mm:ss A"
-                                                                  )
-                                                                : "-";
-                                                        const secondOut =
-                                                            attend.second_time_out
-                                                                ? dayjs(
-                                                                      attend.second_time_out
-                                                                  ).format(
-                                                                      "hh:mm:ss A"
-                                                                  )
-                                                                : attend.second_time_in
-                                                                ? "Ongoing"
-                                                                : "-";
-
-                                                        const breakStart =
-                                                            attend.break_start
-                                                                ? dayjs(
-                                                                      `${currentDate} ${attend.break_start}`
-                                                                  )
-                                                                : null;
-                                                        const breakEnd =
-                                                            attend.break_end
-                                                                ? dayjs(
-                                                                      `${currentDate} ${attend.break_end}`
-                                                                  )
-                                                                : null;
-
-                                                        return (
-                                                            <TableRow
-                                                                key={index}
-                                                                sx={{
-                                                                    color: attend.is_late
-                                                                        ? "error.main"
-                                                                        : "inherit",
-                                                                    "& td": {
-                                                                        color: attend.is_late
-                                                                            ? "error.main"
-                                                                            : "inherit",
-                                                                    },
-                                                                }}
-                                                            >
-                                                                <TableCell align="left">
-                                                                    <Box
-                                                                        display="flex"
-                                                                        sx={{
-                                                                            alignItems:
-                                                                                "center",
-                                                                        }}
-                                                                    >
-                                                                        <Avatar
-                                                                            alt={`${attend.first_name}_Avatar`}
-                                                                            src={renderProfile(
-                                                                                attend.id
-                                                                            )}
-                                                                            sx={{
-                                                                                mr: 1,
-                                                                                height: "36px",
-                                                                                width: "36px",
-                                                                            }}
-                                                                        />
-                                                                        {
-                                                                            attend.first_name
-                                                                        }{" "}
-                                                                        {attend.middle_name ||
-                                                                            ""}{" "}
-                                                                        {
-                                                                            attend.last_name
-                                                                        }{" "}
-                                                                        {attend.suffix ||
-                                                                            ""}
-                                                                    </Box>
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {firstIn}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {isRegular
-                                                                        ? currentTime.isBefore(
-                                                                              breakStart
-                                                                          )
-                                                                            ? attend.first_time_in
-                                                                                ? "Ongoing"
-                                                                                : "-"
-                                                                            : breakStart
-                                                                                  .add(
-                                                                                      1,
-                                                                                      "m"
-                                                                                  )
-                                                                                  .format(
-                                                                                      "hh:mm:ss A"
-                                                                                  )
-                                                                        : firstOut}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {isRegular
-                                                                        ? currentTime.isAfter(
-                                                                              breakEnd
-                                                                          )
-                                                                            ? breakEnd
-                                                                                  .subtract(
-                                                                                      1,
-                                                                                      "m"
-                                                                                  )
-                                                                                  .format(
-                                                                                      "hh:mm:ss A"
-                                                                                  )
-                                                                            : "-"
-                                                                        : secondIn}
-                                                                </TableCell>
-                                                                <TableCell align="center">
-                                                                    {isRegular
-                                                                        ? currentTime.isBefore(
-                                                                              breakEnd
-                                                                          )
-                                                                            ? "-"
-                                                                            : firstOut
-                                                                        : secondOut}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    }
-                                                )
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={5}
-                                                        align="center"
-                                                        sx={{
-                                                            color: "text.secondary",
-                                                            p: 1,
-                                                        }}
-                                                    >
-                                                        No Attendance Found
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    )}
-                                </Table>
-                                <TablePagination
-                                    rowsPerPageOptions={[5, 10, 20]}
-                                    component="div"
-                                    count={attendance.length}
-                                    rowsPerPage={rowsPerPage}
-                                    page={page}
-                                    onPageChange={handleChangePage}
-                                    onRowsPerPageChange={
-                                        handleChangeRowsPerPage
-                                    }
-                                    sx={{ alignItems: "center" }}
-                                />
-                            </TableContainer>
-                        </Box>
-                    </div>
-                </div>
-            </Box>
+                                                        {emp.job_title.name}
+                                                    </Typography>
+                                                    <Chip label="Birthday" />
+                                                </React.Fragment>
+                                            }
+                                        />
+                                    </ListItem>
+                                    <Divider variant="inset" component="li" />
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+            </Grid>
         </Layout>
     );
 };

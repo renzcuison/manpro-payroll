@@ -52,8 +52,8 @@ const theme = createTheme({
     },
     typography: {
         fontFamily: [
+            "Poppins",
             "Nunito",
-            "Roboto",
             '"Helvetica Neue"',
             "Arial",
             "sans-serif",
