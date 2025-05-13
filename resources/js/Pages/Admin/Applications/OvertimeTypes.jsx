@@ -12,9 +12,10 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import duration from "dayjs/plugin/duration";
 
+import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 
 import ViewApplicationType from "../../../Modals/Applications/ViewApplicationType";
-import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
+import AddOvertimeType from "../Applications/Modals/AddOvertimeType";
 
 const OvertimeTypes = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -24,7 +25,7 @@ const OvertimeTypes = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [openApplicationType, setOpenApplicationType] = useState(false);
-    const [openAddApplicationType, setOpenAddApplicationType] = useState(false);
+    const [openAddOvertimeType, setOpenAddOvertimeType] = useState(false);
 
     const [applicationType, setApplicationType] = useState([]);
     const [applicationTypes, setApplicationTypes] = useState([]);
@@ -47,11 +48,11 @@ const OvertimeTypes = () => {
     };
 
     const handleOpenAddApplicationType = () => {
-        setOpenAddApplicationType(true);
+        setOpenAddOvertimeType(true);
     };
 
-    const handleCloseAddApplicationType = () => {
-        setOpenAddApplicationType(false);
+    const handleCloseAddOvertimeType = () => {
+        setOpenAddOvertimeType(false);
     };
 
     const handleOpenApplicationType = (applicationType) => {
@@ -110,6 +111,11 @@ const OvertimeTypes = () => {
             {openApplicationType && (
                 <ViewApplicationType open={openApplicationType} close={handleCloseApplicationType} applicationType={applicationType} />
             )}
+
+            {openAddOvertimeType && (
+                <AddOvertimeType open={openAddOvertimeType} close={handleCloseAddOvertimeType} />
+            )}
+
 
         </Layout>
     );
