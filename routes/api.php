@@ -9,6 +9,7 @@ use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceMobileController;
 use App\Http\Controllers\ApplicationsController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AnnouncementsController;
@@ -173,7 +174,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeWorkDayAttendance', [AttendanceController::class, 'getEmployeeWorkDayAttendance']);
 
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
-        Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
+        Route::post('/saveMobileEmployeeAttendance', [AttendanceMobileController::class, 'saveMobileEmployeeAttendance']);
 
         Route::get('/getAttendanceAdderLogs', [AttendanceController::class, 'getAttendanceAdderLogs']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
@@ -287,6 +288,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Acknowledgements
         Route::post('/acknowledgeAnnouncement', [AnnouncementsController::class, 'acknowledgeAnnouncement']);
         Route::get('/getAcknowledgements/{code}', [AnnouncementsController::class, 'getAcknowledgements']);
+        
+        //View
+        Route::get('/getViews/{code}', [AnnouncementsController::class, 'getViews']);  
+        Route::post('/logView', [AnnouncementsController::class, 'logView']);
+
     });
 
     Route::prefix('adminDashboard')->group(function () {
