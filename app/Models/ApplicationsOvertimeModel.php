@@ -20,7 +20,7 @@ class ApplicationsOvertimeModel extends Model
         'time_out_id',
         'reason',
         'status',
-        'approved_hours',
+        'approved_minutes',
         'date',
     ];
 

@@ -735,7 +735,7 @@ class ApplicationsController extends Controller
             switch ($status) {
                 case "Approve":
                     $overtime->status = "Approved";
-                    $overtime->approved_hours = $request->input('totalHours');
+                    $overtime->approved_minutes = $request->input('totalMinutes');
                     $overtime->date = $request->input('date');
                     $message = "Overtime approved successfully";
                     break;

@@ -487,12 +487,12 @@ class PayrollController extends Controller
         $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
 
         $basicPay = $perCutOff - $leaveEarnings;
-        $overTimePay = ($perHour * 1.25) * $totalOvertime;
+        $overTimePay = ($perMin * 1.25) * $totalOvertime;
         $holidayPay = 0;
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
-            ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} hours)", 'amount' => $overTimePay],
+            ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} mins)", 'amount' => $overTimePay],
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
         ];
 
@@ -1064,13 +1064,13 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        $totalOvertimeHours = ApplicationsOvertimeModel::where('status', 'Approved')
+        $totalOvertimeMinutes = ApplicationsOvertimeModel::where('status', 'Approved')
             ->where('client_id', $user->client_id)
             ->where('user_id', $employeeId)
             ->whereBetween('date', [ date('Y-m-d', strtotime($start_date)), date('Y-m-d', strtotime($end_date)) ])
-            ->sum('approved_hours');
+            ->sum('approved_minutes');
     
-        return $totalOvertimeHours;
+        return $totalOvertimeMinutes;
     }
     
     
