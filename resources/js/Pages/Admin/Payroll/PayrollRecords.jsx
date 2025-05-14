@@ -196,7 +196,7 @@ const PayrollRecords = () => {
                                             ) : (
                                                 <TableRow>
                                                 <TableCell colSpan={8} align="center" sx={{ fontStyle: 'italic', color: '#888', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                                    No payroll records
+                                                    No records found for the selected filters.
                                                 </TableCell>
                                                 </TableRow>
                                             )}
