@@ -3,6 +3,9 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
+// import LoadingSpinner from '../../../../components/LoadingStates/LoadingSpinner';
+import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
+
 const EmployeeBenefits = ({ userName, headers }) => {
 
     const [benefits, setBenefits] = useState([]);
@@ -23,9 +26,9 @@ const EmployeeBenefits = ({ userName, headers }) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                {/* <Button variant="contained" color="primary"> */}
-                    {/* <p className='m-0'><i className="fa fa-plus"></i> Add </p> */}
-                {/* </Button> */}
+                <Button variant="contained" color="primary">
+                    <p className='m-0'><i className="fa fa-plus" onClick={() => handleOpenAddEmployeeBenefit()}></i> Add </p>
+                </Button>
             </Box>
 
             <TableContainer>
@@ -50,38 +53,29 @@ const EmployeeBenefits = ({ userName, headers }) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {
-                            benefits.length > 0 ? (
-                                benefits.map((benefit, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>
-                                            <Typography>{benefit.benefit}</Typography>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Typography>{benefit.number}</Typography>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Typography>{benefit.number}</Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                ))) :
-                                <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} >
-                                        No Benefits Found
+                        {benefits.length > 0 ? (
+                            benefits.map((benefit, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>
+                                        <Typography>{benefit.benefit}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>{benefit.number}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                 </TableRow>
+                            ))) :
+                            <TableRow>
+                                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} >
+                                    No Benefits Found
+                                </TableCell>
+                            </TableRow>
                         }
                     </TableBody>
                 </Table>
             </TableContainer>
-
-            {/* <Box display="flex" justifyContent="center" sx={{ mt: '20px', gap: 2 }}> */}
-            {/* <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={() => handleOpenAddEmployeeBenefit()} > */}
-            {/* <p className="m-0"> */}
-            {/* <i className="fa fa-plus"></i>{" "}Add Benefit */}
-            {/* </p> */}
-            {/* </Button> */}
-            {/* </Box> */}
         </Box>
     );
 };
