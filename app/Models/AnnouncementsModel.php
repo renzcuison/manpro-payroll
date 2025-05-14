@@ -46,6 +46,11 @@ class AnnouncementsModel extends Model implements HasMedia
         return $this->hasMany(AnnouncementDepartmentsModel::class, 'announcement_id');
     }
 
+    public function views()
+    {
+        return $this->hasMany(AnnouncementViewsModel::class, 'announcement_id', 'id');
+    }
+
     public function acknowledgements()
     {
         return $this->hasMany(AnnouncementAcknowledgementsModel::class, 'announcement_id');
