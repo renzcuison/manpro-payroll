@@ -5,7 +5,12 @@ import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
 import LoadingSpinner from '../../../../components/LoadingStates/LoadingSpinner';
 
+import PayslipView from '../../../../Modals/Payroll/PayslipView';
+
 const HistoryTabPayroll = ({ userName, headers }) => {
+
+    const [openViewPayrollModal, setOpenViewPayrollModal] = useState(false);
+    const [selectedPayroll, setSelectedPayroll] = useState('');
 
     const [isLoading, setIsLoading] = useState(true);
     const [records, setRecords] = useState([]);
@@ -22,6 +27,15 @@ const HistoryTabPayroll = ({ userName, headers }) => {
                 console.error('Error fetching payroll calculations:', error);
             }); 
     }, []);
+
+    const handleOpenViewPayrollModal = (id) => {
+        setSelectedPayroll(id);
+        setOpenViewPayrollModal(true);
+    }
+
+    const handleCloseViewPayrollModal = () => {
+        setOpenViewPayrollModal(false);
+    }
     
     return (
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -58,6 +72,10 @@ const HistoryTabPayroll = ({ userName, headers }) => {
                     </TableContainer>
                 </>
             )}
+
+            {openViewPayrollModal &&
+                <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
+            }
         </Box>
     );
 };
