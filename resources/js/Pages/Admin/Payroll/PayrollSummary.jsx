@@ -200,12 +200,12 @@ const PayrollSummary = () => {
 
     const calculateTotals = useCallback((records) => {
        return records.reduce((acc, curr) => {
-           totalableColumnsLookup.forEach((_, key) => {
-               if (!acc[key]) acc[key] = 0;
-               acc[key] += parseFloat(curr[key] || 0);
-           });
-           return acc;
-       }, {});
+            totalableColumnsLookup.forEach((_, key) => {
+                if (!acc[key]) acc[key] = 0;
+                acc[key] += parseFloat(curr[key] || 0);
+            });
+            return acc;
+        }, {});
    }, [totalableColumnsLookup]);
 
    const totals = useMemo(() => {
@@ -276,7 +276,7 @@ const PayrollSummary = () => {
          headerConfig.forEach(group => {
              if (!group.isGroup) {
                  if (group.isVisible(visibleColumns)) {
-                     count++;
+                    count++;
                  }
              } else {
                  group.children?.forEach(child => {
@@ -298,9 +298,9 @@ const PayrollSummary = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Summary of Payroll</Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                              <Button variant='contained' onClick={handleOpenSignatoryDialog}>
-                                <AddIcon />
-                                Add Signatory
-                            </Button>
+                                 <AddIcon />
+                                 Add Signatory
+                             </Button>
                             <FormControl sx={{ minWidth: 200 }} size="small">
                                 <InputLabel>Columns</InputLabel>
                                 <Select
@@ -390,7 +390,7 @@ const PayrollSummary = () => {
                                                         if (!child.isVisible(visibleColumns)) return null;
                                                         return (
                                                             <TableCell key={child.key} align="center" sx={{ fontWeight: 'bold' }}>
-                                                                {child.secondaryLabel}
+                                                                 {child.secondaryLabel}
                                                             </TableCell>
                                                         );
                                                     });
@@ -415,16 +415,26 @@ const PayrollSummary = () => {
                                                         {headerConfig.map(group => {
                                                             if (!group.isGroup) {
                                                                 if (!group.isVisible(visibleColumns)) return null;
+                                                                const isNetPay = (group.dataKey || group.key) === 'payrollNetPay';
                                                                 return (
-                                                                    <TableCell key={`${group.key}-${record.record}`} align={group.key === 'employeeName' ? "left" : "center"}>
+                                                                    <TableCell
+                                                                        key={`${group.key}-${record.record}`}
+                                                                        align={group.key === 'employeeName' ? "left" : "center"}
+                                                                        sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                                    >
                                                                         {record[group.dataKey || group.key]}
                                                                     </TableCell>
                                                                 );
                                                             } else {
                                                                 return group.children?.map(child => {
                                                                     if (!child.isVisible(visibleColumns)) return null;
+                                                                    const isNetPay = child.dataKey === 'payrollNetPay';
                                                                     return (
-                                                                        <TableCell key={`${child.key}-${record.record}`} align="center">
+                                                                        <TableCell
+                                                                            key={`${child.key}-${record.record}`}
+                                                                            align="center"
+                                                                            sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                                        >
                                                                             {record[child.dataKey]}
                                                                         </TableCell>
                                                                     );
@@ -442,16 +452,26 @@ const PayrollSummary = () => {
                                                     {headerConfig.map(group => {
                                                         if (!group.isGroup) {
                                                             if (!group.isVisible(visibleColumns)) return null;
+                                                             const isNetPayTotal = (group.dataKey || group.key) === 'payrollNetPay';
                                                             return (
-                                                                <TableCell key={`${group.key}-total`} align={group.key === 'employeeName' ? "left" : "center"} sx={{ fontWeight: 'bold' }}>
-                                                                    {group.key === 'employeeName' ? 'Total' : (group.isTotaled && totals[group.dataKey || group.key] !== undefined ? totals[group.dataKey || group.key].toFixed(2) : '')}
+                                                                <TableCell
+                                                                    key={`${group.key}-total`}
+                                                                    align={group.key === 'employeeName' ? "left" : "center"}
+                                                                    sx={{ fontWeight: 'bold' }}
+                                                                >
+                                                                     {group.key === 'employeeName' ? 'Total' : (group.isTotaled && totals[group.dataKey || group.key] !== undefined ? totals[group.dataKey || group.key].toFixed(2) : '')}
                                                                 </TableCell>
                                                             );
                                                         } else {
                                                             return group.children?.map(child => {
                                                                 if (!child.isVisible(visibleColumns)) return null;
+                                                                 const isNetPayTotal = child.dataKey === 'payrollNetPay';
                                                                 return (
-                                                                    <TableCell key={`${child.key}-total`} align="center" sx={{ fontWeight: 'bold' }}>
+                                                                    <TableCell
+                                                                        key={`${child.key}-total`}
+                                                                        align="center"
+                                                                        sx={{ fontWeight: isNetPayTotal ? 'bold' : 'normal' }}
+                                                                    >
                                                                         {(child.isTotaled && totals[child.dataKey] !== undefined) ? totals[child.dataKey].toFixed(2) : ''}
                                                                     </TableCell>
                                                                 );
