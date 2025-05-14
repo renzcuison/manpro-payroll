@@ -55,6 +55,8 @@ import LoanList from "../Pages/Admin/Loans/LoanList";
 
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 import Documents from "../Pages/Admin/Documents";
+import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
+import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -104,6 +106,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
             <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} />} />
+            
+            <Route path="perimeters" element={<ProtectedRoute element={<Perimeter />} user={user} />} />
+            <Route path="perimeters/add" element={<ProtectedRoute element={<AddNewPerimeter />} user={user} />} />
 
             <Route path="workshift/:client/:selectedShift" element={<ProtectedRoute element={<WorkshiftView />} user={user} />} />
             <Route path="workshifts/add" element={<ProtectedRoute element={<WorkshiftsAdd />} user={user} />} />

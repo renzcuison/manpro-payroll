@@ -13,6 +13,7 @@ import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 
 const useIsActive = (path) => {
     const location = useLocation();
@@ -460,6 +461,11 @@ const Sidebar = ({ children, closeMini }) => {
                                             {" "}
                                             Documents{" "}
                                         </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/perimeters`}>
+                                        <i> <TrackChangesIcon sx={{ color: palette.success.main }} /> </i>
+                                        <span id="navName" className="sidebar-mini-hide" > Perimeters </span>
                                     </StyledNav>
 
                                     {/* <StyledNav to={`/admin/trainings`}> */}
