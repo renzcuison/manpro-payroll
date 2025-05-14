@@ -7,21 +7,43 @@ import {
     CircularProgress,
     Divider,
     IconButton,
+    ListItemIcon,
+    Menu,
+    MenuItem,
+    Popover,
     Snackbar,
     Stack,
     Typography,
+    useTheme,
 } from "@mui/material";
 import { usePackages } from "../hooks/usePackages";
 import CreatePackageModal from "./Modals/CreatePackageModal";
 import { useFeatures } from "../hooks/useFeatures";
-import { MoreVerticalIcon } from "lucide-react";
+import { EditIcon, MoreVerticalIcon, Trash } from "lucide-react";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 function Packages() {
-    const { packages, isFetching } = usePackages();
+    const { packages, isFetching, refetch, deletePkg } = usePackages();
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [snackBarOpen, setIsOpenSnackBar] = useState(false);
     const [snackBarMsg, setSnackBarMsg] = useState(false);
+    const { palette } = useTheme();
+    const [anchorEl, setAnchorEl] = useState(null);
+
+    const handleClick = (event) => {
+        console.log(event);
+
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClosePopover = () => {
+        setAnchorEl(null);
+    };
+
+    const open = Boolean(anchorEl);
+    const id = open ? "simple-popover" : undefined;
 
     const {
         data: features,
@@ -45,6 +67,29 @@ function Packages() {
         }
 
         setIsOpenSnackBar(false);
+    };
+    const showDeleteSwal = () => {
+        withReactContent(Swal)
+            .fire({
+                title: "Are you sure you want to delete this package?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((willDelete) => {
+                if (willDelete) {
+                    // delete package
+                    deletePkg(selectedPackage.id)
+                        .then((res) => {
+                            console.log(res);
+                            refetch();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                }
+            });
     };
 
     return (
@@ -84,17 +129,35 @@ function Packages() {
                                     alignItems: "center",
                                     justifyContent: "space-between",
                                 }}
-                                onClick={() => handlePackageClick(packageItem)}
                             >
                                 <Stack>
-                                    <Typography variant="h6">
+                                    <Typography
+                                        variant="h6"
+                                        component={"a"}
+                                        href="#"
+                                        onClick={() =>
+                                            handlePackageClick(packageItem)
+                                        }
+                                        sx={{
+                                            color: palette.primary.main,
+                                            cursor: "pointer",
+                                            ":hover": {
+                                                color: palette.primary.dark,
+                                            },
+                                        }}
+                                    >
                                         {packageItem.name}
                                     </Typography>
                                     <Typography variant="body2">
                                         {packageItem.description}
                                     </Typography>
                                 </Stack>
-                                <IconButton onClick={() => {}}>
+                                <IconButton
+                                    onClick={(e) => {
+                                        handleClick(e);
+                                        setSelectedPackage(packageItem);
+                                    }}
+                                >
                                     <MoreVerticalIcon />
                                 </IconButton>
                             </Box>
@@ -102,6 +165,64 @@ function Packages() {
                     )}
                 </Stack>
             </Stack>
+
+            {/* <Popover
+                id={id}
+                open={open}
+                anchorEl={anchorEl}
+                onClose={handleClosePopover}
+                anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                }}
+            >
+                The content of the Popover.
+            </Popover> */}
+            <Menu
+                id={id}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClosePopover}
+                MenuListProps={{
+                    "aria-labelledby": "basic-button",
+                }}
+                anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                }}
+            >
+                <MenuItem
+                    onClick={() => {
+                        handleClosePopover();
+                        setOpenDialog(true);
+                    }}
+                >
+                    <ListItemIcon>
+                        <EditIcon size={16} />
+                    </ListItemIcon>
+                    Edit
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        handleClosePopover();
+                        showDeleteSwal();
+                    }}
+                >
+                    <ListItemIcon>
+                        <Trash size={16} />
+                    </ListItemIcon>
+                    Delete
+                </MenuItem>
+            </Menu>
+
             {openDialog && (
                 <CreatePackageModal
                     open={openDialog}

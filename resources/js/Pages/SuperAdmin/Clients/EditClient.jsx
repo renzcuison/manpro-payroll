@@ -1,180 +1,335 @@
 import {
     Box,
     Button,
+    CircularProgress,
+    Grid,
+    IconButton,
+    InputAdornment,
+    OutlinedInput,
+    Stack,
+    TextField,
     Typography,
-    Paper,
-    Stepper,
-    Step,
-    StepLabel,
-    StepContent,
 } from "@mui/material";
-
-import Layout from "../../../components/Layout/Layout";
-import CreateCompany from "./CreateCompany";
-import CreateUser from "./CreateUser";
+import React, { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useClient, useClients } from "../hooks/useClients";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
-const steps = [
-    {
-        label: "User account information",
-        description: "Enter your user account information",
-        component: <CreateUser />,
-    },
-    {
-        label: "Company Details",
-        description: "Enter your company details",
-        component: <CreateCompany />,
-    },
-    {
-        label: "Select a package",
-        description: "Select a package",
-    },
-];
+const createSchema = yup
+    .object()
+    .shape({
+        firstname: yup.string().required("First name is required"),
+        middlename: yup.string().required("Middle name is required"),
+        lastname: yup.string().required("Last name is required"),
+        username: yup.string().required("Username is required"),
+        email: yup
+            .string()
+            .email("Invalid email")
+            .required("Email is required"),
+        contact_number: yup.string().required("Phone number is required"),
+        address: yup.string().required("Address is required"),
+        password: yup.string().min(6).required("Password is required"),
+        confirm_password: yup
+            .string()
+            .oneOf([yup.ref("password"), null], "Passwords must match"),
+    })
+    .required();
+const updateSchema = yup
+    .object()
+    .shape({
+        firstname: yup.string().required("First name is required"),
+        middlename: yup.string().required("Middle name is required"),
+        lastname: yup.string().required("Last name is required"),
+        username: yup.string().required("Username is required"),
+        email: yup
+            .string()
+            .email("Invalid email")
+            .required("Email is required"),
+        contact_number: yup.string().required("Phone number is required"),
+        address: yup.string().required("Address is required"),
+    })
+    .required();
 
-const EditClient = () => {
-    const [activeStep, setActiveStep] = useState(0);
-    const [clientData, setClientData] = useState(null);
-    const [companyData, setCompanyData] = useState(null);
-    const { state } = useLocation();
+function EditClient({ state, clientData, setClientData }) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfPassword, setShowConfPassword] = useState(false);
+    const queryClient = useQueryClient();
+
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
+    const handleClickShowConfPassword = () =>
+        setShowConfPassword((show) => !show);
+    const { storeClient, updateClient } = useClients();
+
+    const methods = useForm({
+        resolver: yupResolver(clientData ? updateSchema : createSchema),
+        defaultValues: {
+            firstname: clientData ? clientData.first_name : "",
+            middlename: clientData ? clientData.middle_name : "",
+            lastname: clientData ? clientData.last_name : "",
+            username: clientData ? clientData.user_name : "",
+            email: clientData ? clientData.email : "",
+            contact_number: clientData ? clientData.contact_number : "",
+            address: clientData ? clientData.address : "",
+            password: "",
+            confirm_password: "",
+        },
+    });
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        setError,
+        reset,
+        formState: { errors, isLoading, isSubmitting },
+    } = methods;
+
+    const values = watch();
 
     useEffect(() => {
-        if (state) {
-            setClientData(state);
-            setCompanyData(state?.company ?? null);
-        }
-    }, []);
-
-    const handleNext = () => {
         if (clientData) {
-            setActiveStep((prevActiveStep) => prevActiveStep + 1);
+            reset({
+                firstname: clientData.first_name || "",
+                middlename: clientData.middle_name || "",
+                lastname: clientData.last_name || "",
+                username: clientData.user_name || "",
+                email: clientData.email || "",
+                contact_number: clientData.contact_number || "",
+                address: clientData.address || "",
+            });
+        }
+    }, [clientData, reset]);
+
+    const onSubmit = () => {
+        if (!clientData) {
+            storeClient(values)
+                .then((res) => {
+                    console.log(res);
+                    queryClient.setQueryData(["new_client"], res.client);
+                    queryClient.invalidateQueries(["new_client"]);
+                    setClientData(res.client);
+                })
+                .catch((error) => {
+                    console.log(error.response.data.errors);
+                    if (error.response.data.errors) {
+                        const apiErrors = error.response.data.errors;
+                        Object.keys(apiErrors).forEach((field) => {
+                            setError(field, {
+                                type: "server",
+                                message: apiErrors[field][0],
+                            });
+                        });
+                    } else {
+                        // Laravel returned a different error status (e.g., 500, 403)
+                        console.error(
+                            "Server Error:",
+                            error.response.data.message
+                        );
+                        alert("Something went wrong. Please try again.");
+                    }
+                });
         } else {
-            alert("Please fill in all the fields");
+            updateClient(values, clientData.id)
+                .then((res) => {
+                    console.log(res);
+                    setClientData(res.client);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
     };
-
-    const handleBack = () => {
-        setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    };
-
-    const handleReset = () => {
-        setActiveStep(0);
-    };
-
     return (
-        <Layout title={"EvaluateCreateForm"}>
-            <Box sx={{}}>
-                <Stepper activeStep={activeStep} orientation="vertical">
-                    {steps.map((step, index) => (
-                        <Step key={step.label}>
-                            <StepLabel
-                                optional={
-                                    index === steps.length - 1 ? (
-                                        <Typography variant="caption">
-                                            Last step
-                                        </Typography>
-                                    ) : null
+        <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="First name"
+                            {...register("firstname", {
+                                required: true,
+                            })}
+                            error={!!errors.name}
+                            helperText={errors.name?.message}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="Middle name"
+                            {...register("middlename", {
+                                required: true,
+                            })}
+                            error={!!errors.middlename}
+                            helperText={errors.middlename?.message}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="Last name"
+                            {...register("lastname", {
+                                required: true,
+                            })}
+                            error={!!errors.lastname}
+                            helperText={errors.lastname?.message}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="Username"
+                            {...register("username", {
+                                required: true,
+                            })}
+                            error={!!errors.username}
+                            helperText={errors.username?.message}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            {...register("email", {
+                                required: true,
+                            })}
+                            error={!!errors.email}
+                            helperText={errors.email?.message}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                            fullWidth
+                            label="Phone"
+                            {...register("contact_number", {
+                                required: true,
+                            })}
+                            error={!!errors.phone}
+                            helperText={errors.phone?.message}
+                        />
+                    </Grid>
+                    <Grid size={12}>
+                        <TextField
+                            fullWidth
+                            label="Address"
+                            {...register("address", {
+                                required: true,
+                            })}
+                            error={!!errors.address}
+                            helperText={errors.address?.message}
+                        />
+                    </Grid>
+                    {!clientData && (
+                        <React.Fragment>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <OutlinedInput
+                                    fullWidth
+                                    type={showPassword ? "text" : "password"}
+                                    label="Password"
+                                    {...register("password", {
+                                        required: true,
+                                    })}
+                                    // Add show password functionality
+
+                                    endAdornment={
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={
+                                                    handleClickShowPassword
+                                                }
+                                            >
+                                                {showPassword ? (
+                                                    <Visibility />
+                                                ) : (
+                                                    <VisibilityOff />
+                                                )}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    }
+                                    error={!!errors.password}
+                                    helperText={errors.password?.message}
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <OutlinedInput
+                                    fullWidth
+                                    type={
+                                        showConfPassword ? "text" : "password"
+                                    }
+                                    label="Confirm Password"
+                                    {...register("confirm_password", {
+                                        required: true,
+                                        validate: (value) =>
+                                            value === getValues().password ||
+                                            "Passwords do not match",
+                                    })}
+                                    endAdornment={
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={
+                                                    handleClickShowConfPassword
+                                                }
+                                            >
+                                                {showConfPassword ? (
+                                                    <Visibility />
+                                                ) : (
+                                                    <VisibilityOff />
+                                                )}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    }
+                                    error={!!errors.confirm_password}
+                                    helperText={
+                                        errors.confirm_password?.message
+                                    }
+                                />
+                            </Grid>
+                        </React.Fragment>
+                    )}
+                    <Grid size={12}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                            }}
+                        >
+                            <Button
+                                variant="contained"
+                                type="submit"
+                                color="success"
+                                // disabled={clientData}
+                                startIcon={
+                                    isLoading || isSubmitting ? (
+                                        <CircularProgress
+                                            color="inherit"
+                                            size={20}
+                                        />
+                                    ) : (
+                                        <InsertDriveFileIcon />
+                                    )
                                 }
                             >
-                                <Typography variant="h6">
-                                    {step.label}
-                                </Typography>
-                            </StepLabel>
-                            <StepContent>
-                                {index === 0 && (
-                                    <>
-                                        <CreateUser
-                                            clientData={clientData}
-                                            setClientData={setClientData}
-                                        />
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                Continue
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
-                                {index == 1 && (
-                                    <>
-                                        <CreateCompany
-                                            clientData={clientData}
-                                            setCompanyData={setCompanyData}
-                                            companyData={companyData}
-                                        />
-
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                {index === steps.length - 1
-                                                    ? "Finish"
-                                                    : "Continue"}
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
-                                {index == 2 && (
-                                    <>
-                                        <Box></Box>
-                                        <Box sx={{ mb: 2 }}>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleNext}
-                                                sx={{ mt: 1, mr: 1 }}
-                                                disabled={!clientData}
-                                            >
-                                                Finish
-                                            </Button>
-                                            <Button
-                                                disabled={index === 0}
-                                                onClick={handleBack}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Back
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
-                            </StepContent>
-                        </Step>
-                    ))}
-                </Stepper>
-                {activeStep === steps.length && (
-                    <Paper square elevation={0} sx={{ p: 3 }}>
-                        <Typography>
-                            All steps completed - you&apos;re finished
-                        </Typography>
-                        <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                            Reset
-                        </Button>
-                    </Paper>
-                )}
-            </Box>
-        </Layout>
+                                {clientData ? "Update" : "Create"}
+                            </Button>
+                            {errors && (
+                                <Box>
+                                    <Typography variant="body2" color="error">
+                                        {errors.message}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Box>
+                    </Grid>
+                </Grid>
+            </form>
+        </FormProvider>
     );
-};
+}
 
 export default EditClient;

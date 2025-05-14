@@ -50,6 +50,15 @@ const theme = createTheme({
             default: "#f5f5f5",
         },
     },
+    typography: {
+        fontFamily: [
+            "Nunito",
+            "Roboto",
+            '"Helvetica Neue"',
+            "Arial",
+            "sans-serif",
+        ].join(","),
+    },
 });
 function App() {
     const { user, isFetching } = useUser();
@@ -58,7 +67,9 @@ function App() {
 
     return (
         <Routes>
-            <Route path="/" element={
+            <Route
+                path="/"
+                element={
                     user ? (
                         user.user_type === "SuperAdmin" ? (
                             <SuperAdminDashboard />
@@ -75,7 +86,8 @@ function App() {
                 }
             />
 
-            <Route path="/dashboard"
+            <Route
+                path="/dashboard"
                 element={
                     user ? (
                         user.user_type === "SuperAdmin" ? (
@@ -95,28 +107,61 @@ function App() {
 
             <Route path="/hr/*" element={<HrRoutes user={user} />} />
             <Route path="/admin/*" element={<AdminRoutes user={user} />} />
-            <Route path="/super-admin/*" element={<SuperAdminRoutes user={user} />} />
-            <Route path="/employee/*" element={<EmployeeRoutes user={user} />} />
+            <Route
+                path="/super-admin/*"
+                element={<SuperAdminRoutes user={user} />}
+            />
+            <Route
+                path="/employee/*"
+                element={<EmployeeRoutes user={user} />}
+            />
 
             {/* Unprotected Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register/:code" element={<Register />} />
 
             {/* User Profile Routes */}
-            <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
+            <Route
+                path="/profile"
+                element={user ? <Profile /> : <CheckUser />}
+            />
 
             {/* ----------------------------------------------------------------------------------------------- */}
             {/* GLOBAL ROUTES */}
-            <Route path="/reports" element={user ? <Reports /> : <CheckUser />} />
-            <Route path="/report-create" element={user ? <ReportCreate /> : <CheckUser />} />
-            <Route path="/report-view/:id" element={user ? <ReportView /> : <CheckUser />} />
-            <Route path="/report-edit/:id" element={user ? <ReportEdit /> : <CheckUser />} />
+            <Route
+                path="/reports"
+                element={user ? <Reports /> : <CheckUser />}
+            />
+            <Route
+                path="/report-create"
+                element={user ? <ReportCreate /> : <CheckUser />}
+            />
+            <Route
+                path="/report-view/:id"
+                element={user ? <ReportView /> : <CheckUser />}
+            />
+            <Route
+                path="/report-edit/:id"
+                element={user ? <ReportEdit /> : <CheckUser />}
+            />
 
             {/* OTHER ROUTES */}
-            <Route path="/accounting" element={user ? <AccountingDashboard /> : <CheckUser />} />
-            <Route path="/accounting/dashboard" element={user ? <AccountingDashboard /> : <CheckUser />} />
-            <Route path="/accounting/sales" element={user ? <Sales /> : <CheckUser />} />
-            <Route path="/accounting/invoice" element={user ? <Invoice /> : <CheckUser />} />
+            <Route
+                path="/accounting"
+                element={user ? <AccountingDashboard /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/dashboard"
+                element={user ? <AccountingDashboard /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/sales"
+                element={user ? <Sales /> : <CheckUser />}
+            />
+            <Route
+                path="/accounting/invoice"
+                element={user ? <Invoice /> : <CheckUser />}
+            />
             <Route path="/check-user" element={<CheckUser />} />
             <Route path="/resetPassword" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

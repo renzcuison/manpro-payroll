@@ -22,8 +22,8 @@ class AddEmploymentInformationToUsersTable extends Migration
             $table->date('date_start')->nullable()->after('is_verified');
             $table->date('date_end')->nullable()->after('date_start');
 
-            $table->enum('employment_type', ['Probationary', 'Regular', 'Full-Time', 'Part-Time'])->nullable()->after('is_verified');
-            $table->enum('employment_status', ['Active', 'Resigned', 'Terminated'])->nullable()->after('employment_type');
+            $table->enum('employment_type', ['Probationary', 'Regular', 'Full-Time', 'Part-Time', 'Resigned'])->nullable()->after('is_verified');
+            $table->enum('employment_status', ['Active', 'Suspended', 'Inactive'])->nullable()->after('employment_type');
 
             $table->unsignedBigInteger('client_id')->nullable()->after('employment_status');
             $table->unsignedBigInteger('branch_id')->nullable()->after('client_id');

@@ -6,6 +6,7 @@ use App\Http\Requests\StoreClientRequest;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\Company;
+use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ class ClientsController extends Controller
 {
     public function index(): JsonResponse
     {
-        $clients = UsersModel::with('company')->get();
+        $clients = UsersModel::with('company.package')->where('user_type', "Admin")->get();
         return response()->json($clients);
     }
 
@@ -30,7 +31,7 @@ class ClientsController extends Controller
             return response()->json(['error' => 'Client not found'], 404);
         }
         
-        return response()->json($client->load('company'));
+        return response()->json($client->load('company.package'));
     }
 
     public function update(Request $request, $id): JsonResponse
@@ -94,7 +95,7 @@ class ClientsController extends Controller
                 'lastname' => 'required',
                 'email' => 'required|email|unique:users,email',
                 'username' => 'required|unique:users,user_name',
-                'phone' => 'required',
+                'contact_number' => 'required',
                 'address' => 'required',
                 'password' => 'required',
                 'confirm_password' => 'required|same:password',
@@ -107,7 +108,7 @@ class ClientsController extends Controller
             $client->user_name = $validated['username'];
             $client->email = $validated['email'];
             $client->password = Hash::make($validated['password']);
-            $client->contact_number = $validated['phone'];
+            $client->contact_number = $validated['contact_number'];
             $client->address = $validated['address'];
             $client->user_type = "Admin";
             $client->save();
@@ -131,6 +132,31 @@ class ClientsController extends Controller
             ], 500);
         }
     }
+
+    public function assignPackageToCompany(Request $req, $id, $pkg_id)
+    {
+        try {
+            
+            $company = Company::findOrFail($id);
+            $package = Package::findOrFail($pkg_id);
+            
+            $company->package_id = $package->id;
+            $company->save();
+
+            return response()->json([
+                'isSuccess' => true,
+                'message' => 'Package assigned successfully',
+                'company' =>$company->load('package')
+        ], 200);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return response()->json([
+                'message' => 'Error assigning package',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+    
     public function checkUser()
     {
         // Log::info("ClientsController::checkUser");
@@ -237,7 +263,8 @@ class ClientsController extends Controller
                 'website' => 'required',
                 'description' => 'required',
             ]);
-            
+
+            $user = UsersModel::find($request->user_id);
             $company = new Company();
             $company->user_id = $request->user_id;
             $company->name = $request->name;
@@ -247,6 +274,9 @@ class ClientsController extends Controller
             $company->website = $request->website;
             $company->description = $request->description;
             $company->save();
+
+            $user->company_id = $company->id;
+            $user->save();
 
             return response()->json([ 'company' => $company, 'status' => 200 ]);
 

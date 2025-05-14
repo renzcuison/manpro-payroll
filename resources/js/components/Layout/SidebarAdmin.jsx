@@ -97,7 +97,7 @@ const Sidebar = ({ children, closeMini }) => {
 
     useEffect(() => {
         return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
+            if (imagePath && imagePath.startsWith("blob:")) {
                 URL.revokeObjectURL(imagePath);
             }
         };
@@ -159,49 +159,53 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const payrollItems = [{
-        id: 3,
-        text: 'Payroll',
-        icon: 'fa fa-money',
-        children: [
-            {
-                href: `/admin/payroll/process?`,
-                text: 'Process',
-            },
-            {
-                href: `/admin/payroll/records?`,
-                text: 'Records',
-            },
-            {
-                href: `/admin/payroll/summary?`,
-                text: 'Summary',
-            },
-        ]
-    }]
+    const payrollItems = [
+        {
+            id: 3,
+            text: "Payroll",
+            icon: "fa fa-money",
+            children: [
+                {
+                    href: `/admin/payroll/process?`,
+                    text: "Process",
+                },
+                {
+                    href: `/admin/payroll/records?`,
+                    text: "Records",
+                },
+                {
+                    href: `/admin/payroll/summary?`,
+                    text: "Summary",
+                },
+            ],
+        },
+    ];
 
-    const applicationsItems = [{
-        id: 4,
-        text: 'Applications',
-        icon: 'fa fa-pencil-square-o',
-        children: [
-            {
-                href: `/admin/application/types?`,
-                text: 'Application Types',
-            },
-            {
-                href: `/admin/applications?`,
-                text: 'Application Request',
-            },
-            {
-                href: `/admin/application/leave-credits?`,
-                text: "Leave Credits",
-            },
-            {
-                href: `/admin/application/overtimes?`,
-                text: 'Overtime Requests',
-            }
-        ]
-    }];
+    const applicationsItems = [
+        {
+            id: 4,
+            text: "Applications",
+            icon: "fa fa-pencil-square-o",
+            children: [
+                {
+                    href: `/admin/application/types?`,
+                    text: "Application Types",
+                },
+                {
+                    href: `/admin/applications?`,
+                    text: "Application Request",
+                },
+                {
+                    href: `/admin/application/leave-credits?`,
+                    text: "Leave Credits",
+                },
+                {
+                    href: `/admin/application/overtimes?`,
+                    text: "Overtime Requests",
+                },
+            ],
+        },
+    ];
 
     const workShifts = [
         {
@@ -241,18 +245,20 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const settingsItems = [{
-        id: 7,
-        text: 'Settings',
-        icon: 'fa fa-gear',
-        children: [
-            {
-                href: `/admin/settings/general?`,
-                text: 'General',
-                icon: 'fa fa-cogs',
-            },
-        ]
-    }]
+    const settingsItems = [
+        {
+            id: 7,
+            text: "Settings",
+            icon: "fa fa-gear",
+            children: [
+                {
+                    href: `/admin/settings/general?`,
+                    text: "General",
+                    icon: "fa fa-cogs",
+                },
+            ],
+        },
+    ];
 
     // const loanItems = [{
     //     id: 8,
@@ -269,24 +275,31 @@ const Sidebar = ({ children, closeMini }) => {
     //     ]
     // }]
 
-    const evaluationItems = [{
-        id: 9,
-        text: 'Performance Evaluation',
-        icon: 'fa fa-check',
-        children: [
-            {
-                href: `/member/evaluate`,
-                text: 'Evaluate',
-            }, {
-                href: `/member/evaluation`,
-                text: 'My Evaluation',
-            }
-        ]
-    }]
+    const evaluationItems = [
+        {
+            id: 9,
+            text: "Performance Evaluation",
+            icon: "fa fa-check",
+            children: [
+                {
+                    href: `/member/evaluate`,
+                    text: "Evaluate",
+                },
+                {
+                    href: `/member/evaluation`,
+                    text: "My Evaluation",
+                },
+            ],
+        },
+    ];
 
+    // console.log("User: ", user);
 
     return (
-        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
+        <nav
+            id="sidebar"
+            style={{ zIndex: 1, height: "100vh", overflow: "hidden" }}
+        >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">
@@ -299,53 +312,75 @@ const Sidebar = ({ children, closeMini }) => {
                             </span>
                         </div>
                         <div className="content-header-section text-center align-parent sidebar-mini-hidden">
-                            <button type="button" className="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close" onClick={closeMini} >
+                            <button
+                                type="button"
+                                className="btn btn-circle btn-dual-secondary d-lg-none align-v-r"
+                                data-toggle="layout"
+                                data-action="sidebar_close"
+                                onClick={closeMini}
+                            >
                                 <i className="fa fa-times text-danger"></i>
                             </button>
                             <div className="content-header-item">
-                                <img src={manpro_logo} style={{ height: "30px", marginBottom: "20px" }} />
+                                <img
+                                    src={manpro_logo}
+                                    style={{
+                                        height: "30px",
+                                        marginBottom: "20px",
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
 
-                    <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                    <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
                             <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
                             <Box display="flex" flexDirection="column" alignItems="center" >
                                 <Avatar
-                                    src={imagePath ? imagePath : HomeLogo}
-                                    alt={`${user.first_name} ${user.last_name}`}
-                                    sx={{
-                                        width: 64,
-                                        height: 64,
-                                        objectFit: "contain",
-                                        bgcolor: "grey.300",
-                                        "& .MuiAvatar-img": { objectFit: "cover" },
-                                    }}
+                                    src={user?.media?.[0]?.original_url || imagePath}
+                                    alt={`${user?.first_name || ''} ${user?.last_name || ''}`}
+                                    sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" } }}
                                 />
                                 <ul className="list-inline mt-10">
                                     <li className="list-inline-item">
                                         <a className="link-effect text-white font-size-xs font-w600">
-                                            {capitalize(user.first_name)} {" "} {capitalize(user.last_name)}
+                                            {capitalize(user.first_name)}{" "}
+                                            {capitalize(user.last_name)}
                                         </a>
                                     </li>
                                 </ul>
                             </Box>
                         </div>
                     </div>
+                    
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             {user.user_type === "Admin" ? (
                                 <>
                                     <li className="nav-main-heading">
-                                        <span className="sidebar-mini-hidden" style={{ color: "#3d3d3f" }} > ADMIN </span>
+                                        <span
+                                            className="sidebar-mini-hidden"
+                                            style={{ color: "#3d3d3f" }}
+                                        >
+                                            {" "}
+                                            ADMIN{" "}
+                                        </span>
                                     </li>
 
-                                    <StyledNav to={`/dashboard?year=${moment().year()}`} >
-                                        <i className="si si-grid" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide" >
+                                    <StyledNav
+                                        to={`/dashboard?year=${moment().year()}`}
+                                    >
+                                        <i
+                                            className="si si-grid"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
                                             Dashboard
                                         </span>
                                     </StyledNav>
@@ -358,38 +393,74 @@ const Sidebar = ({ children, closeMini }) => {
 
                                     {employeesItems.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
 
                                     {attendanceLogs.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
 
                                     {payrollItems.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
 
                                     {applicationsItems.map((items, index) => {
-                                        return <SideItem key={index} items={items} />
+                                        return (
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
+                                        );
                                     })}
 
-                                     {/* <StyledNav to={`/admin/loan-management`} > */}
-                                        {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
+                                    {/* <StyledNav to={`/admin/loan-management`} > */}
+                                    {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
                                     {/* </StyledNav>  */}
 
                                     <StyledNav to={`/admin/announcements`}>
-                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide" > Announcements </span>
+                                        <i
+                                            className="fa fa-bullhorn"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Announcements{" "}
+                                        </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/documents`}>
-                                        <i> <DescriptionOutlinedIcon sx={{ color: palette.success.main }} /> </i>
-                                        <span id="navName" className="sidebar-mini-hide" > Documents </span>
+                                        <i>
+                                            {" "}
+                                            <DescriptionOutlinedIcon
+                                                sx={{
+                                                    color: palette.success.main,
+                                                }}
+                                            />{" "}
+                                        </i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Documents{" "}
+                                        </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
@@ -398,8 +469,8 @@ const Sidebar = ({ children, closeMini }) => {
                                     </StyledNav>
 
                                     {/* <StyledNav to={`/admin/trainings`}> */}
-                                        {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
-                                        {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
+                                    {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
+                                    {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
                                     {/* </StyledNav> */}
 
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
@@ -428,18 +499,27 @@ const Sidebar = ({ children, closeMini }) => {
                                 </StyledNav> */}
 
                                     <li className="nav-main-heading">
-                                        <span className="sidebar-mini-hidden text-dark"> Schedules </span>
+                                        <span className="sidebar-mini-hidden text-dark">
+                                            {" "}
+                                            Schedules{" "}
+                                        </span>
                                     </li>
 
                                     {workShifts.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
 
                                     {workGroups.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
 
@@ -451,7 +531,10 @@ const Sidebar = ({ children, closeMini }) => {
 
                                     {settingsItems.map((items, index) => {
                                         return (
-                                            <SideItem key={index} items={items} />
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
                                         );
                                     })}
                                 </>

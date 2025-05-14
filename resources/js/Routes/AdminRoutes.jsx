@@ -22,6 +22,7 @@ import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
 import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
+import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 
@@ -90,6 +91,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="application/types" element={<ProtectedRoute element={<ApplicationTypes />} user={user} />} />
 
             <Route path="application/overtimes" element={<ProtectedRoute element={<OvertimeAppsList />} user={user} />} />
+            <Route path="application/overtime/types" element={<ProtectedRoute element={<OvertimeTypes />} user={user} />} />
             
             <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} />} />
 

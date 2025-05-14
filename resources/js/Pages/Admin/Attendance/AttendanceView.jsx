@@ -175,26 +175,8 @@ const AttendanceView = () => {
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer',
-                                    '&:hover .hover-text': { color: 'orange' },
-                                    '&:hover .hover-icon': { color: 'orange' },
-                                }}
-                                onClick={() => window.history.back()}
-                            >
-                                <Typography className="hover-text" mr={1} sx={{ fontSize: '13px' }}>
-                                    Attendance Summary
-                                </Typography>
-                                <EastIcon sx={{ width: '15px', height: '15px' }} />
-                            </Box>
-                            <Typography sx={{ fontWeight: 'bold', color: 'black', fontSize:'15px' }} ml={1}>
-                                {employee ? `Employee Attendance Summary - ${employee.emp_first_name || employee.first_name} ${employee.emp_middle_name || employee.middle_name || ''} ${employee.emp_last_name || employee.last_name} ${employee.emp_suffix || employee.suffix || ''}` : 'Employee Attendance Summary'}
-                            </Typography>
-                        </Box>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Attendance Summary </Typography>
+
                         <Button variant="contained" color="primary" onClick={handleOpenAddAttendance}>
                             <p className="m-0">
                                 <i className="fa fa-plus"></i> Add
@@ -210,7 +192,7 @@ const AttendanceView = () => {
                             <>
                                 <Box sx={{ display: 'flex', justifyContent: "space-between" }}>
                                     <Box>
-                                        <FormControl fullWidth sx={{ width: '200px', mr: 2 }}>
+                                        <FormControl fullWidth sx={{ width: '400px', mr: 2 }}>
                                             <InputLabel id="employee-select-label">Employees</InputLabel>
                                             <Select
                                                 labelId="employee-select-label"

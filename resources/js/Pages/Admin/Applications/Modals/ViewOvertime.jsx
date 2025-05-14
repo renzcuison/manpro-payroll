@@ -64,7 +64,9 @@ const ViewOvertime = ({ open, close, overtime }) => {
     }
 
     const saveInput = () => {
-        const data = { app_id: overtime.application, app_response: appResponse, totalHours: totalHours, date: date }
+        const data = { app_id: overtime.application, app_response: appResponse, totalHours: totalHours, totalMinutes: diffInMinutes, date: date }
+
+        // diffInMinutes
 
         axiosInstance.post("/applications/manageOvertimeApplication", data, { headers })
             .then((response) => {
@@ -148,7 +150,7 @@ const ViewOvertime = ({ open, close, overtime }) => {
                                 </Grid>
 
                                 <Grid size={{ xs: 12 }}>
-                                    <InfoBox title="Total Hours" info={`${totalHours} Hour(s)`} compact clean />
+                                    <InfoBox title="Total Minutes" info={`${diffInMinutes} Minute(s)`} compact clean />
                                 </Grid>
                                 <Grid size={12} sx={{ my: 0 }}>
                                     <Divider />

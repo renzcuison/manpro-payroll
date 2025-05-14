@@ -23,7 +23,9 @@ export function usePackages() {
         isFetched,
         isFetching,
         refetch,
-    } = useQuery(["packages"], () => getPackages());
+    } = useQuery(["packages"], () => getPackages(), {
+        refetchOnMount: "always",
+    });
 
     async function store(packageData) {
         const response = await axiosInstance.post(
@@ -47,12 +49,9 @@ export function usePackages() {
         return response.data;
     }
 
-    async function assignFeature(packageID, featureID) {
-        const response = await axiosInstance.post(
-            `/super-admin/packages/${packageID}/assignFeature`,
-            {
-                feature_id: featureID,
-            },
+    async function deletePkg(id) {
+        const response = await axiosInstance.delete(
+            `/super-admin/packages/${id}`,
             {
                 headers,
             }
@@ -67,7 +66,7 @@ export function usePackages() {
         refetch,
         store,
         update,
-        assignFeature,
+        deletePkg,
     };
 }
 

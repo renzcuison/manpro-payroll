@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('applications_overtime', function (Blueprint $table) {
-            $table->integer('approved_hours')->after('status')->nullable();
-            $table->date('date')->after('approved_hours')->nullable(); 
+            $table->integer('approved_minutes')->after('status')->nullable();
+            $table->date('date')->after('approved_minutes')->nullable(); 
         });
     }
 
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('applications_overtime', function (Blueprint $table) {
-            $table->dropColumn('approved_hours');
+            $table->dropColumn('approved_minutes');
             $table->dropColumn('date');
         });
     }
