@@ -293,7 +293,7 @@ const OverallPayrollSummary = ({
 
      const breakdownTotals = useMemo(() => {
          return records.reduce((acc, curr) => {
-             acc.payroll += Number(curr.payrollGrossPay || curr.monthlyBasePay || 0);
+             acc.payroll += Number(curr.payrollNetPay - curr.totalAllowance || 0);
              acc.sssEmployer += Number(curr.sssEmployer || 0);
              acc.philhealthEmployer += Number(curr.philhealthEmployer || 0);
              acc.pagibigEmployer += Number(curr.pagibigEmployer || 0);
@@ -388,6 +388,7 @@ const OverallPayrollSummary = ({
                                 </TableBody>
                            </Table>
                         </TableContainer>
+                        
                         <Typography className='breakdown' sx={{ mb: 1, fontWeight: 'bold', fontStyle: 'italic', fontSize: '12px', mt: 3 }}>Breakdown Summary:</Typography>
                         <Box className="breakdown-summary" sx={{ fontSize: '11px', '& p': { marginBottom: 0 }}}>
                             <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
@@ -462,6 +463,73 @@ const OverallPayrollSummary = ({
                                             {selectedPreparers.length > 1 && (
                                                 <Tooltip title="Remove Preparer">
                                                     <IconButton onClick={() => removePreparer(preparer.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
+                                                        <i className="si si-minus"></i>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Box>
+
+                            <Box className="print-signatory-box" sx={{ minWidth: 220, }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Typography className='label' sx={{ fontSize: '12px', mr: 1 }}>Reviewed By:</Typography>
+                                    <Tooltip title="Add Another Reviewer">
+                                        <IconButton
+                                        size="small"
+                                        onClick={addReviewer}
+                                        className="add-signatory-button print-hide"
+                                        sx={{ p: '2px' }}
+                                        disabled={loadingSignatories}
+                                        >
+                                        <AddCircleOutlineIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                                
+                                <Box className="dropdown-box" sx={{display: "flex", flexDirection:"row", flexWrap: "wrap"}}>
+                                    {selectedReviewers.map((reviewer, index) => (
+                                        <Box key={reviewer.id} sx={{ alignItems: 'center', mb: 1,  }}>
+                                            <Typography
+                                                className="signatory-text"
+                                                data-role="reviewer"
+                                                data-id={reviewer.id}
+                                                sx={{
+                                                    display: 'none',
+                                                    pt: 1,
+                                                    minHeight: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    flexGrow: 1,
+                                                    borderTop: reviewer.name ? 'none' : '1px solid #000',
+                                                    mr: 0.5
+                                                }}
+                                            >
+                                                {reviewer.name || <>&nbsp;</>}
+                                            </Typography>
+                                            <FormControl size="small" className="signatory-dropdown print-hide">
+                                                <Select
+                                                    displayEmpty
+                                                    value={reviewer.name}
+                                                    onChange={(e) => updateReviewerName(reviewer.id, e.target.value)}
+                                                    sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
+                                                    disabled={loadingSignatories}
+                                                    renderValue={(selected) => {
+                                                        if (!selected) {
+                                                            return <em>Select Reviewer</em>;
+                                                        }
+                                                        return selected;
+                                                    }}
+                                                >
+                                                    <MenuItem value="" disabled><em>Select Reviewer</em></MenuItem>
+                                                    {reviewedByOptions.map((name, idx) => ( <MenuItem key={`revr-opt-${idx}`} value={name}>{name}</MenuItem> ))}
+                                                </Select>
+                                            </FormControl>
+                                            {selectedReviewers.length > 1 && (
+                                                <Tooltip title="Remove Reviewer">
+                                                    <IconButton onClick={() => removeReviewer(reviewer.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
                                                         <i className="si si-minus"></i>
                                                     </IconButton>
                                                 </Tooltip>
@@ -551,73 +619,6 @@ const OverallPayrollSummary = ({
                                     ))}
                                 </Box>
 
-                            </Box>
-
-                            <Box className="print-signatory-box" sx={{ minWidth: 220, }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                    <Typography className='label' sx={{ fontSize: '12px', mr: 1 }}>Reviewed By:</Typography>
-                                    <Tooltip title="Add Another Reviewer">
-                                        <IconButton
-                                        size="small"
-                                        onClick={addReviewer}
-                                        className="add-signatory-button print-hide"
-                                        sx={{ p: '2px' }}
-                                        disabled={loadingSignatories}
-                                        >
-                                        <AddCircleOutlineIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                                
-                                <Box className="dropdown-box" sx={{display: "flex", flexDirection:"row", flexWrap: "wrap"}}>
-                                    {selectedReviewers.map((reviewer, index) => (
-                                        <Box key={reviewer.id} sx={{ alignItems: 'center', mb: 1,  }}>
-                                            <Typography
-                                                className="signatory-text"
-                                                data-role="reviewer"
-                                                data-id={reviewer.id}
-                                                sx={{
-                                                    display: 'none',
-                                                    pt: 1,
-                                                    minHeight: '20px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold',
-                                                    textAlign: 'center',
-                                                    flexGrow: 1,
-                                                    borderTop: reviewer.name ? 'none' : '1px solid #000',
-                                                    mr: 0.5
-                                                }}
-                                            >
-                                                {reviewer.name || <>&nbsp;</>}
-                                            </Typography>
-                                            <FormControl size="small" className="signatory-dropdown print-hide">
-                                                <Select
-                                                    displayEmpty
-                                                    value={reviewer.name}
-                                                    onChange={(e) => updateReviewerName(reviewer.id, e.target.value)}
-                                                    sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
-                                                    disabled={loadingSignatories}
-                                                    renderValue={(selected) => {
-                                                        if (!selected) {
-                                                            return <em>Select Reviewer</em>;
-                                                        }
-                                                        return selected;
-                                                    }}
-                                                >
-                                                    <MenuItem value="" disabled><em>Select Reviewer</em></MenuItem>
-                                                    {reviewedByOptions.map((name, idx) => ( <MenuItem key={`revr-opt-${idx}`} value={name}>{name}</MenuItem> ))}
-                                                </Select>
-                                            </FormControl>
-                                            {selectedReviewers.length > 1 && (
-                                                <Tooltip title="Remove Reviewer">
-                                                    <IconButton onClick={() => removeReviewer(reviewer.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
-                                                        <i className="si si-minus"></i>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                        </Box>
-                                    ))}
-                                </Box>
                             </Box>
                         </Box>
                   </DialogContent>

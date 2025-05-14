@@ -787,7 +787,7 @@ class PayrollController extends Controller
             ];
         }
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay + $holidayOTPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $payroll = [
@@ -1187,17 +1187,23 @@ class PayrollController extends Controller
                     $overTimeHours = round($overTime->amount / $overTimeRate);
                 }
 
+                $holidayPay = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 3)->value('amount');
+                $holidayOvertime = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 4)->value('amount');
+
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
                     'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
-                    'monthlyBasePay' => $rawRecord->rate_monthly / 2,
+                    'monthlyBasePay' => ($rawRecord->rate_monthly / 2) - $paidLeaveAmount,
 
                     // Overtime
                     'overTimeHours' => $overTimeHours,
                     'overTimePay' => $overTime->amount,
+
+                    'holidayPay' => $holidayPay,
+                    'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
                     'paidLeaveDays' => round($paidLeaveDays),
@@ -1213,8 +1219,8 @@ class PayrollController extends Controller
                     'payrollEndDate' => $rawRecord->period_end,
                     'payrollCutOff' => $rawRecord->cut_off,
                     'payrollWorkingDays' => $rawRecord->working_days,
-                    'payrollGrossPay' => $rawRecord->total_earnings,
-                    'payrollNetPay' => round($rawRecord->total_earnings + $rawRecord->total_deductions - $absences->amount - $tardiness->amount, 2)
+                    'payrollGrossPay' => round($rawRecord->total_earnings + $absences->amount + $tardiness->amount, 2),
+                    'payrollNetPay' => round($rawRecord->total_earnings - $rawRecord->total_deductions, 2)
                 ];
             }
 

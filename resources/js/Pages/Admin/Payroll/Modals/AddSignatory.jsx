@@ -48,15 +48,10 @@ const AddSignatory = ({
             <TextField label="Prepared By" fullWidth value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)}/>
           </Grid>
           <Grid item xs={12}>
-            <TextField label="Approved By" fullWidth value={approvedBy} onChange={(e) => setApprovedBy(e.target.value)} />
+            <TextField label="Reviewed By" fullWidth value={reviewedBy} onChange={(e) => setReviewedBy(e.target.value)} />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Reviewed By"
-              fullWidth
-              value={reviewedBy}
-              onChange={(e) => setReviewedBy(e.target.value)}
-            />
+            <TextField label="Approved By" fullWidth value={approvedBy} onChange={(e) => setApprovedBy(e.target.value)} />
           </Grid>
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button color='error' variant='outlined' onClick={onClose} sx={{ mr: 1}}>Cancel</Button>
