@@ -372,7 +372,7 @@ const OverallPayrollSummary = ({
                            </Table>
                         </TableContainer>
                         <Typography className='breakdown' sx={{ mb: 1, fontWeight: 'bold', fontStyle: 'italic', fontSize: '12px', mt: 3 }}>Breakdown Summary:</Typography>
-                        <Box className="breakdown-summary" sx={{ p: 2, border: '1px solid #eee', borderRadius: '4px', fontSize: '11px' }}>
+                        <Box className="breakdown-summary" sx={{ fontSize: '11px', '& p': { marginBottom: 0 }}}>
                             <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
                             <p>SSS Employer Share: {formatCurrency(breakdownTotals.sssEmployer)}</p>
                             <p>Philhealth Employer Share: {formatCurrency(breakdownTotals.philhealthEmployer)}</p>

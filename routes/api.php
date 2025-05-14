@@ -17,6 +17,7 @@ use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
+use App\Http\Controllers\RadiusPerimeterController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -77,6 +78,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/store', [DocumentController::class, 'store']);
         Route::post('/edit', [DocumentController::class, 'edit']);
         Route::delete('/{id}', [DocumentController::class, 'destroy']);
+    });
+
+    Route::prefix('perimeters')->group(function () {
+        Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
+        Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('{id}', [RadiusPerimeterController::class, 'show']);
+        Route::put('{id}', [RadiusPerimeterController::class, 'update']);
+        Route::delete('{id}', [RadiusPerimeterController::class, 'destroy']);
     });
 
     Route::prefix('settings')->group(function () {
