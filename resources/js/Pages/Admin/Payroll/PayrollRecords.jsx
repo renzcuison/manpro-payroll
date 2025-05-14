@@ -6,6 +6,7 @@ import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useUser } from '../../../hooks/useUser';
 import Swal from "sweetalert2";
+import { useMemo } from 'react';
 
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -37,6 +38,16 @@ const PayrollRecords = () => {
     const [endDate, setEndDate] = useState('');
     const [cutOff, setCutOff] = useState('');
 
+    const [selectedYear, setSelectedYear] = useState('');
+    const [selectedMonth, setSelectedMonth] = useState('');
+    const [selectedCutOff, setSelectedCutOff] = useState('');
+    const currentYear = new Date().getFullYear();
+    const years = useMemo(() => Array.from({ length: currentYear - 2014 }, (_, i) => (2015 + i).toString()), [currentYear]);
+    const [months, setMonths] = useState([
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]);
+
     useEffect(() => {
         getRecords();
     }, []);
@@ -62,6 +73,17 @@ const PayrollRecords = () => {
         setOpenViewPayrollModal(false);
     }
 
+    const filteredRecords = records.filter((record) => {
+        const recordDate = dayjs(record.payrollStartDate);
+
+        const matchesYear = selectedYear ? recordDate.year().toString() === selectedYear : true;
+        const matchesMonth = selectedMonth ? recordDate.format('MMMM') === selectedMonth : true;
+        const matchesCutoff = selectedCutOff ? record.payrollCutOff === selectedCutOff : true;
+
+        return matchesYear && matchesMonth && matchesCutoff;
+    });
+
+
     return (
         <Layout title={"PayrollProcess"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -69,6 +91,54 @@ const PayrollRecords = () => {
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'left' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Payroll Records </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2, justifyContent: 'end', }}>
+                        <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                            <InputLabel>Year</InputLabel>
+                            <Select
+                                value={selectedYear}
+                                label="Year"
+                                onChange={(e) => setSelectedYear(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {years.map((year) => (
+                                    <MenuItem key={year} value={year}>
+                                        {year}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                            <InputLabel>Month</InputLabel>
+                            <Select
+                                value={selectedMonth}
+                                label="Month"
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {[
+                                    'January', 'February', 'March', 'April', 'May', 'June',
+                                    'July', 'August', 'September', 'October', 'November', 'December'
+                                ].map((month) => (
+                                    <MenuItem key={month} value={month}>{month}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                            <InputLabel>Cutoff</InputLabel>
+                            <Select
+                                value={selectedCutOff}
+                                label="Cutoff"
+                                onChange={(e) => setSelectedCutOff(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                <MenuItem value="First">First</MenuItem>
+                                <MenuItem value="Second">Second</MenuItem>
+                            </Select>
+                        </FormControl>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -93,8 +163,9 @@ const PayrollRecords = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            {records.map((record) => (
-                                                <TableRow key={record.record} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenViewPayrollModal(record.record)} >
+                                            {filteredRecords.length > 0 ? (
+                                                filteredRecords.map((record) => (
+                                                <TableRow key={record.record} onClick={() => handleOpenViewPayrollModal(record.record)} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}>
                                                     <TableCell align="left">{record.employeeName}</TableCell>
                                                     <TableCell align="center">{record.employeeBranch}</TableCell>
                                                     <TableCell align="center">{record.employeeDepartment}</TableCell>
@@ -104,7 +175,14 @@ const PayrollRecords = () => {
                                                     <TableCell align="center">{record.payrollGrossPay}</TableCell>
                                                     <TableCell align="center"></TableCell>
                                                 </TableRow>
-                                            ))}
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                <TableCell colSpan={8} align="center" sx={{ fontStyle: 'italic', color: '#888', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                                                    No payroll records
+                                                </TableCell>
+                                                </TableRow>
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
