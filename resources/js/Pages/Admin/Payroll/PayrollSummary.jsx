@@ -31,15 +31,23 @@ const PayrollSummary = () => {
     const [openViewPayrollModal, setOpenViewPayrollModal] = useState(false);
     const [selectedPayroll, setSelectedPayroll] = useState('');
     const [openOverallSummaryModal, setOpenOverallSummaryModal] = useState(false);
-    const [selectedYear, setSelectedYear] = useState('');
-    const [selectedMonth, setSelectedMonth] = useState('');
-    const [selectedCutOff, setSelectedCutOff] = useState('');
     const [openSignatoryDialog, setOpenSignatoryDialog] = useState(false);
     const [preparedBy, setPreparedBy] = useState('');
     const [approvedBy, setApprovedBy] = useState('');
 
-    const currentYear = new Date().getFullYear();
-    const years = useMemo(() => Array.from({ length: currentYear - 2014 }, (_, i) => (2015 + i).toString()), [currentYear]);
+    const today = dayjs();
+    const currentYear = today.year().toString();
+    const currentMonth = today.format('MMMM');
+    const currentCutOff = today.date() <= 15 ? 'First' : 'Second';
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [selectedCutOff, setSelectedCutOff] = useState(currentCutOff);
+    const years = useMemo(() => Array.from({ length: today.year() - 2014 }, (_, i) => (2025 - i).toString()), []);
+    const [months, setMonths] = useState([
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]);
 
     const handleOpenSignatoryDialog = () => setOpenSignatoryDialog(true);
     const handleCloseSignatoryDialog = () => setOpenSignatoryDialog(false);
@@ -356,7 +364,6 @@ const PayrollSummary = () => {
                                     label="Cutoff"
                                     onChange={(e) => setSelectedCutOff(e.target.value)}
                                 >
-                                    <MenuItem value="">All</MenuItem>
                                     <MenuItem value="First">First</MenuItem>
                                     <MenuItem value="Second">Second</MenuItem>
                                 </Select>
