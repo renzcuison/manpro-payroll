@@ -3,11 +3,12 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
-// import LoadingSpinner from '../../../../components/LoadingStates/LoadingSpinner';
 import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
 
 const EmployeeBenefits = ({ userName, headers }) => {
 
+    const [openEmployeeAddBenefit, setOpenEmployeeAddBenefit] = useState(false);
+    
     const [benefits, setBenefits] = useState([]);
 
     useEffect(() => {
@@ -20,14 +21,23 @@ const EmployeeBenefits = ({ userName, headers }) => {
             });
     }, []);
 
+    const handleOpenAddEmployeeBenefit = () => {
+        console.log("handleOpenAddEmployeeBenefit()");
+        setOpenEmployeeAddBenefit(true);
+    }
+    const handleCloseAddEmployeeBenefit = () => {
+        console.log("handleCloseAddEmployeeBenefit()");
+        setOpenEmployeeAddBenefit(false);
+    }
+
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                <Button variant="contained" color="primary">
-                    <p className='m-0'><i className="fa fa-plus" onClick={() => handleOpenAddEmployeeBenefit()}></i> Add </p>
+                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeBenefit()}>
+                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                 </Button>
             </Box>
 
@@ -63,7 +73,10 @@ const EmployeeBenefits = ({ userName, headers }) => {
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{benefit.number}</Typography>
+                                        <Typography> </Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography> </Typography>
                                     </TableCell>
                                 </TableRow>
                             ))) :
@@ -76,6 +89,11 @@ const EmployeeBenefits = ({ userName, headers }) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            
+            {openEmployeeAddBenefit &&
+                <EmployeeAddBenefit open={openEmployeeAddBenefit} close={handleCloseAddEmployeeBenefit} userName={userName} />
+            }
         </Box>
     );
 };

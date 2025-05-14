@@ -127,7 +127,7 @@ class BenefitsController extends Controller
         // log::info("BenefitsController::addEmployeeBenefit");
 
         $validated = $request->validate([
-            'employee' => 'required',
+            'userName' => 'required',
             'benefit' => 'required',
             'number' => 'required',
         ]);
@@ -140,8 +140,10 @@ class BenefitsController extends Controller
             try {
                 DB::beginTransaction();
 
+                $employee = UsersModel::where('user_name', $request->userName)->first();
+
                 $employeeBenefit = EmployeeBenefitsModel::create([
-                    "user_id" => $request->employee,
+                    "user_id" => $employee->id,
                     "benefit_id" => $request->benefit,
                     "number" => $request->number,
                 ]);

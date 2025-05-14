@@ -72,14 +72,14 @@ const PayrollSummary = () => {
                 { key: 'paidLeaveAmount', secondaryLabel: 'Pay', dataKey: 'paidLeaveAmount', isVisible: (cols) => cols.includes('paidLeaveAmount'), isTotaled: true }
             ]
         },
+        { key: 'totalAllowance', primaryLabel: 'Allowance', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'totalAllowance', isVisible: (cols) => cols.includes('totalAllowance'), isTotaled: true },
+        { key: 'payrollGrossPay', primaryLabel: 'Gross Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollGrossPay', isVisible: (cols) => cols.includes('payrollGrossPay'), isTotaled: true },
         {
             key: 'deductionGroup', primaryLabel: 'Deduction', colSpan: 2, isGroup: true, children: [
                 { key: 'absences', secondaryLabel: 'Absences', dataKey: 'absences', isVisible: (cols) => cols.includes('absences'), isTotaled: true },
                 { key: 'tardiness', secondaryLabel: 'Tardiness', dataKey: 'tardiness', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true }
             ]
         },
-        { key: 'totalAllowance', primaryLabel: 'Allowance', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'totalAllowance', isVisible: (cols) => cols.includes('totalAllowance'), isTotaled: true },
-        { key: 'payrollGrossPay', primaryLabel: 'Gross Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollGrossPay', isVisible: (cols) => cols.includes('payrollGrossPay'), isTotaled: true },
         { key: 'payrollNetPay', primaryLabel: 'Net Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollNetPay', isVisible: (cols) => cols.includes('payrollNetPay'), isTotaled: true },
     ], []);
 
@@ -326,32 +326,19 @@ const PayrollSummary = () => {
                         <Box sx={{ display: 'flex', gap: 2, mb: 2, justifyContent: 'end', }}>
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Year</InputLabel>
-                                <Select
-                                    value={selectedYear}
-                                    label="Year"
-                                    onChange={(e) => setSelectedYear(e.target.value)}
-                                >
+                                <Select value={selectedYear} label="Year" onChange={(e) => setSelectedYear(e.target.value)} >
                                     <MenuItem value="">All</MenuItem>
                                     {years.map((year) => (
-                                        <MenuItem key={year} value={year}>
-                                            {year}
-                                        </MenuItem>
+                                        <MenuItem key={year} value={year}> {year} </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
 
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Month</InputLabel>
-                                <Select
-                                    value={selectedMonth}
-                                    label="Month"
-                                    onChange={(e) => setSelectedMonth(e.target.value)}
-                                >
+                                <Select value={selectedMonth} label="Month" onChange={(e) => setSelectedMonth(e.target.value)} >
                                     <MenuItem value="">All</MenuItem>
-                                    {[
-                                        'January', 'February', 'March', 'April', 'May', 'June',
-                                        'July', 'August', 'September', 'October', 'November', 'December'
-                                    ].map((month) => (
+                                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ].map((month) => (
                                         <MenuItem key={month} value={month}>{month}</MenuItem>
                                     ))}
                                 </Select>
@@ -359,11 +346,7 @@ const PayrollSummary = () => {
 
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Cutoff</InputLabel>
-                                <Select
-                                    value={selectedCutOff}
-                                    label="Cutoff"
-                                    onChange={(e) => setSelectedCutOff(e.target.value)}
-                                >
+                                <Select value={selectedCutOff} label="Cutoff" onChange={(e) => setSelectedCutOff(e.target.value)} >
                                     <MenuItem value="First">First</MenuItem>
                                     <MenuItem value="Second">Second</MenuItem>
                                 </Select>

@@ -1185,7 +1185,7 @@ class PayrollController extends Controller
 
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
@@ -1210,11 +1210,11 @@ class PayrollController extends Controller
                     'payrollCutOff' => $rawRecord->cut_off,
                     'payrollWorkingDays' => $rawRecord->working_days,
                     'payrollGrossPay' => $rawRecord->total_earnings,
-                    'payrollNetPay' => $rawRecord->total_earnings + $rawRecord->total_deductions,
+                    'payrollNetPay' => round($rawRecord->total_earnings + $rawRecord->total_deductions - $absences->amount - $tardiness->amount, 2)
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 

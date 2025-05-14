@@ -81,7 +81,7 @@ const PayrollRecords = () => {
     }
 
     const filteredRecords = records.filter((record) => {
-        const recordDate = dayjs(record.payrollStartDate);
+        const recordDate = dayjs(record.payrollEndDate);
 
         const matchesYear = selectedYear ? recordDate.year().toString() === selectedYear : true;
         const matchesMonth = selectedMonth ? recordDate.format('MMMM') === selectedMonth : true;
