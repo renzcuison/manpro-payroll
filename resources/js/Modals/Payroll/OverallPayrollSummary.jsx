@@ -40,18 +40,15 @@ const OverallPayrollSummary = ({
 
     const fetchSignatories = useCallback(async () => {
         if (!open) return;
-        console.log("Fetching signatories...");
         try {
             const response = await axiosInstance.get('/signatories', { headers });
             let data = response.data;
             if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
                  data = data[0];
             } else if (!Array.isArray(data)) {
-                 console.warn("Signatories data received is not an array:", response.data);
                  data = [];
             }
             setSignatories(Array.isArray(data) ? data : []);
-            console.log("Signatories fetched:", data);
         } catch (err) {
             console.error("Error fetching signatories:", err);
             setSignatories([]);
@@ -145,8 +142,10 @@ const OverallPayrollSummary = ({
                                 .breakdown {margin-top: 2px 0; text-transform: uppercase; font-style: italic; font-size: 12px;}
                                 .table-body-head {font-weight: bold; font-size: 12px; text-align: center; background-color: #f2f2f2;}
                                 .signatory-text {}
+                                td.net-pay-cell { font-weight: bold; } /* Add class for net pay */
                             }
                             .signatory-text { display: none; }
+                             td.net-pay-cell { font-weight: bold; } /* Add class for net pay */
                         </style>
                     </head>
                     <body>
@@ -251,6 +250,8 @@ const OverallPayrollSummary = ({
                          el.innerHTML = (role === 'preparer' ? localPreparedBy : localApprovedBy) || '&nbsp;';
                     });
                      Array.from(document.querySelectorAll('.add-signatory-button')).forEach(el => el.style.display = 'none');
+                     // Ensure net pay cells are bold in the clone
+                     Array.from(document.querySelectorAll('.net-pay-cell')).forEach(el => el.style.fontWeight = 'bold');
                  }
             });
 
@@ -378,10 +379,18 @@ const OverallPayrollSummary = ({
                                        <TableRow key={record.record || record.id || index} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '& > td': { fontSize: '10px', padding: '4px 6px' } }}>
                                            {headerConfig.map(group => {
                                                if (!group.isGroup) {
-                                                   return ( <TableCell key={`${group.key}-${record.record || index}`} align={group.key === 'employeeName' ? "left" : "center"}>
+                                                    const isNetPay = (group.dataKey || group.key) === 'payrollNetPay';
+                                                   return ( <TableCell key={`${group.key}-${record.record || index}`} align={group.key === 'employeeName' ? "left" : "center"}
+                                                            className={isNetPay ? 'net-pay-cell' : ''} sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                        >
                                                        {group.isTotaled ? formatCurrency(record[group.dataKey || group.key]) : record[group.dataKey || group.key] || '-'} </TableCell> );
-                                               } else { return group.children?.map(child => ( <TableCell key={`${child.key}-${record.record || index}`} align="center">
-                                                   {child.isTotaled ? formatCurrency(record[child.dataKey]) : record[child.dataKey] || '-'} </TableCell> )); }
+                                               } else { return group.children?.map(child => {
+                                                    const isNetPay = child.dataKey === 'payrollNetPay';
+                                                    return ( <TableCell key={`${child.key}-${record.record || index}`} align="center"
+                                                            className={isNetPay ? 'net-pay-cell' : ''} sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                        >
+                                                   {child.isTotaled ? formatCurrency(record[child.dataKey]) : record[child.dataKey] || '-'} </TableCell> );
+                                                    }); }
                                            })}
                                        </TableRow>
                                    ))}
@@ -621,18 +630,30 @@ const OverallPayrollSummary = ({
 
                             </Box>
                         </Box>
-                  </DialogContent>
-             </Box>
+                    </DialogContent>
+                </Box>
 
-
-             <Box sx={{ display: "flex", justifyContent: "end", mt: 2, gap: 2, p: 2, borderTop: '1px solid #e0e0e0' }} className="print-hide">
-                  <Button variant="contained" color="secondary" onClick={handleDownloadPDF} disabled={isPrintingOrDownloading || records.length === 0 || loadingSignatories} size="small">
-                      {isDownloading ? "Downloading...": "Download PDF"}
-                  </Button>
-                  <Button variant="contained" color="primary" onClick={handlePrint} disabled={isPrintingOrDownloading || records.length === 0 || loadingSignatories} size="small">
-                      Print
-                  </Button>
-             </Box>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'end', gap: 1 }} className="print-hide">
+                    <Button variant="outlined" onClick={close} disabled={isPrintingOrDownloading}>
+                         Close
+                    </Button>
+                     <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handlePrint}
+                        disabled={records.length === 0 || isPrintingOrDownloading}
+                     >
+                        Print
+                     </Button>
+                     <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={handleDownloadPDF}
+                        disabled={records.length === 0 || isPrintingOrDownloading}
+                     >
+                        Download PDF
+                     </Button>
+                </Box>
         </Dialog>
     );
 };
