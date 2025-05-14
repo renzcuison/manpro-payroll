@@ -968,7 +968,8 @@ class PayrollController extends Controller
 
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    // 'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     'employeeBranch' => $employee->branch->name ?? '-',
                     'employeeDepartment' => $employee->department->name ?? '-',
                     'employeeRole' => $employee->role->name ?? '-',
@@ -980,7 +981,7 @@ class PayrollController extends Controller
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 
