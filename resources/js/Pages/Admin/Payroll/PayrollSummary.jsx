@@ -34,6 +34,7 @@ const PayrollSummary = () => {
     const [openSignatoryDialog, setOpenSignatoryDialog] = useState(false);
     const [preparedBy, setPreparedBy] = useState('');
     const [approvedBy, setApprovedBy] = useState('');
+    const [reviewedBy, setReviewedBy] = useState('');
 
     const today = dayjs();
     const currentYear = today.year().toString();
@@ -474,9 +475,21 @@ const PayrollSummary = () => {
 
                 <OverallPayrollSummaryModal open={openOverallSummaryModal} close={handleCloseOverallSummaryModal} records={recordsForModal} totals={totalsForModal} headerConfig={visibleHeaderConfigForModal} payrollDateRange={payrollDateRange} preparedBy={preparedBy} approvedBy={approvedBy} />
 
-                <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
-                <AddSignatory open={openSignatoryDialog} onClose={handleCloseSignatoryDialog} preparedBy={preparedBy} setPreparedBy={setPreparedBy} approvedBy={approvedBy} setApprovedBy={setApprovedBy} headers={headers} />
-                
+                {openViewPayrollModal && selectedPayroll &&
+                    <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
+                }
+
+                <AddSignatory
+                    open={openSignatoryDialog}
+                    onClose={handleCloseSignatoryDialog}
+                    preparedBy={preparedBy}
+                    setPreparedBy={setPreparedBy}
+                    approvedBy={approvedBy}
+                    setApprovedBy={setApprovedBy}
+                    reviewedBy={reviewedBy}
+                    setReviewedBy={setReviewedBy}
+                    headers={headers}
+                />
             </Box>
         </Layout >
     )

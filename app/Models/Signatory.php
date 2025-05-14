@@ -14,6 +14,7 @@ class Signatory extends Model
         'approved_by_one',
         'approved_by_two',
         'approved_by_three',
+        'reviewed_by',
     ];
     
 }
