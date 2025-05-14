@@ -20,17 +20,31 @@ const EmployeeBenefits = ({ userName, headers }) => {
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
-            <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Statutory Benefits </Typography>
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
+
+                {/* <Button variant="contained" color="primary"> */}
+                    {/* <p className='m-0'><i className="fa fa-plus"></i> Add </p> */}
+                {/* </Button> */}
+            </Box>
 
             <TableContainer>
                 <Table size="small">
-                    <TableHead>
+                    {/* <TableHead>
                         <TableRow>
                             <TableCell align="center" rowSpan={2}>Benefit</TableCell>
                             <TableCell align="center" rowSpan={2}>Number</TableCell>
                             <TableCell align="center" colSpan={2}>Contribution</TableCell>
                         </TableRow>
                         <TableRow>
+                            <TableCell align="center">Employer</TableCell>
+                            <TableCell align="center">Employee</TableCell>
+                        </TableRow>
+                    </TableHead> */}
+                    <TableHead>
+                        <TableRow>
+                            <TableCell align="center">Benefit</TableCell>
+                            <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Employer</TableCell>
                             <TableCell align="center">Employee</TableCell>
                         </TableRow>
