@@ -5,15 +5,7 @@ import { Dialog, DialogTitle, DialogContent, Grid, TextField, Button } from '@mu
 import Swal from 'sweetalert2';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
-const AddSignatory = ({
-  open,
-  onClose,
-  preparedBy,
-  setPreparedBy,
-  approvedBy,
-  setApprovedBy,
-  headers
-}) => {
+const AddSignatory = ({ open, onClose, preparedBy, setPreparedBy, approvedBy, setApprovedBy, headers }) => {
 
   const handleSave = async () => {
     if (!preparedBy || !approvedBy) {
@@ -22,10 +14,7 @@ const AddSignatory = ({
     }
 
     try {
-      const payload = {
-        prepared_by: preparedBy,
-        approved_by_one: approvedBy,
-      };
+      const payload = { prepared_by: preparedBy, approved_by_one: approvedBy };
 
       await axiosInstance.post('/addSignatory', payload, { headers });
 
@@ -45,20 +34,10 @@ const AddSignatory = ({
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1, display: 'flex', flexDirection: 'column', width: '300px' }}>
           <Grid item xs={12}>
-            <TextField
-              label="Prepared By"
-              fullWidth
-              value={preparedBy}
-              onChange={(e) => setPreparedBy(e.target.value)}
-            />
+            <TextField label="Prepared By" fullWidth value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)}/>
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Approved By"
-              fullWidth
-              value={approvedBy}
-              onChange={(e) => setApprovedBy(e.target.value)}
-            />
+            <TextField label="Approved By" fullWidth value={approvedBy} onChange={(e) => setApprovedBy(e.target.value)} />
           </Grid>
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button color='error' variant='outlined' onClick={onClose} sx={{ mr: 1}}>Cancel</Button>

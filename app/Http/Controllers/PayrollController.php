@@ -1102,6 +1102,9 @@ class PayrollController extends Controller
                     case 3:
                         $name = 'Holiday Pay';
                         break;
+                    case 4:
+                        $name = 'Holiday OT Pay';
+                        break;
                     default:
                         $name = '-';
                         break;

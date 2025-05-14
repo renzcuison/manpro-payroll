@@ -465,42 +465,18 @@ const PayrollSummary = () => {
                             </>
                         )}
                     </Box>
-                    <Button
-                        sx={{ mt: 2, ml: 1, mb: 3, float: 'left' }}
-                        variant="contained"
-                        color="primary"
-                        onClick={handleOpenOverallSummaryModal}
-                        disabled={isLoading || filteredRecords.length === 0}
-                    >
+
+                    <Button sx={{ mt: 2, ml: 1, mb: 3, float: 'left' }} variant="contained" color="primary" onClick={handleOpenOverallSummaryModal} disabled={isLoading || filteredRecords.length === 0} >
                         Overall Summary
                     </Button>
 
                 </Box>
 
-                <OverallPayrollSummaryModal
-                    open={openOverallSummaryModal}
-                    close={handleCloseOverallSummaryModal}
-                    records={recordsForModal}
-                    totals={totalsForModal}
-                    headerConfig={visibleHeaderConfigForModal}
-                    payrollDateRange={payrollDateRange}
-                    preparedBy={preparedBy}
-                    approvedBy={approvedBy}
-                />
+                <OverallPayrollSummaryModal open={openOverallSummaryModal} close={handleCloseOverallSummaryModal} records={recordsForModal} totals={totalsForModal} headerConfig={visibleHeaderConfigForModal} payrollDateRange={payrollDateRange} preparedBy={preparedBy} approvedBy={approvedBy} />
 
-                {openViewPayrollModal && selectedPayroll &&
-                    <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
-                }
-
-                <AddSignatory
-                    open={openSignatoryDialog}
-                    onClose={handleCloseSignatoryDialog}
-                    preparedBy={preparedBy}
-                    setPreparedBy={setPreparedBy}
-                    approvedBy={approvedBy}
-                    setApprovedBy={setApprovedBy}
-                    headers={headers}
-                />
+                <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
+                <AddSignatory open={openSignatoryDialog} onClose={handleCloseSignatoryDialog} preparedBy={preparedBy} setPreparedBy={setPreparedBy} approvedBy={approvedBy} setApprovedBy={setApprovedBy} headers={headers} />
+                
             </Box>
         </Layout >
     )
