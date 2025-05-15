@@ -486,6 +486,8 @@ class LoanApplicationsController extends Controller
 
     public function getAllLoanApplications()
     {
+        // Log::info("LoanApplicationsController::getAllLoanApplications");
+
         $user = Auth::user();
 
         if ($this->checkUser()) {
@@ -526,6 +528,8 @@ class LoanApplicationsController extends Controller
 
     public function updateLoanStatus(Request $request, $id)
     {
+        // Log::info("LoanApplicationsController::updateLoanStatus for loan ID: " . $id);
+
         $user = Auth::user();
 
         if (!$this->checkUser()) {
