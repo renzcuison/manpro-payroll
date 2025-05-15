@@ -233,6 +233,7 @@ class AttendanceController extends Controller
         }
     }
 
+/*
     public function saveMobileEmployeeAttendance(Request $request)
     {
         // log::info("AttendanceController::saveMobileEmployeeAttendance");
@@ -275,7 +276,7 @@ class AttendanceController extends Controller
                 throw $e;
             }
         }
-    }
+    } */
 
     // Management
     public function recordEmployeeAttendance(Request $request)
