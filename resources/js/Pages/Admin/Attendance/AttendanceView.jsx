@@ -27,9 +27,11 @@ const AttendanceView = () => {
     const [selectedRange, setSelectedRange] = useState("thisMonth");
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [summaryData, setSummaryData] = useState([]);
-    const currentDate = dayjs().format("YYYY-MM-DD");
     const [attendanceSummary, setAttendanceSummary] = useState([]);
     const [employeeList, setEmployeeList] = useState([]);
+    const currentDate = dayjs().format("YYYY-MM-DD");
+    const selectedEmployeeId = employeeList.find((emp) => emp.emp_user_name === user)?.emp_id || employee?.emp_id || "";
+    const navigate = useNavigate();
 
     const getEmployeeList = () => {
         axiosInstance.get("/attendance/getAttendanceSummary", { headers })
@@ -169,6 +171,7 @@ const AttendanceView = () => {
         setSelectedRange(range);
     };
 
+
     return (
         <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -196,11 +199,15 @@ const AttendanceView = () => {
                                             <Select
                                                 labelId="employee-select-label"
                                                 id="employees"
-                                                value={employee?.emp_id || ""}
+                                                value={selectedEmployeeId}
                                                 label="Employees"
                                                 onChange={(e) => {
                                                     const selected = employeeList.find(emp => emp.emp_id === e.target.value);
                                                     setEmployee(selected);
+
+                                                    if (selected) {
+                                                        navigate(`/admin/attendance/${selected.emp_user_name}`)
+                                                    }
                                                 }}
                                             >
                                                 {employeeList && Array.isArray(employeeList) && employeeList.length > 0 ? (
