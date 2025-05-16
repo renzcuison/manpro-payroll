@@ -19,6 +19,7 @@ use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 
+
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -632,8 +633,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
 
-    Route::get('/signatories', [SignatoryController::class, 'index']);
-    Route::post('/addSignatory', [SignatoryController::class, 'store']);
+    Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
+    Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
 });
 
 

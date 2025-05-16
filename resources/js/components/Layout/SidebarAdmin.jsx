@@ -463,10 +463,10 @@ const Sidebar = ({ children, closeMini }) => {
                                         </span>
                                     </StyledNav>
 
-                                    {/* <StyledNav to={`/admin/perimeters`}>
+                                    <StyledNav to={`/admin/perimeters`}>
                                         <i> <TrackChangesIcon sx={{ color: palette.success.main }} /> </i>
                                         <span id="navName" className="sidebar-mini-hide" > Perimeters </span>
-                                    </StyledNav> */}
+                                    </StyledNav>
 
                                     {/* <StyledNav to={`/admin/trainings`}> */}
                                     {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}

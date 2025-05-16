@@ -32,9 +32,9 @@ const PayrollSummary = () => {
     const [selectedPayroll, setSelectedPayroll] = useState('');
     const [openOverallSummaryModal, setOpenOverallSummaryModal] = useState(false);
     const [openSignatoryDialog, setOpenSignatoryDialog] = useState(false);
-    const [preparedBy, setPreparedBy] = useState('');
-    const [approvedBy, setApprovedBy] = useState('');
-    const [reviewedBy, setReviewedBy] = useState('');
+    const [purpose, setPurpose] = useState('');
+    const [name, setName] = useState('');
+    const [position, setPosition] = useState('');
 
     const today = dayjs();
     const currentYear = today.year().toString();
@@ -470,13 +470,13 @@ const PayrollSummary = () => {
 
                 </Box>
 
-                <OverallPayrollSummaryModal open={openOverallSummaryModal} close={handleCloseOverallSummaryModal} records={recordsForModal} totals={totalsForModal} headerConfig={visibleHeaderConfigForModal} payrollDateRange={payrollDateRange} preparedBy={preparedBy} approvedBy={approvedBy} />
+                <OverallPayrollSummaryModal open={openOverallSummaryModal} close={handleCloseOverallSummaryModal} records={recordsForModal} totals={totalsForModal} headerConfig={visibleHeaderConfigForModal} payrollDateRange={payrollDateRange} name={name} />
 
                 {openViewPayrollModal && selectedPayroll &&
                     <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
                 }
 
-                <AddSignatory open={openSignatoryDialog} onClose={handleCloseSignatoryDialog} preparedBy={preparedBy} setPreparedBy={setPreparedBy} approvedBy={approvedBy} setApprovedBy={setApprovedBy} reviewedBy={reviewedBy} setReviewedBy={setReviewedBy} headers={headers} />
+                <AddSignatory open={openSignatoryDialog} onClose={handleCloseSignatoryDialog} purpose={purpose} setPurpose={setPurpose} name={name} setName={setName} position={position} setPosition={setPosition} headers={headers} />
             </Box>
         </Layout >
     )
