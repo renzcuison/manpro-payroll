@@ -171,19 +171,21 @@ const AnnouncementList = () => {
   // ---------------- Announcement Manager
   const [openAnnouncementManage, setOpenAnnouncementManage] = useState(null);
   const handleOpenAnnouncementManage = (announcement) => {
-    if (announcement.status === "Published") {
-      axiosInstance
-        .post(
-          "/announcements/logView",
-          { announcement_id: announcement.id },
-          { headers }
-        )
-        .catch((error) => {
-          console.error("Error logging view:", error);
-        });
-    }
-    setOpenAnnouncementManage(announcement);
+      console.log('Announcement:', announcement); // Debug log
+      if (announcement.status === "Published") {
+          axiosInstance
+              .post(
+                  "/announcements/logView",
+                  { announcement_code: announcement.unique_code },
+                  { headers }
+              )
+              .catch((error) => {
+                  console.error("Error logging view:", error.response?.data || error.message);
+              });
+      }
+      setOpenAnnouncementManage(announcement);
   };
+  
   const handleCloseAnnouncementManage = (reload) => {
     setOpenAnnouncementManage(null);
     if (reload) {

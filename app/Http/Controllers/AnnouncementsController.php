@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class AnnouncementsController extends Controller
@@ -39,7 +40,6 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
         //Log::info("AnnouncementsController::getAnnouncements");
 
-
         if (!$this->checkUser($user)) {
             Log::warning('getAnnouncements: Unauthorized access', ['user_id' => $user ? $user->id : null]);
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
@@ -47,7 +47,7 @@ class AnnouncementsController extends Controller
 
         try {
             $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments'])
-                ->where('status', 'Published')
+                ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -100,7 +100,7 @@ class AnnouncementsController extends Controller
                 ];
             });
 
-         //   Log::info('getAnnouncements: Successfully fetched announcements', ['count' => $formattedAnnouncements->count()]);
+            //Log::info('getAnnouncements: Successfully fetched announcements', ['count' => $formattedAnnouncements->count()]);
 
             return response()->json(['status' => 200, 'announcements' => $formattedAnnouncements]);
         } catch (\Exception $e) {
@@ -302,7 +302,7 @@ class AnnouncementsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -323,7 +323,7 @@ class AnnouncementsController extends Controller
 
                 // File Removal Prep
                 $deleteFiles = array_merge(
-                    $request->input('deleteImages', []),
+                    $request->input('deleteImages', []), 
                     $request->input('deleteAttachments', [])
                 );
 
@@ -413,28 +413,52 @@ class AnnouncementsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
-    public function toggleHide(Request $request)
+    public function toggleHide(Request $request, $code)
     {
-        //Log::info("AnnouncementsController::toggleHide");
         $user = Auth::user();
 
-        if ($this->checkUser()) {
-            $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+        if (!$this->checkUser($user)) {
+            Log::warning('toggleHide: Unauthorized access', ['user_id' => $user ? $user->id : null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            // Validate the code parameter
+            $validated = Validator::make(['code' => $code], [
+                'code' => 'required|string|exists:announcements,unique_code',
+            ]);
+
+            if ($validated->fails()) {
+                Log::warning('toggleHide: Invalid unique_code', ['code' => $code, 'errors' => $validated->errors()]);
+                return response()->json(['status' => 422, 'message' => $validated->errors()->first()], 422);
+            }
+
+            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
 
             if (!$announcement) {
+                Log::warning('toggleHide: Announcement not found', ['unique_code' => $code]);
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
             }
 
-            $announcement->status = $announcement->status === 'Published' ? 'Hidden' : 'Published';
+            $newStatus = $announcement->status === 'Published' ? 'Hidden' : 'Published';
+            $announcement->status = $newStatus;
             $announcement->save();
 
-            return response()->json(['status' => 200]);
-        } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 200, 'announcement' => [
+                'unique_code' => $announcement->unique_code,
+                'status' => $announcement->status,
+            ]]);
+        } catch (\Exception $e) {
+            Log::error('toggleHide: Error toggling status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'unique_code' => $code,
+            ]);
+            return response()->json(['status' => 500, 'message' => 'Server error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -464,7 +488,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'announcement' => $announcementData]);
         } else {
-            return response()->json(['status' => 200, 'announcement' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -549,7 +573,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments]);
         } else {
-            return response()->json(['status' => 200, 'branches' => null, 'departments' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -655,7 +679,7 @@ class AnnouncementsController extends Controller
                 'attachments' => $attachmentData,
             ]);
         } else {
-            return response()->json(['status' => 200, 'images' => null, 'attachments' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -796,7 +820,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
         } else {
-            return response()->json(['status' => 200, 'acknowledgements' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
