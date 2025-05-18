@@ -12,6 +12,8 @@ const AddSignatory = ({
   setPreparedBy,
   approvedBy,
   setApprovedBy,
+  reviewedBy,
+  setReviewedBy,
   headers
 }) => {
 
@@ -22,16 +24,14 @@ const AddSignatory = ({
     }
 
     try {
-      const payload = {
-        prepared_by: preparedBy,
-        approved_by_one: approvedBy,
-      };
+      const payload = { prepared_by: preparedBy, approved_by_one: approvedBy, reviewed_by: reviewedBy };
 
       await axiosInstance.post('/addSignatory', payload, { headers });
 
       Swal.fire('Success', 'Signatory added successfully!', 'success');
       setPreparedBy('');
       setApprovedBy('');
+      setReviewedBy('');
       onClose();
     } catch (err) {
       console.error("Failed to add signatory", err);
@@ -45,20 +45,13 @@ const AddSignatory = ({
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1, display: 'flex', flexDirection: 'column', width: '300px' }}>
           <Grid item xs={12}>
-            <TextField
-              label="Prepared By"
-              fullWidth
-              value={preparedBy}
-              onChange={(e) => setPreparedBy(e.target.value)}
-            />
+            <TextField label="Prepared By" fullWidth value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)}/>
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Approved By"
-              fullWidth
-              value={approvedBy}
-              onChange={(e) => setApprovedBy(e.target.value)}
-            />
+            <TextField label="Reviewed By" fullWidth value={reviewedBy} onChange={(e) => setReviewedBy(e.target.value)} />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField label="Approved By" fullWidth value={approvedBy} onChange={(e) => setApprovedBy(e.target.value)} />
           </Grid>
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button color='error' variant='outlined' onClick={onClose} sx={{ mr: 1}}>Cancel</Button>

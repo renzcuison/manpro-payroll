@@ -12,7 +12,7 @@ import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
-
+import EmployeeHistory from './Components/EmployeeHistory';
 import EmployeeBenefits from './Components/EmployeeBenefits';
 import EmployeeDeductions from './Components/EmployeeDeductions';
 
@@ -94,12 +94,6 @@ const EmployeeView = () => {
     const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
     const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
 
-    const [activeTab, setActiveTab] = useState('1');
-
-    const handleTabChange = (event, newActiveTab) => {
-        setActiveTab(newActiveTab);
-    };
-
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -142,25 +136,6 @@ const EmployeeView = () => {
     const handleCloseEmployeeLeaveCreditsModal = () => {
         setOpenEmployeeLeaveCreditsModal(false);
     }
-
-
-    const renderAttendanceContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Attendance Information will be displayed here</Typography>
-        </Box>
-    );
-
-    const renderWorkScheduleContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Work Schedule Information will be displayed here</Typography>
-        </Box>
-    );
-
-    const renderPayrollContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Payroll Information will be displayed here</Typography>
-        </Box>
-    );
 
     return (
         <Layout title={"EmployeeView"}>
@@ -253,8 +228,6 @@ const EmployeeView = () => {
 
                             <EmployeeBenefits userName={user} headers={headers} />
                             <EmployeeDeductions userName={user} headers={headers} />
-
-                            {/* EmployeeDeductions */}
                         </Grid>
 
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
@@ -399,26 +372,7 @@ const EmployeeView = () => {
                                 </Grid>
                             </Box>
 
-                            {/* <EmployeeBenefits userName={user} headers={headers} /> */}
-
-                            <Grid container spacing={4} sx={{ mt: 4, mb: 12 }}>
-                                <Grid item size={12}>
-                                    <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                                        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > History </Typography>
-
-                                        <Tabs value={activeTab} onChange={handleTabChange}>
-                                            <Tab label="Payroll" value="1" />
-                                            <Tab label="Applications" value="2" />
-                                            <Tab label="Attendance" value="3" />
-                                        </Tabs>
-                                        {activeTab === '1' && renderAttendanceContent()}
-                                        {activeTab === '2' && renderWorkScheduleContent()}
-                                        {activeTab === '3' && renderPayrollContent()}
-                                    </Box>
-                                </Grid>
-                            </Grid>
-
+                            <EmployeeHistory userName={user} headers={headers} />
 
                         </Grid>
                     </Grid>   

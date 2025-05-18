@@ -1,29 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-    Box,
-    Button,
-    Typography,
-    CircularProgress
-} from '@mui/material';
+import { Box, Button, Typography, CircularProgress} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../hooks/useUser';
-import perimeter from '../../../Assets/default_perimeter_image.png';
+import perimeter_img from '../../../Assets/default_perimeter_image.png';
+import Update from './Modals/Update';
 
 const RadiusPerimeter = () => {
     const { user } = useUser();
     const navigate = useNavigate();
-
     const storedUser = localStorage.getItem("nasya_user");
+    const [isLoading, setIsLoading] = useState(true);
+    const [perimeters, setPerimeters] = useState([]);
+    const [openUpdateModal, setOpenUpdateModal] = useState(false);
+    const [selectedPerimeter, setSelectedPerimeter] = useState(null);
 
-    // ✅ Memoize headers to avoid re-triggering useEffect
+
     const headers = useMemo(() => {
         return getJWTHeader(JSON.parse(storedUser));
     }, [storedUser]);
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [perimeters, setPerimeters] = useState([]);
+
+    const closeUpdateModal = () => {
+        setOpenUpdateModal(false);
+    }
+
+    const openUpdateModalHandler = () => {
+        setOpenUpdateModal(true);
+    }
 
     useEffect(() => {
         const getPerimeter = async () => {
@@ -42,9 +47,13 @@ const RadiusPerimeter = () => {
         getPerimeter();
     }, [headers]); // ✅ will now only trigger when headers actually changes
 
-    const renderParameterCard = (name, status,index) => (
+    const renderParameterCard = (perimeter, index) => (
         <Box
             key={index}
+            onClick={() => {
+                setSelectedPerimeter(perimeter);
+                openUpdateModalHandler();
+            }}
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -61,15 +70,24 @@ const RadiusPerimeter = () => {
                 },
             }}
         >
-            <img src={perimeter} alt="perimeter" width={250}/>
-            <Typography sx={{color: 'green', fontWeight: 'bold', marginTop: 3 }}>
-                {name}
+            <img src={perimeter_img} alt="perimeter" width={250}/>
+            <Typography sx={{ color: 'green', fontWeight: 'bold', marginTop: 3 }}>
+                {perimeter.name}
             </Typography>
-            <Typography sx={{fontWeight: 'bold', marginTop: 3, bgcolor: status === 'active' ? 'green' : 'red', color: 'white', px: 2, borderRadius: 1, textTransform: 'uppercase' }}>
-                {status}
+            <Typography sx={{
+                fontWeight: 'bold',
+                marginTop: 3,
+                bgcolor: perimeter.status === 'active' ? 'green' : 'red',
+                color: 'white',
+                px: 2,
+                borderRadius: 1,
+                textTransform: 'uppercase'
+            }}>
+                {perimeter.status}
             </Typography>
         </Box>
     );
+
 
     return (
         <Layout title="Radius Perimeter">
@@ -103,7 +121,7 @@ const RadiusPerimeter = () => {
                             <>
                                 {perimeters.length > 0 ? (
                                     perimeters.map((perimeter, index) =>
-                                        renderParameterCard(`${perimeter.name}`,`${perimeter.status}`, index)
+                                        renderParameterCard(perimeter, index)
                                     )
                                 ) : (
                                     <Typography variant="body1" sx={{ padding: 1 }}>
@@ -114,6 +132,15 @@ const RadiusPerimeter = () => {
                         )}
                     </Box>
                 </Box>
+
+                {openUpdateModal &&
+                    <Update
+                        open={openUpdateModal}
+                        close={closeUpdateModal}
+                        data={selectedPerimeter}
+                    />
+                }
+
             </Box>
         </Layout>
     );

@@ -36,21 +36,19 @@ const OverallPayrollSummary = ({
     const dialogRef = useRef();
     const [selectedPreparers, setSelectedPreparers] = useState([{ id: Date.now(), name: '' }]);
     const [selectedApprovers, setSelectedApprovers] = useState([{ id: Date.now() + 1, name: '' }]);
+    const [selectedReviewers, setSelectedReviewers] = useState([{ id: Date.now(), name: '' }]);
 
     const fetchSignatories = useCallback(async () => {
         if (!open) return;
-        console.log("Fetching signatories...");
         try {
             const response = await axiosInstance.get('/signatories', { headers });
             let data = response.data;
             if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
                  data = data[0];
             } else if (!Array.isArray(data)) {
-                 console.warn("Signatories data received is not an array:", response.data);
                  data = [];
             }
             setSignatories(Array.isArray(data) ? data : []);
-            console.log("Signatories fetched:", data);
         } catch (err) {
             console.error("Error fetching signatories:", err);
             setSignatories([]);
@@ -77,6 +75,10 @@ const OverallPayrollSummary = ({
 
     const preparedByOptions = useMemo(() => (
         Array.isArray(signatories) ? [...new Set(signatories.map(s => s.prepared_by).filter(Boolean))] : []
+    ), [signatories]);
+
+    const reviewedByOptions = useMemo(() => (
+        Array.isArray(signatories) ? [...new Set(signatories.map(s => s.reviewed_by).filter(Boolean))] : []
     ), [signatories]);
 
 
@@ -140,8 +142,10 @@ const OverallPayrollSummary = ({
                                 .breakdown {margin-top: 2px 0; text-transform: uppercase; font-style: italic; font-size: 12px;}
                                 .table-body-head {font-weight: bold; font-size: 12px; text-align: center; background-color: #f2f2f2;}
                                 .signatory-text {}
+                                td.net-pay-cell { font-weight: bold; } /* Add class for net pay */
                             }
                             .signatory-text { display: none; }
+                             td.net-pay-cell { font-weight: bold; } /* Add class for net pay */
                         </style>
                     </head>
                     <body>
@@ -190,6 +194,18 @@ const OverallPayrollSummary = ({
         );
     };
 
+    const addReviewer = () => {
+        setSelectedReviewers(prev => [...prev, { id: Date.now(), name: '' }]);
+    };
+
+    const removeReviewer = (id) => {
+        setSelectedReviewers(prev => prev.filter(p => p.id !== id));
+    };
+
+    const updateReviewerName = (id, name) => {
+        setSelectedReviewers(prev => prev.map(p => p.id === id ? { ...p, name } : p));
+    };
+
     const approvedByOptions = useMemo(() => (
         Array.isArray(signatories) ? [...new Set([
             ...signatories.map(s => s.approved_by_one),
@@ -234,6 +250,8 @@ const OverallPayrollSummary = ({
                          el.innerHTML = (role === 'preparer' ? localPreparedBy : localApprovedBy) || '&nbsp;';
                     });
                      Array.from(document.querySelectorAll('.add-signatory-button')).forEach(el => el.style.display = 'none');
+                     // Ensure net pay cells are bold in the clone
+                     Array.from(document.querySelectorAll('.net-pay-cell')).forEach(el => el.style.fontWeight = 'bold');
                  }
             });
 
@@ -276,7 +294,7 @@ const OverallPayrollSummary = ({
 
      const breakdownTotals = useMemo(() => {
          return records.reduce((acc, curr) => {
-             acc.payroll += Number(curr.payrollGrossPay || curr.monthlyBasePay || 0);
+             acc.payroll += Number(curr.payrollNetPay - curr.totalAllowance || 0);
              acc.sssEmployer += Number(curr.sssEmployer || 0);
              acc.philhealthEmployer += Number(curr.philhealthEmployer || 0);
              acc.pagibigEmployer += Number(curr.pagibigEmployer || 0);
@@ -361,16 +379,25 @@ const OverallPayrollSummary = ({
                                        <TableRow key={record.record || record.id || index} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '& > td': { fontSize: '10px', padding: '4px 6px' } }}>
                                            {headerConfig.map(group => {
                                                if (!group.isGroup) {
-                                                   return ( <TableCell key={`${group.key}-${record.record || index}`} align={group.key === 'employeeName' ? "left" : "center"}>
+                                                    const isNetPay = (group.dataKey || group.key) === 'payrollNetPay';
+                                                   return ( <TableCell key={`${group.key}-${record.record || index}`} align={group.key === 'employeeName' ? "left" : "center"}
+                                                            className={isNetPay ? 'net-pay-cell' : ''} sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                        >
                                                        {group.isTotaled ? formatCurrency(record[group.dataKey || group.key]) : record[group.dataKey || group.key] || '-'} </TableCell> );
-                                               } else { return group.children?.map(child => ( <TableCell key={`${child.key}-${record.record || index}`} align="center">
-                                                   {child.isTotaled ? formatCurrency(record[child.dataKey]) : record[child.dataKey] || '-'} </TableCell> )); }
+                                               } else { return group.children?.map(child => {
+                                                    const isNetPay = child.dataKey === 'payrollNetPay';
+                                                    return ( <TableCell key={`${child.key}-${record.record || index}`} align="center"
+                                                            className={isNetPay ? 'net-pay-cell' : ''} sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }}
+                                                        >
+                                                   {child.isTotaled ? formatCurrency(record[child.dataKey]) : record[child.dataKey] || '-'} </TableCell> );
+                                                    }); }
                                            })}
                                        </TableRow>
                                    ))}
                                 </TableBody>
                            </Table>
                         </TableContainer>
+                        
                         <Typography className='breakdown' sx={{ mb: 1, fontWeight: 'bold', fontStyle: 'italic', fontSize: '12px', mt: 3 }}>Breakdown Summary:</Typography>
                         <Box className="breakdown-summary" sx={{ fontSize: '11px', '& p': { marginBottom: 0 }}}>
                             <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
@@ -452,7 +479,73 @@ const OverallPayrollSummary = ({
                                         </Box>
                                     ))}
                                 </Box>
+                            </Box>
 
+                            <Box className="print-signatory-box" sx={{ minWidth: 220, }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Typography className='label' sx={{ fontSize: '12px', mr: 1 }}>Reviewed By:</Typography>
+                                    <Tooltip title="Add Another Reviewer">
+                                        <IconButton
+                                        size="small"
+                                        onClick={addReviewer}
+                                        className="add-signatory-button print-hide"
+                                        sx={{ p: '2px' }}
+                                        disabled={loadingSignatories}
+                                        >
+                                        <AddCircleOutlineIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                                
+                                <Box className="dropdown-box" sx={{display: "flex", flexDirection:"row", flexWrap: "wrap"}}>
+                                    {selectedReviewers.map((reviewer, index) => (
+                                        <Box key={reviewer.id} sx={{ alignItems: 'center', mb: 1,  }}>
+                                            <Typography
+                                                className="signatory-text"
+                                                data-role="reviewer"
+                                                data-id={reviewer.id}
+                                                sx={{
+                                                    display: 'none',
+                                                    pt: 1,
+                                                    minHeight: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    flexGrow: 1,
+                                                    borderTop: reviewer.name ? 'none' : '1px solid #000',
+                                                    mr: 0.5
+                                                }}
+                                            >
+                                                {reviewer.name || <>&nbsp;</>}
+                                            </Typography>
+                                            <FormControl size="small" className="signatory-dropdown print-hide">
+                                                <Select
+                                                    displayEmpty
+                                                    value={reviewer.name}
+                                                    onChange={(e) => updateReviewerName(reviewer.id, e.target.value)}
+                                                    sx={{ backgroundColor: '#ffffff', fontSize: '12px' }}
+                                                    disabled={loadingSignatories}
+                                                    renderValue={(selected) => {
+                                                        if (!selected) {
+                                                            return <em>Select Reviewer</em>;
+                                                        }
+                                                        return selected;
+                                                    }}
+                                                >
+                                                    <MenuItem value="" disabled><em>Select Reviewer</em></MenuItem>
+                                                    {reviewedByOptions.map((name, idx) => ( <MenuItem key={`revr-opt-${idx}`} value={name}>{name}</MenuItem> ))}
+                                                </Select>
+                                            </FormControl>
+                                            {selectedReviewers.length > 1 && (
+                                                <Tooltip title="Remove Reviewer">
+                                                    <IconButton onClick={() => removeReviewer(reviewer.id)} size="small" className="signatory-controls print-hide" sx={{ ml: 0.5 }} color="error">
+                                                        <i className="si si-minus"></i>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
                             </Box>
 
                             <Box className="print-signatory-box" sx={{ minWidth: 220 }}>
@@ -537,18 +630,30 @@ const OverallPayrollSummary = ({
 
                             </Box>
                         </Box>
-                  </DialogContent>
-             </Box>
+                    </DialogContent>
+                </Box>
 
-
-             <Box sx={{ display: "flex", justifyContent: "end", mt: 2, gap: 2, p: 2, borderTop: '1px solid #e0e0e0' }} className="print-hide">
-                  <Button variant="contained" color="secondary" onClick={handleDownloadPDF} disabled={isPrintingOrDownloading || records.length === 0 || loadingSignatories} size="small">
-                      {isDownloading ? "Downloading...": "Download PDF"}
-                  </Button>
-                  <Button variant="contained" color="primary" onClick={handlePrint} disabled={isPrintingOrDownloading || records.length === 0 || loadingSignatories} size="small">
-                      Print
-                  </Button>
-             </Box>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'end', gap: 1 }} className="print-hide">
+                    <Button variant="outlined" onClick={close} disabled={isPrintingOrDownloading}>
+                         Close
+                    </Button>
+                     <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handlePrint}
+                        disabled={records.length === 0 || isPrintingOrDownloading}
+                     >
+                        Print
+                     </Button>
+                     <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={handleDownloadPDF}
+                        disabled={records.length === 0 || isPrintingOrDownloading}
+                     >
+                        Download PDF
+                     </Button>
+                </Box>
         </Dialog>
     );
 };

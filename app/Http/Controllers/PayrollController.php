@@ -106,7 +106,7 @@ class PayrollController extends Controller
         ];
     }
 
-    public function getHolidaysWeekdays($startYear, $endYear)
+    public function getHolidaysWeekdays()
     {
         $holidays = [
             [
@@ -577,9 +577,7 @@ class PayrollController extends Controller
             // Log::info($log);
         // }
 
-        Log::info($holidayPay);
-        Log::info($holidayOTPay);
-        return $holidayPay;
+        return [ 'holidayPay' => $holidayPay, 'holidayOTPay' => $holidayOTPay, 'holidayOTMins' => $overtime ];
     }
 
     public function payrollDetails(Request $request)
@@ -647,14 +645,14 @@ class PayrollController extends Controller
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
         $numberOfAbsentDays = max(0, $numberOfWorkingDays - $numberOfPresent);
 
-        log::info("===========================");
-        log::info("numberOfDays         : " . $numberOfDays);
-        log::info("numberOfSaturday     : " . $numberOfSaturday);
-        log::info("numberOfSunday       : " . $numberOfSunday);
-        log::info("numberOfHoliday      : " . $numberOfHoliday);
-        log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
-        log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
-        log::info("===========================");
+        // log::info("===========================");
+        // log::info("numberOfDays         : " . $numberOfDays);
+        // log::info("numberOfSaturday     : " . $numberOfSaturday);
+        // log::info("numberOfSunday       : " . $numberOfSunday);
+        // log::info("numberOfHoliday      : " . $numberOfHoliday);
+        // log::info("numberOfWorkingDays  : " . $numberOfWorkingDays);
+        // log::info("numberOfAbsentDays   : " . $numberOfAbsentDays);
+        // log::info("===========================");
 
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
@@ -703,8 +701,6 @@ class PayrollController extends Controller
 
         $absents = $perDay * $numberOfAbsentDays;
 
-        $holidayPay = $this->calculateHolidayPay($logs, $perMin);
-
         // ============== LEAVES ==============
         $paidLeaves = [];
         $unpaidLeaves = [];
@@ -744,12 +740,17 @@ class PayrollController extends Controller
 
         $basicPay = $perCutOff - $leaveEarnings;
         $overTimePay = ($perMin * 1.25) * $totalOvertime;
-        $holidayPay = 0;
+
+        $holidayPays = $this->calculateHolidayPay($logs, $perMin);
+        $holidayPay = $holidayPays['holidayPay'];
+        $holidayOTPay = $holidayPays['holidayOTPay'];
+        $holidayOTMins = $holidayPays['holidayOTMins'];
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} mins)", 'amount' => $overTimePay],
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
+            ['earning' => '4', 'name' => "Holiday OT Pay ({$holidayOTMins} mins)", 'amount' => $holidayOTPay],
         ];
 
         $tardiness = 0;
@@ -786,7 +787,7 @@ class PayrollController extends Controller
             ];
         }
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay + $holidayOTPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $payroll = [
@@ -967,7 +968,8 @@ class PayrollController extends Controller
 
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    // 'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     'employeeBranch' => $employee->branch->name ?? '-',
                     'employeeDepartment' => $employee->department->name ?? '-',
                     'employeeRole' => $employee->role->name ?? '-',
@@ -979,7 +981,7 @@ class PayrollController extends Controller
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 
@@ -1101,6 +1103,9 @@ class PayrollController extends Controller
                     case 3:
                         $name = 'Holiday Pay';
                         break;
+                    case 4:
+                        $name = 'Holiday OT Pay';
+                        break;
                     default:
                         $name = '-';
                         break;
@@ -1182,17 +1187,23 @@ class PayrollController extends Controller
                     $overTimeHours = round($overTime->amount / $overTimeRate);
                 }
 
+                $holidayPay = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 3)->value('amount');
+                $holidayOvertime = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 4)->value('amount');
+
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
-                    'monthlyBasePay' => $rawRecord->rate_monthly / 2,
+                    'monthlyBasePay' => ($rawRecord->rate_monthly / 2) - $paidLeaveAmount,
 
                     // Overtime
                     'overTimeHours' => $overTimeHours,
                     'overTimePay' => $overTime->amount,
+
+                    'holidayPay' => $holidayPay,
+                    'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
                     'paidLeaveDays' => round($paidLeaveDays),
@@ -1208,12 +1219,12 @@ class PayrollController extends Controller
                     'payrollEndDate' => $rawRecord->period_end,
                     'payrollCutOff' => $rawRecord->cut_off,
                     'payrollWorkingDays' => $rawRecord->working_days,
-                    'payrollGrossPay' => $rawRecord->total_earnings,
-                    'payrollNetPay' => $rawRecord->total_earnings + $rawRecord->total_deductions,
+                    'payrollGrossPay' => round($rawRecord->total_earnings + $absences->amount + $tardiness->amount, 2),
+                    'payrollNetPay' => round($rawRecord->total_earnings - $rawRecord->total_deductions, 2)
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 
@@ -1225,9 +1236,12 @@ class PayrollController extends Controller
         // log::info("Retrieving Tardiness");
         $user = Auth::user();
 
+        $holidayWeekdays = $this->getHolidaysWeekdays();
+
         $logs = AttendanceLogsModel::with('workHour')
             ->where('user_id', $employeeId)
             ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->whereNotIn(DB::raw("DATE(timestamp)"), $holidayWeekdays) // exclude holiday weekdays
             ->orderBy('timestamp', 'asc')
             ->get()
             ->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'))

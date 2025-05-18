@@ -7,15 +7,15 @@ const EmployeeDeductions = ({ userName, headers }) => {
 
     const [benefits, setBenefits] = useState([]);
 
-    useEffect(() => {
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, { headers, params: { username: userName } })
-            .then((response) => {
-                setBenefits(response.data.benefits);
-            })
-            .catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    }, []);
+    // useEffect(() => {
+    //     axiosInstance.get(`/benefits/getEmployeeBenefits`, { headers, params: { username: userName } })
+    //         .then((response) => {
+    //             setBenefits(response.data.benefits);
+    //         })
+    //         .catch((error) => {
+    //             console.error('Error fetching benefits:', error);
+    //         });
+    // }, []);
 
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -37,13 +37,13 @@ const EmployeeDeductions = ({ userName, headers }) => {
                                 benefits.map((benefit, index) => (
                                     <TableRow key={index}>
                                         <TableCell>
-                                            <Typography>{benefit.benefit}</Typography>
+                                            <Typography>{benefit.id}</Typography>
                                         </TableCell>
                                         <TableCell align="center">
-                                            <Typography>{benefit.number}</Typography>
+                                            <Typography>{benefit.id}</Typography>
                                         </TableCell>
                                         <TableCell align="center">
-                                            <Typography>{benefit.number}</Typography>
+                                            <Typography>{benefit.id}</Typography>
                                         </TableCell>
                                     </TableRow>
                                 ))) :

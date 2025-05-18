@@ -381,6 +381,40 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employee' => $employee]);
     }
 
+    public function getMyPayrollHistory(Request $request)
+    {
+        // log::info("EmployeesController::getMyPayrollHistory");
+        // log::info($request);
+
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+            $rawRecords = PayslipsModel::where('employee_id', $employee->id)->where('client_id', $user->client_id)->get();
+
+            $records = [];
+
+            foreach ($rawRecords as $rawRecord) {
+                $employee = UsersModel::find($rawRecord->employee_id);
+
+                $records[] = [
+                    'record' => encrypt($rawRecord->id),
+                    'payrollStartDate' => $rawRecord->period_start ?? '-',
+                    'payrollEndDate' => $rawRecord->period_end ?? '-',
+                    'payrollCutOff' => $rawRecord->cut_off ?? '-',
+                    'payrollWorkingDays' => $rawRecord->working_days ?? '-',
+                    'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                    'payrollEarnings' => $rawRecord->total_earnings ?? '-',
+                    'payrollDeductions' => $rawRecord->total_deductions ?? '-',
+                ];
+            }
+
+            return response()->json(['status' => 200, 'records' => $records]);
+        }
+
+        return response()->json(['status' => 200, 'records' => null]);
+    }
+
     public function getMyAvatar()
     {
         //log::info("EmployeesController::getMyAvatar");

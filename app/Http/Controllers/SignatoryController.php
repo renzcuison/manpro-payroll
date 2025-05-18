@@ -40,6 +40,7 @@ class SignatoryController extends Controller
             'approved_by_one' => 'string',
             'approved_by_two' => 'nullable|string',
             'approved_by_three' => 'nullable|string',
+            'reviewed_by' => 'string',
         ]);
     
         $signatory = Signatory::create($validated);
