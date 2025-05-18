@@ -218,7 +218,7 @@ class EmployeesController extends Controller
         if ($this->checkUserAdmin() && $validated) {
 
             $user = Auth::user();
-            $company = Company::find($user->company->id);
+            $client = ClientsModel::find($user->client_id);
 
             try {
                 $password = Hash::make($request->password);
@@ -237,7 +237,7 @@ class EmployeesController extends Controller
                     "password" => $password,
 
                     "user_type" => "Employee",
-                    "company_id" => $user->company->id,
+                    "client_id" => $client->id,
                 ]);
 
                 return response()->json(['status' => 200, 'user' => $new_user]);
@@ -572,8 +572,8 @@ class EmployeesController extends Controller
                     'used' => $rawFormLink->used,
                     'expiration' => $rawFormLink->expiration,
                     'status' => $rawFormLink->status,
-                    'branch' => $rawFormLink->branch->name,
-                    'department' => $rawFormLink->department->name,
+                    'branch' => $rawFormLink->branch->name ?? '-',
+                    'department' => $rawFormLink->department->name ?? '-',
                 ];
             }
 
@@ -649,7 +649,7 @@ class EmployeesController extends Controller
     
     public function getFormLinkStatus(Request $request)
     {
-        Log::info("EmployeesController::getFormLinkStatus");
+        // Log::info("EmployeesController::getFormLinkStatus");
 
         $code = $request->query('code');
 
@@ -668,8 +668,6 @@ class EmployeesController extends Controller
             $formLink->status = "Expired";
             $formLink->save();
         }
-
-        Log::info("Received code: " . $code);
 
         return response()->json(['status' => 200, 'form_status' => $formLink->status]);
     }
