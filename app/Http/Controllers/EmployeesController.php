@@ -646,6 +646,33 @@ class EmployeesController extends Controller
             }
         }
     }
+    
+    public function getFormLinkStatus(Request $request)
+    {
+        Log::info("EmployeesController::getFormLinkStatus");
+
+        $code = $request->query('code');
+
+        $formLink = UserFormsModel::where('unique_code', $code)->first();
+
+        if (!$formLink) {
+            return response()->json(['status' => 404, 'form_status' => 'Absent']);
+        }
+
+        if ($formLink->used >= $formLink->limit) {
+            $formLink->status = "Used";
+            $formLink->save();
+        }
+
+        if (now()->greaterThan($formLink->expiration)) {
+            $formLink->status = "Expired";
+            $formLink->save();
+        }
+
+        Log::info("Received code: " . $code);
+
+        return response()->json(['status' => 200, 'form_status' => $formLink->status]);
+    }
 
     function generateRandomCode($length)
     {

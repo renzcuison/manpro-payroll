@@ -61,6 +61,8 @@ Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
 
 Route::get('/employeeList', [EmployeesController::class, 'employeeList']);
 
+Route::get('/getFormLinkStatus', [EmployeesController::class, 'getFormLinkStatus']);
+
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
