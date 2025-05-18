@@ -221,9 +221,11 @@ class EmployeesController extends Controller
             $client = ClientsModel::find($user->client_id);
 
             try {
+                DB::beginTransaction();
+
                 $password = Hash::make($request->password);
 
-                $new_user = UsersModel::create([
+                UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
                     "middle_name" => $request->middleName,
@@ -240,7 +242,9 @@ class EmployeesController extends Controller
                     "client_id" => $client->id,
                 ]);
 
-                return response()->json(['status' => 200, 'user' => $new_user]);
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
