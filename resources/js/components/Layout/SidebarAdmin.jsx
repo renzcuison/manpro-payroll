@@ -292,8 +292,6 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    console.log("User: ", user);
-
     return (
         <nav
             id="sidebar"

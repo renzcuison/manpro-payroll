@@ -293,7 +293,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendanceToday', [AdminDashboardController::class, 'getAttendanceToday']);
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
+        // ADMIN ROUTES
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
     });
+    
+    Route::prefix('admin')->group(function () {
+        // ADMIN ROUTES
+        Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
+    });
+
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
@@ -338,23 +347,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
         Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -635,7 +627,6 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
-
 
 
 

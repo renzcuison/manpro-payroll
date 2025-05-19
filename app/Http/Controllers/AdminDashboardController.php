@@ -17,9 +17,24 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 
 class AdminDashboardController extends Controller
 {
+
+    public function index(): JsonResponse
+    {
+        
+        if (!Auth::check()) {
+            return response()->json(["error" => 'Unautorized' ], 401);
+        }
+
+        $user = Auth::user();
+        // get employees
+        $employees = UsersModel::with(['department', 'branch'])->where('user_type', 'Employee')->get();
+
+        return response()->json($employees);
+    }
     public function checkUser()
     {
         // Log::info("AdminDashboardController::checkUser");
