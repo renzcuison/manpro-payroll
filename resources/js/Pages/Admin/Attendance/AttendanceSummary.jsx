@@ -102,16 +102,17 @@ const AttendanceSummary = () => {
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                             <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2}>
-                                <Grid xs={6}>
+                                <Grid>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
+                                        <TextField id="searchName" label="Search Employee Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                            <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
+                                <Grid>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <FormControl fullWidth>
-                                            <TextField
-                                                select
-                                                id="month-select"
-                                                label="Month"
-                                                value={month}
-                                                onChange={(event) => setMonth(event.target.value)}
-                                            >
+                                            <TextField select id="month-select" label="Month" value={month} onChange={(event) => setMonth(event.target.value)} >
                                                 {[
                                                     { value: 0, label: 'January' },
                                                     { value: 1, label: 'February' },
@@ -132,11 +133,7 @@ const AttendanceSummary = () => {
                                                     const isMonthDisabled = isCurrentYearSelected && monthOption.value > currentMonth;
 
                                                     return (
-                                                        <MenuItem
-                                                            key={monthOption.value}
-                                                            value={monthOption.value}
-                                                            disabled={isMonthDisabled}
-                                                        >
+                                                        <MenuItem key={monthOption.value} value={monthOption.value} disabled={isMonthDisabled} >
                                                             {monthOption.label}
                                                         </MenuItem>
                                                     );
@@ -145,7 +142,7 @@ const AttendanceSummary = () => {
                                         </FormControl>
                                     </LocalizationProvider>
                                 </Grid>
-                                <Grid xs={6}>
+                                <Grid>
                                     <LocalizationProvider dateAdapter={AdapterDayjs} >
                                         <DatePicker
                                             label="Year"
@@ -166,8 +163,6 @@ const AttendanceSummary = () => {
                                         />
                                     </LocalizationProvider>
                                 </Grid>
-                            </Grid>
-                            <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
                                 <Grid>
                                     <FormControl fullWidth>
                                         <InputLabel id="branch-select-label">Branch</InputLabel>
@@ -204,11 +199,6 @@ const AttendanceSummary = () => {
                                                 </MenuItem>
                                             ))}
                                         </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid xs={6}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
-                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
