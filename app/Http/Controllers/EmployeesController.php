@@ -218,12 +218,14 @@ class EmployeesController extends Controller
         if ($this->checkUserAdmin() && $validated) {
 
             $user = Auth::user();
-            $company = Company::find($user->company->id);
+            $client = ClientsModel::find($user->client_id);
 
             try {
+                DB::beginTransaction();
+
                 $password = Hash::make($request->password);
 
-                $new_user = UsersModel::create([
+                UsersModel::create([
                     "user_name" => $request->userName,
                     "first_name" => $request->firstName,
                     "middle_name" => $request->middleName,
@@ -237,10 +239,12 @@ class EmployeesController extends Controller
                     "password" => $password,
 
                     "user_type" => "Employee",
-                    "company_id" => $user->company->id,
+                    "client_id" => $client->id,
                 ]);
 
-                return response()->json(['status' => 200, 'user' => $new_user]);
+                DB::commit();
+
+                return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -577,8 +581,8 @@ class EmployeesController extends Controller
                     'used' => $rawFormLink->used,
                     'expiration' => $rawFormLink->expiration,
                     'status' => $rawFormLink->status,
-                    'branch' => $rawFormLink->branch->name,
-                    'department' => $rawFormLink->department->name,
+                    'branch' => $rawFormLink->branch->name ?? '-',
+                    'department' => $rawFormLink->department->name ?? '-',
                 ];
             }
 
@@ -650,6 +654,31 @@ class EmployeesController extends Controller
                 throw $e;
             }
         }
+    }
+    
+    public function getFormLinkStatus(Request $request)
+    {
+        // Log::info("EmployeesController::getFormLinkStatus");
+
+        $code = $request->query('code');
+
+        $formLink = UserFormsModel::where('unique_code', $code)->first();
+
+        if (!$formLink) {
+            return response()->json(['status' => 404, 'form_status' => 'Absent']);
+        }
+
+        if ($formLink->used >= $formLink->limit) {
+            $formLink->status = "Used";
+            $formLink->save();
+        }
+
+        if (now()->greaterThan($formLink->expiration)) {
+            $formLink->status = "Expired";
+            $formLink->save();
+        }
+
+        return response()->json(['status' => 200, 'form_status' => $formLink->status]);
     }
 
     function generateRandomCode($length)
