@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('announcement_employee_status', function (Blueprint $table) {
+        Schema::create('announcement_employee_statuses', function (Blueprint $table) {
             $table->id();
             $table->softDeletes();
             $table->timestamps();
