@@ -250,7 +250,7 @@ const EmployeesList = () => {
                                     <TextField
                                         select
                                         id="column-view-select"
-                                        label="Filter by Branches"
+                                        label="Filter by Branch"
                                         value={filterByBranch}
                                         onChange={(event) => {
                                             console.log("Selected branch:", event.target.value);
