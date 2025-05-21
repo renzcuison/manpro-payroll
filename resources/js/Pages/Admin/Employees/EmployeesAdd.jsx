@@ -218,7 +218,6 @@ const EmployeesAdd = () => {
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
-                                    required
                                     id="suffix"
                                     label="Suffix"
                                     variant="outlined"
