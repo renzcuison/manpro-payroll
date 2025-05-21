@@ -25,7 +25,7 @@ class ClientsController extends Controller
     
     public function users(): JsonResponse
     {
-        $users = UsersModel::with('branch', 'department', 'jobTitle')->get();
+        $users = UsersModel::with('branch', 'department', 'jobTitle','latestAttendanceLog')->get();
         return response()->json($users);
     }
 

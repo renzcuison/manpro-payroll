@@ -92,6 +92,11 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
 
+    public function latestAttendanceLog()
+    {
+        return $this->hasOne(AttendanceLogsModel::class, 'user_id')->latestOfMany();
+    }
+    
     public function workShift()
     {
         return $this->hasOneThrough(

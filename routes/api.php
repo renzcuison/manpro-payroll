@@ -42,6 +42,7 @@ use App\Http\Controllers\PreviousFilterController;
 // Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [UserAuthController::class, 'login']);
@@ -610,9 +611,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/signatories', [SignatoryController::class, 'index']);
     Route::post('/addSignatory', [SignatoryController::class, 'store']);
+
+    Route::post('/google/event', [GoogleController::class, 'addEvent']);
+    Route::get('/google/events', [GoogleController::class, 'getEvents']);
 });
 
 
+Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);

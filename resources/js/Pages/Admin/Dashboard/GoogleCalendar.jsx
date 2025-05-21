@@ -1,6 +1,7 @@
 // src/components/GoogleCalendar.js
 import React, { useEffect } from "react";
 import { gapi } from "gapi-script";
+import GoogleConnectButton from "../Schedules/GoogleConnectButton";
 
 const CLIENT_ID =
     "406588029203-ujib29mst8i1l8fd7g10r5f6lgu1s046.apps.googleusercontent.com";
@@ -64,7 +65,7 @@ const GoogleCalendar = () => {
 
     return (
         <div>
-            <button onClick={handleSignIn}>Sign in with Google</button>
+            <GoogleConnectButton />
             <button onClick={createEvent}>Add Meeting</button>
         </div>
     );

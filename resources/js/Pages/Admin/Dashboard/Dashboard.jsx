@@ -85,7 +85,57 @@ const Dashboard = () => {
 
     const { data, isFetched } = useUsers();
     const { data: dashboard, isFetched: isFetchedDashboard } = useDashboard();
-    console.log("Dash: ", dashboard);
+
+    const presentUsers = useMemo(() => {
+        if (!dashboard || !isFetched) return [];
+        const today = new Date();
+        const todayDate = today.toISOString().split("T")[0];
+        return dashboard.employees.filter((user) => {
+            if (!user.latest_attendance_log) {
+                return false;
+            }
+            const attendanceDate = new Date(
+                user.latest_attendance_log?.timestamp
+            )
+                .toISOString()
+                .split("T")[0];
+            return attendanceDate === todayDate;
+        });
+    }, [dashboard, isFetched]);
+
+    const lateUsers = useMemo(() => {
+        if (!presentUsers || presentUsers.length === 0) return [];
+
+        return presentUsers.filter((user) => {
+            const timeIn = new Date(user.latest_attendance_log?.timestamp);
+            const lateThreshold = new Date(timeIn);
+            lateThreshold.setHours(8, 0, 0, 0); // Set to 8:00:00 AM
+
+            return timeIn > lateThreshold;
+        });
+    }, [presentUsers]);
+
+    const absentUsers = useMemo(() => {
+        if (!dashboard || !isFetched) return [];
+        const today = new Date();
+        const todayDate = today.toISOString().split("T")[0];
+        return dashboard.employees.filter((user) => {
+            if (!user.latest_attendance_log) {
+                return false;
+            }
+            const attendanceDate = new Date(
+                user.latest_attendance_log?.timestamp
+            )
+                .toISOString()
+                .split("T")[0];
+            return attendanceDate !== todayDate;
+        });
+    }, [dashboard, isFetched]);
+
+    console.log("employees: ", dashboard);
+    console.log("Present: ", presentUsers);
+    console.log("Absent: ", absentUsers);
+    console.log("Lates: ", lateUsers);
 
     const latestEmployees = useMemo(() => {
         if (data) {
@@ -142,7 +192,6 @@ const Dashboard = () => {
     }, [data, isFetched]);
 
     const theme = useTheme();
-    console.log("Deparmtnet", departments);
 
     useEffect(() => {
         getDashboardData();
@@ -208,114 +257,6 @@ const Dashboard = () => {
             });
     };
 
-    // Attendance Pie Chart
-    const attendancePieChart = {
-        labels: ["Present", "Absent", "On Leave"],
-        datasets: [
-            {
-                data: [
-                    presentCount,
-                    headCount ? headCount - presentCount - onLeaveCount : 0,
-                    onLeaveCount,
-                ],
-                backgroundColor: ["#177604", "#E9AB13", "#1E90FF"],
-                hoverBackgroundColor: ["#1A8F07", "#F0B63D", "#56A9FF"],
-            },
-        ],
-    };
-
-    const attendancePieOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { position: "bottom", labels: { usePointStyle: true } },
-        },
-    };
-
-    // Branch Bar Chart
-    const branchBarChart = {
-        labels: Object.values(branchNames),
-        datasets: [
-            {
-                label: "Employees",
-                backgroundColor: "#177604",
-                hoverBackgroundColor: "#1A8F07",
-                data: Object.values(branchCount),
-            },
-        ],
-    };
-    const branchBarOptions = {
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-        },
-        scales: {
-            x: { stacked: true },
-            y: { stacked: true, suggestedMin: 0 },
-        },
-    };
-
-    // Salary Pie Chart
-    const salaryPieChart = {
-        labels: [
-            "10,000 - 20,000",
-            "20,001 - 30,000",
-            "30,001 - 40,000",
-            "40,001 - 50,000",
-            "50,000+",
-        ],
-        datasets: [
-            {
-                label: "Employees",
-                data: salaryRange,
-                backgroundColor: [
-                    "#E9AB13",
-                    "#177604",
-                    "#1E90FF",
-                    "#6A3F9B",
-                    "#D84C6E",
-                ],
-                hoverBackgroundColor: [
-                    "#F0B63D",
-                    "#1A8F07",
-                    "#56A9FF",
-                    "#8A5AC4",
-                    "#ff6384",
-                ],
-            },
-        ],
-    };
-
-    const salaryPieOptions = {
-        maintainAspectRatio: false,
-        width: 500,
-        height: 500,
-        plugins: {
-            legend: { position: "right", labels: { fontColor: "black" } },
-        },
-    };
-
-    // Attendance Pagination Controls
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const filteredAttendance = attendance.filter((attend) => {
-        const fullName = `${attend.first_name} ${attend.middle_name || ""} ${
-            attend.last_name
-        } ${attend.suffix || ""}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
-    });
-
-    const paginatedAttendance = filteredAttendance.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-    );
-
     // "../../../images/avatarpic.jpg"
     const [blobMap, setBlobMap] = useState({});
 
@@ -365,13 +306,6 @@ const Dashboard = () => {
             });
     };
 
-    const renderProfile = (id) => {
-        if (blobMap[id]) {
-            return blobMap[id];
-        }
-        return "../../../images/avatarpic.jpg";
-    };
-
     useEffect(() => {
         return () => {
             Object.values(blobMap).forEach((url) => {
@@ -386,27 +320,27 @@ const Dashboard = () => {
     const infoCardsData = [
         {
             title: "Total Employees",
-            value: 143,
+            value: dashboard?.employees?.length,
             icon: <Users size={42} />,
         },
         {
             title: "Present",
-            value: 90,
+            value: presentUsers.length,
             icon: <Check size={42} />,
         },
         {
             title: "Late",
-            value: 13,
+            value: lateUsers.length,
             icon: <Clock size={42} />,
         },
         {
             title: "On Leave",
-            value: 13,
+            value: 0,
             icon: <CalendarCheck size={42} />,
         },
         {
             title: "Absent",
-            value: 53,
+            value: absentUsers.length,
             icon: <CalendarMinus size={42} />,
         },
     ];

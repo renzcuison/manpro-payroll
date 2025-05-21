@@ -28,12 +28,27 @@ class AdminDashboardController extends Controller
         if (!Auth::check()) {
             return response()->json(["error" => 'Unautorized' ], 401);
         }
-
+        $today = Carbon::now()->toDateString();
         $user = Auth::user();
+        $clientId = $user->client_id;
         // get employees
-        $employees = UsersModel::with(['department', 'branch'])->where('user_type', 'Employee')->get();
+        $employees = UsersModel::with(['department', 'branch', 'latestAttendanceLog'])->where('user_type', 'Employee')
+        ->where('client_id', $clientId)->get();
 
-        return response()->json($employees);
+        $attendanceQry = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
+        })->with('user', 'workHour');
+
+        $presentEmployees = $attendanceQry->clone()->whereDate('timestamp', $today)->get();
+        $allEmployees = $attendanceQry->get();
+        $absentEmployees = $attendanceQry->whereDate('timestamp', '!=', $today)->get();
+
+        return response()->json([
+            'employees' => $employees,
+            'attendance' => $allEmployees,
+            'present' => $presentEmployees,
+            'absent' => $absentEmployees
+        ]);
     }
     public function checkUser()
     {
@@ -272,15 +287,6 @@ class AdminDashboardController extends Controller
                         });
                     }
 
-                    /*
-                    log::info("=============================");
-
-                    log::info("firstTimeIn");
-                    log::info($firstTimeIn->timestamp);
-
-                    log::info("schedule");
-                    log::info(Carbon::parse("$date {$workHours->first_time_in}"));
-                    */
                     $firstAttendance = $firstTimeIn ?: $secondTimeIn;
 
                     if ($firstAttendance->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {

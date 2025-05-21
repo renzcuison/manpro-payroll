@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Table,
     TableHead,
@@ -38,14 +38,26 @@ import {
 } from "../../../components/utils/tableUtils";
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import { useEmployees } from "./hooks/useEmployees";
 
 const EmployeesList = () => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    const navigate = useNavigate();
+    const { data, isFetching, isFetched, isLoading } = useEmployees();
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
+    const employees = useMemo(() => {
+        if (data) {
+            return data.employees;
+        }
+    }, [data, isFetched, isFetching]);
+
+    if (isFetching) {
+        return (
+            <>
+                <LoadingSpinner />
+            </>
+        );
+    }
+
+    console.log("Employees:", employees);
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -63,46 +75,6 @@ const EmployeesList = () => {
 
     const [searchName, setSearchName] = useState("");
 
-    useEffect(() => {
-        axiosInstance
-            .get("/employee/getEmployees", { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching clients:", error);
-                setIsLoading(false);
-            });
-
-        axiosInstance
-            .get("/settings/getDepartments", { headers })
-            .then((response) => {
-                const fetchedDepartments = response.data.departments;
-                setDepartments(fetchedDepartments);
-                const allDepartmentIds = fetchedDepartments.map(
-                    (department) => department.id
-                );
-                setSelectedDepartments(allDepartmentIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching departments:", error);
-            });
-
-        axiosInstance
-            .get("/settings/getBranches", { headers })
-            .then((response) => {
-                const fetchedBranches = response.data.branches;
-                setBranches(fetchedBranches);
-
-                const allBranchIds = fetchedBranches.map((branch) => branch.id);
-                setSelectedBranches(allBranchIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching branches:", error);
-            });
-    }, []);
-
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => {
@@ -112,44 +84,14 @@ const EmployeesList = () => {
         setAnchorEl(null);
     };
 
-    const [blobMap, setBlobMap] = useState({});
-
-    const renderImage = (id, data, mime) => {
-        if (!blobMap[id]) {
-            const byteCharacters = atob(data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: mime });
-            const newBlob = URL.createObjectURL(blob);
-
-            setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
-
-            return newBlob;
-        } else {
-            return blobMap[id];
-        }
-    };
-
-    useEffect(() => {
-        return () => {
-            Object.values(blobMap).forEach((url) => {
-                if (url.startsWith("blob:")) {
-                    URL.revokeObjectURL(url);
-                }
-            });
-            setBlobMap({});
-        };
-    }, []);
-
-    const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.first_name} ${
-            employee.middle_name || ""
-        } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
-    });
+    const filteredEmployees = useMemo(() => {
+        employees?.filter((employee) => {
+            const fullName = `${employee.first_name} ${
+                employee.middle_name || ""
+            } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
+            return fullName.includes(searchName.toLowerCase());
+        });
+    }, [employees]);
 
     return (
         <Layout title={"EmployeesList"}>
@@ -390,8 +332,8 @@ const EmployeesList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {filteredEmployees.length > 0 ? (
-                                                filteredEmployees.map(
+                                            {filteredEmployees?.length > 0 ? (
+                                                filteredEmployees?.map(
                                                     (employee) => (
                                                         <TableRow
                                                             key={employee.id}
@@ -501,7 +443,7 @@ const EmployeesList = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                                {filteredEmployees.length > 0 && (
+                                {filteredEmployees?.length > 0 && (
                                     <Box
                                         display="flex"
                                         sx={{
@@ -519,7 +461,7 @@ const EmployeesList = () => {
                                             variant="h6"
                                             sx={{ fontWeight: "bold" }}
                                         >
-                                            {filteredEmployees.length}
+                                            {filteredEmployees?.length}
                                         </Typography>
                                     </Box>
                                 )}
