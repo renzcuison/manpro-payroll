@@ -207,6 +207,29 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+    const announcementsItems = [
+        {
+            id: 4,
+            text: "Announcements",
+            icon: "fa fa-bullhorn",
+            children: [
+                {
+                    // href: `/admin/announcements/types?`,
+                    text: "Announcement Types",
+                    
+                },
+                {
+                    // href: `/admin/announcements/add?`,
+                    text: "Create Announcement",
+                },
+                {
+                    href: `/admin/announcements?`,
+                    text: "Announcement List",
+                },
+            ],
+        },
+    ];
+
     const workShifts = [
         {
             id: 5,
@@ -431,19 +454,14 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
                                     {/* </StyledNav>  */}
 
-                                    <StyledNav to={`/admin/announcements`}>
-                                        <i
-                                            className="fa fa-bullhorn"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Announcements{" "}
-                                        </span>
-                                    </StyledNav>
+                                    {announcementsItems.map((items, index) => {
+                                        return (
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
+                                        );
+                                    })}
 
                                     <StyledNav to={`/admin/documents`}>
                                         <i>
