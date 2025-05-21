@@ -21,14 +21,13 @@ const AttendanceSummary = () => {
     const [month, setMonth] = useState(dayjs().month());
     const [year, setYear] = useState(dayjs());
 
+    const [searchName, setSearchName] = useState('');
+
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState(0);
     const [selectedDepartment, setSelectedDepartment] = useState(0);
 
-    const [searchName, setSearchName] = useState('');
-    const [filterByBranch, setFilterByBranch] = useState("");
-    const [filterByDepartment, setFilterByDepartment] = useState("");
     // Attendance Summary List
     useEffect(() => {
         setIsLoading(true);
@@ -86,10 +85,7 @@ const AttendanceSummary = () => {
     // Filtering the attendance summary by search name
     const filteredAttendance = attendanceSummary.filter((attendance) => {
         const fullName = `${attendance.emp_first_name} ${attendance.emp_middle_name || ''} ${attendance.emp_last_name} ${attendance.emp_suffix || ''}`.toLowerCase();
-        const matchedName = fullName.includes(searchName.toLowerCase());
-        const matchedBranchDept = filterByBranch === "" || filterByDepartment === "" ||
-        (attendance.emp_department === filterByDepartment && attendance.emp_branch === filterByBranch);
-        return matchedName && matchedBranchDept;
+        return fullName.includes(searchName.toLowerCase());
     });
 
     return (
@@ -105,8 +101,7 @@ const AttendanceSummary = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
-                            {/* Month and Year Filter Section*/}
-                            <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2}> 
+                            <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid xs={6}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <FormControl fullWidth>
@@ -172,55 +167,13 @@ const AttendanceSummary = () => {
                                     </LocalizationProvider>
                                 </Grid>
                             </Grid>
-                            {/* Name, Branch and Department Filter Section */}
                             <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
-                                {/*<--Search Name Filter-->*/}         
-                                <Grid xs={12}>
-                                    <FormControl sx={{ width: '100%', minWidth: 150, maxWidth: 300}}>
+                                <Grid xs={6}>
+                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
-                                {/* Branch Filter*/}
-                                <Grid xs={12}>
-                                    <FormControl sx={{ width: '100%', minWidth: 200 }}>
-                                        <TextField
-                                            select
-                                            id="column-view-select"
-                                            label="Filter by Branches"
-                                            value={filterByBranch}
-                                            onChange={(event) => {
-                                                setFilterByBranch(event.target.value)}}
-                                        >
-                                            {branches.map((branch) => (
-                                                <MenuItem key={branch.id} value={`${branch.name} (${branch.acronym})`} >
-                                                    {branch.name} ({branch.acronym})
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </FormControl>
-                                </Grid> 
-                                {/* Department Filter*/}  
-                                <Grid xs={12}>
-                                    <FormControl sx={{ width: '100%', minWidth: 200}}>
-                                        <TextField
-                                            select
-                                            id="column-view-select"
-                                            label="Filter by Department"
-                                            value={filterByDepartment}
-                                            onChange={(event) => {
-                                                setFilterByDepartment(event.target.value)}}
-                                            sx={{ width: "100%"}}
-                                        >
-                                            {departments.map((department) => (
-                                                <MenuItem key={department.id} value={`${department.name} (${department.acronym})`}>
-                                                    {department.name} ({department.acronym})
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </FormControl>
-                                </Grid>
                             </Grid>
-                            {/*Branch and Department Filter*/}              
                         </Grid>
                         {/* Table */}
                         {isLoading ? (
