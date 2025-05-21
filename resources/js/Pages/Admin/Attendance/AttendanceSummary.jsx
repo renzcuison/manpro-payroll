@@ -168,6 +168,44 @@ const AttendanceSummary = () => {
                                 </Grid>
                             </Grid>
                             <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2}>
+                                <Grid>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="branch-select-label">Branch</InputLabel>
+                                        <Select
+                                            labelId="branch-select-label"
+                                            id="branch-select"
+                                            value={selectedBranch}
+                                            label="Branch"
+                                            onChange={(event) => setSelectedBranch(Number(event.target.value))}
+                                        >
+                                            <MenuItem value={0}>All Branches</MenuItem>
+                                            {branches.map((branch) => (
+                                            <MenuItem key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="department-select-label">Department</InputLabel>
+                                        <Select
+                                            labelId="department-select-label"
+                                            id="department-select"
+                                            value={selectedDepartment}
+                                            label="Department"
+                                            onChange={(event) => setSelectedDepartment(Number(event.target.value))}
+                                        >
+                                            <MenuItem value={0}>All Departments</MenuItem>
+                                            {departments.map((department) => (
+                                                <MenuItem key={department.id} value={department.id}>
+                                                    {department.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                                 <Grid xs={6}>
                                     <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
