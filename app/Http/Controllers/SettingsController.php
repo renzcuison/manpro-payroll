@@ -111,6 +111,30 @@ class SettingsController extends Controller
         }
     }
 
+
+
+
+
+    public function getDepartment($id)
+    {
+        // Log::info("SettingsController::getDepartments");
+
+        // settings/getDepartment/1
+
+        if ($this->checkUser()) {
+
+            $department = DepartmentsModel::find($id);
+            $employees = UsersModel::where('department_id', $department->id)->get();
+
+            return response()->json(['status' => 200, 'department' => $department, 'employees' => $employees ]);
+        }
+
+        return response()->json(['status' => 200, 'departments' => null]);
+    }
+
+
+
+    
     public function getDepartments(Request $request)
     {
         // Log::info("SettingsController::getDepartments");

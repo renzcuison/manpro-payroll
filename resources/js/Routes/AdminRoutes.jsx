@@ -5,6 +5,9 @@ import ProtectedRoute from "./ProtectedRoute";
 import Error404 from "../Pages/Errors/Error404";
 
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
+import DepartmentList from "../Pages/Admin/Department/DepartmentList";
+import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
+
 
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
@@ -69,6 +72,11 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
+
+            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
+            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+            
+
             <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
 
             <Route path="employee/:user" element={ <ProtectedRoute element={<EmployeeView />} user={user} /> } />
@@ -81,6 +89,9 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="employees/benefits" element={ <ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={ <ProtectedRoute element={<BenefitView />} user={user} /> } />
+
+
+           
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
             <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />
@@ -125,6 +136,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
         </Routes>
     );
+
 };
+
 
 export default AdminRoutes;
