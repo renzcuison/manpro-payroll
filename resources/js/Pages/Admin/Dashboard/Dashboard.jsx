@@ -253,6 +253,7 @@ const Dashboard = () => {
                             {latestEmployees?.map((emp, index) => (
                                 <React.Fragment>
                                     <ListItem
+                                        key={index}
                                         alignItems="flex-start"
                                         secondaryAction={
                                             <>
