@@ -655,6 +655,11 @@ Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->n
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
 
+//Annoucements
+Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+
 
 
 

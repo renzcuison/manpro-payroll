@@ -38,6 +38,7 @@ import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
 import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
 import { createTheme, ThemeProvider } from "@mui/material";
 
+
 const theme = createTheme({
     palette: {
         primary: {

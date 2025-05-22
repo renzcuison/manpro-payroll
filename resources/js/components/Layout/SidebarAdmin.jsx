@@ -215,6 +215,7 @@ const Sidebar = ({ children, closeMini }) => {
             children: [
                 {
                     // href: `/admin/announcements/types?`,
+                    href: `/admin/announcements/types`,
                     text: "Announcement Types",
                     
                 },

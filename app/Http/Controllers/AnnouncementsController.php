@@ -838,4 +838,32 @@ class AnnouncementsController extends Controller
 
         return $result;
     }
+
+    // Announcement Type
+    function addAnnouncementType(Request $request)
+    {
+        $user = Auth::user();
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:announcement_types,name',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            // For testing, you may want to set client_id to a default value or null
+            $type = \App\Models\AnnouncementTypesModel::create([
+                'name' => $request->input('name'),
+                'client_id' => 1, // Set a default client_id for testing
+            ]);
+
+            return response()->json(['status' => 200, 'type' => $type]);
+        } catch (\Exception $e) {
+            \Log::error('addAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
 }
