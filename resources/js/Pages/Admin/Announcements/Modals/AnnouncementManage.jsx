@@ -49,25 +49,27 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [files, setFiles] = useState([]);
     const [images, setImages] = useState([]);
     const [attachments, setAttachments] = useState([]);
-
-
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
-
-    const [announcement, setAnnouncement] = useState(announceInfo);
+    const [announcement, setAnnouncement] = useState(announceInfo || {});
     const [exitReload, setExitReload] = useState(false);
 
     // ----------- Additional Details
     useEffect(() => {
+        if (!announceInfo?.unique_code) {
+            console.error('Invalid announceInfo:', announceInfo);
+            return;
+        }
+        console.log('Stored User:', JSON.parse(storedUser));
         getAnnouncementThumbnail();
         getAnnouncementFiles();
-        if (announceInfo.status != "Pending") {
+        if (announceInfo.status !== "Pending") {
             getAnnouncementBranchDepts();
         }
-    }, []);
+    }, [announceInfo]);
 
     // Announcement Menu
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const menuOpen = Boolean(anchorEl);
     const handleMenuClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -79,40 +81,41 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     // ---------------- Announcement Publishing
     const [openAnnouncementPublish, setOpenAnnouncementPublish] = useState(null);
     const handleOpenAnnouncementPublish = (announcement) => {
-        setOpenAnnouncementPublish(announcement)
-    }
+        setOpenAnnouncementPublish(announcement);
+    };
     const handleCloseAnnouncementPublish = (reload) => {
         setOpenAnnouncementPublish(null);
         if (reload) {
             setExitReload(true);
             announcementReloader();
         }
-    }
+    };
 
     // ---------------- Announcement Editing
     const [openAnnouncementEdit, setOpenAnnouncementEdit] = useState(null);
     const handleOpenAnnouncementEdit = (announcement) => {
-        setOpenAnnouncementEdit(announcement)
-    }
+        setOpenAnnouncementEdit(announcement);
+    };
     const handleCloseAnnouncementEdit = (reload) => {
         setOpenAnnouncementEdit(null);
         if (reload) {
             announcementReloader();
             setExitReload(true);
         }
-    }
+    };
 
     // ---------------- Announcement Acknowledgements
     const [openAnnouncementAcknowledgements, setOpenAnnouncementAcknowledgements] = useState(null);
     const handleOpenAnnouncementAcknowledgements = (unicode) => {
-        setOpenAnnouncementAcknowledgements(unicode)
-    }
+        setOpenAnnouncementAcknowledgements(unicode);
+    };
     const handleCloseAnnouncementAcknowledgements = () => {
         setOpenAnnouncementAcknowledgements(null);
-    }
+    };
 
     // ---------------- Application Hiding
     const handleToggleHide = (toggle, code) => {
+        console.log('handleToggleHide:', { toggle, code, user: JSON.parse(storedUser) });
         document.activeElement.blur();
         Swal.fire({
             customClass: { container: "my-swal" },
@@ -127,27 +130,42 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }).then((res) => {
             if (res.isConfirmed) {
                 axiosInstance
-                    .post(`announcements/toggleHide`, { unique_code: code }, {
-                        headers
-                    })
+                    .post(`/announcements/toggleHide/${code}`, {}, { headers })
                     .then((response) => {
-                        Swal.fire({
-                            customClass: { container: "my-swal" },
-                            title: "Success!",
-                            text: `Your Announcement is now ${toggle ? "hidden" : "visible"}`,
-                            icon: "success",
-                            showConfirmButton: true,
-                            confirmButtonText: "Okay",
-                            confirmButtonColor: "#177604",
-                        }).then((res) => {
-                            if (res.isConfirmed) {
-                                setExitReload(true);
-                                announcementReloader();
-                            }
-                        });
+                        console.log('toggleHide Response:', response.data);
+                        if (response.data.status === 200) {
+                            Swal.fire({
+                                customClass: { container: "my-swal" },
+                                title: "Success!",
+                                text: `Your Announcement is now ${toggle ? "hidden" : "visible"}`,
+                                icon: "success",
+                                showConfirmButton: true,
+                                confirmButtonText: "Okay",
+                                confirmButtonColor: "#177604",
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                    setExitReload(true);
+                                    announcementReloader();
+                                }
+                            });
+                        } else {
+                            throw new Error(`Unexpected status: ${response.data.status}`);
+                        }
                     })
                     .catch((error) => {
-                        console.error("Error toggling Hidden Status:", error);
+                        console.error("Error toggling Hidden Status:", {
+                            message: error.message,
+                            response: error.response?.data,
+                            status: error.response?.status,
+                        });
+                        Swal.fire({
+                            customClass: { container: "my-swal" },
+                            title: "Error!",
+                            text: error.response?.data?.message || "Failed to toggle announcement visibility. Please try again.",
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#d32f2f",
+                        });
                     });
             }
         });
@@ -155,32 +173,60 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     // ---------------- Announcement Detail Reloader
     const announcementReloader = () => {
+        if (!announceInfo?.unique_code) {
+            console.error('Cannot reload announcement: missing unique_code');
+            return;
+        }
         axiosInstance.get(`/announcements/getAnnouncementDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setAnnouncement(response.data.announcement);
+                console.log('announcementReloader Response:', response.data);
+                setAnnouncement(response.data.announcement || {});
             })
             .catch((error) => {
-                console.error('Error fetching updated announcement details', error);
+                console.error('Error fetching updated announcement details', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                });
             });
         getAnnouncementThumbnail();
         getAnnouncementBranchDepts();
         getAnnouncementFiles();
-    }
+    };
 
     // ---------------- Announcement Files
     const getAnnouncementFiles = () => {
+        if (!announceInfo?.unique_code) {
+            console.error('Cannot fetch files: missing unique_code');
+            setImages([]);
+            setAttachments([]);
+            return;
+        }
         axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setImages(response.data.images);
-                setAttachments(response.data.attachments);
+                console.log('getAnnouncementFiles Response:', response.data);
+                setImages(Array.isArray(response.data.images) ? response.data.images : []);
+                setAttachments(Array.isArray(response.data.attachments) ? response.data.attachments : []);
             })
             .catch((error) => {
-                console.error('Error fetching files:', error);
+                console.error('Error fetching files:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                });
+                setImages([]);
+                setAttachments([]);
             });
-    }
+    };
 
     // ---------------- Thumbnail
     const getAnnouncementThumbnail = () => {
+        if (!announceInfo?.unique_code) {
+            console.error('Cannot fetch thumbnail: missing unique_code');
+            setImagePath("../../../../../images/ManProTab.png");
+            setImageLoading(false);
+            return;
+        }
         axiosInstance.get(`/announcements/getThumbnail/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 if (response.data.thumbnail) {
@@ -202,45 +248,54 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     setImagePath("../../../../../images/ManProTab.png");
                 }
                 setImageLoading(false);
-
             })
             .catch((error) => {
-                console.error('Error fetching thumbnail:', error);
-                if (imagePath && imagePath.startsWith('blob:')) {
-                    URL.revokeObjectURL(imagePath);
-                }
+                console.error('Error fetching thumbnail:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                });
                 setImagePath("../../../../../images/ManProTab.png");
                 setImageLoading(false);
             });
-    }
+    };
 
     // ---------------- Recipient Branch and Departments
     const getAnnouncementBranchDepts = () => {
+        if (!announceInfo?.unique_code) {
+            console.error('Cannot fetch branch/depts: missing unique_code');
+            setBranches([]);
+            setDepartments([]);
+            return;
+        }
         axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.unique_code}`, { headers })
             .then((response) => {
-                setBranches(response.data.branches);
-                setDepartments(response.data.departments);
+                setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
+                setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
             })
             .catch((error) => {
-                console.error('Error fetching published branch/departments:', error);
+                console.error('Error fetching published branch/departments:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                });
+                setBranches([]);
+                setDepartments([]);
             });
-    }
+    };
 
     // ---------------- Dynamic File Icon
     const getFileIcon = (filename) => {
         const fileType = filename
-            .split(".")
+            ?.split(".")
             .pop()
-            .toLowerCase();
+            ?.toLowerCase();
 
         let src = null;
-        let color = null;
-
         switch (fileType) {
             case "png":
             case "jpg":
             case "jpeg":
-                // REPLACE WITH DOMAIN IN PRODUCTION
                 src = `../../../../../../storage/announcements/images/${filename}`;
                 break;
             case "doc":
@@ -257,7 +312,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             default:
                 src = null;
         }
-
         return src;
     };
 
@@ -272,17 +326,19 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 link.href = window.URL.createObjectURL(blob);
                 link.download = filename;
                 link.click();
-
                 window.URL.revokeObjectURL(link.href);
             })
             .catch((error) => {
-                console.error("Error downloading file:", error);
+                console.error("Error downloading file:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                });
             });
     };
 
     // ---------------- Image Renders
     const [blobMap, setBlobMap] = useState({});
-
     const renderImage = (id, data, mime) => {
         if (!blobMap[id]) {
             const byteCharacters = atob(data);
@@ -293,14 +349,12 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             const byteArray = new Uint8Array(byteNumbers);
             const blob = new Blob([byteArray], { type: mime });
             const newBlob = URL.createObjectURL(blob);
-
             setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
-
             return newBlob;
         } else {
             return blobMap[id];
         }
-    }
+    };
 
     // Image Cleanup
     useEffect(() => {
@@ -315,7 +369,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             });
             setBlobMap({});
         };
-    }, []);
+    }, [imagePath]);
 
     return (
         <>
@@ -335,7 +389,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     }
                 }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
                             {announcement.title || "Announcement"}
                         </Typography>
@@ -344,7 +398,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         </IconButton>
                     </Box>
                 </DialogTitle>
-
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
                     <Box>
                         <Grid container columnSpacing={4} rowSpacing={2}>
@@ -358,13 +411,13 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     border: '2px solid #e0e0e0',
                                 }}>
                                     {imageLoading ?
-                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
                                             <CircularProgress />
                                         </Box>
                                         :
                                         <img
                                             src={imagePath}
-                                            alt={`${announcement.title} thumbnail`}
+                                            alt={`${announcement.title || 'Announcement'} thumbnail`}
                                             style={{
                                                 width: '100%',
                                                 height: '100%',
@@ -404,8 +457,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     'aria-labelledby': 'basic-button',
                                                 }}
                                             >
-                                                {/* Editing */}
-                                                {announcement.status == "Pending" && (
+                                                {announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -415,8 +467,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Edit
                                                     </MenuItem>
                                                 )}
-                                                {/* Publishing */}
-                                                {announcement.status == "Pending" && (
+                                                {announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -426,8 +477,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Publish
                                                     </MenuItem>
                                                 )}
-                                                {/* Acknowledgements */}
-                                                {announcement.status != "Pending" && (
+                                                {announcement.status !== "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             handleOpenAnnouncementAcknowledgements(announcement.unique_code);
@@ -435,58 +485,55 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         View Acknowledgements
                                                     </MenuItem>
                                                 )}
-                                                {/* Toggle Hide */}
-                                                {announcement.status != "Pending" && (
+                                                {announcement.status !== "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            handleToggleHide(announcement.status == "Published", announcement.unique_code);
+                                                            handleToggleHide(announcement.status === "Published", announcement.unique_code);
                                                             handleMenuClose();
-                                                        }}
-                                                    >
-                                                        {announcement.status == "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
+                                                        }}>
+                                                        {announcement.status === "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
                                                     </MenuItem>
                                                 )}
                                             </Menu>
                                         </Stack>
                                     </Grid>
-                                    <Grid size={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
                                     {/* Announcement Status */}
                                     <Grid size={12}>
                                         <InfoBox
                                             title="Status"
-                                            info={announcement.status == "Pending" ? "PENDING" : "PUBLISHED"}
-                                            color={announcement.status == "Pending" ? "#e9ae20" : "#177604"}
+                                            info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
+                                            color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
                                             compact
                                             clean
                                         />
                                     </Grid>
                                     {/* Visibility */}
-                                    {announcement.status != "Pending" && (
+                                    {announcement.status !== "Pending" && (
                                         <Grid size={12}>
                                             <InfoBox
                                                 title="Visibility"
-                                                info={announcement.status == "Published" ? "VISIBLE" : "HIDDEN"}
-                                                color={announcement.status == "Published" ? "#177604" : "#f57c00"}
+                                                info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
+                                                color={announcement.status === "Published" ? "#177604" : "#f57c00"}
                                                 compact
                                                 clean
                                             />
                                         </Grid>
                                     )}
-                                    <Grid size={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
-                                    {/* Publishment Details*/}
-                                    {announcement.status != "Pending" ? (
+                                    {/* Publishment Details */}
+                                    {announcement.status !== "Pending" ? (
                                         <Grid container size={12} spacing={1}>
                                             <Grid size={12} align="left">
                                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                                     Publishment Details
                                                 </Typography>
                                             </Grid>
-                                            {/* Branches */}
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Branches"
@@ -495,7 +542,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     clean
                                                 />
                                             </Grid>
-                                            {/* Departments */}
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Departments"
@@ -504,29 +550,28 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     clean
                                                 />
                                             </Grid>
-                                            {/* Acknowledgement Count */}
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Acknowledged by"
-                                                    info={`${announceInfo.acknowledged} of ${announceInfo.recipients} Recipients`}
+                                                    info={`${announceInfo?.acknowledged || 0} of ${announceInfo?.recipients || 0} Recipients`}
                                                     compact
                                                     clean
                                                 />
                                             </Grid>
                                         </Grid>
-                                    ) :
+                                    ) : (
                                         <Grid size={12} align="center">
                                             <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                 -- Publishing Data Unavailable --
                                             </Typography>
                                         </Grid>
-                                    }
+                                    )}
                                 </Grid>
                             </Grid>
-                            <Grid size={12} sx={{ my: 0 }} >
+                            <Grid size={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            {/* Description*/}
+                            {/* Description */}
                             <Grid size={12} sx={{ mb: 1 }} align="left">
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
                                     Description
@@ -541,13 +586,13 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                         overflowWrap: 'break-word',
                                         whiteSpace: 'pre-wrap',
                                     }}
-                                    dangerouslySetInnerHTML={{ __html: announceInfo.description }}
+                                    dangerouslySetInnerHTML={{ __html: announceInfo?.description || '' }}
                                 />
                             </Grid>
                             {/* Images */}
-                            {images.length > 0 ? (
+                            {Array.isArray(images) && images.length > 0 ? (
                                 <>
-                                    <Grid size={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
                                     <Grid size={12} sx={{ mb: 1 }} align="left">
@@ -591,13 +636,12 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             ))}
                                         </ImageList>
                                     </Grid>
-                                </>)
-                                : null
-                            }
+                                </>
+                            ) : null}
                             {/* Attachments */}
-                            {attachments.length > 0 ? (
+                            {Array.isArray(attachments) && attachments.length > 0 ? (
                                 <>
-                                    <Grid size={12} sx={{ my: 0 }} >
+                                    <Grid size={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
                                     <Grid size={12} sx={{ mb: 1 }} align="left">
@@ -644,9 +688,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             })}
                                         </ImageList>
                                     </Grid>
-                                </>)
-                                : null
-                            }
+                                </>
+                            ) : null}
                         </Grid>
                     </Box>
                 </DialogContent>
@@ -671,7 +714,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         uniCode={openAnnouncementAcknowledgements}
                     />
                 )}
-            </Dialog >
+            </Dialog>
         </>
     );
 };

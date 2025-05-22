@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnnouncementAcknowledgementsModel;
 use App\Models\AnnouncementsModel;
+use App\Models\AnnouncementViewsModel;
 use App\Models\AnnouncementBranchesModel;
 use App\Models\AnnouncementDepartmentsModel;
 use App\Models\UsersModel;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class AnnouncementsController extends Controller
@@ -19,7 +21,7 @@ class AnnouncementsController extends Controller
     // Authentication
     public function checkUser()
     {
-        // Log::info("AnnouncementsController::checkUser");
+        //Log::info("AnnouncementsController::checkUser");
 
         if (Auth::check()) {
             $user = Auth::user();
@@ -30,36 +32,58 @@ class AnnouncementsController extends Controller
         }
 
         return false;
-    }
-
+    } 
+    
     // Lists
     public function getAnnouncements()
     {
-        // Log::info("AnnouncementsController::getAnnouncements");
-
         $user = Auth::user();
+        //Log::info("AnnouncementsController::getAnnouncements");
 
-        if ($this->checkUser()) {
-            $clientId = $user->client_id;
-            $announcements = AnnouncementsModel::where('client_id', $clientId)
-                ->with(['acknowledgements', 'branches', 'departments'])
+        if (!$this->checkUser($user)) {
+            Log::warning('getAnnouncements: Unauthorized access', ['user_id' => $user ? $user->id : null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments'])
+                ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
+                ->orderBy('created_at', 'desc')
                 ->get();
 
-            $announcementData = $announcements->map(function ($announcement) {
-                // Acknowledged
-                $ackCount = $announcement->acknowledgements->count();
-
-                // Total Recipients
-                $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
-                $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
-                $recCount = UsersModel::where('user_type', "Employee")
-                    ->where(function ($query) use ($branches, $departments) {
-                        $query->whereIn('branch_id', $branches)
-                            ->orWhereIn('department_id', $departments);
+            $formattedAnnouncements = $announcements->map(function ($announcement) {
+                $viewCount = $announcement->views->count();
+                // Count unique employees in assigned branches and departments
+                $branchIds = $announcement->branches->pluck('branch_id')->toArray();
+                $departmentIds = $announcement->departments->pluck('department_id')->toArray();
+                $recipientCount = UsersModel::where('user_type', 'Employee')
+                    ->where(function ($query) use ($branchIds, $departmentIds) {
+                        if (!empty($branchIds)) {
+                            $query->whereIn('branch_id', $branchIds);
+                        }
+                        if (!empty($departmentIds)) {
+                            $query->orWhereIn('department_id', $departmentIds);
+                        }
                     })
-                    ->distinct()
-                    ->count('id');
+                    ->distinct('id')
+                    ->count();
+                // Count acknowledgments
+                $acknowledgedCount = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->count();
+                
+                $views = $announcement->views->map(function ($view) {
+                    $profilePic = $view->user && $view->user->profile_pic
+                        ? asset('storage/' . $view->user->profile_pic)
+                        : asset('images/default-avatar.png');
+                    return [
+                        'user_id' => $view->user ? $view->user->id : null,
+                        'first_name' => $view->user ? $view->user->first_name : 'Unknown',
+                        'last_name' => $view->user ? $view->user->last_name : 'User',
+                        'profile_pic' => $profilePic,
+                        'branch_name' => $view->user && $view->user->branch ? $view->user->branch->name : null,
+                        'department_name' => $view->user && $view->user->department ? $view->user->department->name : null,
+                        'viewed_at' => $view->viewed_at,
+                    ];
+                });
 
                 return [
                     'id' => $announcement->id,
@@ -67,20 +91,109 @@ class AnnouncementsController extends Controller
                     'title' => $announcement->title,
                     'description' => $announcement->description,
                     'status' => $announcement->status,
-                    'created_by' => $announcement->user_id,
                     'created_at' => $announcement->created_at,
-                    'acknowledged' => $ackCount,
-                    'recipients' => $recCount,
+                    'updated_at' => $announcement->updated_at,
+                    'viewed' => $viewCount,
+                    'recipients' => $recipientCount,
+                    'acknowledged' => $acknowledgedCount,
+                    'views' => $views,
                 ];
-            })->all();
+            });
 
+            //Log::info('getAnnouncements: Successfully fetched announcements', ['count' => $formattedAnnouncements->count()]);
 
-            return response()->json([
-                'status' => 200,
-                'announcements' => $announcementData,
+            return response()->json(['status' => 200, 'announcements' => $formattedAnnouncements]);
+        } catch (\Exception $e) {
+            Log::error('getAnnouncements: Error fetching announcements', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
-        } else {
-            return response()->json(['status' => 200, 'announcements' => null]);
+            return response()->json(['status' => 500, 'message' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getViews($code)
+    {
+        $user = Auth::user();
+        if (!$this->checkUser($user)) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $announcement = AnnouncementsModel::where('unique_code', $code)->firstOrFail();
+            $views = AnnouncementViewsModel::where('announcement_id', $announcement->id)
+                ->join('users', 'announcement_views.user_id', '=', 'users.id')
+                ->leftJoin('branches', 'users.branch_id', '=', 'branches.id')
+                ->leftJoin('departments', 'users.department_id', '=', 'departments.id')
+                ->select(
+                    'users.id as user_id',
+                    'users.first_name',
+                    'users.last_name',
+                    'users.profile_pic',
+                    'branches.name as branch_name',
+                    'departments.name as department_name',
+                    'announcement_views.viewed_at'
+                )
+                ->get()
+                ->map(function ($view) {
+                    $profilePic = $view->profile_pic
+                        ? asset('storage/' . $view->profile_pic)
+                        : asset('images/default-avatar.png');
+                    return [
+                        'user_id' => $view->user_id,
+                        'first_name' => $view->first_name,
+                        'last_name' => $view->last_name,
+                        'profile_pic' => $profilePic,
+                        'branch_name' => $view->branch_name,
+                        'department_name' => $view->department_name,
+                        'viewed_at' => $view->viewed_at,
+                    ];
+                });
+
+            return response()->json(['status' => 200, 'views' => $views]);
+        } catch (\Exception $e) {
+            Log::error('getViews: Error fetching views', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    public function logView(Request $request)
+    {
+        $request->validate(['announcement_code' => 'required|string']);
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $announcement = AnnouncementsModel::where('unique_code', $request->announcement_code)
+                ->where('status', 'Published')
+                ->firstOrFail();
+
+            $existingView = AnnouncementViewsModel::where('announcement_id', $announcement->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($existingView) {
+                return response()->json(['status' => 200, 'message' => 'View already logged']);
+            }
+
+            AnnouncementViewsModel::create([
+                'announcement_id' => $announcement->id,
+                'user_id' => $user->id,
+                'viewed_at' => now(),
+            ]);
+
+            return response()->json(['status' => 200, 'message' => 'View logged']);
+        } catch (\Exception $e) {
+            Log::error('logView: Error logging view', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
 
@@ -88,41 +201,49 @@ class AnnouncementsController extends Controller
     {
         //Log::info("AnnouncementsController::getEmployeeAnnouncements");
         $user = Auth::user();
+        if (!$user) {
+            Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncements');
+            return response()->json(['status' => 401, 'message' => 'Unauthenticated'], 401);
+        }
 
-        $branches = AnnouncementsModel::whereHas('branches', function ($query) use ($user) {
-            $query->where('branch_id', $user->branch_id);
-        })
-            ->where('status', 'Published')
-            ->with(['branches', 'departments'])
-            ->get();
+        try {
+            $announcements = AnnouncementsModel::where('status', 'Published')
+                ->where(function ($query) use ($user) {
+                    $query->whereHas('branches', function ($q) use ($user) {
+                        $q->where('branch_id', $user->branch_id);
+                    })->orWhereHas('departments', function ($q) use ($user) {
+                        $q->where('department_id', $user->department_id);
+                    });
+                })
+                ->with(['acknowledgements' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }])
+                ->get();
 
-        $departments = AnnouncementsModel::whereHas('departments', function ($query) use ($user) {
-            $query->where('department_id', $user->department_id);
-        })
-            ->where('status', 'Published')
-            ->with(['branches', 'departments'])
-            ->get();
+            $announcementData = $announcements->map(function ($announcement) use ($user) {
+                $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
+                $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
+                $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
 
-        $announcements = $branches->merge($departments)->unique('id');
+                return [
+                    'id' => $announcement->id,
+                    'unique_code' => $announcement->unique_code,
+                    'title' => $announcement->title,
+                    'updated_at' => $announcement->updated_at,
+                    'branch_matched' => $branchMatched,
+                    'department_matched' => $departmentMatched,
+                    'acknowledged_on' => $acknowledgedOn,
+                ];
+            })->all();
 
-        $announcementData = $announcements->map(function ($announcement) use ($user) {
-            $acknowledgement = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)
-                ->where('user_id', $user->id)
-                ->first();
-
-            $announcement->acknowledged_on = $acknowledgement ? $acknowledgement->created_at : null;
-
-            $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
-            $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
-            $announcement->branch_matched = in_array($user->branch_id, $branches);
-            $announcement->department_matched = in_array($user->department_id, $departments);
-
-            unset($announcement['branches'], $announcement['departments']);
-            return $announcement;
-        });
-
-        return response()->json(['status' => 200, 'announcements' => $announcementData]);
+            return response()->json([
+                'status' => 200,
+                'announcements' => $announcementData,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getEmployeeAnnouncements: ', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
+        }
     }
 
     // Management
@@ -134,7 +255,6 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             try {
-
                 DB::beginTransaction();
 
                 $uniqueCode = $this->generateRandomCode(16);
@@ -182,7 +302,7 @@ class AnnouncementsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -203,7 +323,7 @@ class AnnouncementsController extends Controller
 
                 // File Removal Prep
                 $deleteFiles = array_merge(
-                    $request->input('deleteImages', []),
+                    $request->input('deleteImages', []), 
                     $request->input('deleteAttachments', [])
                 );
 
@@ -260,7 +380,6 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             try {
-
                 DB::beginTransaction();
 
                 $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
@@ -268,7 +387,7 @@ class AnnouncementsController extends Controller
                 $announcement->save();
 
                 foreach ($request->input('departments') as $key => $departmentId) {
-                    //Log::info($announcementId . " " . $departmentId);
+                    Log::info($announcement->id . " " . $departmentId);
                     AnnouncementDepartmentsModel::create([
                         'announcement_id' => $announcement->id,
                         'department_id' => $departmentId
@@ -276,7 +395,7 @@ class AnnouncementsController extends Controller
                 }
 
                 foreach ($request->input('branches') as $key => $branchId) {
-                    //Log::info($announcementId . " " . $branchId);
+                    Log::info($announcement->id . " " . $branchId);
                     AnnouncementBranchesModel::create([
                         'announcement_id' => $announcement->id,
                         'branch_id' => $branchId
@@ -294,29 +413,52 @@ class AnnouncementsController extends Controller
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
-    public function toggleHide(Request $request)
+    public function toggleHide(Request $request, $code)
     {
-        //Log::info("AnnouncementsController::toggleHide");
         $user = Auth::user();
 
-        if ($this->checkUser()) {
+        if (!$this->checkUser($user)) {
+            Log::warning('toggleHide: Unauthorized access', ['user_id' => $user ? $user->id : null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
 
-            $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+        try {
+            // Validate the code parameter
+            $validated = Validator::make(['code' => $code], [
+                'code' => 'required|string|exists:announcements,unique_code',
+            ]);
+
+            if ($validated->fails()) {
+                Log::warning('toggleHide: Invalid unique_code', ['code' => $code, 'errors' => $validated->errors()]);
+                return response()->json(['status' => 422, 'message' => $validated->errors()->first()], 422);
+            }
+
+            $announcement = AnnouncementsModel::where('unique_code', $code)->first();
 
             if (!$announcement) {
+                Log::warning('toggleHide: Announcement not found', ['unique_code' => $code]);
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
             }
 
-            $announcement->status = $announcement->status === 'Published' ? 'Hidden' : 'Published';
+            $newStatus = $announcement->status === 'Published' ? 'Hidden' : 'Published';
+            $announcement->status = $newStatus;
             $announcement->save();
 
-            return response()->json(['status' => 200]);
-        } else {
-            return response()->json(['status' => 200]);
+            return response()->json(['status' => 200, 'announcement' => [
+                'unique_code' => $announcement->unique_code,
+                'status' => $announcement->status,
+            ]]);
+        } catch (\Exception $e) {
+            Log::error('toggleHide: Error toggling status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'unique_code' => $code,
+            ]);
+            return response()->json(['status' => 500, 'message' => 'Server error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -346,7 +488,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'announcement' => $announcementData]);
         } else {
-            return response()->json(['status' => 200, 'announcement' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -355,46 +497,53 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
 
         $user = Auth::user();
+        if (!$user) {
+            Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncementDetails');
+            return response()->json(['status' => 401, 'message' => 'Unauthenticated'], 401);
+        }
 
-        $announcement = AnnouncementsModel::where('unique_code', $code)
-            ->with(['acknowledgements', 'branches', 'departments', 'user'])
-            ->firstOrFail();
+        try {
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->where('status', 'Published')
+                ->where(function ($query) use ($user) {
+                    $query->whereHas('branches', function ($q) use ($user) {
+                        $q->where('branch_id', $user->branch_id);
+                    })->orWhereHas('departments', function ($q) use ($user) {
+                        $q->where('department_id', $user->department_id);
+                    });
+                })
+                ->with(['acknowledgements' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }, 'user'])
+                ->firstOrFail();
 
-        $acknowledgement = $announcement->acknowledgements()
-            ->where('user_id', $user->id)
-            ->first();
+            $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
+            $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
+            $acknowledged = $announcement->acknowledgements->firstWhere('user_id', $user->id) !== null;
+            $ackTimestamp = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
 
-        // Acknowledgement Status
-        $acknowledged = $acknowledgement !== null;
-        $acknowledgementTimestamp = $acknowledged ? $acknowledgement->created_at : null;
-
-        $announcement->acknowledged = $acknowledged;
-        $announcement->ack_timestamp = $acknowledgementTimestamp;
-
-        // Branch, Department Matchup
-        $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
-        $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
-        $announcement->branch_matched = in_array($user->branch_id, $branches);
-        $announcement->department_matched = in_array($user->department_id, $departments);
-
-        // Author Information
-        $author = $announcement->user;
-        $announcement->author_name = implode(' ', array_filter([
-            $author->first_name ?? null,
-            $author->middle_name ?? null,
-            $author->last_name ?? null,
-            $author->suffix ?? null,
-        ]));
-        $announcement->author_title = $author->jobTitle ? $author->jobTitle->name : "Administrator";
-
-        // Final Data Prep
-        $announcementData = $announcement->toArray();
-        unset($announcementData['acknowledgements'], $announcementData['branches'], $announcementData['departments'], $announcementData['user']);
-
-        return response()->json(['status' => 200, 'announcement' => $announcementData]);
+            return response()->json([
+                'status' => 200,
+                'announcement' => [
+                    'id' => $announcement->id,
+                    'unique_code' => $announcement->unique_code,
+                    'title' => $announcement->title,
+                    'description' => $announcement->description,
+                    'updated_at' => $announcement->updated_at,
+                    'author_name' => $announcement->user ? $announcement->user->first_name . ' ' . $announcement->user->last_name : null,
+                    'author_title' => $announcement->user ? $announcement->user->title : null,
+                    'branch_matched' => $branchMatched,
+                    'department_matched' => $departmentMatched,
+                    'acknowledged' => $acknowledged,
+                    'ack_timestamp' => $ackTimestamp,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getEmployeeAnnouncementDetails: ', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
+        }
     }
-
+    
     public function getAnnouncementBranchDepts($code)
     {
         //Log::info("AnnouncementsController::getAnnouncementBranchDepts");
@@ -402,7 +551,6 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
 
         if ($this->checkUser()) {
-
             $announcement = AnnouncementsModel::where('unique_code', $code)
                 ->select('id')
                 ->first();
@@ -425,7 +573,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments]);
         } else {
-            return response()->json(['status' => 200, 'branches' => null, 'departments' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -531,7 +679,7 @@ class AnnouncementsController extends Controller
                 'attachments' => $attachmentData,
             ]);
         } else {
-            return response()->json(['status' => 200, 'images' => null, 'attachments' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
@@ -615,7 +763,6 @@ class AnnouncementsController extends Controller
         //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
         $user = Auth::user();
         if ($this->checkUser()) {
-
             $clientId = $user->client_id;
             $announcement = AnnouncementsModel::where('unique_code', $code)
                 ->with(['acknowledgements', 'branches', 'departments'])
@@ -673,14 +820,14 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
         } else {
-            return response()->json(['status' => 200, 'acknowledgements' => null]);
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 
     // Utility
     function generateRandomCode($length)
     {
-        // log::info("AnnouncementsController::generateRandomCode");
+        Log::info("AnnouncementsController::generateRandomCode");
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         $result = '';
         $charsLength = strlen($chars);

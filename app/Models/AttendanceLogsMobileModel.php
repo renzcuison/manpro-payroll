@@ -15,6 +15,8 @@ class AttendanceLogsMobileModel extends Model
 
     protected $fillable = [
         'attendance_id',
+        'biometric_signature',
+        'payload',
         'path',
     ];
 

@@ -41,30 +41,17 @@ import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import { useEmployees } from "./hooks/useEmployees";
 
 const EmployeesList = () => {
-    const { data, isFetching, isFetched, isLoading } = useEmployees();
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const navigate = useNavigate();
 
-    const employees = useMemo(() => {
-        if (data) {
-            return data.employees;
-        }
-    }, [data, isFetched, isFetching]);
-
-    if (isFetching) {
-        return (
-            <>
-                <LoadingSpinner />
-            </>
-        );
-    }
-
-    console.log("Employees:", employees);
-
+    const [isLoading, setIsLoading] = useState(true);
+    const [employees, setEmployees] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
 
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
-
     const [selectedColumns, setSelectedColumns] = useState([
         "Branch",
         "Department",
@@ -74,6 +61,47 @@ const EmployeesList = () => {
     ]);
 
     const [searchName, setSearchName] = useState("");
+    const [filterByBranch, setFilterByBranch] = useState("");
+    const [filterByDepartment, setFilterByDepartment] = useState("");
+
+    useEffect(() => {
+        axiosInstance
+            .get("/employee/getEmployees", { headers })
+            .then((response) => {
+                setEmployees(response.data.employees);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching clients:", error);
+                setIsLoading(false);
+            });
+
+        axiosInstance
+            .get("/settings/getDepartments", { headers })
+            .then((response) => {
+                const fetchedDepartments = response.data.departments;
+                setDepartments(fetchedDepartments);
+                const allDepartmentIds = fetchedDepartments.map(
+                    (department) => department.id
+                );
+                setSelectedDepartments(allDepartmentIds);
+            })
+            .catch((error) => {
+                console.error("Error fetching departments:", error);
+            });
+
+        axiosInstance
+            .get("/settings/getBranches", { headers })
+            .then((response) => {
+                const fetchedBranches = response.data.branches;
+                setBranches(fetchedBranches);
+                const allBranchIds = fetchedBranches.map((branch) => branch.id);
+                setSelectedBranches(allBranchIds);
+            })
+            .catch((error) => {
+                console.error("Error fetching branches:", error);
+            });
+    }, []);
 
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -84,14 +112,49 @@ const EmployeesList = () => {
         setAnchorEl(null);
     };
 
-    const filteredEmployees = useMemo(() => {
-        employees?.filter((employee) => {
-            const fullName = `${employee.first_name} ${
-                employee.middle_name || ""
-            } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
-            return fullName.includes(searchName.toLowerCase());
-        });
-    }, [employees]);
+    const [blobMap, setBlobMap] = useState({});
+
+    const renderImage = (id, data, mime) => {
+        if (!blobMap[id]) {
+            const byteCharacters = atob(data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mime });
+            const newBlob = URL.createObjectURL(blob);
+
+            setBlobMap((prev) => ({ ...prev, [id]: newBlob }));
+
+            return newBlob;
+        } else {
+            return blobMap[id];
+        }
+    };
+    useEffect(() => {
+        return () => {
+            Object.values(blobMap).forEach((url) => {
+                if (url.startsWith("blob:")) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            setBlobMap({});
+        };
+    }, []);
+
+    const filteredEmployees = employees.filter((employee) => {
+        const fullName = `${employee.first_name} ${
+            employee.middle_name || ""
+        } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
+        const matchedName = fullName.includes(searchName.toLowerCase());
+        const matchedBranchDept =
+            filterByBranch === "" ||
+            filterByDepartment === "" ||
+            (employee["department"] === filterByDepartment &&
+                employee["branch"] === filterByBranch);
+        return matchedName && matchedBranchDept;
+    });
 
     return (
         <Layout title={"EmployeesList"}>
@@ -175,7 +238,8 @@ const EmployeesList = () => {
                             sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}
                         >
                             <Grid container size={12} spacing={2}>
-                                <Grid size={9}>
+                                {/*<---Name Search field--->*/}
+                                <Grid size={6}>
                                     <TextField
                                         id="searchName"
                                         label="Search Name"
@@ -186,42 +250,59 @@ const EmployeesList = () => {
                                         }
                                     />
                                 </Grid>
+                                {/*<---Branch filter field--->*/}
                                 <Grid size={3}>
                                     <TextField
                                         select
                                         id="column-view-select"
-                                        label="Show Fields"
-                                        value={selectedColumns}
-                                        SelectProps={{
-                                            multiple: true,
-                                            renderValue: (selected) =>
-                                                selected.join(", "),
-                                            onChange: (event) =>
-                                                setSelectedColumns(
-                                                    event.target.value
-                                                ),
+                                        label="Filter by Branch"
+                                        value={filterByBranch}
+                                        onChange={(event) => {
+                                            console.log(
+                                                "Selected branch:",
+                                                event.target.value
+                                            );
+                                            setFilterByBranch(
+                                                event.target.value
+                                            );
                                         }}
                                         sx={{ width: "100%" }}
                                     >
-                                        {[
-                                            "Branch",
-                                            "Department",
-                                            "Role",
-                                            "Status",
-                                            "Type",
-                                        ].map((option) => (
+                                        {branches.map((branch) => (
                                             <MenuItem
-                                                key={option}
-                                                value={option}
+                                                key={branch.id}
+                                                value={branch.name}
                                             >
-                                                <Checkbox
-                                                    checked={selectedColumns.includes(
-                                                        option
-                                                    )}
-                                                />
-                                                <ListItemText
-                                                    primary={option}
-                                                />
+                                                {branch.name}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+
+                                {/*<---Department filter field--->*/}
+                                <Grid size={3}>
+                                    <TextField
+                                        select
+                                        id="column-view-select"
+                                        label="Filter by Department"
+                                        value={filterByDepartment}
+                                        onChange={(event) => {
+                                            console.log(
+                                                "Selected department:",
+                                                event.target.value
+                                            );
+                                            setFilterByDepartment(
+                                                event.target.value
+                                            );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >
+                                        {departments.map((department) => (
+                                            <MenuItem
+                                                key={department.id}
+                                                value={department.name}
+                                            >
+                                                {department.name}
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -289,6 +370,7 @@ const EmployeesList = () => {
                             </Grid> */}
                         </Grid>
 
+                        {/*<---Main Employee List table--->*/}
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
@@ -301,6 +383,7 @@ const EmployeesList = () => {
                                         stickyHeader
                                         aria-label="employee table"
                                     >
+                                        {/*<--Table Header Section-->*/}
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell
@@ -331,6 +414,7 @@ const EmployeesList = () => {
                                                 )}
                                             </TableRow>
                                         </TableHead>
+                                        {/*<--Table Body Section-->*/}
                                         <TableBody>
                                             {filteredEmployees?.length > 0 ? (
                                                 filteredEmployees?.map(

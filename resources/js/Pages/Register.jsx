@@ -24,11 +24,10 @@ import Swal from "sweetalert2";
 
 export default function SignInCard() {
     const navigate = useNavigate();
-    const { login } = useAuth();
-
-    const { user, isFetching } = useUser();
 
     const { code } = useParams();
+
+    const [status, setStatus] = useState(false);
 
     const [firstNameError, setFirstNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
@@ -49,6 +48,21 @@ export default function SignInCard() {
     const [birthdate, setBirthdate] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
+
+    useEffect(() => {
+        
+        const data = { code: code };
+
+        axiosInstance.get(`/getFormLinkStatus`, { params: data })
+            .then((response) => {
+                setStatus(response.data.form_status);
+            })
+            .catch((error) => {
+                console.error("Error fetching clients:", error);
+
+            });
+    }, []);
+
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -144,16 +158,7 @@ export default function SignInCard() {
             <Box sx={{ display: 'flex', width: '100%', maxWidth: '1500px', boxShadow: { xs: 'none', md: '0 10px 30px rgba(0, 0, 0, 0.1)' }, borderRadius: '12px', overflow: 'hidden' }} >
 
                 {/* Left Section */}
-                <Box sx={{
-                    flex: 1,
-                    display: { xs: 'none', md: 'flex' },
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    gap: 2,
-                    maxWidth: '35%',
-                    p: 4,
-                    backgroundColor: '#f7f7f7'
-                }}>
+                <Box sx={{ flex: 1, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', justifyContent: 'center', gap: 2, maxWidth: '35%', p: 4, backgroundColor: '#f7f7f7' }}>
                     <img src={manProLogo} style={{ maxWidth: '300px' }} />
 
                     <List sx={{ width: '100%' }}>
@@ -161,260 +166,122 @@ export default function SignInCard() {
                             <ListItemIcon>
                                 <BuildIcon sx={{ color: '#177604' }} />
                             </ListItemIcon>
-                            <ListItemText
-                                primary="Adaptable performance"
-                                secondary="Boost your efficiency and simplify your tasks with our platform."
-                                primaryTypographyProps={{ color: '#1f2937' }}
-                                secondaryTypographyProps={{ color: '#6b7280' }}
-                            />
+                            <ListItemText primary="Adaptable performance" secondary="Boost your efficiency and simplify your tasks with our platform." primaryTypographyProps={{ color: '#1f2937' }} secondaryTypographyProps={{ color: '#6b7280' }} />
                         </ListItem>
                         <ListItem>
                             <ListItemIcon>
                                 <BuildIcon sx={{ color: '#177604' }} />
                             </ListItemIcon>
-                            <ListItemText
-                                primary="Built to last"
-                                secondary="Enjoy unmatched durability with lasting investment."
-                                primaryTypographyProps={{ color: '#1f2937' }}
-                                secondaryTypographyProps={{ color: '#6b7280' }}
-                            />
+                            <ListItemText primary="Built to last" secondary="Enjoy unmatched durability with lasting investment." primaryTypographyProps={{ color: '#1f2937' }} secondaryTypographyProps={{ color: '#6b7280' }} />
                         </ListItem>
                         <ListItem>
                             <ListItemIcon>
                                 <ThumbUpIcon sx={{ color: '#177604' }} />
                             </ListItemIcon>
-                            <ListItemText
-                                primary="Great user experience"
-                                secondary="Intuitive interface for a smooth and easy-to-use experience."
-                                primaryTypographyProps={{ color: '#1f2937' }}
-                                secondaryTypographyProps={{ color: '#6b7280' }}
-                            />
+                            <ListItemText primary="Great user experience" secondary="Intuitive interface for a smooth and easy-to-use experience." primaryTypographyProps={{ color: '#1f2937' }} secondaryTypographyProps={{ color: '#6b7280' }} />
                         </ListItem>
                         <ListItem>
                             <ListItemIcon>
                                 <BuildIcon sx={{ color: '#177604' }} />
                             </ListItemIcon>
-                            <ListItemText
-                                primary="Innovative functionality"
-                                secondary="Stay ahead with features that adapt to your needs."
-                                primaryTypographyProps={{ color: '#1f2937' }}
-                                secondaryTypographyProps={{ color: '#6b7280' }}
-                            />
+                            <ListItemText primary="Innovative functionality" secondary="Stay ahead with features that adapt to your needs." primaryTypographyProps={{ color: '#1f2937' }} secondaryTypographyProps={{ color: '#6b7280' }} />
                         </ListItem>
                     </List>
                 </Box>
 
                 {/* Right Section (Sign-in form) */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', p: { xs: 1, md: 4 }, my: { xs: 3, md: 0 }, backgroundColor: 'white', maxWidth: { xs: '100%', md: '65%' } }} >
-                    <Box component="form" sx={{ mx: { xs: 4, md: 6 }, mt: 3, mb: 2 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                    {['Expired', 'Used', 'Absent'].includes(status) ? (
+                        <Box sx={{ textAlign: 'center', py: 10 }}>
+                            <Typography variant="h5" component="h3" sx={{ mb: 4, color: '#177604', display: { xs: 'block', md: 'none' } }} >
+                                <strong>This form is already used or expired</strong>
+                            </Typography>
 
-                        {/* Mobile Header */}
-                        <Typography
-                            variant="h5"
-                            component="h3"
-                            sx={{ mb: 4, color: '#177604', display: { xs: 'block', md: 'none' } }}
-                        >
-                            <strong>Employee Registration Form</strong>
-                        </Typography>
-
-                        {/* Larger Screens */}
-                        <Typography
-                            variant="h4"
-                            component="h1"
-                            sx={{ mb: 4, color: '#177604', display: { xs: 'none', md: 'block' } }}
-                        >
-                            <strong>Employee Registration Form</strong>
-                        </Typography>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="firstName"
-                                    label="First Name"
-                                    variant="outlined"
-                                    value={firstName}
-                                    error={firstNameError}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="middleName"
-                                    label="Middle Name"
-                                    variant="outlined"
-                                    value={middleName}
-                                    onChange={(e) => setMiddleName(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="lastName"
-                                    label="Last Name"
-                                    variant="outlined"
-                                    value={lastName}
-                                    error={lastNameError}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: "49%", md: '10%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="suffix"
-                                    label="Suffix"
-                                    variant="outlined"
-                                    value={suffix}
-                                    onChange={(e) => setSuffix(e.target.value)}
-                                />
-                            </FormControl>
-
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="userName"
-                                    label="User Name"
-                                    variant="outlined"
-                                    value={userName}
-                                    error={userNameError}
-                                    onChange={(e) => setUserName(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="emailAddress"
-                                    label="Email Address"
-                                    variant="outlined"
-                                    value={emailAddress}
-                                    error={emailAddressError}
-                                    onChange={(e) => setEmailAddress(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="phoneNumber"
-                                    label="Phone Number"
-                                    variant="outlined"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '66%', md: '70%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="address"
-                                    label="Address"
-                                    variant="outlined"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '32%', md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        id="birthdate"
-                                        label="Birth Date"
-                                        variant="outlined"
-                                        onChange={(newValue) => setBirthdate(newValue)}
-                                        slotProps={{
-                                            textField: { required: true, error: birthdateError }
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </FormControl>
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '49%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="Password"
-                                    label="Password"
-                                    variant="outlined"
-                                    type="password"
-                                    value={password}
-                                    error={passwordError}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: { xs: "100%", sm: '49%' }, '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="confirmPassword"
-                                    label="Confirm Password"
-                                    variant="outlined"
-                                    type="password"
-                                    value={confirm}
-                                    error={confirmError}
-                                    onChange={(e) => setConfirm(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <Box display="flex" justifyContent="center">
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Submit </p>
-                            </Button>
+                            {/* Larger Screens */}
+                            <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#177604', display: { xs: 'none', md: 'block' } }} >
+                                <strong>This form is already used or expired</strong>
+                            </Typography>
                         </Box>
+                    ) : (
+                        <Box component="form" sx={{ mx: { xs: 4, md: 6 }, mt: 3, mb: 2 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
-                    </Box>
+                            {/* Mobile Header */}
+                            <Typography variant="h5" component="h3" sx={{ mb: 4, color: '#177604', display: { xs: 'block', md: 'none' } }} >
+                                <strong>Employee Registration Form</strong>
+                            </Typography>
+
+                            {/* Larger Screens */}
+                            <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#177604', display: { xs: 'none', md: 'block' } }} >
+                                <strong>Employee Registration Form</strong>
+                            </Typography>
+
+                            <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="firstName" label="First Name" variant="outlined" value={firstName} error={firstNameError} onChange={(e) => setFirstName(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField id="middleName" label="Middle Name" variant="outlined" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: "49%", md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="lastName" label="Last Name" variant="outlined" value={lastName} error={lastNameError} onChange={(e) => setLastName(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: "49%", md: '10%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField id="suffix" label="Suffix" variant="outlined" value={suffix} onChange={(e) => setSuffix(e.target.value)} />
+                                </FormControl>
+
+                            </FormGroup>
+
+                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="userName" label="User Name" variant="outlined" value={userName} error={userNameError} onChange={(e) => setUserName(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="emailAddress" label="Email Address" variant="outlined" value={emailAddress} error={emailAddressError} onChange={(e) => setEmailAddress(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '32%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField id="phoneNumber" label="Phone Number" variant="outlined" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                                </FormControl>
+                            </FormGroup>
+
+                            <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '66%', md: '70%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField id="address" label="Address" variant="outlined" value={address} onChange={(e) => setAddress(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '32%', md: '28%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker id="birthdate" label="Birth Date" variant="outlined" onChange={(newValue) => setBirthdate(newValue)} slotProps={{ textField: { required: true, error: birthdateError } }} />
+                                    </LocalizationProvider>
+                                </FormControl>
+                            </FormGroup>
+
+                            <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '49%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="Password" label="Password" variant="outlined" type="password" value={password} error={passwordError} onChange={(e) => setPassword(e.target.value)} />
+                                </FormControl>
+
+                                <FormControl sx={{ marginBottom: 3, width: { xs: "100%", sm: '49%' }, '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                    <TextField required id="confirmPassword" label="Confirm Password" variant="outlined" type="password" value={confirm} error={confirmError} onChange={(e) => setConfirm(e.target.value)} />
+                                </FormControl>
+                            </FormGroup>
+
+                            <Box display="flex" justifyContent="center">
+                                <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                                    <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Submit </p>
+                                </Button>
+                            </Box>
+
+                        </Box>
+                    )}
+
                 </Box>
 
             </Box>

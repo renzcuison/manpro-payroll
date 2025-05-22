@@ -22,8 +22,11 @@ import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
 import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
+import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
+// import AnnouncementAdd from "../Pages/Admin/Announcements/AnnouncementAdd";
+// import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
@@ -54,6 +57,8 @@ import LoanList from "../Pages/Admin/Loans/LoanList";
 
 import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 import Documents from "../Pages/Admin/Documents";
+import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
+import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 import ScheduleModule from "../Pages/Admin/Schedules";
 
 const AdminRoutes = ({ user }) => {
@@ -185,6 +190,12 @@ const AdminRoutes = ({ user }) => {
                     />
                 }
             />
+            <Route
+                path="application/overtime/types"
+                element={
+                    <ProtectedRoute element={<OvertimeTypes />} user={user} />
+                }
+            />
 
             <Route
                 path="application/leave-credits"
@@ -202,6 +213,8 @@ const AdminRoutes = ({ user }) => {
                     />
                 }
             />
+            {/* <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd />} user={user} />} />
+            <Route path="announcements/types" element={<ProtectedRoute element={<AnnouncementTypes />} user={user} />} /> */}
 
             <Route
                 path="trainings"
@@ -244,6 +257,17 @@ const AdminRoutes = ({ user }) => {
                 path="settings/general"
                 element={
                     <ProtectedRoute element={<GeneralSettings />} user={user} />
+                }
+            />
+
+            <Route
+                path="perimeters"
+                element={<ProtectedRoute element={<Perimeter />} user={user} />}
+            />
+            <Route
+                path="perimeters/add"
+                element={
+                    <ProtectedRoute element={<AddNewPerimeter />} user={user} />
                 }
             />
 

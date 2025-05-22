@@ -6,6 +6,7 @@ import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useUser } from '../../../hooks/useUser';
 import Swal from "sweetalert2";
+import { useMemo } from 'react';
 
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -36,6 +37,23 @@ const PayrollRecords = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [cutOff, setCutOff] = useState('');
+    const [searchName, setSearchName] = useState('');
+
+
+    const today = dayjs();
+    const currentYear = today.year().toString();
+    const currentMonth = today.format('MMMM');
+    const currentCutOff = today.date() <= 15 ? 'First' : 'Second';
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [selectedCutOff, setSelectedCutOff] = useState(currentCutOff);
+    const years = useMemo(() => Array.from({ length: today.year() - 2014 }, (_, i) => (2025 - i).toString()), []);
+    const [months, setMonths] = useState([
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]);
+
 
     useEffect(() => {
         getRecords();
@@ -62,6 +80,18 @@ const PayrollRecords = () => {
         setOpenViewPayrollModal(false);
     }
 
+    const filteredRecords = records.filter((record) => {
+        const recordDate = dayjs(record.payrollEndDate);
+
+        const matchesYear = selectedYear ? recordDate.year().toString() === selectedYear : true;
+        const matchesMonth = selectedMonth ? recordDate.format('MMMM') === selectedMonth : true;
+        const matchesCutoff = selectedCutOff ? record.payrollCutOff === selectedCutOff : true;
+        const matchesName = searchName ? record.employeeName.toLowerCase().includes(searchName.toLowerCase()) : true;
+
+        return matchesYear && matchesMonth && matchesCutoff && matchesName;
+    });
+
+
     return (
         <Layout title={"PayrollProcess"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -72,14 +102,71 @@ const PayrollRecords = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                        <Box sx={{display: 'flex', justifyContent:'space-between'}}>
+                            <TextField
+                                label="Search name"
+                                variant="outlined"
+                                size="small"
+                                sx={{ mb: 2 }}
+                                value={searchName}
+                                onChange={(e) => setSearchName(e.target.value)}
+                            />
+
+                            <Box sx={{ display: 'flex', gap: 2, mb: 2, justifyContent: 'end', }}>
+                                <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                                    <InputLabel>Year</InputLabel>
+                                    <Select
+                                        value={selectedYear}
+                                        label="Year"
+                                        onChange={(e) => setSelectedYear(e.target.value)}
+                                    >
+                                        <MenuItem value="">All</MenuItem>
+                                        {years.map((year) => (
+                                            <MenuItem key={year} value={year}>
+                                                {year}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                                    <InputLabel>Month</InputLabel>
+                                    <Select
+                                        value={selectedMonth}
+                                        label="Month"
+                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                    >
+                                        <MenuItem value="">All</MenuItem>
+                                        {[
+                                            'January', 'February', 'March', 'April', 'May', 'June',
+                                            'July', 'August', 'September', 'October', 'November', 'December'
+                                        ].map((month) => (
+                                            <MenuItem key={month} value={month}>{month}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
+                                    <InputLabel>Cutoff</InputLabel>
+                                    <Select
+                                        value={selectedCutOff}
+                                        label="Cutoff"
+                                        onChange={(e) => setSelectedCutOff(e.target.value)}
+                                    >
+                                        <MenuItem value="First">First</MenuItem>
+                                        <MenuItem value="Second">Second</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        </Box>
                         
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
                             <>
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
-                                        <TableHead>
+                                    <Table aria-label="simple table" className="table table-md table-striped table-vcenter table-bordered">
+                                        <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
                                             <TableRow>
                                                 <TableCell align="center">Name</TableCell>
                                                 <TableCell align="center">Branch</TableCell>
@@ -93,8 +180,9 @@ const PayrollRecords = () => {
                                         </TableHead>
 
                                         <TableBody>
-                                            {records.map((record) => (
-                                                <TableRow key={record.record} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }} onClick={() => handleOpenViewPayrollModal(record.record)} >
+                                            {filteredRecords.length > 0 ? (
+                                                filteredRecords.map((record) => (
+                                                <TableRow key={record.record} onClick={() => handleOpenViewPayrollModal(record.record)} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { cursor: 'pointer' } }}>
                                                     <TableCell align="left">{record.employeeName}</TableCell>
                                                     <TableCell align="center">{record.employeeBranch}</TableCell>
                                                     <TableCell align="center">{record.employeeDepartment}</TableCell>
@@ -104,7 +192,14 @@ const PayrollRecords = () => {
                                                     <TableCell align="center">{record.payrollGrossPay}</TableCell>
                                                     <TableCell align="center"></TableCell>
                                                 </TableRow>
-                                            ))}
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                <TableCell colSpan={8} align="center" sx={{ fontStyle: 'italic', color: '#888', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                                                    No records found for the selected filters.
+                                                </TableCell>
+                                                </TableRow>
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>

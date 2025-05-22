@@ -71,8 +71,11 @@ class PayrollController extends Controller
         $numberOfHolidayWeekday = 0;
 
         // Fetch Philippine holidays from Nager.Date API
-        $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
+        // $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
         // $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
+
+        $holidays = $this->getHolidaysWeekdays($startDate->year, $endDate->year);
+
 
         $currentDate = $startDate->copy();
 
@@ -102,6 +105,117 @@ class PayrollController extends Controller
             'numberOfHoliday' => $numberOfHoliday,
         ];
     }
+
+    public function getHolidaysWeekdays()
+    {
+        $holidays = [
+            [
+                "date" => "2025-01-01",
+                "localName" => "Bagong Taon",
+                "name" => "New Year's Day",
+            ],
+            [
+                "date" => "2025-01-29",
+                "localName" => "Chinese New Year",
+                "name" => "Chinese New Year",
+            ],
+            [
+                "date" => "2025-04-01",
+                "localName" => "Eid’l Fitr",
+                "name" => "Feast of Ramadhan",
+            ],
+            [
+                "date" => "2025-04-09",
+                "localName" => "Araw ng Kagitingan",
+                "name" => "Day of Valor",
+            ],
+            [
+                "date" => "2025-04-17",
+                "localName" => "Huwebes Santo",
+                "name" => "Maundy Thursday",
+            ],
+            [
+                "date" => "2025-04-18",
+                "localName" => "Biyernes Santo",
+                "name" => "Good Friday",
+            ],
+            [
+                "date" => "2025-04-19",
+                "localName" => "Sabado de Gloria",
+                "name" => "Holy Saturday",
+            ],
+            [
+                "date" => "2025-05-01",
+                "localName" => "Araw ng Paggawa",
+                "name" => "Labor Day",
+            ],
+            [
+                "date" => "2025-05-12",
+                "localName" => "Araw ng Eleksyon",
+                "name" => "Election Day",
+            ],
+            [
+                "date" => "2025-06-12",
+                "localName" => "Araw ng Kalayaan",
+                "name" => "Independence Day",
+            ],
+            [
+                "date" => "2025-08-21",
+                "localName" => 'Araw ng Kamatayan ni Senador Benigno Simeon "Ninoy" Aquino Jr.',
+                "name" => "Ninoy Aquino Day",
+            ],
+            [
+                "date" => "2025-08-25",
+                "localName" => "Araw ng mga Bayani",
+                "name" => "National Heroes Day",
+            ],
+            [
+                "date" => "2025-10-31",
+                "localName" => "All Saints' Day Eve",
+                "name" => "All Saints' Day Eve",
+            ],
+            [
+                "date" => "2025-11-01",
+                "localName" => "Araw ng mga Santo",
+                "name" => "All Saints' Day",
+            ],
+            [
+                "date" => "2025-11-30",
+                "localName" => "Araw ni Gat Andres Bonifacio",
+                "name" => "Bonifacio Day",
+            ],
+            [
+                "date" => "2025-12-08",
+                "localName" => "Kapistahan ng Immaculada Concepcion",
+                "name" => "Feast of the Immaculate Conception of Mary",
+            ],
+            [
+                "date" => "2025-12-24",
+                "localName" => "Christmas Eve",
+                "name" => "Christmas Eve",
+            ],
+            [
+                "date" => "2025-12-25",
+                "localName" => "Araw ng Pasko",
+                "name" => "Christmas Day",
+            ],
+            [
+                "date" => "2025-12-30",
+                "localName" => "Araw ng Kamatayan ni Dr. Jose Rizal",
+                "name" => "Rizal Day",
+            ],
+            [
+                "date" => "2025-12-31",
+                "localName" => "Huling Araw ng Taon",
+                "name" => "Last Day of The Year",
+            ],
+        ];
+
+        return collect($holidays)->filter(function ($holiday) {
+            return Carbon::parse($holiday['date'])->isWeekday();
+        })->pluck('date')->toArray();
+    }
+
 
     public function getNagerHolidays($startYear, $endYear)
     {
@@ -328,6 +442,144 @@ class PayrollController extends Controller
         return $incomeTax;
     }
 
+    public function calculateHolidayPay($logs, $perMin)
+    {
+        // Log::info("PayrollController::calculateHolidayPay");
+
+        $holidayLogs = [];
+        $holidays = [
+            ['name' => 'New Year’s Day', 'date' => '2025-01-01'],
+            ['name' => 'Maundy Thursday', 'date' => '2025-04-17'],
+            ['name' => 'Good Friday', 'date' => '2025-04-18'],
+            ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
+            ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Independence Day', 'date' => '2025-06-12'],
+            ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
+            ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
+            ['name' => 'Christmas Day', 'date' => '2025-12-25'],
+            ['name' => 'Rizal Day', 'date' => '2025-12-30'],
+            ['name' => 'Chinese New Year', 'date' => '2025-01-29'],
+            ['name' => 'EDSA People Power Revolution Anniversary', 'date' => '2025-02-25'],
+            ['name' => 'Black Saturday', 'date' => '2025-04-19'],
+            ['name' => 'Ninoy Aquino Day', 'date' => '2025-08-21'],
+            ['name' => 'All Saints’ Day', 'date' => '2025-11-01'],
+            ['name' => 'Feast of the Immaculate Conception of Mary', 'date' => '2025-12-08'],
+            ['name' => 'Christmas Eve', 'date' => '2025-12-24'],
+            ['name' => 'New Year’s Eve', 'date' => '2025-12-31'],
+            ['name' => 'Eid’l Fitr', 'date' => '2025-03-31'],
+            ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
+        ];
+
+        
+        foreach ($logs as $log) {
+            $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
+
+            foreach ($holidays as $holiday) {
+                if ($logDate === $holiday['date']) {
+                    $holidayLog = (object) $log;
+                    $holidayLogs[] = $holidayLog;
+                    break;
+                }
+            }
+        }
+
+        $timeIn = "";
+        $timeOut = "";
+        $overTimeIn = "";
+        $overTimeOut = "";
+
+        $morning = 0;
+        $afternoon = 0;
+        $overtime = 0;
+        
+        foreach ($holidayLogs as $log) {
+            switch ($log->action) {
+                case 'Duty In':
+                    $timeIn = $log->timestamp;
+                    break;
+
+                case 'Duty Out':
+                    $timeOut = $log->timestamp;
+                    break;
+
+                case 'Overtime In':
+                    $overTimeIn = $log->timestamp;
+                    break;
+
+                case 'Overtime Out':
+                    $overTimeOut = $log->timestamp;
+                    break;
+            }
+        }
+
+        // Log::info("Time In: " . $timeIn);
+        // Log::info("Time Out: " . $timeOut);
+        // Log::info("Overtime In: " . $overTimeIn);
+        // Log::info("Overtime Out: " . $overTimeOut);
+
+        if ($timeIn && $timeOut) {
+            $timeInCarbon = Carbon::parse($timeIn);
+            $timeOutCarbon = Carbon::parse($timeOut);
+
+            $morningStart = $timeInCarbon->copy()->setTime(8, 30);
+            $morningEnd   = $timeInCarbon->copy()->setTime(12, 0);
+
+            $afternoonStart = $timeInCarbon->copy()->setTime(13, 0);
+            $afternoonEnd   = $timeInCarbon->copy()->setTime(17, 30);
+
+            $actualStart = $timeInCarbon->greaterThan($morningStart) ? $timeInCarbon : $morningStart;
+            $actualEnd = $timeOutCarbon->lessThan($morningEnd) ? $timeOutCarbon : $morningEnd;
+            if ($actualStart < $actualEnd) {
+                $morning = $actualStart->diffInMinutes($actualEnd);
+            }
+
+            $actualStart = $timeInCarbon->greaterThan($afternoonStart) ? $timeInCarbon : $afternoonStart;
+            $actualEnd = $timeOutCarbon->lessThan($afternoonEnd) ? $timeOutCarbon : $afternoonEnd;
+            if ($actualStart < $actualEnd) {
+                $afternoon = $actualStart->diffInMinutes($actualEnd);
+            }
+        }
+
+        if ($overTimeIn && $overTimeOut) {
+            $overtimeInCarbon = Carbon::parse($overTimeIn);
+            $overtimeOutCarbon = Carbon::parse($overTimeOut);
+
+            $overtimeStart = $overtimeInCarbon->copy()->setTime(17, 30);
+            $overtimeEnd   = $overtimeInCarbon->copy()->setTime(22, 0);
+
+            $actualStart = $overtimeInCarbon->greaterThan($overtimeStart) ? $overtimeInCarbon : $overtimeStart;
+            $actualEnd = $overtimeOutCarbon->lessThan($overtimeEnd) ? $overtimeOutCarbon : $overtimeEnd;
+
+            if ($actualStart < $actualEnd) {
+                $overtime = $actualStart->diffInMinutes($actualEnd);
+            }
+        }
+
+        $totalMinutes = $morning + $afternoon;
+
+        
+        Log::info("Total rendered minutes: $totalMinutes");
+        Log::info("Per Minute: $perMin");
+
+        $holidayPay = $totalMinutes * $perMin;
+        $holidayOTPay = $overtime * $perMin * 2 * 1.3;
+
+
+        Log::info("Overtime rendered minutes: $overtime");
+
+
+
+        // $distinctDays = collect($holidayLogs)->groupBy(function ($log) {
+        //     return Carbon::parse($log->timestamp)->toDateString();
+        // });
+
+        // foreach ($distinctDays as $log) {
+            // Log::info($log);
+        // }
+
+        return [ 'holidayPay' => $holidayPay, 'holidayOTPay' => $holidayOTPay, 'holidayOTMins' => $overtime ];
+    }
+
     public function payrollDetails(Request $request)
     {
         // log::info("PayrollController::payrollDetails");
@@ -391,7 +643,7 @@ class PayrollController extends Controller
         $numberOfHoliday = $payrollData['numberOfHoliday'];
 
         $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
-        $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+        $numberOfAbsentDays = max(0, $numberOfWorkingDays - $numberOfPresent);
 
         // log::info("===========================");
         // log::info("numberOfDays         : " . $numberOfDays);
@@ -487,13 +739,18 @@ class PayrollController extends Controller
         $totalOvertime = $this->getAttendanceOvertime($startDate, $endDate, $employee->id);
 
         $basicPay = $perCutOff - $leaveEarnings;
-        $overTimePay = ($perHour * 1.25) * $totalOvertime;
-        $holidayPay = 0;
+        $overTimePay = ($perMin * 1.25) * $totalOvertime;
+
+        $holidayPays = $this->calculateHolidayPay($logs, $perMin);
+        $holidayPay = $holidayPays['holidayPay'];
+        $holidayOTPay = $holidayPays['holidayOTPay'];
+        $holidayOTMins = $holidayPays['holidayOTMins'];
 
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
-            ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} hours)", 'amount' => $overTimePay],
+            ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} mins)", 'amount' => $overTimePay],
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
+            ['earning' => '4', 'name' => "Holiday OT Pay ({$holidayOTMins} mins)", 'amount' => $holidayOTPay],
         ];
 
         $tardiness = 0;
@@ -530,7 +787,7 @@ class PayrollController extends Controller
             ];
         }
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
+        $totalEarnings =  $basicPay + $overTimePay + $holidayPay + $holidayOTPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $payroll = [
@@ -711,7 +968,8 @@ class PayrollController extends Controller
 
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    // 'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     'employeeBranch' => $employee->branch->name ?? '-',
                     'employeeDepartment' => $employee->department->name ?? '-',
                     'employeeRole' => $employee->role->name ?? '-',
@@ -723,7 +981,7 @@ class PayrollController extends Controller
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 
@@ -845,6 +1103,9 @@ class PayrollController extends Controller
                     case 3:
                         $name = 'Holiday Pay';
                         break;
+                    case 4:
+                        $name = 'Holiday OT Pay';
+                        break;
                     default:
                         $name = '-';
                         break;
@@ -926,17 +1187,23 @@ class PayrollController extends Controller
                     $overTimeHours = round($overTime->amount / $overTimeRate);
                 }
 
+                $holidayPay = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 3)->value('amount');
+                $holidayOvertime = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 4)->value('amount');
+
                 $records[] = [
                     'record' => encrypt($rawRecord->id),
-                    'employeeName' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
-                    'monthlyBasePay' => $rawRecord->rate_monthly / 2,
+                    'monthlyBasePay' => ($rawRecord->rate_monthly / 2) - $paidLeaveAmount,
 
                     // Overtime
                     'overTimeHours' => $overTimeHours,
                     'overTimePay' => $overTime->amount,
+
+                    'holidayPay' => $holidayPay,
+                    'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
                     'paidLeaveDays' => round($paidLeaveDays),
@@ -952,12 +1219,12 @@ class PayrollController extends Controller
                     'payrollEndDate' => $rawRecord->period_end,
                     'payrollCutOff' => $rawRecord->cut_off,
                     'payrollWorkingDays' => $rawRecord->working_days,
-                    'payrollGrossPay' => $rawRecord->total_earnings,
-                    'payrollNetPay' => $rawRecord->total_earnings + $rawRecord->total_deductions,
+                    'payrollGrossPay' => round($rawRecord->total_earnings + $absences->amount + $tardiness->amount, 2),
+                    'payrollNetPay' => round($rawRecord->total_earnings - $rawRecord->total_deductions, 2)
                 ];
             }
 
-
+            $records = collect($records)->sortBy('employeeName')->values()->all();
             return response()->json(['status' => 200, 'records' => $records]);
         }
 
@@ -969,9 +1236,12 @@ class PayrollController extends Controller
         // log::info("Retrieving Tardiness");
         $user = Auth::user();
 
+        $holidayWeekdays = $this->getHolidaysWeekdays();
+
         $logs = AttendanceLogsModel::with('workHour')
             ->where('user_id', $employeeId)
             ->whereBetween('timestamp', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->whereNotIn(DB::raw("DATE(timestamp)"), $holidayWeekdays) // exclude holiday weekdays
             ->orderBy('timestamp', 'asc')
             ->get()
             ->groupBy(fn($log) => Carbon::parse($log->timestamp)->format('Y-m-d'))
@@ -1064,15 +1334,14 @@ class PayrollController extends Controller
 
         $user = Auth::user();
 
-        $totalOvertimeHours = ApplicationsOvertimeModel::where('status', 'Approved')
+        $totalOvertimeMinutes = ApplicationsOvertimeModel::where('status', 'Approved')
             ->where('client_id', $user->client_id)
             ->where('user_id', $employeeId)
             ->whereBetween('date', [ date('Y-m-d', strtotime($start_date)), date('Y-m-d', strtotime($end_date)) ])
-            ->sum('approved_hours');
+            ->sum('approved_minutes');
     
-        return $totalOvertimeHours;
+        return $totalOvertimeMinutes;
     }
-    
     
     public function storeSignature(Request $request, $id)
     {

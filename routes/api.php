@@ -9,6 +9,7 @@ use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceMobileController;
 use App\Http\Controllers\ApplicationsController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AnnouncementsController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\TrainingFormsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
+use App\Http\Controllers\RadiusPerimeterController;
+
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -59,6 +62,8 @@ Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
 
 Route::get('/employeeList', [EmployeesController::class, 'employeeList']);
 
+Route::get('/getFormLinkStatus', [EmployeesController::class, 'getFormLinkStatus']);
+
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -77,6 +82,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/store', [DocumentController::class, 'store']);
         Route::post('/edit', [DocumentController::class, 'edit']);
         Route::delete('/{id}', [DocumentController::class, 'destroy']);
+    });
+
+    Route::prefix('perimeters')->group(function () {
+        Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
+        Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('{id}', [RadiusPerimeterController::class, 'show']);
+        Route::put('{id}', [RadiusPerimeterController::class, 'update']);
+        Route::delete('{id}', [RadiusPerimeterController::class, 'destroy']);
     });
 
     Route::prefix('settings')->group(function () {
@@ -113,6 +126,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
+
+        Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
         Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
@@ -174,7 +189,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeWorkDayAttendance', [AttendanceController::class, 'getEmployeeWorkDayAttendance']);
 
         Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
-        Route::post('/saveMobileEmployeeAttendance', [AttendanceController::class, 'saveMobileEmployeeAttendance']);
+        Route::post('/saveMobileEmployeeAttendance', [AttendanceMobileController::class, 'saveMobileEmployeeAttendance']);
 
         Route::get('/getAttendanceAdderLogs', [AttendanceController::class, 'getAttendanceAdderLogs']);
         Route::post('/recordEmployeeAttendance', [AttendanceController::class, 'recordEmployeeAttendance']);
@@ -288,6 +303,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Acknowledgements
         Route::post('/acknowledgeAnnouncement', [AnnouncementsController::class, 'acknowledgeAnnouncement']);
         Route::get('/getAcknowledgements/{code}', [AnnouncementsController::class, 'getAcknowledgements']);
+        
+        //View
+        Route::get('/getViews/{code}', [AnnouncementsController::class, 'getViews']);  
+        Route::post('/logView', [AnnouncementsController::class, 'logView']);
+
     });
 
     Route::prefix('adminDashboard')->group(function () {
@@ -609,8 +629,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
 
-    Route::get('/signatories', [SignatoryController::class, 'index']);
-    Route::post('/addSignatory', [SignatoryController::class, 'store']);
+    Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
+    Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
 
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);

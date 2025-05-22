@@ -2,80 +2,107 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\RedirectResponse;
+use App\Models\ClientsModel;
+use App\Models\SignatoryModel;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Models\Signatory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SignatoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function checkUser()
     {
-        $signatories = Signatory::all();
+        // Log::info("WorkScheduleController::checkUser");
 
-        Log::info($signatories);
+        if (Auth::check()) {
+            $user = Auth::user();
 
-        return response()->json([$signatories]);
+            if ($user->user_type == 'Admin') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getSignatories()
     {
-        //
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
+        if ($this->checkUser()) {
+            $data = SignatoryModel::where('client_id', $client->id)->get();
+
+            return response()->json(['data' => $data]);
+        }
+
+        return response()->json(['error' => 'Unauthorized'], 403);
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function saveSignatory(Request $request)
     {
         $validated = $request->validate([
-            'prepared_by' => 'string',
-            'approved_by_one' => 'string',
-            'approved_by_two' => 'nullable|string',
-            'approved_by_three' => 'nullable|string',
+            'purpose' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
         ]);
-    
-        $signatory = Signatory::create($validated);
-    
-        return response()->json($signatory, 201);
+
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+
+        if ($this->checkUser() && $validated) {
+            try {
+                DB::beginTransaction();
+
+                $signatory = SignatoryModel::create([
+                    'purpose' => $validated['purpose'],
+                    'name' => $validated['name'],
+                    'position' => $validated['position'],
+                    'client_id' => $client->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        return SignatoryModel::findOrFail($id);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $signatory = SignatoryModel::findOrFail($id);
+
+        $validated = $request->validate([
+            'purpose' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
+            'position' => 'sometimes|string|max:255',
+            'client_id' => 'sometimes|exists:clients,id',
+        ]);
+
+        $signatory->update($validated);
+
+        return response()->json($signatory);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy($id)
     {
-        //
-    }
+        $signatory = SignatoryModel::findOrFail($id);
+        $signatory->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(null, 204);
     }
 }
+

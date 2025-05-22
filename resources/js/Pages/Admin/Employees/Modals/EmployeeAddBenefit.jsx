@@ -14,7 +14,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const EmployeeAddBenefit = ({ open, close, empId }) => {
+const EmployeeAddBenefit = ({ open, close, userName }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -82,7 +82,7 @@ const EmployeeAddBenefit = ({ open, close, empId }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = { employee: empId, benefit: benefit, number: number };
+        const data = { userName: userName, benefit: benefit, number: number };
 
         axiosInstance.post('/benefits/addEmployeeBenefit', data, { headers })
             .then(response => {

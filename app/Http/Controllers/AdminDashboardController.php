@@ -384,10 +384,7 @@ class AdminDashboardController extends Controller
                         ];
                     }
                     return null;
-                })
-                    ->filter()
-                    ->values()
-                    ->all();
+                })->filter()->values()->all();
 
                 usort($result, function ($a, $b) {
                     return $b['first_time_in'] <=> $a['first_time_in'] ?: 0;

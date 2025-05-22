@@ -8,11 +8,13 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 
-import EmployeeBenefits from '../Benefits/Modals/EmployeeBenefitsView';
-import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
+import EmployeeHistory from './Components/EmployeeHistory';
+import EmployeeBenefits from './Components/EmployeeBenefits';
+import EmployeeDeductions from './Components/EmployeeDeductions';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -24,7 +26,6 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState('');
-    const [benefits, setBenefits] = useState([]);
 
     const [imagePath, setImagePath] = useState('');
 
@@ -35,7 +36,6 @@ const EmployeeView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
-        getEmployeeBenefits();
     }, []);
 
     const getEmployeeDetails = () => {
@@ -77,19 +77,6 @@ const EmployeeView = () => {
         }
     }, []);
 
-    const getEmployeeBenefits = () => {
-        const data = { username: user };
-
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, { params: data, headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setBenefits(response.data.benefits);
-                }
-            }).catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    };
-
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
         const today = new Date();
@@ -106,12 +93,6 @@ const EmployeeView = () => {
     const formattedBirthDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
     const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
     const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
-
-    const [activeTab, setActiveTab] = useState('1');
-
-    const handleTabChange = (event, newActiveTab) => {
-        setActiveTab(newActiveTab);
-    };
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
@@ -156,29 +137,10 @@ const EmployeeView = () => {
         setOpenEmployeeLeaveCreditsModal(false);
     }
 
-
-    const renderAttendanceContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Attendance Information will be displayed here</Typography>
-        </Box>
-    );
-
-    const renderWorkScheduleContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Work Schedule Information will be displayed here</Typography>
-        </Box>
-    );
-
-    const renderPayrollContent = () => (
-        <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Typography variant="body1">Payroll Information will be displayed here</Typography>
-        </Box>
-    );
-
     return (
         <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
+                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1500px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
@@ -192,9 +154,9 @@ const EmployeeView = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenEmployeeDetailsEditModal}> Employee Details</MenuItem>
-                            <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem>
-                            <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem>
-                            <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem>
+                            {/* <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem> */}
+                            {/* <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem> */}
+                            {/* <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem> */}
                         </Menu>
 
                     </Box>
@@ -263,6 +225,9 @@ const EmployeeView = () => {
                                     </Grid>
                                 </Grid>
                             </Box>
+
+                            <EmployeeBenefits userName={user} headers={headers} />
+                            <EmployeeDeductions userName={user} headers={headers} />
                         </Grid>
 
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
@@ -360,47 +325,61 @@ const EmployeeView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography sx={{ fontWeight: 'bold' }}> Work Group </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Team </Typography>
                                     </Grid>
                                     <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                                         <Typography> {employee.work_group || '-'} </Typography>
                                     </Grid>
 
                                     <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography sx={{ fontWeight: 'bold' }}> Employment Date </Typography>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Date Hired </Typography>
                                     </Grid>
                                     <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                                         <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
                                     </Grid>
                                 </Grid>
-                            </Box>
-                        </Grid>
-                    </Grid>
 
-                    {/*
-                    <Grid container spacing={4} sx={{ mt: 1, mb: 12 }}>
-                        <Grid item size={12}>
-                            <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                <Tabs value={activeTab} onChange={handleTabChange}>
-                                    <Tab label="Attendance" value="1" />
-                                    <Tab label="Work Schedule" value="2" />
-                                    <Tab label="Payroll" value="3" />
-                                </Tabs>
-                                {activeTab === '1' && renderAttendanceContent()}
-                                {activeTab === '2' && renderWorkScheduleContent()}
-                                {activeTab === '3' && renderPayrollContent()}
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Bank Name </Typography>
+                                    </Grid>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
+                                        {/* <Typography> {employee.role || '-'} </Typography> */}
+                                    </Grid>
+
+                                    {/* <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}> */}
+                                        {/* <Typography sx={{ fontWeight: 'bold' }}> Bank Account </Typography> */}
+                                    {/* </Grid> */}
+                                    {/* <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> */}
+                                        {/* <Typography> {employee.jobTitle || '-'} </Typography> */}
+                                    {/* </Grid> */}
+                                </Grid>
+
+                                <Grid container spacing={4} sx={{ py: 1 }}>
+                                    <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
+                                        <Typography sx={{ fontWeight: 'bold' }}> Bank Account </Typography>
+                                    </Grid>
+                                    <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
+                                        {/* <Typography> {employee.role || '-'} </Typography> */}
+                                    </Grid>
+
+                                    {/* <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}> */}
+                                        {/* <Typography sx={{ fontWeight: 'bold' }}> Bank Account </Typography> */}
+                                    {/* </Grid> */}
+                                    {/* <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> */}
+                                        {/* <Typography> {employee.jobTitle || '-'} </Typography> */}
+                                    {/* </Grid> */}
+                                </Grid>
                             </Box>
+
+                            <EmployeeHistory userName={user} headers={headers} />
+
                         </Grid>
-                    </Grid>
-                    */}
+                    </Grid>   
                 </Box>
 
                 {openEmployeeDetailsEditModal &&
                     <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} />
-                }
-
-                {openEmployeeBenefitsModal &&
-                    <EmployeeBenefits open={openEmployeeBenefitsModal} close={handleCloseEmployeeBenefitsModal} userName={user} />
                 }
 
                 {openEmployeeAllowanceModal &&

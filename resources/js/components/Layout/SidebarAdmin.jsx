@@ -13,6 +13,7 @@ import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 
 const useIsActive = (path) => {
     const location = useLocation();
@@ -206,6 +207,28 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+    const announcementsItems = [
+        {
+            id: 4,
+            text: "Announcements",
+            icon: "fa fa-bullhorn",
+            children: [
+                {
+                    // href: `/admin/announcements/types?`,
+                    text: "Announcement Types",
+                },
+                {
+                    // href: `/admin/announcements/add?`,
+                    text: "Create Announcement",
+                },
+                {
+                    href: `/admin/announcements?`,
+                    text: "Announcement List",
+                },
+            ],
+        },
+    ];
+
     const workShifts = [
         {
             id: 5,
@@ -352,11 +375,12 @@ const Sidebar = ({ children, closeMini }) => {
                             >
                                 <Avatar
                                     src={
-                                        user.media?.[0]
-                                            ? user.media?.[0]?.original_url
-                                            : imagePath
+                                        user?.media?.[0]?.original_url ||
+                                        imagePath
                                     }
-                                    alt={`${user.first_name} ${user.last_name}`}
+                                    alt={`${user?.first_name || ""} ${
+                                        user?.last_name || ""
+                                    }`}
                                     sx={{
                                         width: 64,
                                         height: 64,
@@ -378,6 +402,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </Box>
                         </div>
                     </div>
+
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             {user.user_type === "Admin" ? (
@@ -493,6 +518,24 @@ const Sidebar = ({ children, closeMini }) => {
                                         >
                                             {" "}
                                             Documents{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/perimeters`}>
+                                        <i>
+                                            {" "}
+                                            <TrackChangesIcon
+                                                sx={{
+                                                    color: palette.success.main,
+                                                }}
+                                            />{" "}
+                                        </i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Perimeters{" "}
                                         </span>
                                     </StyledNav>
 

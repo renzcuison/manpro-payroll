@@ -31,15 +31,20 @@ const PayrollSummary = () => {
     const [openViewPayrollModal, setOpenViewPayrollModal] = useState(false);
     const [selectedPayroll, setSelectedPayroll] = useState('');
     const [openOverallSummaryModal, setOpenOverallSummaryModal] = useState(false);
-    const [selectedYear, setSelectedYear] = useState('');
-    const [selectedMonth, setSelectedMonth] = useState('');
-    const [selectedCutOff, setSelectedCutOff] = useState('');
     const [openSignatoryDialog, setOpenSignatoryDialog] = useState(false);
-    const [preparedBy, setPreparedBy] = useState('');
-    const [approvedBy, setApprovedBy] = useState('');
+    const [purpose, setPurpose] = useState('');
+    const [name, setName] = useState('');
+    const [position, setPosition] = useState('');
 
-    const currentYear = new Date().getFullYear();
-    const years = useMemo(() => Array.from({ length: currentYear - 2014 }, (_, i) => (2015 + i).toString()), [currentYear]);
+    const today = dayjs();
+    const currentYear = today.year().toString();
+    const currentMonth = today.format('MMMM');
+    const currentCutOff = today.date() <= 15 ? 'First' : 'Second';
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [selectedCutOff, setSelectedCutOff] = useState(currentCutOff);
+    const years = useMemo(() => Array.from({ length: today.year() - 2014 }, (_, i) => (2025 - i).toString()), []);
 
     const handleOpenSignatoryDialog = () => setOpenSignatoryDialog(true);
     const handleCloseSignatoryDialog = () => setOpenSignatoryDialog(false);
@@ -59,19 +64,25 @@ const PayrollSummary = () => {
             ]
         },
         {
+            key: 'holidayPayGroup', primaryLabel: 'Holiday', colSpan: 2, isGroup: true, children: [
+                { key: 'holidayPay', secondaryLabel: 'Pay', dataKey: 'holidayPay', isVisible: (cols) => cols.includes('holidayPay'), isTotaled: true },
+                { key: 'holidayOvertime', secondaryLabel: 'Overtime', dataKey: 'holidayOvertime', isVisible: (cols) => cols.includes('holidayOvertime'), isTotaled: true }
+            ]
+        },
+        {
             key: 'paidLeaveGroup', primaryLabel: 'Paid Leave', colSpan: 2, isGroup: true, children: [
                 { key: 'paidLeaveDays', secondaryLabel: 'Days', dataKey: 'paidLeaveDays', isVisible: (cols) => cols.includes('paidLeaveDays') },
                 { key: 'paidLeaveAmount', secondaryLabel: 'Pay', dataKey: 'paidLeaveAmount', isVisible: (cols) => cols.includes('paidLeaveAmount'), isTotaled: true }
             ]
         },
+        { key: 'totalAllowance', primaryLabel: 'Allowance', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'totalAllowance', isVisible: (cols) => cols.includes('totalAllowance'), isTotaled: true },
+        { key: 'payrollGrossPay', primaryLabel: 'Gross Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollGrossPay', isVisible: (cols) => cols.includes('payrollGrossPay'), isTotaled: true },
         {
             key: 'deductionGroup', primaryLabel: 'Deduction', colSpan: 2, isGroup: true, children: [
                 { key: 'absences', secondaryLabel: 'Absences', dataKey: 'absences', isVisible: (cols) => cols.includes('absences'), isTotaled: true },
                 { key: 'tardiness', secondaryLabel: 'Tardiness', dataKey: 'tardiness', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true }
             ]
         },
-        { key: 'totalAllowance', primaryLabel: 'Allowance', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'totalAllowance', isVisible: (cols) => cols.includes('totalAllowance'), isTotaled: true },
-        { key: 'payrollGrossPay', primaryLabel: 'Gross Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollGrossPay', isVisible: (cols) => cols.includes('payrollGrossPay'), isTotaled: true },
         { key: 'payrollNetPay', primaryLabel: 'Net Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollNetPay', isVisible: (cols) => cols.includes('payrollNetPay'), isTotaled: true },
     ], []);
 
@@ -80,6 +91,10 @@ const PayrollSummary = () => {
         { key: 'monthlyBasePay', label: 'Monthly Base Pay' },
         { key: 'overTimeHours', label: 'Overtime Hours' },
         { key: 'overTimePay', label: 'Overtime Pay' },
+        
+        { key: 'holidayPay', label: 'Holiday Pay' },
+        { key: 'holidayOvertime', label: 'Holiday Overtime' },
+
         { key: 'paidLeaveDays', label: 'Paid Leave Days' },
         { key: 'paidLeaveAmount', label: 'Paid Leave Amount' },
         { key: 'absences', label: 'Absences' },
@@ -191,12 +206,12 @@ const PayrollSummary = () => {
 
     const calculateTotals = useCallback((records) => {
        return records.reduce((acc, curr) => {
-           totalableColumnsLookup.forEach((_, key) => {
-               if (!acc[key]) acc[key] = 0;
-               acc[key] += parseFloat(curr[key] || 0);
-           });
-           return acc;
-       }, {});
+            totalableColumnsLookup.forEach((_, key) => {
+                if (!acc[key]) acc[key] = 0;
+                acc[key] += parseFloat(curr[key] || 0);
+            });
+            return acc;
+        }, {});
    }, [totalableColumnsLookup]);
 
    const totals = useMemo(() => {
@@ -267,7 +282,7 @@ const PayrollSummary = () => {
          headerConfig.forEach(group => {
              if (!group.isGroup) {
                  if (group.isVisible(visibleColumns)) {
-                     count++;
+                    count++;
                  }
              } else {
                  group.children?.forEach(child => {
@@ -289,9 +304,9 @@ const PayrollSummary = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Summary of Payroll</Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                              <Button variant='contained' onClick={handleOpenSignatoryDialog}>
-                                <AddIcon />
-                                Add Signatory
-                            </Button>
+                                 <AddIcon />
+                                 Add Signatory
+                             </Button>
                             <FormControl sx={{ minWidth: 200 }} size="small">
                                 <InputLabel>Columns</InputLabel>
                                 <Select
@@ -299,9 +314,7 @@ const PayrollSummary = () => {
                                     multiple
                                     value={visibleColumns}
                                     onChange={handleVisibleColumnsChange}
-                                    renderValue={(selected) =>
-                                        selected.length === allSelectableColumns.length ? "All Columns" : `${selected.length} Selected`
-                                    }
+                                    renderValue={(selected) => selected.length === allSelectableColumns.length ? "All Columns" : `${selected.length} Selected` }
                                 >
                                     {allSelectableColumns.map((col) => (
                                         <MenuItem key={col.key} value={col.key}>
@@ -318,32 +331,19 @@ const PayrollSummary = () => {
                         <Box sx={{ display: 'flex', gap: 2, mb: 2, justifyContent: 'end', }}>
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Year</InputLabel>
-                                <Select
-                                    value={selectedYear}
-                                    label="Year"
-                                    onChange={(e) => setSelectedYear(e.target.value)}
-                                >
+                                <Select value={selectedYear} label="Year" onChange={(e) => setSelectedYear(e.target.value)} >
                                     <MenuItem value="">All</MenuItem>
                                     {years.map((year) => (
-                                        <MenuItem key={year} value={year}>
-                                            {year}
-                                        </MenuItem>
+                                        <MenuItem key={year} value={year}> {year} </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
 
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Month</InputLabel>
-                                <Select
-                                    value={selectedMonth}
-                                    label="Month"
-                                    onChange={(e) => setSelectedMonth(e.target.value)}
-                                >
+                                <Select value={selectedMonth} label="Month" onChange={(e) => setSelectedMonth(e.target.value)} >
                                     <MenuItem value="">All</MenuItem>
-                                    {[
-                                        'January', 'February', 'March', 'April', 'May', 'June',
-                                        'July', 'August', 'September', 'October', 'November', 'December'
-                                    ].map((month) => (
+                                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ].map((month) => (
                                         <MenuItem key={month} value={month}>{month}</MenuItem>
                                     ))}
                                 </Select>
@@ -351,12 +351,7 @@ const PayrollSummary = () => {
 
                             <FormControl size="small" sx={{ minWidth: 120, backgroundColor: '#ffffff' }}>
                                 <InputLabel>Cutoff</InputLabel>
-                                <Select
-                                    value={selectedCutOff}
-                                    label="Cutoff"
-                                    onChange={(e) => setSelectedCutOff(e.target.value)}
-                                >
-                                    <MenuItem value="">All</MenuItem>
+                                <Select value={selectedCutOff} label="Cutoff" onChange={(e) => setSelectedCutOff(e.target.value)} >
                                     <MenuItem value="First">First</MenuItem>
                                     <MenuItem value="Second">Second</MenuItem>
                                 </Select>
@@ -379,13 +374,7 @@ const PayrollSummary = () => {
                                                     if (!shouldRenderGroup) return null;
 
                                                     return (
-                                                        <TableCell
-                                                            key={group.key}
-                                                            align="center"
-                                                            sx={{ fontWeight: 'bold' }}
-                                                            rowSpan={group.rowSpan || 1}
-                                                            colSpan={group.isGroup ? visibleChildrenCount : (group.colSpan || 1)}
-                                                        >
+                                                        <TableCell key={group.key} align="center" sx={{ fontWeight: 'bold' }} rowSpan={group.rowSpan || 1} colSpan={group.isGroup ? visibleChildrenCount : (group.colSpan || 1)} >
                                                             {group.primaryLabel}
                                                         </TableCell>
                                                     );
@@ -399,7 +388,7 @@ const PayrollSummary = () => {
                                                         if (!child.isVisible(visibleColumns)) return null;
                                                         return (
                                                             <TableCell key={child.key} align="center" sx={{ fontWeight: 'bold' }}>
-                                                                {child.secondaryLabel}
+                                                                 {child.secondaryLabel}
                                                             </TableCell>
                                                         );
                                                     });
@@ -415,25 +404,22 @@ const PayrollSummary = () => {
                                                 </TableRow>
                                             ) : (
                                                 filteredRecords.map((record) => (
-                                                    <TableRow
-                                                        key={record.record}
-                                                        hover
-                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, cursor: 'pointer' }}
-                                                        onClick={() => handleOpenViewPayrollModal(record.record)}
-                                                    >
+                                                    <TableRow key={record.record} hover sx={{ '&:last-child td, &:last-child th': { border: 0 }, cursor: 'pointer' }} onClick={() => handleOpenViewPayrollModal(record.record)} >
                                                         {headerConfig.map(group => {
                                                             if (!group.isGroup) {
                                                                 if (!group.isVisible(visibleColumns)) return null;
+                                                                const isNetPay = (group.dataKey || group.key) === 'payrollNetPay';
                                                                 return (
-                                                                    <TableCell key={`${group.key}-${record.record}`} align={group.key === 'employeeName' ? "left" : "center"}>
+                                                                    <TableCell key={`${group.key}-${record.record}`} align={group.key === 'employeeName' ? "left" : "center"} sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }} >
                                                                         {record[group.dataKey || group.key]}
                                                                     </TableCell>
                                                                 );
                                                             } else {
                                                                 return group.children?.map(child => {
                                                                     if (!child.isVisible(visibleColumns)) return null;
+                                                                    const isNetPay = child.dataKey === 'payrollNetPay';
                                                                     return (
-                                                                        <TableCell key={`${child.key}-${record.record}`} align="center">
+                                                                        <TableCell key={`${child.key}-${record.record}`} align="center" sx={{ fontWeight: isNetPay ? 'bold' : 'normal' }} >
                                                                             {record[child.dataKey]}
                                                                         </TableCell>
                                                                     );
@@ -451,16 +437,18 @@ const PayrollSummary = () => {
                                                     {headerConfig.map(group => {
                                                         if (!group.isGroup) {
                                                             if (!group.isVisible(visibleColumns)) return null;
+                                                             const isNetPayTotal = (group.dataKey || group.key) === 'payrollNetPay';
                                                             return (
-                                                                <TableCell key={`${group.key}-total`} align={group.key === 'employeeName' ? "left" : "center"} sx={{ fontWeight: 'bold' }}>
-                                                                    {group.key === 'employeeName' ? 'Total' : (group.isTotaled && totals[group.dataKey || group.key] !== undefined ? totals[group.dataKey || group.key].toFixed(2) : '')}
+                                                                <TableCell key={`${group.key}-total`} align={group.key === 'employeeName' ? "left" : "center"} sx={{ fontWeight: 'bold' }} >
+                                                                     {group.key === 'employeeName' ? 'Total' : (group.isTotaled && totals[group.dataKey || group.key] !== undefined ? totals[group.dataKey || group.key].toFixed(2) : '')}
                                                                 </TableCell>
                                                             );
                                                         } else {
                                                             return group.children?.map(child => {
                                                                 if (!child.isVisible(visibleColumns)) return null;
+                                                                 const isNetPayTotal = child.dataKey === 'payrollNetPay';
                                                                 return (
-                                                                    <TableCell key={`${child.key}-total`} align="center" sx={{ fontWeight: 'bold' }}>
+                                                                    <TableCell key={`${child.key}-total`} align="center" sx={{ fontWeight: isNetPayTotal ? 'bold' : 'normal' }} >
                                                                         {(child.isTotaled && totals[child.dataKey] !== undefined) ? totals[child.dataKey].toFixed(2) : ''}
                                                                     </TableCell>
                                                                 );
@@ -475,42 +463,20 @@ const PayrollSummary = () => {
                             </>
                         )}
                     </Box>
-                    <Button
-                        sx={{ mt: 2, ml: 1, mb: 3, float: 'left' }}
-                        variant="contained"
-                        color="primary"
-                        onClick={handleOpenOverallSummaryModal}
-                        disabled={isLoading || filteredRecords.length === 0}
-                    >
+
+                    <Button sx={{ mt: 2, ml: 1, mb: 3, float: 'left' }} variant="contained" color="primary" onClick={handleOpenOverallSummaryModal} disabled={isLoading || filteredRecords.length === 0} >
                         Overall Summary
                     </Button>
 
                 </Box>
 
-                <OverallPayrollSummaryModal
-                    open={openOverallSummaryModal}
-                    close={handleCloseOverallSummaryModal}
-                    records={recordsForModal}
-                    totals={totalsForModal}
-                    headerConfig={visibleHeaderConfigForModal}
-                    payrollDateRange={payrollDateRange}
-                    preparedBy={preparedBy}
-                    approvedBy={approvedBy}
-                />
+                <OverallPayrollSummaryModal open={openOverallSummaryModal} close={handleCloseOverallSummaryModal} records={recordsForModal} totals={totalsForModal} headerConfig={visibleHeaderConfigForModal} payrollDateRange={payrollDateRange} name={name} />
 
                 {openViewPayrollModal && selectedPayroll &&
                     <PayslipView open={openViewPayrollModal} close={handleCloseViewPayrollModal} selectedPayroll={selectedPayroll} />
                 }
 
-                <AddSignatory
-                    open={openSignatoryDialog}
-                    onClose={handleCloseSignatoryDialog}
-                    preparedBy={preparedBy}
-                    setPreparedBy={setPreparedBy}
-                    approvedBy={approvedBy}
-                    setApprovedBy={setApprovedBy}
-                    headers={headers}
-                />
+                <AddSignatory open={openSignatoryDialog} onClose={handleCloseSignatoryDialog} purpose={purpose} setPurpose={setPurpose} name={name} setName={setName} position={position} setPosition={setPosition} headers={headers} />
             </Box>
         </Layout >
     )
