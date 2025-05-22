@@ -74,14 +74,20 @@ const DepartmentDetails = () => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }}>
-                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
-                             </Link>
-                            
-                            
-                            &nbsp; {department.name}
-                        </Typography>
+                        
+
+                        
+
+                            <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <i
+                                    className="fa fa-chevron-left"
+                                    aria-hidden="true"
+                                    style={{ fontSize: '80%', cursor: 'pointer' }}
+                                    onClick={() => navigate('/admin/department/departmentlist')}
+                                ></i>
+                                {department.name}
+                            </Typography>
+
                         
                     </Box>
 
