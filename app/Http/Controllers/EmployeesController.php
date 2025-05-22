@@ -314,6 +314,12 @@ class EmployeesController extends Controller
         }
     }
 
+  
+
+
+
+
+
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
@@ -647,6 +653,10 @@ class EmployeesController extends Controller
         }
     }
 
+    
+
+
+    
     function generateRandomCode($length)
     {
         // log::info("EmployeesController::generateRandomCode");

@@ -336,7 +336,7 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.employee_count || "0"}
+                                                                    {dept.employees_count || "0"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}

@@ -125,8 +125,9 @@ class SettingsController extends Controller
 
             $department = DepartmentsModel::find($id);
             $employees = UsersModel::where('department_id', $department->id)->get();
+            $employeesCount = UsersModel::where('department_id', $department->id)->get();
 
-            return response()->json(['status' => 200, 'department' => $department, 'employees' => $employees ]);
+            return response()->json(['status' => 200, 'department' => $department, 'employees' => $employees, 'employeesCount' => $employeesCount ]);
         }
 
         return response()->json(['status' => 200, 'departments' => null]);
