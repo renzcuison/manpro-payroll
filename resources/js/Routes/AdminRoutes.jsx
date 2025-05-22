@@ -34,7 +34,8 @@ import TrainingView from "../Pages/Admin/Trainings/TrainingView";
 import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
-
+import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
+import PerformanceEvaluationRating from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationRating";
 
 import DocumentsList from "../Pages/Documents/DocumentsList";
 
@@ -110,6 +111,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
+            <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
+            <Route path="performance-evaluation/rating" element={<ProtectedRoute element={<PerformanceEvaluationRating />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
