@@ -344,7 +344,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 <TextField
                                     select
                                     id="workGroup"
-                                    label="Work Group"
+                                    label="Team"
                                     value={selectedWorkGroup}
                                     onChange={(event) => setSelectedWorkGroup(event.target.value)}
                                 >

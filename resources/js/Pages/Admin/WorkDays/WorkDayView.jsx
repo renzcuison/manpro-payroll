@@ -208,12 +208,12 @@ const WorkDayView = () => {
                                 <TextField
                                     select
                                     id="workGroup"
-                                    label="Work Group"
+                                    label="Team"
                                     value={selectedWorkGroup}
                                     onChange={(event) => handleGroupChange(event.target.value)}
                                     sx={{ minWidth: '150px' }}
                                 >
-                                    <MenuItem key={0} value={0}> Select Work Group </MenuItem>
+                                    <MenuItem key={0} value={0}> Select Team </MenuItem>
                                     {workGroups.map((workGroup) => (
                                         <MenuItem key={workGroup.id} value={workGroup.id}> {workGroup.name} </MenuItem>
                                     ))}
@@ -226,7 +226,7 @@ const WorkDayView = () => {
                     
                         {selectedWorkGroup === '0' ? (
                             <Box sx={{ my: 5, py: 5, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Select Work Group </Typography>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Select Team </Typography>
                             </Box>
                         ) : (
                             <>

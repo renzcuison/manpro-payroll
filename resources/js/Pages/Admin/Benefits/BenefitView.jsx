@@ -227,7 +227,7 @@ const BenefitView = () => {
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Work Group </Typography>
+                                        <Typography> Team </Typography>
                                     </Grid>
                                     <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
                                         <Typography> {employee.work_group || '-' } </Typography>                                    

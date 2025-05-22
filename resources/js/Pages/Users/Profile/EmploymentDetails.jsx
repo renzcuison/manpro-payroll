@@ -76,7 +76,7 @@ function EmploymentDetails({ user }) {
 
             <Grid container columnSpacing={4} sx={{ py: 1 }}>
                 <Grid size={{ xs: 5, md: 2 }}>
-                    <Typography> Work Group </Typography>
+                    <Typography> Team </Typography>
                 </Grid>
                 <Grid size={{ xs: 7, md: 2 }}>
                     <Typography sx={{ fontWeight: "bold" }}>

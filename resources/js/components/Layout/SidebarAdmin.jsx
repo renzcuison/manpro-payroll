@@ -252,7 +252,7 @@ const Sidebar = ({ children, closeMini }) => {
     const workGroups = [
         {
             id: 6,
-            text: "Work Groups",
+            text: "Teams",
             icon: "fa fa-calendar",
             children: workgroups
                 .map((group) => ({
@@ -263,7 +263,7 @@ const Sidebar = ({ children, closeMini }) => {
                 .concat({
                     id: "add-group",
                     href: "/admin/workgroups/add",
-                    text: "+ Add Group",
+                    text: "+ Add Team",
                 }),
         },
     ];
