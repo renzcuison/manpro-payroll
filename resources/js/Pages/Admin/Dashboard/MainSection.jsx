@@ -24,23 +24,24 @@ import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import BranchesChart from "./BranchesBarChart";
 import { useTodaysAttendance } from "./useDashboard";
 
-function MainSection({ infoCardsData, adminName }) {
+function MainSection({ infoCardsData, adminName, dashboardData }) {
     const theme = useTheme();
     const { data, isFetched, isLoading } = useUsers();
     const { data: attendance } = useTodaysAttendance();
-    console.log(attendance);
+    console.log(data);
+    console.log(dashboardData);
 
     const latestEmployees = useMemo(() => {
-        if (data) {
-            return data
-                .filter((user) => user.department_id !== null)
+        if (dashboardData) {
+            return dashboardData.employees
+                ?.filter((user) => user.department_id !== null)
                 .slice(0, 3);
         }
-    }, [data, isFetched]);
+    }, [dashboardData, isFetched]);
 
     const branches = useMemo(() => {
-        if (data) {
-            const groupedData = data
+        if (dashboardData) {
+            const groupedData = dashboardData.employees
                 .filter(
                     (user) =>
                         user.department_id !== null && user.branch !== null
@@ -59,13 +60,13 @@ function MainSection({ infoCardsData, adminName }) {
                 users,
             }));
         }
-    }, [data, isFetched]);
+    }, [dashboardData, isFetched]);
 
-    console.log("Branches:", branches);
+    // console.log("Branches:", branches);
 
     const departments = useMemo(() => {
-        if (data) {
-            const groupedData = data
+        if (dashboardData) {
+            const groupedData = dashboardData.employees
                 .filter(
                     (user) =>
                         user.department_id !== null && user.branch !== null
@@ -84,7 +85,7 @@ function MainSection({ infoCardsData, adminName }) {
                 users,
             }));
         }
-    }, [data, isFetched]);
+    }, [dashboardData, isFetched]);
 
     const present = 34;
     const absent = 4;

@@ -1,12 +1,21 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Divider,
+    GlobalStyles,
     List,
     ListItem,
     ListItemAvatar,
     ListItemText,
     Paper,
+    Skeleton,
+    Stack,
     Typography,
     useTheme,
 } from "@mui/material";
@@ -14,45 +23,30 @@ import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { PiCalendarHeart, PiCalendarStar } from "react-icons/pi";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-const events = [
-    {
-        title: "Labor Day",
-        type: "holiday",
-        description: "Happy New Year!",
-        startTime: "2022-01-01T00:00:00.000Z",
-        endTime: "2022-01-01T23:59:59.999Z",
-        color: "#FF69B4",
-    },
+import dayjs from "dayjs";
+import { Link } from "react-router-dom";
+import GoogleConnectButton from "../Schedules/GoogleConnectButton";
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import EventDialog from "./components/EventDialog";
+import interactionPlugin from "@fullcalendar/interaction";
 
-    {
-        title: "Monthly Business Review",
-        type: "schedule",
-        description: "This is event 1",
-        startTime: "2022-01-02T10:00:00.000Z",
-        endTime: "2022-01-02T11:00:00.000Z",
-        color: "#FF69B4",
-    },
-    {
-        title: "Department Reporting",
-        type: "schedule",
-        description: "This is event 2",
-        startTime: "2022-01-02T12:00:00.000Z",
-        endTime: "2022-01-02T13:00:00.000Z",
-        color: "#FF69B4",
-    },
-    {
-        title: "Election Day",
-        type: "holiday",
-        description: "Happy New Year!",
-        startTime: "2025-05-12T00:00:00.000Z",
-        endTime: "2025-05-12T23:59:59.999Z",
-        color: "#FF69B4",
-    },
-];
-function SchedulesHolidays({}) {
+function SchedulesHolidays({ setSelectedDate }) {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const theme = useTheme();
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
+    const handleEventClick = ({ event }) => {
+        setSelectedEvent({
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            description: event.extendedProps.description,
+            type: event.extendedProps.type,
+        });
+        setModalOpen(true);
+    };
 
     const fetchEvents = async () => {
         try {
@@ -69,6 +63,12 @@ function SchedulesHolidays({}) {
                 title: event.title,
                 start: dayjs(event.start).toISOString(),
                 end: dayjs(event.end).toISOString(),
+                color: event.calendar?.includes("holiday")
+                    ? "#e53935"
+                    : "#1976d2", // 🔴 red for holidays, blue for schedules
+                type: event.calendar?.includes("holiday")
+                    ? "holiday"
+                    : "schedule",
             }));
 
             setEvents(mappedEvents);
@@ -83,8 +83,6 @@ function SchedulesHolidays({}) {
         fetchEvents();
     }, []);
 
-    console.log(events);
-
     return (
         <Paper
             sx={{
@@ -98,25 +96,59 @@ function SchedulesHolidays({}) {
                     <Skeleton variant="rectangular" height={400} />
                 </Box>
             ) : (
-                <Paper elevation={2} sx={{ mt: 2, p: 2 }}>
-                    <FullCalendar
-                        plugins={[dayGridPlugin]}
-                        initialView="dayGridMonth"
-                        height="auto"
-                        events={events}
-                        eventDisplay="block"
-                        dayMaxEvents={3}
-                        headerToolbar={{
-                            start: "prev,next today",
-                            center: "title",
-                            end: "dayGridMonth,dayGridWeek,dayGridDay",
+                <>
+                    {" "}
+                    <GlobalStyles
+                        styles={{
+                            ".fc": { fontSize: "10px" },
+                            ".fc-toolbar-title": { fontSize: "12px" },
+                            ".fc-daygrid-day-number": { fontSize: "10px" },
+                            ".fc-event": {
+                                fontSize: "9px",
+                                padding: "1px 2px",
+                            },
+                            ".fc-theme-standard": {
+                                marginTop: 0,
+                                marginBottom: 10,
+                            },
                         }}
-                        contentHeight="auto"
                     />
-                </Paper>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "flex-start",
+                            width: "100%",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                transformOrigin: "top center",
+                                width: "100%",
+                            }}
+                        >
+                            <FullCalendar
+                                plugins={[dayGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                height="auto"
+                                dayMaxEventRows={2}
+                                events={events}
+                                eventClick={handleEventClick}
+                                dateClick={(arg) => {
+                                    setSelectedDate(arg.dateStr); // '2025-05-22'
+                                }}
+                            />
+                            <EventDialog
+                                modalOpen={modalOpen}
+                                setModalOpen={setModalOpen}
+                                selectedEvent={selectedEvent}
+                            />
+                        </Box>
+                    </Box>
+                </>
             )}
             <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
                     fontWeight: 600,
                     color: "#4d4d4d",
@@ -130,9 +162,10 @@ function SchedulesHolidays({}) {
                     bgcolor: "background.paper",
                 }}
             >
-                {events?.map((item, index) => (
+                {events?.slice(0, 3).map((item, index) => (
                     <React.Fragment>
                         <ListItem
+                            key={index}
                             alignItems="flex-start"
                             secondaryAction={
                                 <>
@@ -140,9 +173,9 @@ function SchedulesHolidays({}) {
                                         variant="body2"
                                         sx={{ color: "#8a8a8a" }}
                                     >
-                                        {moment(item.startTime).format(
-                                            "MMM. DD, YYYY"
-                                        )}
+                                        {item.type === "holiday"
+                                            ? "Holiday"
+                                            : "Event"}
                                     </Typography>
                                 </>
                             }
@@ -151,7 +184,10 @@ function SchedulesHolidays({}) {
                             <ListItemAvatar>
                                 <Typography
                                     sx={{
-                                        color: "primary.main",
+                                        color:
+                                            item.type === "holiday"
+                                                ? "#e53935"
+                                                : "primary.main",
                                     }}
                                 >
                                     {item.type == "schedule" ? (
@@ -172,7 +208,9 @@ function SchedulesHolidays({}) {
                                 }
                                 secondary={
                                     <Typography variant="caption">
-                                        {item.description}
+                                        {moment(item.start).format(
+                                            "MMM. DD, YYYY"
+                                        )}
                                     </Typography>
                                 }
                             />
@@ -181,6 +219,54 @@ function SchedulesHolidays({}) {
                     </React.Fragment>
                 ))}
             </List>
+            {loading ? (
+                <Stack spacing={1} mt={2}>
+                    <Skeleton variant="rectangular" height={30} />
+                    <Skeleton variant="rectangular" height={30} />
+                    <Skeleton variant="rectangular" height={30} />
+                </Stack>
+            ) : (
+                <Stack>
+                    {events.length > 0 ? (
+                        <Box
+                            component={Link}
+                            to={"/admin/schedules"}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: "primary.main",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                View all..
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Stack spacing={2}>
+                            <Typography
+                                variant="caption"
+                                width="100%"
+                                sx={{
+                                    color: "primary.main",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                No data found..
+                            </Typography>
+
+                            <GoogleConnectButton />
+                        </Stack>
+                    )}
+                </Stack>
+            )}
         </Paper>
     );
 }

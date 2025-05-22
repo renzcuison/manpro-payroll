@@ -143,28 +143,36 @@ class GoogleController extends Controller
         }
     
         $service = new \Google_Service_Calendar($client);
-    
+        
+        $calendarsToCheck = [
+            'primary',
+            'en.philippines#holiday@group.v.calendar.google.com',
+        ];
+        
         try {
-            $events = $service->events->listEvents('primary', [
-                'timeMin' => now()->toRfc3339String(),
-                'maxResults' => 20,
-                'singleEvents' => true,
-                'orderBy' => 'startTime'
-            ]);
-    
-            $eventList = [];
-    
-            foreach ($events->getItems() as $event) {
-                $eventList[] = [
-                    'id' => $event->getId(),
-                    'title' => $event->getSummary(),
-                    'start' => optional($event->getStart())->getDateTime() ?? $event->getStart()->getDate(),
-                    'end' => optional($event->getEnd())->getDateTime() ?? $event->getEnd()->getDate(),
-                    'description' => $event->getDescription(),
-                ];
+            $allEvents = [];
+
+            foreach ($calendarsToCheck as $calendarId) {
+                $events = $service->events->listEvents($calendarId, [
+                    'timeMin' => now()->toRfc3339String(),
+                    'maxResults' => 50,
+                    'singleEvents' => true,
+                    'orderBy' => 'startTime',
+                ]);
+        
+                foreach ($events->getItems() as $event) {
+                    $allEvents[] = [
+                        'id' => $event->getId(),
+                        'title' => $event->getSummary(),
+                        'start' => $event->getStart()->getDateTime() ?? $event->getStart()->getDate(),
+                        'end' => $event->getEnd()->getDateTime() ?? $event->getEnd()->getDate(),
+                        'description' => $event->getDescription() ?? '',
+                        'calendar' => $calendarId,
+                    ];
+                }
             }
-    
-            return response()->json($eventList);
+        
+            return response()->json($allEvents);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve events.', 'details' => $e->getMessage()], 500);
         }
@@ -184,4 +192,36 @@ class GoogleController extends Controller
 
         return $client;
     }
+
+    public function deleteEvent($id)
+    {
+        $user = auth()->user();
+
+        if (!$user->google_token) {
+            return response()->json(['error' => 'Google Calendar not connected.'], 403);
+        }
+
+        $token = json_decode($user->google_token, true);
+        $client = $this->getGoogleClient();
+        $client->setAccessToken($token);
+
+        if ($client->isAccessTokenExpired() && isset($token['refresh_token'])) {
+            $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+            $user->google_token = json_encode($client->getAccessToken());
+            $user->save();
+        }
+
+        $service = new \Google_Service_Calendar($client);
+
+        try {
+            $service->events->delete('primary', $id);
+            return response()->json(['message' => 'Event deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to delete event.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

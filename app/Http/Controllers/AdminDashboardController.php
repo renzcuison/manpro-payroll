@@ -32,7 +32,7 @@ class AdminDashboardController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
         // get employees
-        $employees = UsersModel::with(['department', 'branch', 'latestAttendanceLog'])->where('user_type', 'Employee')
+        $employees = UsersModel::with(['department', 'branch', 'jobTitle', 'latestAttendanceLog'])->where('user_type', 'Employee')
         ->where('client_id', $clientId)->get();
 
         $attendanceQry = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {

@@ -452,7 +452,18 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
                                     {/* </StyledNav>  */}
-
+                                    <StyledNav to={`/admin/schedules`}>
+                                        <i
+                                            className="fa fa-calendar"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Schedules & Holidays
+                                        </span>
+                                    </StyledNav>
                                     <StyledNav to={`/admin/announcements`}>
                                         <i
                                             className="fa fa-bullhorn"

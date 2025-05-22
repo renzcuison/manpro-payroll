@@ -1,21 +1,14 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
 import {
     Avatar,
-    CircularProgress,
     Typography,
     Divider,
-    FormControl,
-    TextField,
-    Stack,
     Grid,
-    useMediaQuery,
     useTheme,
     Paper,
-    IconButton,
     List,
     ListItem,
     ListItemAvatar,
@@ -24,11 +17,6 @@ import {
     Tab,
     Chip,
 } from "@mui/material";
-
-import { Chart as ChartJS } from "chart.js/auto";
-import { Doughnut } from "react-chartjs-2";
-import { Bar } from "react-chartjs-2";
-import { Pie } from "react-chartjs-2";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -40,7 +28,6 @@ import {
     Clock,
     Users,
 } from "lucide-react";
-import { CloseRounded } from "@mui/icons-material";
 import { useUsers } from "../../SuperAdmin/hooks/useUsers";
 import moment from "moment";
 dayjs.extend(utc);
@@ -48,43 +35,21 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
-import GoogleCalendar from "./GoogleCalendar";
 
 const Dashboard = () => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { data, isFetched } = useUsers();
+    const { data: dashboard, isFetched: isFetchedDashboard } = useDashboard();
     const [value, setValue] = useState("one");
+    const [selectedDate, setSelectedDate] = useState(
+        moment().format("YYYY-MM-DD")
+    );
+    console.log("Selected Date: ", selectedDate);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-    const chartRef = useRef(null);
 
     const [adminName, setAdminName] = useState("Admin");
-
-    const [headCount, setHeadCount] = useState(0);
-    const [applicationCount, setApplicationCount] = useState();
-    const [announcementCount, setAnnouncementCount] = useState();
-    const [trainingCount, setTrainingCount] = useState();
-    const [averageAge, setAverageAge] = useState();
-    const [averageTenure, setAverageTenure] = useState();
-
-    const [presentCount, setPresentCount] = useState(0);
-    const [onLeaveCount, setOnLeaveCount] = useState(0);
-
-    const [branchNames, setBranchNames] = useState([]);
-    const [branchCount, setBranchCount] = useState([]);
-
-    const [salaryRange, setSalaryRange] = useState([]);
-
-    const [attendance, setAttendance] = useState([]);
-    const [searchName, setSearchName] = useState("");
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [attendanceLoading, setAttendanceLoading] = useState(true);
-
-    const { data, isFetched } = useUsers();
-    const { data: dashboard, isFetched: isFetchedDashboard } = useDashboard();
 
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
@@ -131,11 +96,6 @@ const Dashboard = () => {
             return attendanceDate !== todayDate;
         });
     }, [dashboard, isFetched]);
-
-    console.log("employees: ", dashboard);
-    console.log("Present: ", presentUsers);
-    console.log("Absent: ", absentUsers);
-    console.log("Lates: ", lateUsers);
 
     const latestEmployees = useMemo(() => {
         if (data) {
@@ -191,132 +151,6 @@ const Dashboard = () => {
         }
     }, [data, isFetched]);
 
-    const theme = useTheme();
-
-    useEffect(() => {
-        getDashboardData();
-        getAttendance(1);
-
-        return () => {
-            if (chartRef.current) {
-                chartRef.current.destroy();
-            }
-        };
-    }, []);
-
-    const getDashboardData = () => {
-        axiosInstance
-            .get(`adminDashboard/getDashboardData`, { headers })
-            .then((response) => {
-                setAdminName(response.data.admin_name);
-
-                setHeadCount(response.data.counter.head_count);
-                setApplicationCount(response.data.counter.application_count);
-                setAnnouncementCount(response.data.counter.announcement_count);
-                setTrainingCount(response.data.counter.training_count);
-
-                setAverageAge(response.data.average.age);
-                setAverageTenure(response.data.average.tenure);
-
-                setPresentCount(response.data.attendance.present_count);
-                setOnLeaveCount(response.data.attendance.onleave_count);
-
-                const brNames = {};
-                const brCount = {};
-                for (const [branchId, branch] of Object.entries(
-                    response.data.branches
-                )) {
-                    brNames[branchId] = branch.name;
-                    brCount[branchId] = branch.employees || 0;
-                }
-                setBranchNames(brNames);
-                setBranchCount(brCount);
-
-                setSalaryRange(response.data.salary_range);
-            });
-    };
-
-    const getAttendance = (type) => {
-        /* types: 1 - Present, 2 - Late, 3 - Absent, 4 - On Leave */
-        setAttendanceLoading(true);
-        axiosInstance
-            .get(`adminDashboard/getAttendanceToday`, {
-                headers,
-                params: { type: type },
-            })
-            .then((response) => {
-                const attendanceData = response.data.attendance || [];
-                setAttendance(attendanceData);
-                setAttendanceLoading(false);
-                getAvatar(attendanceData);
-            })
-            .catch((error) => {
-                console.error("Error fetching attendance:", error);
-                setAttendance([]);
-                setAttendanceLoading(false);
-            });
-    };
-
-    // "../../../images/avatarpic.jpg"
-    const [blobMap, setBlobMap] = useState({});
-
-    const getAvatar = (attendanceData) => {
-        const userIds = attendanceData.map((attend) => attend.id);
-        if (userIds.length === 0) return;
-
-        axiosInstance
-            .post(
-                `adminDashboard/getEmployeeAvatars`,
-                { user_list: userIds, type: 1 },
-                { headers }
-            )
-            .then((avatarResponse) => {
-                const avatars = avatarResponse.data.avatars || {};
-                setBlobMap((prev) => {
-                    // Old blob cleanup
-                    Object.values(prev).forEach((url) => {
-                        if (url.startsWith("blob:")) {
-                            URL.revokeObjectURL(url);
-                        }
-                    });
-
-                    // New blobs
-                    const newBlobMap = {};
-                    Object.entries(avatars).forEach(([id, data]) => {
-                        if (data.avatar && data.avatar_mime) {
-                            const byteCharacters = atob(data.avatar);
-                            const byteNumbers = new Array(
-                                byteCharacters.length
-                            );
-                            for (let i = 0; i < byteCharacters.length; i++) {
-                                byteNumbers[i] = byteCharacters.charCodeAt(i);
-                            }
-                            const byteArray = new Uint8Array(byteNumbers);
-                            const blob = new Blob([byteArray], {
-                                type: data.avatar_mime,
-                            });
-                            newBlobMap[id] = URL.createObjectURL(blob);
-                        }
-                    });
-                    return newBlobMap;
-                });
-            })
-            .catch((error) => {
-                console.error("Error fetching avatars:", error);
-            });
-    };
-
-    useEffect(() => {
-        return () => {
-            Object.values(blobMap).forEach((url) => {
-                if (url.startsWith("blob:")) {
-                    URL.revokeObjectURL(url);
-                }
-            });
-            setBlobMap({});
-        };
-    }, []);
-
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -349,19 +183,22 @@ const Dashboard = () => {
         <Layout>
             <Grid container spacing={3} sx={{ mb: 5 }}>
                 <Grid size={{ xs: 12, lg: 9 }}>
-                    <MainSection
-                        infoCardsData={infoCardsData}
-                        latestEmployees={latestEmployees}
-                        adminName={adminName}
-                        departments={departments}
-                        branches={branches}
-                    />
+                    {dashboard && (
+                        <MainSection
+                            infoCardsData={infoCardsData}
+                            latestEmployees={latestEmployees}
+                            adminName={adminName}
+                            departments={departments}
+                            branches={branches}
+                            dashboardData={dashboard}
+                        />
+                    )}
                 </Grid>
                 <Grid
                     size={{ xs: 12, lg: 3 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
-                    <SchedulesHolidays />
+                    <SchedulesHolidays setSelectedDate={setSelectedDate} />
                 </Grid>
 
                 <Grid
@@ -473,15 +310,6 @@ const Dashboard = () => {
                                 </React.Fragment>
                             ))}
                         </List>
-                    </Paper>
-                </Grid>
-
-                <Grid
-                    size={{ xs: 12, lg: 4 }}
-                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-                >
-                    <Paper sx={{ p: 3, borderRadius: 5 }}>
-                        <GoogleCalendar />
                     </Paper>
                 </Grid>
             </Grid>
