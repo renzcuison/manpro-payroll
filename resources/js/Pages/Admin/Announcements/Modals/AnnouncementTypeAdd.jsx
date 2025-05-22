@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
 const AnnouncementTypeAdd = ({ onSuccess }) => {
   const [name, setName] = useState('');
@@ -13,21 +14,18 @@ const AnnouncementTypeAdd = ({ onSuccess }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/addAnnouncementType', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          // If you use Bearer token:
-          // 'Authorization': 'Bearer ' + yourToken,
-        },
-        body: JSON.stringify({ name }),
-        credentials: 'include', // Needed if using Sanctum/cookies
-      });
+      const storedUser = localStorage.getItem("nasya_user");
+      const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
 
-      const data = await response.json();
+      const response = await axiosInstance.post(
+        '/addAnnouncementType',
+        { name },
+        { headers }
+      );
 
-      if (response.ok && data.status === 200) {
+      const data = response.data;
+
+      if (response.status === 200 && data.status === 200) {
         setSuccess('Announcement type added!');
         setName('');
         if (onSuccess) onSuccess(data.type);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
 const AnnouncementTypeEdit = ({ type, onClose, onSuccess }) => {
   const [name, setName] = useState(type.name);
@@ -11,17 +12,16 @@ const AnnouncementTypeEdit = ({ type, onClose, onSuccess }) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/updateAnnouncementType', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ id: type.id, name }),
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok && data.status === 200) {
+      const storedUser = localStorage.getItem("nasya_user");
+      const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : {};
+
+      const response = await axiosInstance.put(
+        '/updateAnnouncementType',
+        { id: type.id, name },
+        { headers }
+      );
+      const data = response.data;
+      if (response.status === 200 && data.status === 200) {
         if (onSuccess) onSuccess(data.type);
         onClose();
       } else if (data.errors) {
