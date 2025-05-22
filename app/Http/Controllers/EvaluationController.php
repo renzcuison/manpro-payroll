@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Evaluation;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationCategory;
-use App\Models\EvaluationResponses;
+use App\Models\EvaluationResponse;
 use App\Models\EvaluationIndicators;
 use App\Models\EvaluationRatingChoices;
 use App\Models\EvaluationIndicatorResponses;
@@ -528,7 +528,7 @@ class EvaluationController extends Controller
             $form->status = "Evaluated";
             $form->save();
 
-            $formResponse = EvaluationResponses::create([
+            $formResponse = EvaluationResponse::create([
                 "form_id" => $request->form_id,
             ]);
 

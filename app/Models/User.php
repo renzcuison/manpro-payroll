@@ -91,7 +91,7 @@ class User extends Authenticatable implements HasMedia
 
     public function evaluationForms()
     {
-        return $this->hasMany(EvaluationForm::class, 'employee_id', 'user_id');
+        return $this->hasMany(EvaluationForm::class, 'creator_id');
     }
 
     public function package(): BelongsTo

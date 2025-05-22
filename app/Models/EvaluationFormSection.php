@@ -5,16 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EvaluationResponses extends Model
+class EvaluationFormSection extends Model
 {
     use HasFactory;
 
-    protected $table = 'evaluation_responses';
+    protected $table = 'evaluation_form_sections';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'form_id',
+        'name',
+        'rank',
+        'deleted_at'
     ];
 
     public function form()
@@ -22,8 +25,10 @@ class EvaluationResponses extends Model
         return $this->belongsTo(EvaluationForm::class, 'form_id');
     }
 
-    public function indicatorResponses()
+    public function categories()
     {
-        return $this->hasMany(EvaluationIndicatorResponses::class, 'response_id');
+        return $this->hasMany(EvaluationFormCategory::class, 'section_id');
     }
+
+
 }
