@@ -883,4 +883,28 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
+
+    // Update Announcement Type
+    public function updateAnnouncementType(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'id' => 'required|exists:announcement_types,id',
+            'name' => 'required|string|max:255|unique:announcement_types,name,' . $request->id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $type = \App\Models\AnnouncementTypesModel::findOrFail($request->id);
+            $type->name = $request->name;
+            $type->save();
+
+            return response()->json(['status' => 200, 'type' => $type]);
+        } catch (\Exception $e) {
+            \Log::error('updateAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
 }

@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import AnnouncementTypeAdd from './Modals/AnnouncementTypeAdd';
+import AnnouncementTypeEdit from './Modals/AnnouncementTypeEdit';
 
 const AnnouncementTypes = () => {
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editType, setEditType] = useState(null);
 
-  // Fetch announcement types from API
   const fetchTypes = async () => {
     setLoading(true);
     setError('');
     try {
       const response = await fetch('/api/getAnnouncementType', {
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include', // if using cookies/sanctum
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
       });
       const data = await response.json();
       if (response.ok && data.status === 200) {
@@ -30,9 +29,12 @@ const AnnouncementTypes = () => {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { fetchTypes(); }, []);
+
+  const handleEditSuccess = () => {
     fetchTypes();
-  }, []);
+    setEditType(null);
+  };
 
   return (
     <div>
@@ -42,9 +44,24 @@ const AnnouncementTypes = () => {
       {error && <div style={{color: 'red'}}>{error}</div>}
       <ul>
         {types.map(type => (
-          <li key={type.id}>{type.name}</li>
+          <li key={type.id}>
+            {type.name}
+            <button
+              onClick={() => setEditType(type)}
+              style={{ marginLeft: 8 }}
+            >
+              Edit
+            </button>
+          </li>
         ))}
       </ul>
+      {editType && (
+        <AnnouncementTypeEdit
+          type={editType}
+          onClose={() => setEditType(null)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>
   );
 };
