@@ -117,9 +117,7 @@ class SettingsController extends Controller
 
     public function getDepartment($id)
     {
-        // Log::info("SettingsController::getDepartments");
-
-        // settings/getDepartment/1
+    
 
         if ($this->checkUser()) {
 
@@ -142,7 +140,7 @@ class SettingsController extends Controller
 
         if ($this->checkUser()) {
             $user = Auth::user();
-            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
+            $departments = DepartmentsModel::where('client_id', $user->client_id)->withCount('employees')->get();
 
             return response()->json(['status' => 200, 'departments' => $departments]);
         }

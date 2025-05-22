@@ -21,4 +21,11 @@ class DepartmentsModel extends Model
         'client_id',
         'leave_limit'
     ];
+
+        // Add this relationship to connect departments with their employees
+    public function employees()
+    {
+        return $this->hasMany(UsersModel::class, 'department_id');
+    }
+
 }

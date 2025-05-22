@@ -54,6 +54,8 @@ const DepartmentDetails = () => {
                 // Fetch branches if not already available
                 const branchesResponse = await axiosInstance.get('/settings/getBranches', { headers });
                 setBranches(branchesResponse.data.branches || []);
+                
+
             } catch (err) {
                 console.error("Error fetching department:", err);
                 setError("Failed to load department details");
@@ -296,8 +298,6 @@ const DepartmentDetails = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="left">Name</TableCell>
-                                                <TableCell align="left">Position</TableCell>
-                                                <TableCell align="left">Email</TableCell>
                                                 <TableCell align="left">Branch</TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -320,8 +320,7 @@ const DepartmentDetails = () => {
                                                             {`${emp.first_name} ${emp.middle_name ? emp.middle_name + ' ' : ''}${emp.last_name}`}
                                                         </Box>
                                                     </TableCell>
-                                                    <TableCell align="left">{emp.position}</TableCell>
-                                                    <TableCell align="left">{emp.email}</TableCell>
+                                                
                                                     <TableCell align="left">
                                                         {branches.find(b => b.id === emp.branch_id)?.name || '-'}
                                                     </TableCell>
