@@ -1,22 +1,33 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, Button, Typography, FormGroup, TextField, FormControl, Box, IconButton } from '@mui/material';
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    Box,
+    Button,
+    TextField,
+    FormGroup,
+    FormControl,
+    IconButton
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
-import Swal from "sweetalert2";
 
 const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
     const { user } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [fromName, setFromName] = useState('');
-    const [formNameError, setFormError] = useState(false);
+    const [formName, setFormName] = useState('');
+    const [formNameError, setFormNameError] = useState(false);
 
     const checkInput = (event) => {
         event.preventDefault();
-        if (!fromName) {
-            setFormError(true);
+        if (!formName) {
+            setFormNameError(true);
             Swal.fire({
                 text: "Evaluation Form Name is required!",
                 icon: "error",
@@ -24,7 +35,7 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
             });
             return;
         } else {
-            setFormError(false);
+            setFormNameError(false);
         }
 
         Swal.fire({
@@ -45,7 +56,7 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-        const data = { name: fromName };
+        const data = { name: formName };
         axiosInstance.post('/saveEvaluation', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
@@ -56,15 +67,26 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setFromName('');
+                        setFormName('');
                         if (onSuccess) onSuccess();
                         onClose();
                     });
                 }
             })
             .catch(error => {
+                Swal.fire({
+                    text: "Failed to save evaluation form.",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
                 console.error('Error:', error);
             });
+    };
+
+    const handleCancel = () => {
+        setFormName('');
+        setFormNameError(false);
+        onClose();
     };
 
     return (
@@ -84,46 +106,69 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
                 }
             }}
         >
-            <DialogContent sx={{ p: 0 }}>
-                <Box sx={{ position: 'absolute', right: 20, top: 20 }}>
-                    <IconButton onClick={onClose} sx={{ color: '#727F91' }}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
-                <Box sx={{ px: 6, pt: 6, pb: 2 }}>
-                    <Typography variant="h4" sx={{mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
-                        Create Evaluation Form
-                    </Typography>
-                    <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
-                        <FormGroup row={true} sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '100%' }}>
-                                <TextField
-                                    required
-                                    id="fromName"
-                                    label="Evaluation Form Name"
-                                    variant="outlined"
-                                    value={fromName}
-                                    error={formNameError}
-                                    onChange={(e) => setFromName(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-                        <Box display="flex" justifyContent="space-between" sx={{ marginTop: '20px', marginBottom: '20px', gap: 2 }}>
-                            <Button
-                                type="button"
-                                variant="contained"
-                                sx={{ backgroundColor: '#727F91', color: 'white', minWidth: 110 }}
-                                onClick={onClose}
-                            >
-                                <span className='m-0'><i className="fa fa-times mr-2 mt-1"></i> Cancel </span>
-                            </Button>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white', minWidth: 110 }}>
-                                <span className='m-0'><i className="fa fa-check mr-2 mt-1"></i> Confirm </span>
-                            </Button>
-                        </Box>
+            <DialogTitle sx={{ fontWeight: 'bold', fontSize: 26, pb: 0, mt: 2, mb: 2 }}>
+                CREATE EVALUATION FORM
+                <Box
+                    sx={{
+                        height: '2px',
+                        width: '100%',
+                        bgcolor: '#E6E6E6',
+                        borderRadius: 2
+                    }}
+                />
+                <IconButton
+                    onClick={onClose}
+                    sx={{ position: 'absolute', right: 20, top: 20, color: '#727F91' }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent>
+                <Box sx={{ mt: 2 }}>
+                    <TextField
+                        label="Evaluation Form Name*"
+                        variant="outlined"
+                        fullWidth
+                        value={formName}
+                        error={formNameError}
+                        onChange={e => setFormName(e.target.value)}
+                        sx={{ mb: 4 }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<CloseIcon />}
+                            onClick={handleCancel}
+                            sx={{
+                                bgcolor: '#7b8794',
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                px: 4,
+                                py: 1.5,
+                                borderRadius: '8px',
+                                boxShadow: 1,
+                                '&:hover': { bgcolor: '#5a6473' }
+                            }}
+                        >
+                            CANCEL
+                        </Button>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={checkInput}
+                            sx={{
+                                bgcolor: '#137333',
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                px: 4,
+                                py: 1.5,
+                                borderRadius: '8px',
+                                boxShadow: 1,
+                                '&:hover': { bgcolor: '#0d5c27' }
+                            }}
+                        >
+                            SAVE
+                        </Button>
                     </Box>
                 </Box>
             </DialogContent>

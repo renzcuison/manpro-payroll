@@ -4,10 +4,16 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Layout from '../../../components/Layout/Layout';
 import { useNavigate } from 'react-router-dom';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
+import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
+import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
+
 
 const PerformanceEvaluationForm = () => {
     const navigate = useNavigate();
     const [addSectionOpen, setAddSectionOpen] = useState(false);
+    const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+    const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
+
 
     // Placeholder data
     const formTitle = "Sample Form";
@@ -17,11 +23,24 @@ const PerformanceEvaluationForm = () => {
     // Add Section handler
     const handleAddSection = () => setAddSectionOpen(true);
 
+    // Add Category handler
+    const handleAddCategory = () => setAddCategoryOpen(true);
+    
+    // Save Evaluation handler
+    const handleSaveEvaluation = () => setSaveEvaluationOpen(true);
+
     // Save Section handler
     const handleSaveSection = (categoryName) => {
         // Implement save logic here
         // Example: console.log('Saved section:', categoryName);
     };
+
+    // Save Category handler
+    const handleSaveCategory = (categoryName) => {
+        // Implement save logic here
+        // Example: console.log('Saved section:', categoryName);
+    };
+
 
     // Settings handler
     const handleSettings = () => {
@@ -82,6 +101,45 @@ const PerformanceEvaluationForm = () => {
                             ADD SECTION
                         </Button>
                     </Box>
+                    {/* Add Category Button */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                bgcolor: '#137333',
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                px: 4,
+                                py: 1.5,
+                                borderRadius: '4px',
+                                boxShadow: 2,
+                                '&:hover': { bgcolor: '#0d5c27' }
+                            }}
+                            onClick={handleAddCategory}
+                        >
+                            ADD CATEGORY
+                        </Button>
+                    </Box>
+                    {/* Save Evaluation Button */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                bgcolor: '#137333',
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                px: 4,
+                                py: 1.5,
+                                borderRadius: '4px',
+                                boxShadow: 2,
+                                '&:hover': { bgcolor: '#0d5c27' }
+                            }}
+                            onClick={handleSaveEvaluation}
+                        >
+                            SAVE EVALUATION
+                        </Button>
+                    </Box>
+
                 </Paper>
             </Box>
             {/* Add Section Modal */}
@@ -89,6 +147,20 @@ const PerformanceEvaluationForm = () => {
                 open={addSectionOpen}
                 onClose={() => setAddSectionOpen(false)}
                 onSave={handleSaveSection}
+            />
+            {/* Add Category Modal */}
+            <PerformanceEvaluationFormAddCategory
+                open={addCategoryOpen}
+                onClose={() => setAddCategoryOpen(false)}
+                onSave={handleSaveCategory}
+            />
+            <PerformanceEvaluationFormSaveEvaluation
+                open={saveEvaluationOpen}
+                onClose={() => setSaveEvaluationOpen(false)}
+                onProceed={() => {
+                    setSaveEvaluationOpen(false);
+                    // Optional: Navigate or handle logic after save
+                }}
             />
         </Layout>
     );
