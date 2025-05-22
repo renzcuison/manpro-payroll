@@ -29,54 +29,54 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import Swal from "sweetalert2";
 
-const DepartmentsList = () => {
+const BranchList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [departments, setDepartments] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedColumns, setSelectedColumns] = useState([
-        "Assigned Manager",
-        "Assigned Supervisor",
-        "Number of Employees",
-        "Approver"
+        "Location",
+        "Contact Number",
+        "Number of Employees"
     ]);
 
     const [openModal, setOpenModal] = useState(false);
     const [nameError, setNameError] = useState(false);
-    const [acronymError, setAcronymError] = useState(false);
+    const [locationError, setLocationError] = useState(false);
     const [name, setName] = useState("");
-    const [acronym, setAcronym] = useState("");
+    const [location, setLocation] = useState("");
+    const [contactNumber, setContactNumber] = useState("");
     const [description, setDescription] = useState("");
 
     useEffect(() => {
         axiosInstance
-            .get("/settings/getDepartments", { headers })
+            .get("/settings/getBranches", { headers })
             .then((response) => {
-                setDepartments(response.data.departments || []);
+                setBranches(response.data.branches || []);
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error("Error fetching departments:", error);
+                console.error("Error fetching branches:", error);
                 setIsLoading(false);
             });
     }, []);
 
-    const filteredDepartments = departments.filter((dept) =>
-        dept.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    const filteredBranches = branches.filter((branch) =>
+        branch.name.toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
     const checkInput = (event) => {
         event.preventDefault();
 
         setNameError(!name);
-        setAcronymError(!acronym);
+        setLocationError(!location);
 
-        if (!name || !acronym) {
+        if (!name || !location) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "All required fields must be filled!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -86,7 +86,7 @@ const DepartmentsList = () => {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "This department will be added",
+                text: "This branch will be added",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Add",
@@ -106,24 +106,26 @@ const DepartmentsList = () => {
 
         const data = {
             name: name,
-            acronym: acronym,
+            location: location,
+            contact_number: contactNumber,
             description: description
         };
 
-        axiosInstance.post('/settings/saveDepartment', data, { headers })
+        axiosInstance.post('/settings/saveBranch', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Department saved successfully!",
+                        text: "Branch saved successfully!",
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setDepartments(prev => [...prev, response.data.department]);
+                        setBranches(prev => [...prev, response.data.branch]);
                         setName("");
-                        setAcronym("");
+                        setLocation("");
+                        setContactNumber("");
                         setDescription("");
                         setOpenModal(false);
                     });
@@ -135,7 +137,7 @@ const DepartmentsList = () => {
     };
 
     return (
-        <Layout title={"Departments"}>
+        <Layout title={"Branches"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box
@@ -148,7 +150,7 @@ const DepartmentsList = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}>
-                            Departments
+                            Branches
                         </Typography>
                     </Box>
 
@@ -161,32 +163,33 @@ const DepartmentsList = () => {
                         }}
                     >
                         <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                            <Grid item xs={9}>
+                            <Grid item xs={12} md={9}>
                                 <TextField
                                     fullWidth
-                                    label="Search Department"
+                                    label="Search Branch"
                                     variant="outlined"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
                                 />
                             </Grid>
-                            <Grid item xs={3}>
-                               
+                            <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Button 
+                                    variant="contained" 
+                                    color="primary"
+                                    onClick={() => setOpenModal(true)}
+                                    sx={{ 
+                                        backgroundColor: '#177604', 
+                                        color: 'white',
+                                        height: '56px',
+                                        maxWidth: '200px',
+                                        ml: 'auto' 
+                                    }}
+                                >
+                                    <Box component="span" display="flex" alignItems="center" gap={1}>
+                                        <i className="fa fa-plus"></i> Add Branch
+                                    </Box>
+                                </Button>
                             </Grid>
-                            <Grid container justifyContent="flex-end">
-  <Grid item>
-    <Button 
-      variant="contained" 
-      color="primary"
-      onClick={() => setOpenModal(true)}
-      sx={{ backgroundColor: '#177604', color: 'white' }}
-    >
-      <p className="m-0">
-        <i className="fa fa-plus mr-2"></i> Add Department
-      </p>
-    </Button>
-  </Grid>
-</Grid>
                         </Grid>
 
                         {isLoading ? (
@@ -197,15 +200,12 @@ const DepartmentsList = () => {
                                     <Table stickyHeader>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Department</TableCell>
-                                                {selectedColumns.includes("Assigned Manager") && (
-                                                    <TableCell align="center">Assigned Manager</TableCell>
+                                                <TableCell align="center">Branch</TableCell>
+                                                {selectedColumns.includes("Location") && (
+                                                    <TableCell align="center">Location</TableCell>
                                                 )}
-                                                {selectedColumns.includes("Assigned Supervisor") && (
-                                                    <TableCell align="center">Assigned Supervisor</TableCell>
-                                                )}
-                                                {selectedColumns.includes("Approver") && (
-                                                    <TableCell align="center">Approver</TableCell>
+                                                {selectedColumns.includes("Contact Number") && (
+                                                    <TableCell align="center">Contact Number</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Number of Employees") && (
                                                     <TableCell align="center">No. of Employees</TableCell>
@@ -213,10 +213,10 @@ const DepartmentsList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {filteredDepartments.length > 0 ? (
-                                                filteredDepartments.map((dept) => (
+                                            {filteredBranches.length > 0 ? (
+                                                filteredBranches.map((branch) => (
                                                     <TableRow 
-                                                        key={dept.id}
+                                                        key={branch.id}
                                                         hover
                                                         sx={{ 
                                                             cursor: "pointer",
@@ -224,11 +224,10 @@ const DepartmentsList = () => {
                                                                 backgroundColor: "rgba(0, 0, 0, 0.1)"
                                                             }
                                                         }}
-                                                        
                                                     >
                                                         <TableCell align="center">
                                                             <Link
-                                                                to={`/admin/department/${dept.id}`}
+                                                                to={`/admin/branch/${branch.id}`}
                                                                 style={{
                                                                     textDecoration: "none",
                                                                     color: "inherit",
@@ -243,14 +242,14 @@ const DepartmentsList = () => {
                                                                     alignItems="center"
                                                                     justifyContent="center"
                                                                 >
-                                                                    {dept.name}
+                                                                    {branch.name}
                                                                 </Box>
                                                             </Link>
                                                         </TableCell>
-                                                        {selectedColumns.includes("Assigned Manager") && (
+                                                        {selectedColumns.includes("Location") && (
                                                             <TableCell align="center">
                                                                 <Link
-                                                                    to={`/admin/department/${dept.id}`}
+                                                                    to={`/admin/branch/${branch.id}`}
                                                                     style={{
                                                                         textDecoration: "none",
                                                                         color: "inherit",
@@ -260,22 +259,14 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.manager_name ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.manager_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.manager_name}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    {branch.location || "-"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Assigned Supervisor") && (
+                                                        {selectedColumns.includes("Contact Number") && (
                                                             <TableCell align="center">
                                                                 <Link
-                                                                    to={`/admin/department/${dept.id}`}
+                                                                    to={`/admin/branch/${branch.id}`}
                                                                     style={{
                                                                         textDecoration: "none",
                                                                         color: "inherit",
@@ -285,47 +276,14 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.supervisor_name ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.supervisor_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.supervisor_name}
-                                                                        </Box>
-                                                                    ) : "-"}
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                        {selectedColumns.includes("Approver") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/department/${dept.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    {dept.approver_name ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.approver_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.approver_name}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    {branch.contact_number || "-"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}
                                                         {selectedColumns.includes("Number of Employees") && (
                                                             <TableCell align="center">
                                                                 <Link
-                                                                    to={`/admin/department/${dept.id}`}
+                                                                    to={`/admin/branch/${branch.id}`}
                                                                     style={{
                                                                         textDecoration: "none",
                                                                         color: "inherit",
@@ -335,7 +293,7 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.employee_count || "0"}
+                                                                    {branch.employee_count || "0"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -344,7 +302,7 @@ const DepartmentsList = () => {
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={selectedColumns.length + 1} align="center">
-                                                        No departments found.
+                                                        No branches found.
                                                     </TableCell>
                                                 </TableRow>
                                             )}
@@ -352,7 +310,7 @@ const DepartmentsList = () => {
                                     </Table>
                                 </TableContainer>
                                 
-                                {filteredDepartments.length > 0 && (
+                                {filteredBranches.length > 0 && (
                                     <Box
                                         display="flex"
                                         sx={{
@@ -364,13 +322,13 @@ const DepartmentsList = () => {
                                         }}
                                     >
                                         <Typography sx={{ mr: 2 }}>
-                                            Number of Departments:
+                                            Number of Branches:
                                         </Typography>
                                         <Typography
                                             variant="h6"
                                             sx={{ fontWeight: "bold" }}
                                         >
-                                            {filteredDepartments.length}
+                                            {filteredBranches.length}
                                         </Typography>
                                     </Box>
                                 )}
@@ -380,7 +338,7 @@ const DepartmentsList = () => {
                 </Box>
             </Box>
 
-            {/*  Add Department Modal */}
+            {/* Add Branch Modal */}
             <Dialog
                 open={openModal}
                 onClose={() => setOpenModal(false)}
@@ -400,7 +358,7 @@ const DepartmentsList = () => {
             >
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Department </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Branch </Typography>
                         <IconButton onClick={() => setOpenModal(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -412,13 +370,13 @@ const DepartmentsList = () => {
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
                             <FormControl sx={{
-                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '48%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
                                     id="name"
-                                    label="Name"
+                                    label="Branch Name"
                                     variant="outlined"
                                     value={name}
                                     error={nameError}
@@ -427,17 +385,35 @@ const DepartmentsList = () => {
                             </FormControl>
 
                             <FormControl sx={{
-                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '48%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
                                     required
-                                    id="acronym"
-                                    label="Acronym"
+                                    id="location"
+                                    label="Location"
                                     variant="outlined"
-                                    value={acronym}
-                                    error={acronymError}
-                                    onChange={(e) => setAcronym(e.target.value)}
+                                    value={location}
+                                    error={locationError}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                />
+                            </FormControl>
+                        </FormGroup>
+
+                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                        }}>
+                            <FormControl sx={{
+                                marginBottom: 3, width: '48%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    id="contactNumber"
+                                    label="Contact Number"
+                                    variant="outlined"
+                                    value={contactNumber}
+                                    onChange={(e) => setContactNumber(e.target.value)}
                                 />
                             </FormControl>
                         </FormGroup>
@@ -453,7 +429,6 @@ const DepartmentsList = () => {
                                 <TextField
                                     id="description"
                                     label="Description"
-
                                     variant="outlined"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
@@ -465,7 +440,7 @@ const DepartmentsList = () => {
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Department </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
                             </Button>
                         </Box>
                     </Box>
@@ -475,4 +450,4 @@ const DepartmentsList = () => {
     );
 };
 
-export default DepartmentsList;
+export default BranchList;
