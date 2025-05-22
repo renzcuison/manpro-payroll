@@ -150,6 +150,19 @@ const DepartmentsList = () => {
                         <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}>
                             Departments
                         </Typography>
+
+                         <Grid item>
+                                <Button 
+                                variant="contained" 
+                                color="primary"
+                                onClick={() => setOpenModal(true)}
+                                sx={{ backgroundColor: '#177604', color: 'white' }}
+                                >
+                                <p className="m-0">
+                                    <i className="fa fa-plus mr-2"></i> Add Department
+                                </p>
+                                </Button>
+                            </Grid>
                     </Box>
 
                     <Box
@@ -174,18 +187,7 @@ const DepartmentsList = () => {
                                
                             </Grid>
                             <Grid container justifyContent="flex-end">
-  <Grid item>
-    <Button 
-      variant="contained" 
-      color="primary"
-      onClick={() => setOpenModal(true)}
-      sx={{ backgroundColor: '#177604', color: 'white' }}
-    >
-      <p className="m-0">
-        <i className="fa fa-plus mr-2"></i> Add Department
-      </p>
-    </Button>
-  </Grid>
+ 
 </Grid>
                         </Grid>
 
@@ -224,7 +226,6 @@ const DepartmentsList = () => {
                                                                 backgroundColor: "rgba(0, 0, 0, 0.1)"
                                                             }
                                                         }}
-                                                        
                                                     >
                                                         <TableCell align="center">
                                                             <Link
@@ -453,7 +454,6 @@ const DepartmentsList = () => {
                                 <TextField
                                     id="description"
                                     label="Description"
-
                                     variant="outlined"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
