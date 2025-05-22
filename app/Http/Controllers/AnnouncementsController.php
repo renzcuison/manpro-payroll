@@ -839,7 +839,7 @@ class AnnouncementsController extends Controller
         return $result;
     }
 
-    // Announcement Type
+    // Add Announcement Type
     function addAnnouncementType(Request $request)
     {
         $user = Auth::user();
@@ -863,6 +863,23 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 200, 'type' => $type]);
         } catch (\Exception $e) {
             \Log::error('addAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    //Get Announcement Types
+    public function getAnnouncementType()
+    {
+        try {
+            // You can filter by client_id if needed
+            $types = \App\Models\AnnouncementTypesModel::all();
+
+            return response()->json([
+                'status' => 200,
+                'types' => $types
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('getAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
