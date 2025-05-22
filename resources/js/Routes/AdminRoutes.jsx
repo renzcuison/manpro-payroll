@@ -25,6 +25,8 @@ import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
 import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
+// import AnnouncementAdd from "../Pages/Admin/Announcements/AnnouncementAdd";
+// import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
@@ -199,11 +201,16 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="application/leave-credits"
+                path="announcements"
                 element={
-                    <ProtectedRoute element={<LeaveCreditList />} user={user} />
+                    <ProtectedRoute
+                        element={<AnnouncementList />}
+                        user={user}
+                    />
                 }
             />
+            {/* <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd />} user={user} />} />
+            <Route path="announcements/types" element={<ProtectedRoute element={<AnnouncementTypes />} user={user} />} /> */}
 
             <Route
                 path="announcements"
