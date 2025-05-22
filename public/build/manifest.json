@@ -85,11 +85,7 @@
     "src": "resources/js/Assets/default_perimeter_image.png"
   },
   "resources/js/app.jsx": {
-<<<<<<< HEAD
-    "file": "assets/app-OdIGAodU.js",
-=======
-    "file": "assets/app-DmaPYv7A.js",
->>>>>>> 17abefd1 (Add/Feat Forms and Create Evaluation Form for Performance Evaluation Module)
+    "file": "assets/app-DtQwlRQu.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
