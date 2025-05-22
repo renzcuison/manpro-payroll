@@ -220,7 +220,7 @@ const Sidebar = ({ children, closeMini }) => {
                     
                 },
                 {
-                    // href: `/admin/announcements/add?`,
+                    href: `/admin/announcements/add?`,
                     text: "Create Announcement",
                 },
                 {

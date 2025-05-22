@@ -61,6 +61,7 @@ import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 
 import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
+import AnnouncementAdd from "../Pages/Admin/Announcements/Modals/AnnouncementAdd";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -132,6 +133,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
 
             <Route path="announcements/types" element={<AnnouncementTypes />} />
+            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
+
         </Routes>
     );
 };
