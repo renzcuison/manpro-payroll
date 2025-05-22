@@ -566,6 +566,11 @@ class EmployeesController extends Controller
 
             foreach ($rawFormLinks as $rawFormLink) {
 
+                if ( $rawFormLink->used <= $rawFormLink->limit ) {
+                    $rawFormLink->status = "Used";
+                    $rawFormLink->save();
+                }
+
                 if (now()->greaterThan($rawFormLink->expiration)) {
                     $rawFormLink->status = 'Expired';
                 }
