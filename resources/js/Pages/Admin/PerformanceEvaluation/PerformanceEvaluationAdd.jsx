@@ -73,7 +73,7 @@ const PerformanceEvaluationAdd = () => {
     };
 
     return (
-        <Layout title={"Add Evaluation Form"}>
+        <Layout title={"Create Evaluation Form"}>
             <Box sx={{ mx: 10, pt: 12 }}>
                 <div className='px-4 block-content bg-light' style={{ 
                     boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', 
@@ -83,7 +83,7 @@ const PerformanceEvaluationAdd = () => {
                     marginBottom: '5%' 
                 }}>
                     <Box component="form" sx={{ mx: 6, mt: 3, mb: 6 }} onSubmit={checkInput} noValidate autoComplete="off">
-                        <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Add Evaluation Form</Typography>
+                        <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Create Evaluation Form</Typography>
 
                         <FormGroup row={true} sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
@@ -102,10 +102,19 @@ const PerformanceEvaluationAdd = () => {
                             </FormControl>
                         </FormGroup>
 
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }}>
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
+                        <Box display="flex" justifyContent="space-between" sx={{ marginTop: '20px', gap: 2 }}>
+                            <Button
+                                type="button"
+                                variant="contained"
+                                sx={{ backgroundColor: '#727F91', color: 'white'}}
+                                onClick={() => navigate(-1)}
+                            >
+                                <p className='m-0'><i className="fa fa-times mr-2 mt-1"></i> Cancel </p>
                             </Button>
+                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }}>
+                                <p className='m-0'><i className="fa fa-check mr-2 mt-1"></i> Confirm </p>
+                            </Button>
+                            
                         </Box>
                     </Box>
                 </div>
