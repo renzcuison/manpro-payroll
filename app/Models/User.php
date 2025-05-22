@@ -84,12 +84,7 @@ class User extends Authenticatable implements HasMedia
         'email_verified_at' => 'datetime',
     ];
 
-    public function workShift()
-    {
-        return $this->belongsTo(HrWorkshifts::class, 'hr_workshift_id');
-    }
-
-    public function evaluationForms()
+    public function formsCreated()
     {
         return $this->hasMany(EvaluationForm::class, 'creator_id');
     }
@@ -99,4 +94,9 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsTo(Package::class, 'package_id');
     }
 
+    public function workShift()
+    {
+        return $this->belongsTo(HrWorkshifts::class, 'hr_workshift_id');
+    }
+    
 }

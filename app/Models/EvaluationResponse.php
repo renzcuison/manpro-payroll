@@ -34,9 +34,5 @@ class EvaluationResponse extends Model
     {
         return $this->hasMany(EvaluationResponseTextAnswer::class, 'response_id');
     }
-
-    // public function indicatorResponses()
-    // {
-    //     return $this->hasMany(EvaluationIndicatorResponses::class, 'response_id');
-    // }
+    
 }
