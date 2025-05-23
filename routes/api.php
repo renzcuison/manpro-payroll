@@ -20,6 +20,7 @@ use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 
 
+
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -617,8 +618,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/add_evaluation', [CategoriesController::class, 'addEvaluation']);
     Route::get('/incidents', [CategoriesController::class, 'getIncident']);
     Route::post('/add_incident', [CategoriesController::class, 'addIncident']);
-
-
     // Mailer routes
     Route::get('/mail', [MailController::class, 'referralConfirmationMail']);
     Route::get('/sendPayrollMail/{id}', [MailController::class, 'payrollMail']);
@@ -655,10 +654,14 @@ Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->n
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
 
-//Annoucements
+//Annoucements Type
 Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
 Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
 Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+
+
+
+
 
 
 

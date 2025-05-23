@@ -30,6 +30,8 @@ import { useNavigate } from 'react-router-dom';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
+import PerformanceEvaluationFormAcknowledge from './Modals/PerformanceEvaluationFormAcknowledge';
+
 
 const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
   const [subCategoryName, setSubCategoryName] = useState(subCategory?.subCategoryName || '');
@@ -126,6 +128,8 @@ const PerformanceEvaluationForm = () => {
   const [openModal, setOpenModal] = useState(false);
   const [subCategories, setSubCategories] = useState([]);
   const [editingSubCategory, setEditingSubCategory] = useState(null);
+  const [acknowledgeOpen, setAcknowledgeOpen] = useState(false);
+
 
   const handleAddSection = () => setAddSectionOpen(true);
   const handleAddCategory = () => setAddCategoryOpen(true);
@@ -164,8 +168,16 @@ const PerformanceEvaluationForm = () => {
                 SAVE EVALUATION
             </Button>
             <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, marginLeft: 2, marginRight: 2, mt: 2 }} color="success" onClick={handleOpenModal}>
-                Add Sub-Category
+                ADD SUB-CATEGORY
             </Button>
+            <Button
+              variant="contained"
+              sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, ml: 2, mr: 2, mt: 2 }}
+              onClick={() => setAcknowledgeOpen(true)}
+            >
+              ACKNOWLEDGE
+            </Button>
+
             </Box>
           {subCategories.map((subCategory) => (
             <Box key={subCategory.id} sx={{ mt: 3, border: '1px solid #ccc', borderRadius: 2, p: 2 }}>
@@ -206,6 +218,11 @@ const PerformanceEvaluationForm = () => {
       <PerformanceEvaluationFormAddCategory open={addCategoryOpen} onClose={() => setAddCategoryOpen(false)} onSave={() => {}} />
       <PerformanceEvaluationFormSaveEvaluation open={saveEvaluationOpen} onClose={() => setSaveEvaluationOpen(false)} onProceed={() => setSaveEvaluationOpen(false)} />
       <SubCategoryModal open={openModal} onClose={handleCloseModal} onSave={handleSaveSubCategory} subCategory={editingSubCategory} />
+      <PerformanceEvaluationFormAcknowledge
+        open={acknowledgeOpen}
+        onClose={() => setAcknowledgeOpen(false)}
+      />
+
     </Layout>
   );
 };
