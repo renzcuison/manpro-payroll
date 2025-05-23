@@ -3,15 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Evaluation;
 use App\Models\EvaluationForm;
-use App\Models\EvaluationFormSection;
-use App\Models\EvaluationFormCategory;
-use App\Models\EvaluationFormSubcategory;
-use App\Models\EvaluationFormSubcategoryOption;
+use App\Models\EvaluationCategory;
 use App\Models\EvaluationResponse;
-use App\Models\EvaluationOptionAnswer;
-use App\Models\EvaluationPercentageAnswer;
-use App\Models\EvaluationTextAnswer;
+use App\Models\EvaluationIndicators;
+use App\Models\EvaluationRatingChoices;
+use App\Models\EvaluationIndicatorResponses;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,10 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 class EvaluationController extends Controller
 {
-
-
-
-    // old
 
     public function saveEvaluation(Request $request)
     {

@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Evaluation;
 use App\Models\EvaluationForm;
-use App\Models\EvaluationCategory;
+use App\Models\EvaluationFormSection;
+use App\Models\EvaluationFormCategory;
+use App\Models\EvaluationFormSubcategory;
+use App\Models\EvaluationFormSubcategoryOption;
 use App\Models\EvaluationResponse;
-use App\Models\EvaluationIndicators;
-use App\Models\EvaluationRatingChoices;
-use App\Models\EvaluationIndicatorResponses;
+use App\Models\EvaluationOptionAnswer;
+use App\Models\EvaluationPercentageAnswer;
+use App\Models\EvaluationTextAnswer;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,53 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 class EvaluationController extends Controller
 {
+
+    public function saveEvaluationForm(Request $request)
+    {
+        log::info("EvaluationController::saveEvaluationForm");
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+            DB::beginTransaction();
+
+            $existingEvaluation = EvaluationForm::where('name', $request->name)->first();
+
+            if ( !$existingEvaluation ) {
+                $newEvaluation = EvaluationForm::create([
+                    "name" => $request->name,
+                    'creator_id' => $user->id
+                ]);
+
+                DB::commit();
+    
+                return response()->json([ 
+                    'status' => 200,
+                    'evaluationID' => $newEvaluation->id,
+                ]);
+            } else {
+                return response()->json([ 
+                    'status' => 409,
+                    'evaluationID' => $existingEvaluation->id,
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving work shift: " . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // old
+
     public function saveEvaluation(Request $request)
     {
         log::info("EvaluationController::saveEvaluation");
@@ -406,47 +455,47 @@ class EvaluationController extends Controller
         }
     }
 
-    public function saveEvaluationForm(Request $request)
-    {
-        log::info("EvaluationController::saveEvaluation");
+    // public function saveEvaluationForm(Request $request)
+    // {
+    //     log::info("EvaluationController::saveEvaluation");
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
+    //     $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
 
-        try {
-            DB::beginTransaction();
+    //     try {
+    //         DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm::create([
-                "evaluation_id"   => $request->evaluation,
-                "employee_id"   => $request->employee,
-                'evaluator_id' => $request->evaluator,
-                'date' => $request->date,
-                'period_from' => $request->periodFrom,
-                'period_to' => $request->periodTo,
-                'creator_id' => $userID,
-                'status' => "Pending",
-            ]);
+    //         $evaluationForm = EvaluationForm::create([
+    //             "evaluation_id"   => $request->evaluation,
+    //             "employee_id"   => $request->employee,
+    //             'evaluator_id' => $request->evaluator,
+    //             'date' => $request->date,
+    //             'period_from' => $request->periodFrom,
+    //             'period_to' => $request->periodTo,
+    //             'creator_id' => $userID,
+    //             'status' => "Pending",
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([ 
-                'status' => 200,
-                'formId' => $evaluationForm->id,
-            ]);
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'formId' => $evaluationForm->id,
+    //         ]);
           
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error("Error saving work shift: " . $e->getMessage());
+    //         Log::error("Error saving work shift: " . $e->getMessage());
 
-            throw $e;
-        }
-    }
+    //         throw $e;
+    //     }
+    // }
 
     public function getEvaluationForms(Request $request)
     {

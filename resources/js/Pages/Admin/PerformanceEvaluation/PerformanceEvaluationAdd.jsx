@@ -53,7 +53,7 @@ const PerformanceEvaluationAdd = () => {
 
         const data = { name: fromName };
 
-        axiosInstance.post('/saveEvaluation', data, { headers })
+        axiosInstance.post('/saveEvaluationForm', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
