@@ -19,6 +19,9 @@ class DepartmentsModel extends Model
         'description',
         'status',
         'client_id',
+        'manager_id',
+        'supervisor_id',
+        'approver_id',
         'leave_limit'
     ];
 
@@ -28,4 +31,18 @@ class DepartmentsModel extends Model
         return $this->hasMany(UsersModel::class, 'department_id');
     }
 
+    public function manager()
+    {
+        return $this->belongsTo(UsersModel::class, 'manager_id');
+    }
+
+    public function supervisor()
+    {
+        return $this->belongsTo(UsersModel::class, 'supervisor_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(UsersModel::class, 'approver_id');
+    }
 }

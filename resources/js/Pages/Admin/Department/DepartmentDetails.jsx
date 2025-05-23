@@ -78,6 +78,8 @@ const DepartmentDetails = () => {
 
         fetchData();
     }, [id]);
+
+    
     
     const filteredEmployees = employees.filter(emp => {
         const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
@@ -175,7 +177,7 @@ const DepartmentDetails = () => {
                                         />
                                         <TextField
                                             label="Manager"
-                                            value={department.manager_name || "Not assigned"}
+                                            value={department.manager_id || "Not assigned"}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,
@@ -210,7 +212,7 @@ const DepartmentDetails = () => {
                                         />
                                         <TextField
                                             label="Supervisor"
-                                            value={department.supervisor_name || "Not assigned"}
+                                            value={department.supervisor_id || "Not assigned"}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,
@@ -245,7 +247,7 @@ const DepartmentDetails = () => {
                                         />
                                         <TextField
                                             label="Approver"
-                                            value={department.approver_name || "Not assigned"}
+                                            value={department.approver_id || "Not assigned"}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,

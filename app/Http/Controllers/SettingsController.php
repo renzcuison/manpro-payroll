@@ -114,39 +114,42 @@ class SettingsController extends Controller
 
 
 
-
     public function getDepartment($id)
     {
-    
-
         if ($this->checkUser()) {
+            $department = DepartmentsModel::with(['manager', 'supervisor', 'approver', 'employees'])
+                ->findOrFail($id);
 
-            $department = DepartmentsModel::find($id);
-            $employees = UsersModel::where('department_id', $department->id)->get();
-            $employeesCount = UsersModel::where('department_id', $department->id)->get();
-
-            return response()->json(['status' => 200, 'department' => $department, 'employees' => $employees, 'employeesCount' => $employeesCount ]);
+            return response()->json([
+                'status' => 200,
+                'department' => $department,
+                 'employees' => $department->employees, 
+                'employeesCount' => $department->employees->count()
+            ]);
         }
 
-        return response()->json(['status' => 200, 'departments' => null]);
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
 
 
 
-    
     public function getDepartments(Request $request)
-    {
-        // Log::info("SettingsController::getDepartments");
+{
+    if ($this->checkUser()) {
+        $user = Auth::user();
+        $departments = DepartmentsModel::where('client_id', $user->client_id)
+            ->with(['manager', 'supervisor', 'approver'])
+            ->withCount('employees')
+            ->get();
 
-        if ($this->checkUser()) {
-            $user = Auth::user();
-            $departments = DepartmentsModel::where('client_id', $user->client_id)->withCount('employees')->get();
-
-            return response()->json(['status' => 200, 'departments' => $departments]);
-        }
-
-        return response()->json(['status' => 200, 'departments' => null]);
+        return response()->json(['status' => 200, 'departments' => $departments]);
     }
+
+    return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+}
+    
+
+
 
     public function saveDepartment(Request $request)
     {
@@ -186,32 +189,65 @@ class SettingsController extends Controller
         }
     }
 
-    public function editDepartment(Request $request)
-    {
-        log::info("SettingsController::editDepartment");
+   public function editDepartment(Request $request)
+{
+    log::info("SettingsController::editDepartment");
 
-        $validated = $request->validate([
-            'name' => 'required',
-            'acronym' => 'required',
-            'status' => 'required',
-        ]);
+    $validated = $request->validate([
+        'id' => 'required|exists:departments,id',
+        'name' => 'required|string|max:255',
+        'acronym' => 'required|string|max:10',
+        'status' => 'required|in:Active,Inactive,Disabled',
+        'manager_id' => 'nullable|exists:users,id',
+        'supervisor_id' => 'nullable|exists:users,id',
+        'approver_id' => 'nullable|exists:users,id',
+        'leave_limit' => 'required|integer|min:0'
+    ]);
 
-        if ($this->checkUser() && $validated) {
+    if ($this->checkUser() && $validated) {
+        try {
+            DB::beginTransaction();
 
-            $user = Auth::user();
-            $department = DepartmentsModel::find($request->input('id'));
+            $department = DepartmentsModel::findOrFail($request->id);
+            
+            $department->update([
+                'name' => $request->name,
+                'acronym' => $request->acronym,
+                'description' => $request->description,
+                'status' => $request->status,
+                'manager_id' => $request->manager_id,
+                'supervisor_id' => $request->supervisor_id,
+                'approver_id' => $request->approver_id,
+                'leave_limit' => $request->leave_limit
+            ]);
 
-            $department->name = $request->input('name');
-            $department->acronym = $request->input('acronym');
-            $department->description = $request->input('description');
-            $department->status = $request->input('status');
-            $department->leave_limit = $request->input('leave_limit');
+            DB::commit();
 
-            $department->save();
+            // Return the updated department with personnel names
+            $updatedDepartment = DepartmentsModel::with(['manager', 'supervisor', 'approver'])
+                ->find($request->id);
 
-            return response()->json(['status' => 200]);
+            return response()->json([
+                'status' => 200,
+                'department' => $updatedDepartment,
+                'message' => 'Department updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error updating department: " . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error updating department'
+            ], 500);
         }
     }
+
+    return response()->json([
+        'status' => 403,
+        'message' => 'Unauthorized'
+    ], 403);
+}
 
     public function getJobTitles(Request $request)
     {
