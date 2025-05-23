@@ -1,11 +1,13 @@
+
 import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress } from '@mui/material'
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PageHead from '../../../components/Table/PageHead'
 import PageToolbar from '../../../components/Table/PageToolbar'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
+import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 
 const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
@@ -13,7 +15,7 @@ const PerformanceEvaluationList = () => {
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
     // ----- Menu Items
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -21,10 +23,15 @@ const PerformanceEvaluationList = () => {
     const handleMenuClose = () => {
         setAnchorEl(null);
     };
-    // Handle Search
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value);
-    };
+
+    // Modal state for New Form
+    const [modalOpen, setModalOpen] = useState(false);
+
+    // Example: Fetch data (implement your own logic)
+    useEffect(() => {
+        setIsLoading(false);
+        // Fetch your data here and update setPerformanceEvaluation
+    }, []);
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -46,7 +53,7 @@ const PerformanceEvaluationList = () => {
                                 color="success"
                                 onClick={() => navigate('/admin/performance-evaluation/create-evaluation')}
                             >
-                                <i className="fa "></i> Create Evaluation
+                                <i className="fa"></i> Create Evaluation
                             </Button>
 
                             {/* Forms Dropdown Button */}
@@ -71,15 +78,18 @@ const PerformanceEvaluationList = () => {
                                 }}
                             >
                                 <MenuItem
-                                    component={Link}
-                                    to="/admin/performance-evaluation/add"
-                                    onClick={handleMenuClose}
+                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
                                 >
                                     New Form
                                 </MenuItem>
                             </Menu>
-                            
                         </Box>
+
+                        {/* Modal for New Form */}
+                        <PerformanceEvaluationAdd
+                            open={modalOpen}
+                            onClose={() => setModalOpen(false)}
+                        />
 
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
@@ -105,12 +115,20 @@ const PerformanceEvaluationList = () => {
                                     </Table>
                                 </TableContainer>
 
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    onClick={() => navigate('/admin/performance-evaluation/form')}
+                                >
+                                    Go to Performance Evaluation Form
+                                </Button>
+
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
                                         rowsPerPageOptions={[10]}
                                         component="div"
-                                        count={4}  // replace this with actual count from the data
+                                        count={performanceEvaluations.length}  // replace with actual count
                                         rowsPerPage={10}
                                         page={0}  // implement page control logic here
                                         onPageChange={() => {}}

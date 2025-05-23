@@ -1,145 +1,230 @@
-import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
-import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
+import Layout from '../../../components/Layout/Layout';  // Import your Layout component
+import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import SaveIcon from '@mui/icons-material/Save'; 
+import CloseIcon from '@mui/icons-material/Close'; 
 
-const PerformanceEvaluationList = () => {
+const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
-    const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
-    // ----- Menu Items
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
+    // You can add form state and functionality here
+    const [formValues, setFormValues] = useState({
+        employeeName: '',
+        branch: '',
+        department: '',
+        evaluator: '',
+        primaryCommentor: '',
+        secondaryCommentor: '',
+        evaluationForm: '',
+        periodFrom: '',
+        periodTo: ''
+    });
+
+    const handleChange = (event) => {
+        setFormValues({ ...formValues, [event.target.name]: event.target.value });
     };
-    const handleMenuClose = () => {
-        setAnchorEl(null);
+
+    const handleSubmit = () => {
+        // Handle the form submission here
+        console.log(formValues);
     };
-
-    // Modal state for New Form
-    const [modalOpen, setModalOpen] = useState(false);
-
-    // Example: Fetch data (implement your own logic)
-    useEffect(() => {
-        setIsLoading(false);
-        // Fetch your data here and update setPerformanceEvaluation
-    }, []);
 
     return (
-        <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
-
-                    {/* Title outside of the white box */}
-                    <Box sx={{ mt: 5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
-                    </Box>
-
-                    {/* White Box Containing the Buttons and Table */}
-                    <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {/* Buttons inside the white box */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                            {/* Create Evaluation Button */}
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={() => navigate('/admin/performance-evaluation/create-evaluation')}
-                            >
-                                <i className="fa"></i> Create Evaluation
-                            </Button>
-
-                            {/* Forms Dropdown Button */}
-                            <Button
-                                id="performance-evaluation-menu"
-                                variant="contained"
-                                color="success"
-                                aria-controls={open ? 'perf-eval-menu' : undefined}
-                                aria-haspopup="true"
-                                aria-expanded={open ? 'true' : undefined}
-                                onClick={handleMenuOpen}
-                            >
-                                Forms <i className="fa fa-caret-down ml-2"></i>
-                            </Button>
-                            <Menu
-                                id="perf-eval-menu"
-                                anchorEl={anchorEl}
-                                open={open}
-                                onClose={handleMenuClose}
-                                MenuListProps={{
-                                    'aria-labelledby': 'performance-evaluation-menu',
-                                }}
-                            >
-                                <MenuItem
-                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
+        <Layout title={"Create Evaluation Form"}> 
+            <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
+            <IconButton
+                    onClick={() => navigate(-1)}
+                    sx={{
+                        position: 'absolute',
+                        top: 25,
+                        right: 30,
+                        border: '1px solid #BEBEBE',
+                        borderRadius: '50%',
+                        padding: '5px',
+                        color: '#BEBEBE',
+                    }}
+                >
+                    <CloseIcon sx={{ fontSize: '1.2rem' }} /> {/* Adjust the size here */}
+                </IconButton>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>E-Employee Evaluation Form</Typography>
+               
+                <form onSubmit={handleSubmit}>
+                    {/* First Row */}
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Employee Name</InputLabel>
+                                    <Select
+                                        label="Employee Name"
+                                        variant="outlined"
+                                        name="employeeName"
+                                        value={formValues.employeeName}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Employee 1</MenuItem>
+                                        <MenuItem value="Branch2">Employee 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }} >
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Branch</InputLabel>
+                                <Select
+                                    label="Branch"
+                                    name="branch"
+                                    value={formValues.branch}
+                                    onChange={handleChange}
                                 >
-                                    New Form
-                                </MenuItem>
-                            </Menu>
-                        </Box>
+                                    <MenuItem value="Branch1">Branch 1</MenuItem>
+                                    <MenuItem value="Branch2">Branch 2</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Department</InputLabel>
+                                    <Select
+                                        label="Department"
+                                        variant="outlined"
+                                        name="department"
+                                        value={formValues.department}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">CS Cluster</MenuItem>
+                                        <MenuItem value="Branch2">IS Cluster</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                    </Grid>
 
-                        {/* Modal for New Form */}
-                        <PerformanceEvaluationAdd
-                            open={modalOpen}
-                            onClose={() => setModalOpen(false)}
-                        />
+                    {/* Second Row */}
+                    <Grid container spacing={3} sx={{ mt: 3 }} >
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '625px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Evaluator</InputLabel>
+                                    <Select
+                                        label="Evaluator"
+                                        variant="outlined"
+                                        name="evaluator"
+                                        value={formValues.evaluator}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Evaluator 1</MenuItem>
+                                        <MenuItem value="Branch2">Evaluator 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <TextField
+                                label="Date"
+                                variant="outlined"
+                                fullWidth
+                                value={formValues.date}
+                                onChange={handleChange}
+                                name="date"
+                                type="date"
+                                required
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+                    </Grid>
 
-                        {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
-                        ) : (
-                            <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center">DATE</TableCell>
-                                                <TableCell align="center">NAME</TableCell>
-                                                <TableCell align="center">DEPARTMENT</TableCell>
-                                                <TableCell align="center">DESIGNATION</TableCell>
-                                                <TableCell align="center">STATUS</TableCell>
-                                            </TableRow>
-                                        </TableHead>
+                    {/* Third Row */}
+                    <Grid container spacing={3} sx={{ mt: 3 }}>
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Primary Commentor</InputLabel>
+                                    <Select
+                                        label="Primary Commentor"
+                                        variant="outlined"
+                                        name="primaryCommentor"
+                                        value={formValues.primaryCommentor}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Primary Commentor 1</MenuItem>
+                                        <MenuItem value="Branch2">Primary Commentor 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Secondary Commentor</InputLabel>
+                                    <Select
+                                        label="Secondary Commentor"
+                                        variant="outlined"
+                                        name="secondaryCommentor"
+                                        value={formValues.secondaryCommentor}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Secondary Commentor 1</MenuItem>
+                                        <MenuItem value="Branch2">Secondary Commentor 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                    </Grid>
 
-                                        <TableBody>
-                                            {/* Data rows should go here */}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                    {/* Fourth Row */}
+                    <Grid container spacing={3} sx={{ mt: 3 }}>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Evaluation Form</InputLabel>
+                                    <Select
+                                        label="Evaluation Form"
+                                        variant="outlined"
+                                        name="evaluationForm"
+                                        value={formValues.evaluationForm}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Evaluation Form 1</MenuItem>
+                                        <MenuItem value="Branch2">Evaluation Form 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <TextField
+                                label="Period From"
+                                variant="outlined"
+                                fullWidth
+                                value={formValues.periodFrom}
+                                onChange={handleChange}
+                                name="periodFrom"
+                                type="date"
+                                required
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <TextField
+                                label="Period To"
+                                variant="outlined"
+                                fullWidth
+                                value={formValues.periodTo}
+                                onChange={handleChange}
+                                name="periodTo"
+                                type="date"
+                                required
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+                    </Grid>
 
-                                <Button
-                                    variant="outlined"
-                                    color="primary"
-                                    onClick={() => navigate('/admin/performance-evaluation/form')}
-                                >
-                                    Go to Performance Evaluation Form
-                                </Button>
-
-                                {/* Pagination controls */}
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <TablePagination
-                                        rowsPerPageOptions={[10]}
-                                        component="div"
-                                        count={performanceEvaluations.length}  // replace with actual count
-                                        rowsPerPage={10}
-                                        page={0}  // implement page control logic here
-                                        onPageChange={() => {}}
-                                    />
-                                </Box>
-                            </>
-                        )}
+                    {/* Submit Button */}
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="success"
+                            sx={{ padding: '10px 20px' }}
+                            startIcon={<SaveIcon />} // Add the Save icon here
+                        >
+                            Save Evaluation
+                        </Button>
                     </Box>
-                </Box>
+                </form>
             </Box>
-        </Layout>
-    )
+        </Layout> 
+    );
 }
 
-export default PerformanceEvaluationList
+export default PerformanceEvaluationCreateEvaluation;
