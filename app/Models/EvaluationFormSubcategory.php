@@ -33,7 +33,7 @@ class EvaluationFormSubcategory extends Model
 
     public function option_answers()
     {
-        return $this->hasMany(EvaluationResponseOptionAnswer::class, 'subcategory_id');
+        return $this->hasMany(EvaluationOptionAnswer::class, 'subcategory_id');
     }
 
     public function options()
@@ -43,12 +43,12 @@ class EvaluationFormSubcategory extends Model
 
     public function percentage_answers()
     {
-        return $this->hasMany(EvaluationResponsePercentageAnswer::class, 'subcategory_id');
+        return $this->hasMany(EvaluationPercentageAnswer::class, 'subcategory_id');
     }
 
     public function text_answers()
     {
-        return $this->hasMany(EvaluationResponseTextAnswer::class, 'subcategory_id');
+        return $this->hasMany(EvaluationTextAnswer::class, 'subcategory_id');
     }
 
 }

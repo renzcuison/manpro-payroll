@@ -5,18 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EvaluationResponseTextAnswer extends Model
+class EvaluationPercentageAnswer extends Model
 {
     use HasFactory;
 
-    protected $table = 'evaluation_text_answers';
+    protected $table = 'evaluation_percentage_answers';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'response_id',
         'subcategory_id',
-        'answer',
+        'percentage',
         'deleted_at'
     ];
 

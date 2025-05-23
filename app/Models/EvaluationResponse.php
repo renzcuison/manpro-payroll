@@ -32,7 +32,7 @@ class EvaluationResponse extends Model
 
     public function text_answers()
     {
-        return $this->hasMany(EvaluationResponseTextAnswer::class, 'response_id');
+        return $this->hasMany(EvaluationTextAnswer::class, 'response_id');
     }
     
 }

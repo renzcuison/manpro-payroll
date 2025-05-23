@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EvaluationResponseOptionAnswer extends Model
+class EvaluationOptionAnswer extends Model
 {
     use HasFactory;
 
@@ -28,11 +28,6 @@ class EvaluationResponseOptionAnswer extends Model
     public function response()
     {
         return $this->belongsTo(EvaluationResponse::class, 'response_id');
-    }
-
-    public function subcategory()
-    {
-        return $this->belongsTo(EvaluationFormSubcategory::class, 'subcategory_id');
     }
 
 }
