@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('evaluation_response_option_answers', function (Blueprint $table) {
+        Schema::create('evaluation_option_answers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('response_id');
-            $table->unsignedBigInteger('subcategory_id');
             $table->unsignedBigInteger('option_id');
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('response_id')->references('id')->on('evaluation_responses');
-            $table->foreign('subcategory_id')->references('id')->on('evaluation_form_subcategories');
             $table->foreign('option_id')->references('id')->on('evaluation_form_subcategory_options');
+            $table->unique(['response_id','option_id']);
         });
     }
 

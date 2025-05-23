@@ -9,7 +9,7 @@ class EvaluationResponseOptionAnswer extends Model
 {
     use HasFactory;
 
-    protected $table = 'evaluation_response_option_answers';
+    protected $table = 'evaluation_option_answers';
 
     protected $primaryKey = 'id';
 

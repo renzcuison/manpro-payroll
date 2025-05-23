@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('evaluation_response_percentage_answers', function (Blueprint $table) {
+        Schema::create('evaluation_percentage_answers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('response_id');
             $table->unsignedBigInteger('subcategory_id');
@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->foreign('response_id')->references('id')->on('evaluation_responses');
             $table->foreign('subcategory_id')->references('id')->on('evaluation_form_subcategories');
+            $table->unique(['response_id','subcategory_id']);
         });
     }
 
