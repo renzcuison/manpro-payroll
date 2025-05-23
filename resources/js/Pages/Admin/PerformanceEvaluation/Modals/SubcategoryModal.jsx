@@ -6,6 +6,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import ShortTextIcon from '@mui/icons-material/ShortText';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 
 const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
     const [subCategoryName, setSubCategoryName] = useState('');
@@ -64,31 +65,23 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth 
             sx={{
                 '& .MuiPaper-root': {
-                    width: '900px', // Custom width (80% of the screen width)
-                    height: '400px', // Custom height (90% of the viewport height)
+                    width: '1100px', 
+                    height: '430px', 
+                    px: 4,
                 },
             }}
         >
             <DialogTitle sx={{ paddingTop: '50px', paddingBottom:'50px' }}>
-                {/* Close button */}
-                <IconButton
-                    onClick={onClose}
-                    sx={{
-                        position: 'absolute',
-                        top: 45,
-                        right: 30,
-                        border: '1px solid #BEBEBE',
-                        borderRadius: '50%',
-                        padding: '5px',
-                        color: '#BEBEBE',
-                        
-                    }}
-                >
-                    <CloseIcon sx={{ fontSize: '1rem' }} />
-                </IconButton>
                 
                 {/* Add Sub-Category Title */}
-                <Typography variant="h6" sx={{ textAlign: 'left' }}>
+                <Typography
+                    variant="h4"
+                    sx={{
+                        textAlign: 'left',
+                        fontFamily: 'Roboto, sans-serif', // Set font to Roboto
+                        fontWeight: 'bold',
+                    }}
+                >
                     ADD SUB-CATEGORY
                 </Typography>
 
@@ -99,7 +92,7 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
             <DialogContent>
                 {/* Sub-Category Name and Type */}
                 <Grid container spacing={3} sx={{ mb: 3 }} >
-                    <Grid item xs={6} sx={{ width: '100%' , maxWidth: '590px' }}>
+                    <Grid item xs={6} sx={{ width: '100%' , maxWidth: '528px' }}>
                         <TextField
                             label="Sub-Category Name"
                             variant="outlined"
@@ -152,48 +145,48 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                     />
                 </Box>
 
-{/* Options for Multiple Choice or Checkbox */}
-{(responseType === 'multipleChoice' || responseType === 'checkbox') && (
-    <Box sx={{ mb: 2 }}>
-        {options.map((option, index) => (
-            <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
-                {/* Display option number */}
-                <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="body1">{index + 1}.</Typography>
-                </Grid>
-                <Grid item xs={9}>
-                    <TextField
-                        variant="outlined"
-                        fullWidth
-                        value={option}
-                        onChange={(e) => handleOptionChange(index, e)}
-                    />
-                </Grid>
-                <Grid item xs={2}>
-                    <IconButton
-                        onClick={() => handleRemoveOption(index)}
-                        sx={{ color: 'gray' }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </Grid>
-            </Grid>
-        ))}
+                {/* Options for Multiple Choice or Checkbox */}
+                {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
+                    <Box sx={{ mb: 2 }}>
+                        {options.map((option, index) => (
+                            <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
+                                {/* Display option number */}
+                                <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography variant="body1">{index + 1}.</Typography>
+                                </Grid>
+                                <Grid item xs={9}>
+                                    <TextField
+                                        variant="outlined"
+                                        fullWidth
+                                        value={option}
+                                        onChange={(e) => handleOptionChange(index, e)}
+                                    />
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <IconButton
+                                        onClick={() => handleRemoveOption(index)}
+                                        sx={{ color: 'gray' }}
+                                    >
+                                        <CloseIcon />
+                                    </IconButton>
+                                </Grid>
+                            </Grid>
+                        ))}
 
-        {/* Add Option Button */}
-        <Typography
-            onClick={handleAddOption}
-            sx={{
-                color: '#000000',
-                fontSize: '14px',
-                cursor: 'pointer',
-                marginTop: '8px',
-            }}
-        >
-            {options.length + 1}. Add Option
-        </Typography>
-    </Box>
-)}
+                        {/* Add Option Button */}
+                        <Typography
+                            onClick={handleAddOption}
+                            sx={{
+                                color: '#000000',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                marginTop: '8px',
+                            }}
+                        >
+                            {options.length + 1}. Add Option
+                        </Typography>
+                    </Box>
+                )}
 
                 {/* Linear Scale Options (updated with Select for min and max values) */}
                 {responseType === 'linearScale' && (
@@ -260,22 +253,59 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                 )}
 
                 {/* Cancel and Save Buttons */}
-                <Box display="flex" justifyContent="space-between" sx={{ mt: 3 }}>
+                <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
                         onClick={onClose}
                         variant="contained"
-                        sx={{ backgroundColor: '#727F91', color: 'white' }}
+                        sx={{
+                            backgroundColor: '#727F91',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '120px', // Set fixed width
+                            height: '35px', // Set fixed height
+                            fontSize: '14px', // Ensure consistent font size
+                        }}
+                        startIcon={
+                            <CloseIcon sx={{ 
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                stroke: 'white', 
+                                strokeWidth: 2, 
+                                fill: 'none' 
+                            }}/>
+                        }
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleSave}
                         variant="contained"
-                        sx={{ backgroundColor: '#177604', color: 'white' }}
+                        sx={{
+                            backgroundColor: '#177604',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '120px', // Set fixed width
+                            height: '35px', // Set fixed height
+                            fontSize: '14px', // Ensure consistent font size
+                        }}
+                        startIcon={
+                            <AddIcon sx={{
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                stroke: 'white', 
+                                strokeWidth: 2,
+                                fill: 'none' 
+                            }}/>
+                        }
                     >
                         Save
                     </Button>
                 </Box>
+
             </DialogContent>
         </Dialog>
     );

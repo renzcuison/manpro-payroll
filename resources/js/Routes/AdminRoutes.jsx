@@ -31,13 +31,25 @@ import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
 
-import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
+// import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAdd";
+// import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
+// import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
+// import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
+// import PerformanceEvaluationRating from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationRating";
+// import PerformanceEvaluationFormAcknowledge from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledge";
+// import PerformanceEvaluationFormAcknowledgeSign from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledgeSign";
+
+import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationAdd";
+import PerformanceEvaluationFormAcknowledge from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledge";
+import PerformanceEvaluationFormAcknowledgeSign from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledgeSign";
+import PerformanceEvaluationFormAddCategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddCategory";
+import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSection";
+import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
+import SubcategoryModal from "../Pages/Admin/PerformanceEvaluation/Modals/SubcategoryModal";
+
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
-import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
-import PerformanceEvaluationRating from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationRating";
-
-
+import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
 
 // import DocumentsList from "../Pages/Documents/DocumentsList";
 
@@ -110,11 +122,25 @@ const AdminRoutes = ({ user }) => {
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} />} />
             <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} />} />
 
-            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
+            {/* <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
             <Route path="performance-evaluation/rating" element={<ProtectedRoute element={<PerformanceEvaluationRating />} user={user} />} />
             <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledge />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment-sign" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledgeSign />} user={user} />} /> */}
+
+            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledge />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment-sign" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledgeSign />} user={user} />} />
+            <Route path="performance-evaluation/add-category" element={<ProtectedRoute element={<PerformanceEvaluationFormAddCategory />} user={user} />} />
+            <Route path="performance-evaluation/add-section" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSection />} user={user} />} />
+            <Route path="performance-evaluation/save-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationFormSaveEvaluation />} user={user} />} />
+            <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<SubcategoryModal />} user={user} />} />
+
+            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
+            <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
+            <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
