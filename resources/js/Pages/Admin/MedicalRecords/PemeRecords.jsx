@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
+import PemeExamTypeTable from "./PemeExamTypeTable";
 const PemeRecords = () => {
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
         React.useState(false);
@@ -12,6 +13,11 @@ const PemeRecords = () => {
             // Reload the data or perform any action after closing the modal
         }
     };
+
+    const records = [
+        {exam: "Annual Physical Exam", date: "2025-06-01"},
+        {exam: "Drug Test", date: "2025-06-01"},
+    ];
 
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -59,6 +65,9 @@ const PemeRecords = () => {
                     close={handleCloseAddPemeRecordsModal}
                 />
             )}
+            
+            <PemeExamTypeTable records={records} />
+
         </Layout>
     );
 };
