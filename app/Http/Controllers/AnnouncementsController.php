@@ -53,7 +53,7 @@ class AnnouncementsController extends Controller
 
             $formattedAnnouncements = $announcements->map(function ($announcement) {
                 $viewCount = $announcement->views->count();
-                // Count unique employees in assigned branches and departments
+                // Count unique employees in assigned branches and departments !!ADD FOR ADDITIONAL ROLES, STATUS, AND EMPLOYMENT TYPE!!!
                 $branchIds = $announcement->branches->pluck('branch_id')->toArray();
                 $departmentIds = $announcement->departments->pluck('department_id')->toArray();
                 $recipientCount = UsersModel::where('user_type', 'Employee')
@@ -85,6 +85,18 @@ class AnnouncementsController extends Controller
                     ];
                 });
 
+                $acknowledgements = $announcement->acknowledgements->map(function ($acknowledgement) {
+                    $profilePic = $acknowledgement->user && $acknowledgement->user->profile_pic
+                        ? asset('storage/' . $acknowledgement->user->profile_pic)
+                        : asset('images/default-avatar.png');
+                    return [
+                        'user_id' => $acknowledgement->user ? $acknowledgement->user->id : null,
+                        'first_name' => $acknowledgement->user ? $acknowledgement->user->first_name : 'Unknown',
+                        'last_name' => $acknowledgement->user ? $acknowledgement->user->last_name : 'User',
+                        'profile_pic' => $profilePic,
+                    ];
+                });
+
                 return [
                     'id' => $announcement->id,
                     'unique_code' => $announcement->unique_code,
@@ -97,6 +109,7 @@ class AnnouncementsController extends Controller
                     'recipients' => $recipientCount,
                     'acknowledged' => $acknowledgedCount,
                     'views' => $views,
+                    'acknowledgements' => $acknowledgements,
                 ];
             });
 
@@ -764,7 +777,7 @@ class AnnouncementsController extends Controller
         $user = Auth::user();
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $announcement = AnnouncementsModel::where('unique_code', $code)
+            $announcement = AnnouncementsModel::where('unique_code', $code) //add new changes!
                 ->with(['acknowledgements', 'branches', 'departments'])
                 ->firstOrFail();
 
@@ -780,6 +793,11 @@ class AnnouncementsController extends Controller
                     'emp_suffix' => $emp->suffix ?? '',
                     'emp_profile_pic' => $emp->profile_pic ?? null,
                     'timestamp' => $ack->created_at,
+                    'branch_acronym' => $emp->branch ? $emp->branch->acronym : null,
+                    'department_acronym' => $emp->department ? $emp->department->acronym : null,
+                    'emp_type' => $emp->employment_type ?? null,
+                    'emp_status' => $emp->employment_status ?? null,
+                    'emp_role' => $emp->role ? $emp->role->acronym : null,
                 ];
             })->all();
 
@@ -791,7 +809,8 @@ class AnnouncementsController extends Controller
 
             //Log::info($acknowledgedUsers);
 
-            $unacknowledged = UsersModel::where('client_id', $clientId)
+                $unacknowledged = UsersModel::with(['branch', 'department', 'role'])
+                ->where('client_id', $clientId)
                 ->where(function ($query) use ($branches, $departments) {
                     if (!empty($branches)) {
                         $query->whereIn('branch_id', $branches);
@@ -800,9 +819,7 @@ class AnnouncementsController extends Controller
                         $query->orWhereIn('department_id', $departments);
                     }
                 })
-                ->where('user_type', "Employee")
-                ->whereNotIn('id', $acknowledgedUsers)
-                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic')
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic', 'branch_id', 'department_id', 'employment_type', 'employment_status', 'role_id')
                 ->get()
                 ->map(function ($employee) {
                     return [
@@ -812,17 +829,22 @@ class AnnouncementsController extends Controller
                         'emp_last_name' => $employee->last_name,
                         'emp_suffix' => $employee->suffix ?? '',
                         'emp_profile_pic' => $employee->profile_pic ?? null,
+                        'branch_acronym' => $employee->branch ? $employee->branch->acronym : null,
+                        'department_acronym' => $employee->department ? $employee->department->acronym : null,
+                        'emp_type' => $employee->employment_type ?? null,
+                        'emp_status' => $employee->employment_status ?? null,
+                        'emp_role' => $employee->role ? $employee->role->acronym : null,
                     ];
                 })
                 ->all();
 
-            //Log::info($unacknowledged);
+                        //Log::info($unacknowledged);
 
-            return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
-    }
+                        return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
+                    } else {
+                        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+                    }
+                }
 
     // Utility
     function generateRandomCode($length)
