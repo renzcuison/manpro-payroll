@@ -168,7 +168,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         formData.append('contact_number', contact);
         formData.append('address', address);
         formData.append('profile_pic', profilePic);
-        formData.append('educations', JSON.stringify(educationList));
+        formData.append('employee_educations', JSON.stringify(educationList));
 
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
@@ -443,7 +443,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
                                     <Grid size={3}>
                                         <FormControl fullWidth>
-                                            <TextField label="Degree Name" value={item.name} onChange={(e)=>handleChange(index, "name", e.target.value)} />
+                                            <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
                                         </FormControl>
                                     </Grid>
 

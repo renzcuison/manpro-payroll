@@ -457,12 +457,24 @@ class EmployeesController extends Controller
             $user->contact_number = $request->input('contact_number');
             $user->address = $request->input('address');
 
-                // Save profile pic using spatie media library
+            // Save profile pic using spatie media library
             if ($request->hasFile('profile_pic')) {
                 
 			    $user->clearMediaCollection('profile_pic');
                 $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
+            }
+            
+            if($request->has('employee_educations')){
+                $user->educations()->delete();
 
+                foreach($request->input('employee_educations') as $education){
+                    $user->educations()->create([
+                        'school_name' => $education['school_name'],
+                        'degree_name' => $education['degree_name'],
+                        'degree_type' => $education['degree_type'],
+                        'year_graduated' => $education['year_graduated'],
+                    ]);
+                }
             }
 
             $user->save();

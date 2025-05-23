@@ -21,4 +21,8 @@ class EmployeeEducation extends Model
         'year_graduated',
     ];
 
+    public function user(){
+        return $this->belongsTo(UsersModes::class, 'user_id');
+    }
+
 }
