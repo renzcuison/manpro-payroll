@@ -61,7 +61,10 @@ const AnnouncementTypes = () => {
                   <Table aria-label="simple table">
                       <TableHead>
                           <TableRow>
-                              <TableCell align="left" sx={{fontWeight: 'bold', fontSize: 16}}>Type Name</TableCell>
+                              <TableCell align="left" sx={{fontWeight: 'bold', fontSize: 16, width: "60%"}}>Type Name</TableCell>
+                              <TableCell align="center" sx={{fontWeight: 'bold', fontSize: 16, width: "20%"}}>Created On</TableCell>
+                              <TableCell align="center" sx={{fontWeight: 'bold', fontSize: 16, width: "20%"}}>Updated On</TableCell>
+
                           </TableRow>
                       </TableHead>
 
@@ -69,6 +72,16 @@ const AnnouncementTypes = () => {
                           {types.map((type) => (
                               <TableRow key={type.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => setEditType(type)}>
                                   <TableCell align="left">{type.name || '-'}</TableCell>
+                                  <TableCell align="center">
+                                    {type.created_at
+                                      ? new Date(type.created_at).toLocaleString('sv-SE', { hour12: false }).replace('T', ' ')
+                                      : '-'}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {type.updated_at
+                                      ? new Date(type.updated_at).toLocaleString('sv-SE', { hour12: false }).replace('T', ' ')
+                                      : '-'}
+                                  </TableCell>
                               </TableRow>
                           ))}
                       </TableBody>
