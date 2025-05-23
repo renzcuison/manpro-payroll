@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('response_id');
             $table->unsignedBigInteger('subcategory_id');
-            $table->string('answer');
+            $table->string('answer', length: 512);
             $table->timestamps();
             $table->softDeletes();
 
