@@ -13,7 +13,7 @@ import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 
 const useIsActive = (path) => {
     const location = useLocation();
@@ -207,6 +207,28 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+    const announcementsItems = [
+        {
+            id: 4,
+            text: "Announcements",
+            icon: "fa fa-bullhorn",
+            children: [
+                {
+                    // href: `/admin/announcements/types?`,
+                    text: "Announcement Types",
+                },
+                {
+                    // href: `/admin/announcements/add?`,
+                    text: "Create Announcement",
+                },
+                {
+                    href: `/admin/announcements?`,
+                    text: "Announcement List",
+                },
+            ],
+        },
+    ];
+
     const workShifts = [
         {
             id: 5,
@@ -293,8 +315,6 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    // console.log("User: ", user);
-
     return (
         <nav
             id="sidebar"
@@ -333,16 +353,43 @@ const Sidebar = ({ children, closeMini }) => {
                         </div>
                     </div>
 
-                    <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }} >
+                    <div
+                        className="content-side content-side-full content-side-user px-10 align-parent"
+                        style={{
+                            backgroundImage:
+                                "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))",
+                        }}
+                    >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
-                            <img className="img-avatar img-avatar32" src={avatar} alt="" />
+                            <img
+                                className="img-avatar img-avatar32"
+                                src={avatar}
+                                alt=""
+                            />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
-                            <Box display="flex" flexDirection="column" alignItems="center" >
+                            <Box
+                                display="flex"
+                                flexDirection="column"
+                                alignItems="center"
+                            >
                                 <Avatar
-                                    src={user?.media?.[0]?.original_url || imagePath}
-                                    alt={`${user?.first_name || ''} ${user?.last_name || ''}`}
-                                    sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" } }}
+                                    src={
+                                        user?.media?.[0]?.original_url ||
+                                        imagePath
+                                    }
+                                    alt={`${user?.first_name || ""} ${
+                                        user?.last_name || ""
+                                    }`}
+                                    sx={{
+                                        width: 64,
+                                        height: 64,
+                                        objectFit: "contain",
+                                        bgcolor: "grey.300",
+                                        "& .MuiAvatar-img": {
+                                            objectFit: "cover",
+                                        },
+                                    }}
                                 />
                                 <ul className="list-inline mt-10">
                                     <li className="list-inline-item">
@@ -355,7 +402,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </Box>
                         </div>
                     </div>
-                    
+
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             {user.user_type === "Admin" ? (
@@ -430,7 +477,18 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
                                     {/* </StyledNav>  */}
-
+                                    <StyledNav to={`/admin/schedules`}>
+                                        <i
+                                            className="fa fa-calendar"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Schedules & Holidays
+                                        </span>
+                                    </StyledNav>
                                     <StyledNav to={`/admin/announcements`}>
                                         <i
                                             className="fa fa-bullhorn"
@@ -464,8 +522,21 @@ const Sidebar = ({ children, closeMini }) => {
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
-                                        <i> <TrackChangesIcon sx={{ color: palette.success.main }} /> </i>
-                                        <span id="navName" className="sidebar-mini-hide" > Perimeters </span>
+                                        <i>
+                                            {" "}
+                                            <TrackChangesIcon
+                                                sx={{
+                                                    color: palette.success.main,
+                                                }}
+                                            />{" "}
+                                        </i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Perimeters{" "}
+                                        </span>
                                     </StyledNav>
 
                                     {/* <StyledNav to={`/admin/trainings`}> */}
