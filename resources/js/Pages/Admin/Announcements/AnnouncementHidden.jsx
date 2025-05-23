@@ -13,27 +13,23 @@ import {
   CardActionArea,
   Avatar,
   AvatarGroup,
+  IconButton
 } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import AnnouncementAdd from "./Modals/AnnouncementAdd";
-import AnnouncementPublish from "./Modals/AnnouncementPublish";
-import AnnouncementEdit from "./Modals/AnnouncementEdit";
 import AnnouncementManage from "./Modals/AnnouncementManage";
 import AnnouncementView from "./Modals/AnnouncementViewer";
 import { Person } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const AnnouncementList = () => {
+const AnnouncementHidden = () => {
   const navigate = useNavigate();
   const storedUser = localStorage.getItem("nasya_user");
   const headers = getJWTHeader(JSON.parse(storedUser));
@@ -51,15 +47,9 @@ const AnnouncementList = () => {
 
   const lastAnnouncement = currentPage * announcementsPerPage;
   const firstAnnouncement = lastAnnouncement - announcementsPerPage;
-  const publishedAnnouncements = announcements.filter(a => a.status === 'Published');
-  const pendingAnnouncements = announcements.filter(a => a.status === 'Pending');
   const hiddenAnnouncements = announcements.filter(a => a.status === 'Hidden');
 
-    // For pagination, slice these arrays as needed:
-  const publishedPageAnnouncements = publishedAnnouncements.slice(firstAnnouncement, lastAnnouncement);
-  const pendingPageAnnouncements = pendingAnnouncements.slice(firstAnnouncement, lastAnnouncement);
   const hiddenPageAnnouncements = hiddenAnnouncements.slice(firstAnnouncement, lastAnnouncement);
-
 
   // ---------------- View Modal States
   const [openViewModal, setOpenViewModal] = useState(false);
@@ -169,18 +159,6 @@ const AnnouncementList = () => {
     };
   }, []);
 
-  // ---------------- Announcement Modal
-  const [openAddAnnouncementModal, setOpenAddAnnouncementModal] = useState(false);
-  const handleOpenAnnouncementModal = () => {
-    setOpenAddAnnouncementModal(true);
-  };
-  const handleCloseAnnouncementModal = (reload) => {
-    setOpenAddAnnouncementModal(false);
-    if (reload) {
-      fetchAnnouncements();
-    }
-  };
-
   // ---------------- Announcement Manager
   const [openAnnouncementManage, setOpenAnnouncementManage] = useState(null);
   const handleOpenAnnouncementManage = (announcement) => {
@@ -217,7 +195,7 @@ const AnnouncementList = () => {
   };
 
   return (
-    <Layout title={"AnnouncementList"}>
+    <Layout title={"AnnouncementHidden"}>
       <Box sx={{ width: "100%", whiteSpace: "nowrap" }}>
         <Box sx={{ mx: "auto", width: { xs: "100%", md: "90%" } }}>
           <Box
@@ -230,17 +208,11 @@ const AnnouncementList = () => {
             }}
           >
             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-              Announcements
+              Hidden Announcements
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleOpenAnnouncementModal}
-            >
-              <p className="m-0">
-                <i className="fa fa-plus"></i> Add{" "}
-              </p>
-            </Button>
+            <IconButton onClick={() => navigate("/AnnouncementList")}>
+                <i className="si si-close"></i>
+            </IconButton>
           </Box>
 
           <Box sx={{ p: 3, justifyContent: "center", alignItems: "center" }}>
@@ -257,48 +229,19 @@ const AnnouncementList = () => {
               </Box>
             ) : (
               <>
-              {/* Published Announcements */}
-                <Box
+                <Grid
+                  container
+                  rowSpacing={3}
+                  columnSpacing={{ xs: 2, sm: 3 }}
                   sx={{
-                    mt:2,
-                    mb: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    px: 1,
-                    alignItems: "center",
+                    ...(hiddenPageAnnouncements.length === 0
+                      ? { justifyContent: "center" }
+                      : {}),
                   }}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                    PUBLISHED
-                  </Typography>
-                  <Button color="#fff" 
-                  onClick={() => navigate("/AnnouncementPublished")}
-                  >
-                    <p className="m-0" >
-                      <i className="fa fa-arrow-right"></i> See All{" "}
-                    </p>
-                  </Button>
-                </Box>
-                {publishedPageAnnouncements.length > 0 ? (
-                  <Slider
-                    dots={false}
-                    infinite={false}
-                    speed={500}
-                    slidesToShow={3}
-                    slidesToScroll={1}
-                    responsive={[
-                      {
-                        breakpoint: 1200,
-                        settings: { slidesToShow: 2}
-                      },
-                      {
-                        breakpoint: 800,
-                        settings: { slidesToShow: 1}
-                      }
-                    ]}
-                  >
-                    {publishedPageAnnouncements.map((announcement, index) => (
-                      <Box key={index} sx={{ px: 1 }}>
+                  {hiddenPageAnnouncements.length > 0 ? (
+                    hiddenPageAnnouncements.map((announcement, index) => (
+                      <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                         <CardActionArea
                           onClick={() => handleOpenAnnouncementManage(announcement)}
                         >
@@ -328,6 +271,7 @@ const AnnouncementList = () => {
                             )}
                             {/* Card Content */}
                             <CardContent>
+                              {/* Announcement Title */}
                               <Typography
                                 variant="h6"
                                 component="div"
@@ -336,10 +280,16 @@ const AnnouncementList = () => {
                               >
                                 {announcement.title}
                               </Typography>
+                              {/* Announcement Status */}
                               <Typography
                                 sx={{
                                   fontWeight: "bold",
-                                  color: "#177604"
+                                  color:
+                                    announcement.status === "Pending"
+                                      ? "#e9ae20"
+                                      : announcement.status === "Published"
+                                      ? "#177604"
+                                      : "#f57c00",
                                 }}
                               >
                                 {announcement.status}
@@ -393,6 +343,12 @@ const AnnouncementList = () => {
                                             src={view.profile_pic}
                                             alt={`${view.first_name} ${view.last_name}`}
                                             onError={(e) => {
+                                              console.error(`Failed to load avatar`, {
+                                                user_id: view.user_id,
+                                                name: `${view.first_name} ${view.last_name}`,
+                                                url: view.profile_pic,
+                                                error: e.message,
+                                              });
                                               e.target.src = "/images/default-avatar.png";
                                             }}
                                           />
@@ -426,135 +382,8 @@ const AnnouncementList = () => {
                             </CardActions>
                           </Card>
                         </CardActionArea>
-                      </Box>
-                    ))}
-                  </Slider>
-                ) : (
-                  <Box
-                    sx={{
-                      mt: 5,
-                      p: 3,
-                      bgcolor: "#ffffff",
-                      borderRadius: 3,
-                      width: "100%",
-                      maxWidth: 350,
-                      textAlign: "center",
-                    }}
-                  >
-                    No Published Announcements
-                  </Box>
-                )}
-
-                {/* Pending Announcements */}
-                <Box
-                  sx={{
-                    mt:8,
-                    mb: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    px: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                    PENDING
-                  </Typography>
-                  <Button
-                    color="#fff"
-                    onClick={() => navigate("/AnnouncementPending")}
-                  >
-                    <p className="m-0">
-                      <i className="fa fa-arrow-right"></i> See All{" "}
-                    </p>
-                  </Button>
-                </Box>
-                {pendingPageAnnouncements.length > 0 ? (
-                  <Slider
-                    dots={false}
-                    infinite={false}
-                    speed={500}
-                    slidesToShow={3}
-                    slidesToScroll={1}
-                    responsive={[
-                      {
-                        breakpoint: 1200,
-                        settings: { slidesToShow: 2}
-                      },
-                      {
-                        breakpoint: 800,
-                        settings: { slidesToShow: 1}
-                      }
-                    ]}
-                  >
-                    {pendingPageAnnouncements.map((announcement, index) => (
-                      <Box item key={index} sx={{ px: 1 }}>
-                        <CardActionArea
-                          onClick={() => handleOpenAnnouncementManage(announcement)}
-                        >
-                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                            {/* Card Thumbnail */}
-                            {imageLoading ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  height: "210px",
-                                }}
-                              >
-                                <CircularProgress />
-                              </Box>
-                            ) : (
-                              <CardMedia
-                                sx={{ height: "210px" }}
-                                image={
-                                  announcement.thumbnail
-                                    ? announcement.thumbnail
-                                    : "../../../images/ManProTab.png"
-                                }
-                                title={`${announcement.title}_Thumbnail`}
-                              />
-                            )}
-                            {/* Card Content */}
-                            <CardContent>
-                              {/* Announcement Title */}
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                noWrap
-                                sx={{ textOverflow: "ellipsis" }}
-                              >
-                                {announcement.title}
-                              </Typography>
-                              {/* Announcement Status */}
-                              <Typography
-                                sx={{
-                                  fontWeight: "bold",
-                                  color: "#e9ae20"
-                                }}
-                              >
-                                {announcement.status}
-                              </Typography>
-                            </CardContent>
-                            {/* Acknowledgement, Views, and Options */}
-                            <CardActions
-                              sx={{
-                                width: "100%",
-                                paddingX: "16px",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Not Yet Published
-                                  </Typography>
-                              </Box>
-                            </CardActions>
-                          </Card>
-                        </CardActionArea>
-                      </Box>
-                    ))}
-                  </Slider>
+                      </Grid>
+                    ))
                   ) : (
                     <Box
                       sx={{
@@ -567,201 +396,11 @@ const AnnouncementList = () => {
                         textAlign: "center",
                       }}
                     >
-                      No Announcements
+                      No Hidden Announcements
                     </Box>
                   )}
-
-                {/* Hidden Announcements */}
-                <Box
-                  sx={{
-                    mt:8,
-                    mb: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    px: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                    HIDDEN
-                  </Typography>
-                  <Button
-                    color="#fff"
-                    onClick={() => navigate("/AnnouncementHidden")}
-                  >
-                    <p className="m-0">
-                      <i className="fa fa-arrow-right"></i> See All{" "}
-                    </p>
-                  </Button>
-                </Box>
-                {hiddenPageAnnouncements.length > 0 ? (
-  <Slider
-    dots={false}
-    infinite={false}
-    speed={500}
-    slidesToShow={3}
-    slidesToScroll={1}
-    responsive={[
-      {
-        breakpoint: 1200,
-        settings: { slidesToShow: 2 }
-      },
-      {
-        breakpoint: 800,
-        settings: { slidesToShow: 1 }
-      }
-    ]}
-  >
-    {hiddenPageAnnouncements.map((announcement, index) => (
-      <Box key={index} sx={{ px: 1 }}>
-        <CardActionArea
-            onClick={() => handleOpenAnnouncementManage(announcement)}
-          >
-            <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-              {/* Card Thumbnail */}
-              {imageLoading ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "210px",
-                  }}
-                >
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <CardMedia
-                  sx={{ height: "210px" }}
-                  image={
-                    announcement.thumbnail
-                      ? announcement.thumbnail
-                      : "../../../images/ManProTab.png"
-                  }
-                  title={`${announcement.title}_Thumbnail`}
-                />
-              )}
-              {/* Card Content */}
-              <CardContent>
-                {/* Announcement Title */}
-                <Typography
-                  variant="h6"
-                  component="div"
-                  noWrap
-                  sx={{ textOverflow: "ellipsis" }}
-                >
-                  {announcement.title}
-                </Typography>
-                {/* Announcement Status */}
-                <Typography
-                  sx={{
-                    fontWeight: "bold",
-                    color: "#f57c00",
-                  }}
-                >
-                  {announcement.status}
-                </Typography>
-              </CardContent>
-              {/* Acknowledgement, Views, and Options */}
-              <CardActions
-                sx={{
-                  width: "100%",
-                  paddingX: "16px",
-                  alignItems: "center",
-                }}
-              >
-                <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
-                  <Box display="flex" sx={{ alignItems: "center" }}>
-                    <Person sx={{ color: "text.secondary", mr: 1 }} />
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {`${announcement.acknowledged || 0}/${announcement.recipients || 0} Acknowledged`}
-                    </Typography>
-                  </Box>
-                  <Box
-                    display="flex"
-                    sx={{ alignItems: "center", mt: 1 }}
-                  >
-                    <Person sx={{ color: "text.secondary", mr: 1 }} />
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {`${announcement.viewed || 0}/${announcement.recipients || 0} Viewed`}
-                    </Typography>
-                  </Box>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{ mt: 1, width: "100%" }}
-                  >
-                    <Box display="flex" alignItems="center">
-                      <AvatarGroup
-                        max={10}
-                        sx={{ "& .MuiAvatar-root": { width: 24, height: 24 } }}
-                      >
-                        {announcement.views &&
-                          announcement.views.map((view, idx) => (
-                            <Avatar
-                              key={idx}
-                              src={view.profile_pic}
-                              alt={`${view.first_name} ${view.last_name}`}
-                              onError={(e) => {
-                                e.target.src = "/images/default-avatar.png";
-                              }}
-                            />
-                          ))}
-                      </AvatarGroup>
-                      {announcement.viewed > 10 && (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ ml: 1 }}
-                        >
-                          +{announcement.viewed - 10}
-                        </Typography>
-                      )}
-                    </Box>
-                    {announcement.status !== "Pending" && announcement.viewed > 0 && (
-                      <Button
-                        size="small"
-                        variant="text"
-                        color="primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenViewModal(announcement);
-                        }}
-                      >
-                        See More
-                      </Button>
-                    )}
-                  </Box>
-                </Box>
-              </CardActions>
-            </Card>
-          </CardActionArea>
-        </Box>
-      ))}
-    </Slider>
-  ) : (
-    <Box
-      sx={{
-        mt: 5,
-        p: 3,
-        bgcolor: "#ffffff",
-        borderRadius: 3,
-        width: "100%",
-        maxWidth: 350,
-        textAlign: "center",
-      }}
-    >
-      No Hidden Announcements
-    </Box>
-  )}
-                {/* Pagination Controls
+                </Grid>
+                {/* Pagination Controls */}
                 {totalAnnouncements > announcementsPerPage && (
                   <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                     <Pagination
@@ -775,20 +414,12 @@ const AnnouncementList = () => {
                       showLastButton
                     />
                   </Box>
-                )
-              } */}
+                )}
               </>
             )}
           </Box>
         </Box>
       </Box>
-
-      {openAddAnnouncementModal && (
-        <AnnouncementAdd
-          open={openAddAnnouncementModal}
-          close={handleCloseAnnouncementModal}
-        />
-      )}
       {openAnnouncementManage && (
         <AnnouncementManage
           open={true}
@@ -807,4 +438,4 @@ const AnnouncementList = () => {
   );
 };
 
-export default AnnouncementList;
+export default AnnouncementHidden;
