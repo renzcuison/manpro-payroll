@@ -20,7 +20,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('section_id')->references('id')->on('evaluation_form_sections');
-            $table->unique('section_id','rank');
+            $table->unique(['section_id','rank']);
         });
     }
 

@@ -19,9 +19,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique('subcategory_id','label');
-            $table->unique('subcategory_id','rank');
             $table->foreign('subcategory_id')->references('id')->on('evaluation_form_subcategories');
+            $table->unique(['subcategory_id','label']);
+            $table->unique(['subcategory_id','rank']);
         });
     }
 

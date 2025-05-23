@@ -25,8 +25,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique('category_id','rank');
             $table->foreign('category_id')->references('id')->on('evaluation_form_categories');
+            $table->unique(['category_id','rank']);
         });
     }
 
