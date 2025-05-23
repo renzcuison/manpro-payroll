@@ -8,14 +8,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import EditIcon from "@mui/icons-material/Edit";
 
 function PersonalDetails({ user }) {
-    console.log(user);
+
     const queryClient = useQueryClient();
     const fileInputRef = useRef(); 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [profilePic, setProfilePic] = useState(user?.media[0]
-        ? user?.media[0]?.original_url
-        : user.avatar || "../../../../../images/avatarpic.jpg");
+    const [profilePic, setProfilePic] = useState(user?.media[0] ? user?.media[0]?.original_url : user.avatar || "../../../../../images/avatarpic.jpg");
     const [newProfilePic, setNewProfilePic] = useState('');
     const [imagePath, setImagePath] = useState("");
     const [education, setEducation] = useState([{}]);
@@ -35,6 +33,7 @@ function PersonalDetails({ user }) {
         }
         return age;
     };
+    
     const formattedBirthDate = user.birth_date ? 
     new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.birth_date)) : '';
 
@@ -74,7 +73,7 @@ function PersonalDetails({ user }) {
                             setProfilePic(reader.result);
                         };
                         reader.readAsDataURL(file);
-                        console.log(file);
+
                         //Upload
                         saveProfilePic(event);
                     }
@@ -155,7 +154,6 @@ function PersonalDetails({ user }) {
         };
     }, [imagePath]);
 
-    console.log(imagePath);
     return (
         <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Grid container sx={{pt: 1, pb: 4, justifyContent: "center", alignItems: "center",}}>

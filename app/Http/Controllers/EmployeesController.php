@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BenefitsModel;
@@ -14,8 +15,8 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\Company;
 use App\Models\LoanLimitHistoryModel;
+use App\Models\EmployeeEducation;
 
 // use App\Models\NewModel;
 // use App\Models\NewModel;
@@ -439,8 +440,8 @@ class EmployeesController extends Controller
 
     public function editMyProfile(Request $request)
     {
-        //log::info("EmployeesController::editMyProfile");
-        //log::info($request);
+        log::info("EmployeesController::editMyProfile");
+        log::info($request);
 
         $user = UsersModel::findOrFail($request->input('id'));
 
@@ -463,16 +464,22 @@ class EmployeesController extends Controller
 			    $user->clearMediaCollection('profile_pic');
                 $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
             }
-            
-            if($request->has('employee_educations')){
-                $user->educations()->delete();
 
-                foreach($request->input('employee_educations') as $education){
-                    $user->educations()->create([
+
+            
+            // log::info("Stopper");
+            // dd("Stopper");
+            
+            if ($request->has('employee_educations')){
+                $educations = json_decode($request->input('employee_educations'), true);
+
+                foreach($educations as $education){
+                    EmployeeEducation::create([
+                        'employee_id' => $user->id,
                         'school_name' => $education['school_name'],
                         'degree_name' => $education['degree_name'],
                         'degree_type' => $education['degree_type'],
-                        'year_graduated' => $education['year_graduated'],
+                        'year_graduated' => $education['year'],
                     ]);
                 }
             }

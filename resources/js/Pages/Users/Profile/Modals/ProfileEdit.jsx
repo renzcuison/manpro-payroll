@@ -65,7 +65,6 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
 
-    console.log(employee.educations);
     // const [profilePicError, setProfilePicError] = useState(false);
     
     /* archived -- used to handle uploading profile picture
@@ -114,7 +113,6 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         const baseBirthDate = dayjs(employee.birth_date).isSame(dayjs(birthDate));
         const baseContact = (employee.contact_number || '') == contact;
         const baseAddress = (employee.address || '') == address;
-
 
         if (!firstName || !lastName || !birthDate || !gender) {
             document.activeElement.blur();
@@ -197,17 +195,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 open={open}
                 fullWidth
                 slotProps={{
-                    paper: {
-                        sx: {
-                            p: '16px',
-                            backgroundColor: "#f8f9fa",
-                            boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                            borderRadius: { xs: 0, md: "20px" },
-                            minWidth: { xs: "100%", md: "800px" },
-                            maxWidth: { xs: "100%", md: "1000px" },
-                            marginBottom: "5%",
-                        }
-                    }
+                    paper: { sx: { p: '16px', backgroundColor: "#f8f9fa", boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: { xs: 0, md: "20px" }, minWidth: { xs: "100%", md: "800px" }, maxWidth: { xs: "100%", md: "1000px" }, marginBottom: "5%" }}
                 }}
             >
                 <DialogTitle sx={{ padding: { xs: 1, md: 4 }, paddingBottom: 1, mt: { xs: 1, md: 0 } }}>
@@ -437,7 +425,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                 <Grid container spacing={2} size ={12} key={index} alignItems="center">
                                     <Grid size={3}>
                                         <FormControl fullWidth>
-                                            <TextField label="School Name" value={item.name} onChange={(e)=>handleChange(index, "name", e.target.value)} />
+                                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
                                         </FormControl>
                                     </Grid>
 
@@ -449,16 +437,17 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
                                     <Grid size={3}>
                                         <FormControl fullWidth>
-                                            <Select
-                                                id="degree-select"
-                                                value={item.degree || ""}
-                                                label="Degree Type"
-                                                onChange={(e) => { handleChange(index, "degree", e.target.value) }}
+                                            <TextField
+                                                select
+                                                id="gender"
+                                                label="Degree"
+                                                variant="outlined"
+                                                onChange={(e) => { handleChange(index, "degree_type", e.target.value) }}
                                             >
                                                 <MenuItem value={"College/Bachelor"}>{"College/Bachelor"}</MenuItem>
                                                 <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
                                                 <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
-                                            </Select>
+                                            </TextField>
                                         </FormControl>
                                     </Grid>
                                     <Grid size={2}>
