@@ -88,61 +88,7 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
 
                 {responseType === 'linearScale' && (
                     <Box sx={{ mb: 2 }}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={5}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Min Value</InputLabel>
-                                    <Select
-                                        value={minValue}
-                                        onChange={(e) => setMinValue(e.target.value)}
-                                        label="Min Value"
-                                    >
-                                        <MenuItem value={0}>0</MenuItem>
-                                        <MenuItem value={1}>1</MenuItem>
-                                        <MenuItem value={2}>2</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={2} sx={{ textAlign: 'center' }}>
-                                <Typography variant="h6">to</Typography>
-                            </Grid>
-                            <Grid item xs={5}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Max Value</InputLabel>
-                                    <Select
-                                        value={maxValue}
-                                        onChange={(e) => setMaxValue(e.target.value)}
-                                        label="Max Value"
-                                    >
-                                        <MenuItem value={3}>3</MenuItem>
-                                        <MenuItem value={4}>4</MenuItem>
-                                        <MenuItem value={5}>5</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={5}>
-                                <TextField
-                                    label="Label"
-                                    variant="outlined"
-                                    fullWidth
-                                    value={label1}
-                                    onChange={(e) => setLabel1(e.target.value)}
-                                />
-                            </Grid>
-                            <Grid item xs={2} />
-                            <Grid item xs={5}>
-                                <TextField
-                                    label="Label for Max Value"
-                                    variant="outlined"
-                                    fullWidth
-                                    value={label2}
-                                    onChange={(e) => setLabel2(e.target.value)}
-                                />
-                            </Grid>
-                        </Grid>
+                        {/* ... your linear scale setup here */}
                     </Box>
                 )}
 
