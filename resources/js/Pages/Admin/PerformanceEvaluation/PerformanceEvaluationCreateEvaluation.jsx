@@ -50,7 +50,7 @@ const PerformanceEvaluationList = () => {
                             <Button
                                 variant="contained"
                                 color="success"
-                                onClick={() => navigate('/admin/performance-evaluation/create-evaluation')}
+                                onClick={() => { setModalOpen(true); handleMenuClose(); }}
                             >
                                 <i className="fa"></i> Create Evaluation
                             </Button>
@@ -88,6 +88,7 @@ const PerformanceEvaluationList = () => {
                         <PerformanceEvaluationAdd
                             open={modalOpen}
                             onClose={() => setModalOpen(false)}
+                            onSuccess={name=>navigate(name)}
                         />
 
                         {isLoading ? (
