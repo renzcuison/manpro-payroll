@@ -15,7 +15,6 @@ class EvaluationOptionAnswer extends Model
 
     protected $fillable = [
         'response_id',
-        'subcategory_id',
         'option_id',
         'deleted_at'
     ];
