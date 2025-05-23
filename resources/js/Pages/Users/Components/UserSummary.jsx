@@ -1,7 +1,7 @@
 import { Avatar, Box, Grid, Paper, Typography } from "@mui/material";
 import React from "react";
 
-function EmployeeSummary({ user }) {
+function UserSummary({ user }) {
     return (
         <Box component={Paper} sx={{ p: 4, borderRadius: 5 }}>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
@@ -127,4 +127,4 @@ function EmployeeSummary({ user }) {
     );
 }
 
-export default EmployeeSummary;
+export default UserSummary;

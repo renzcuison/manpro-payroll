@@ -1,4 +1,5 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Avatar, Stack, Tooltip, Divider } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography,
+     CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Avatar, Stack, Tooltip, Divider } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -10,11 +11,15 @@ import moment from 'moment';
 import dayjs from 'dayjs';
 import { Edit } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
+import { CgAdd, CgTrash } from "react-icons/cg";  
+
 
 const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
+    
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const queryClient = useQueryClient();
 
     // Form Fields
     const [firstName, setFirstName] = useState(employee.first_name || '');
@@ -25,11 +30,27 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [username, setUsername] = useState(employee.user_name || '');
     const [birthDate, setBirthDate] = useState(dayjs(employee.birth_date) || '');
     const [gender, setGender] = useState(employee.gender || '');
-
+ 
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
     const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
-    const [newProfilePic, setNewProfilePic] = useState('');
+    // const [newProfilePic, setNewProfilePic] = useState('');
+
+    //Education Form Fields
+    const [educationList, setEducationList] = useState(employee.educations ?? [{name: "", degree: "", year: ""}]); //the database result should be stored   
+    const handleChange = (index, field, value) => {
+        const updatedFields = [...educationList];
+        updatedFields[index][field] = value;
+        setEducationList(updatedFields);
+    }
+    const handleAddFields = () => {
+        setEducationList([...educationList, {name: "", degree: "", year: ""}]); 
+    }
+    const handleRemoveFields = (removalIndx) => {
+        const updatedFields = educationList.filter((_, index) => index != removalIndx)
+        setEducationList(educationList.length > 0 ? updatedFields : [{name: "", degree: "", year: ""}]);
+       
+    }
 
     // Form Errors
     const [firstNameError, setFirstNameError] = useState(false);
@@ -43,9 +64,11 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
-    const [profilePicError, setProfilePicError] = useState(false);
-    const queryClient = useQueryClient();
 
+    console.log(employee.educations);
+    // const [profilePicError, setProfilePicError] = useState(false);
+    
+    /* archived -- used to handle uploading profile picture
     const handleUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -71,6 +94,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
             }
         }
     };
+    */
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -101,7 +125,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress && !newProfilePic) {
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -143,7 +167,8 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         formData.append('gender', gender);
         formData.append('contact_number', contact);
         formData.append('address', address);
-        formData.append('profile_pic', newProfilePic ?? null);
+        formData.append('profile_pic', profilePic);
+        formData.append('educations', JSON.stringify(educationList));
 
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
@@ -196,9 +221,8 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                     <Box component="form" sx={{ my: 1 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         {/* Top Section */}
                         <Grid container spacing={{ xs: 3, md: 2 }}>
-                            {/* Profile Image */}
-                            <Grid size={{ xs: 12, md: 3 }}>
-                                {/* Profile Image */}
+                            {/* Profile Image [archived] -- now moved to PersonalDetails.jsx*/}
+                            {/* <Grid size={{ xs: 12, md: 3 }}>
                                 <FormControl sx={{
                                     marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -227,9 +251,9 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                         </Box>
                                     </Box>
                                 </FormControl>
-                            </Grid>
+                            </Grid> */}
                             {/* Personal Details */}
-                            <Grid container rowSpacing={{ xs: 3, md: 0 }} size={{ xs: 12, md: 9 }}>
+                            <Grid container rowSpacing={{ xs: 3, md: 3 }} size={12}>
                                 {/* Names */}
                                 <Grid container size={{ xs: 12, md: 10 }}>
                                     {/* First Name */}
@@ -360,11 +384,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                     </FormControl>
                                 </Grid>
                             </Grid>
-                            {medScreen &&
-                                <Grid size={12} sx={{ my: 0 }}>
-                                    <Divider />
-                                </Grid>
-                            }
+
                             {/* Contact Information */}
                             <Grid container rowSpacing={{ xs: 3, md: 0 }} size={12}>
                                 {/* Contact No. */}
@@ -401,7 +421,62 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                     </FormControl>
                                 </Grid>
                             </Grid>
+
+                            {medScreen &&
+                                <Grid size={12} sx={{ my: 2 }}>
+                                    <Divider />
+                                </Grid>
+                            }
+                            {/* Educational Backgrounds*/}
+
+                            <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Education </Typography>
+                            <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+
+                            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
+                                {educationList.map((item, index) => (
+                                <Grid container spacing={2} size ={12} key={index} alignItems="center">
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <TextField label="School Name" value={item.name} onChange={(e)=>handleChange(index, "name", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <TextField label="Degree Name" value={item.name} onChange={(e)=>handleChange(index, "name", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <Select
+                                                id="degree-select"
+                                                value={item.degree || ""}
+                                                label="Degree Type"
+                                                onChange={(e) => { handleChange(index, "degree", e.target.value) }}
+                                            >
+                                                <MenuItem value={"College/Bachelor"}>{"College/Bachelor"}</MenuItem>
+                                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
+                                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid size={2}>
+                                        <FormControl fullWidth>
+                                            <TextField label="Year Graduated" value={item.year} onChange={(e)=>handleChange(index, "year", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={1}>
+                                        <Box display="flex" justifyContent="space-between" gap={1}>
+                                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                                ))}    
+                            </Grid>
                         </Grid>
+
                         {/* Submit Button */}
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
