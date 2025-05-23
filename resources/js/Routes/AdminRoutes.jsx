@@ -59,10 +59,12 @@ import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 import Documents from "../Pages/Admin/Documents";
 import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
-import PemeRecords from "../Pages/Admin/MedicalRecords/PemeRecords";
+import PemeRecords from "../Pages/Admin/MedicalRecords/PEME/PemeRecords";
 import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLifeMasterlist";
 import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
-import PemeRecordsForm from "../Pages/Admin/MedicalRecords/Modals/PemeRecordsForm";
+import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
+import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
+import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -339,6 +341,21 @@ const AdminRoutes = ({ user }) => {
                 path="medical-records/peme-records/peme-form"
                 element={
                     <ProtectedRoute element={<PemeRecordsForm />} user={user} />
+                }
+            />
+            <Route
+                path="medical-records/peme-records/peme-responses"
+                element={
+                    <ProtectedRoute element={<PemeResponses />} user={user} />
+                }
+            />
+            <Route
+                path="medical-records/peme-records/peme-questionnaire-view"
+                element={
+                    <ProtectedRoute
+                        element={<PemeQuestionnaireView />}
+                        user={user}
+                    />
                 }
             />
 

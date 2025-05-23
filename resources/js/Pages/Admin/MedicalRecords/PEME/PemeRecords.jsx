@@ -1,9 +1,12 @@
 import React from "react";
-import { Box, Button, Typography, CircularProgress } from "@mui/material";
-import Layout from "../../../components/Layout/Layout";
+import { useNavigate } from "react-router-dom";
+import { Box, Button, Typography } from "@mui/material";
+import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
 const PemeRecords = () => {
+    const navigator = useNavigate();
+
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
         React.useState(false);
 
@@ -15,9 +18,13 @@ const PemeRecords = () => {
     };
 
     const records = [
-        {exam: "Annual Physical Exam", date: "2025-06-01"},
-        {exam: "Drug Test", date: "2025-06-01"},
+        { exam: "Annual Physical Exam", date: "2025-06-01" },
+        { exam: "Drug Test", date: "2025-06-01" },
     ];
+
+    const handleOnRowClick = () => {
+        navigator("/admin/medical-records/peme-records/peme-responses");
+    };
 
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -65,9 +72,11 @@ const PemeRecords = () => {
                     close={handleCloseAddPemeRecordsModal}
                 />
             )}
-            
-            <PemeExamTypeTable records={records} />
 
+            <PemeExamTypeTable
+                records={records}
+                onRowClick={handleOnRowClick}
+            />
         </Layout>
     );
 };
