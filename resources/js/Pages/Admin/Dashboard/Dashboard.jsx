@@ -16,6 +16,9 @@ import {
     Tabs,
     Tab,
     Chip,
+    Skeleton,
+    Stack,
+    CircularProgress,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -35,10 +38,15 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
 const Dashboard = () => {
     const { data, isFetched } = useUsers();
-    const { data: dashboard, isFetched: isFetchedDashboard } = useDashboard();
+    const {
+        data: dashboard,
+        isFetched: isFetchedDashboard,
+        isLoading,
+    } = useDashboard();
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
@@ -183,7 +191,7 @@ const Dashboard = () => {
         <Layout>
             <Grid container spacing={3} sx={{ mb: 5 }}>
                 <Grid size={{ xs: 12, lg: 9 }}>
-                    {dashboard && (
+                    {!isLoading ? (
                         <MainSection
                             infoCardsData={infoCardsData}
                             latestEmployees={latestEmployees}
@@ -192,13 +200,33 @@ const Dashboard = () => {
                             branches={branches}
                             dashboardData={dashboard}
                         />
+                    ) : (
+                        <Stack spacing={3}>
+                            <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={3}
+                            >
+                                <Typography variant="subtitle1">
+                                    Loading Dashboard..
+                                </Typography>
+                                <CircularProgress />
+                            </Stack>
+                            <Skeleton variant="rounded" height={200} />
+                            <Skeleton variant="rounded" height={140} />
+                            <Skeleton variant="rounded" height={300} />
+                        </Stack>
                     )}
                 </Grid>
                 <Grid
                     size={{ xs: 12, lg: 3 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
-                    <SchedulesHolidays setSelectedDate={setSelectedDate} />
+                    {!isLoading ? (
+                        <SchedulesHolidays setSelectedDate={setSelectedDate} />
+                    ) : (
+                        <Skeleton variant="rounded" height="100%" />
+                    )}
                 </Grid>
 
                 <Grid
