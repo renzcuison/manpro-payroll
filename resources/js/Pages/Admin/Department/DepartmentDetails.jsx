@@ -79,7 +79,19 @@ const DepartmentDetails = () => {
         fetchData();
     }, [id]);
 
-    
+    // Helper function to get employee name by ID
+    const getEmployeeNameById = (employeeId) => {
+        if (!employeeId) return "Not assigned";
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? `${employee.first_name} ${employee.last_name}` : "Not assigned";
+    };
+
+    // Helper function to get employee avatar by ID
+    const getEmployeeAvatarById = (employeeId) => {
+        if (!employeeId) return null;
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? employee.avatar : null;
+    };
     
     const filteredEmployees = employees.filter(emp => {
         const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
@@ -168,16 +180,16 @@ const DepartmentDetails = () => {
                                         alignItems: 'center',
                                         gap: 2,
                                         p: 2,
-                                        bgcolor: '#f9f9f9',
+                                        bgcolor: '#white',
                                         borderRadius: '6px'
                                     }}>
                                         <Avatar 
-                                            src={department.manager_avatar} 
+                                            src={getEmployeeAvatarById(department.manager_id)} 
                                             sx={{ width: 40, height: 40 }}
                                         />
                                         <TextField
                                             label="Manager"
-                                            value={department.manager_id || "Not assigned"}
+                                            value={getEmployeeNameById(department.manager_id)}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,
@@ -203,16 +215,16 @@ const DepartmentDetails = () => {
                                         alignItems: 'center',
                                         gap: 2,
                                         p: 2,
-                                        bgcolor: '#f9f9f9',
+                                        bgcolor: '#white',
                                         borderRadius: '6px'
                                     }}>
                                         <Avatar 
-                                            src={department.supervisor_avatar} 
+                                            src={getEmployeeAvatarById(department.supervisor_id)} 
                                             sx={{ width: 40, height: 40 }}
                                         />
                                         <TextField
                                             label="Supervisor"
-                                            value={department.supervisor_id || "Not assigned"}
+                                            value={getEmployeeNameById(department.supervisor_id)}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,
@@ -238,16 +250,16 @@ const DepartmentDetails = () => {
                                         alignItems: 'center',
                                         gap: 2,
                                         p: 2,
-                                        bgcolor: '#f9f9f9',
+                                        bgcolor: '#white',
                                         borderRadius: '6px'
                                     }}>
                                         <Avatar 
-                                            src={department.approver_avatar} 
+                                            src={getEmployeeAvatarById(department.approver_id)} 
                                             sx={{ width: 40, height: 40 }}
                                         />
                                         <TextField
                                             label="Approver"
-                                            value={department.approver_id || "Not assigned"}
+                                            value={getEmployeeNameById(department.approver_id)}
                                             fullWidth
                                             InputProps={{
                                                 readOnly: true,
