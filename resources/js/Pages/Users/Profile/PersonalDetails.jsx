@@ -1,8 +1,8 @@
-import { Avatar, Box, Grid, Paper, Stack, Typography, Tooltip, Button, Divider} from "@mui/material";
+import { Avatar, Box, Grid, Paper, Stack, Typography, Tooltip, Button, Divider } from "@mui/material";
 import moment from "moment";
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
-import axiosInstance, { getJWTHeader }  from "../../../utils/axiosConfig";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import dayjs from "dayjs";
 import { useQueryClient } from '@tanstack/react-query';
 import EditIcon from "@mui/icons-material/Edit";
@@ -10,14 +10,14 @@ import EditIcon from "@mui/icons-material/Edit";
 function PersonalDetails({ user }) {
 
     const queryClient = useQueryClient();
-    const fileInputRef = useRef(); 
+    const fileInputRef = useRef();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [profilePic, setProfilePic] = useState(user?.media[0] ? user?.media[0]?.original_url : user.avatar || "../../../../../images/avatarpic.jpg");
     const [newProfilePic, setNewProfilePic] = useState('');
     const [imagePath, setImagePath] = useState("");
     const [education, setEducation] = useState([{}]);
-    
+
     const triggerFileInput = () => {
         fileInputRef.current.click();
     }
@@ -33,9 +33,9 @@ function PersonalDetails({ user }) {
         }
         return age;
     };
-    
-    const formattedBirthDate = user.birth_date ? 
-    new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.birth_date)) : '';
+
+    const formattedBirthDate = user.birth_date ?
+        new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.birth_date)) : '';
 
     //profile picture handlers
     const handleUpload = (event) => {
@@ -64,7 +64,7 @@ function PersonalDetails({ user }) {
                     cancelButtonColor: "#d33",
                     customClass: { container: "my-swal" },
                 }).then((result) => {
-                    if (result.isConfirmed) {   
+                    if (result.isConfirmed) {
                         // Save
                         setNewProfilePic(file);
                         // Render
@@ -98,7 +98,7 @@ function PersonalDetails({ user }) {
         formData.append('contact_number', user.contact_number ?? '');
         formData.append('address', user.address ?? '');
         // End of [1]
-        
+
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
                 if (response.data.status === 200) {
@@ -119,32 +119,46 @@ function PersonalDetails({ user }) {
                 console.error('Error:', error);
             });
     };
-    axiosInstance.get(`/employee/getMyAvatar`, { headers })
-    .then((response) => {
-        if (response.data.status === 200) {
-            const avatarData = response.data.avatar;
-            if (avatarData.image && avatarData.mime) {
-                const byteCharacters = window.atob(avatarData.image);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], {
-                    type: avatarData.mime,
-                });
 
-                const newBlob = URL.createObjectURL(blob);
-                setImagePath(newBlob);
-            } else {
+    useEffect(() => {
+        axiosInstance.get(`/employee/getEducationBackground`, { headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching education backgroun:", error);
                 setImagePath(null);
+            });
+    }, []);
+    
+    axiosInstance.get(`/employee/getMyAvatar`, { headers })
+        .then((response) => {
+            if (response.data.status === 200) {
+                const avatarData = response.data.avatar;
+                if (avatarData.image && avatarData.mime) {
+                    const byteCharacters = window.atob(avatarData.image);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], {
+                        type: avatarData.mime,
+                    });
+
+                    const newBlob = URL.createObjectURL(blob);
+                    setImagePath(newBlob);
+                } else {
+                    setImagePath(null);
+                }
             }
-        }
-    })
-    .catch((error) => {
-        console.error("Error fetching avatar:", error);
-        setImagePath(null);
-    });
+        })
+        .catch((error) => {
+            console.error("Error fetching avatar:", error);
+            setImagePath(null);
+        });
 
     useEffect(() => {
         return () => {
@@ -156,32 +170,34 @@ function PersonalDetails({ user }) {
 
     return (
         <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            <Grid container sx={{pt: 1, pb: 4, justifyContent: "center", alignItems: "center",}}>
-                <Box display="flex" sx={{ justifyContent: "center", 
-                "&:hover .profile-edit-icon": {opacity: 0,},
-                "&:hover .profile-image": {filter: "brightness(1)",},}}>
+            <Grid container sx={{ pt: 1, pb: 4, justifyContent: "center", alignItems: "center", }}>
+                <Box display="flex" sx={{
+                    justifyContent: "center",
+                    "&:hover .profile-edit-icon": { opacity: 0, },
+                    "&:hover .profile-image": { filter: "brightness(1)", },
+                }}>
 
                     <Tooltip title="Update Profile, 5 MB Limit">
                         <span style={{ cursor: "pointer", position: "relative" }}>
-                            <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef}/>
-                            <Avatar  
-                            className="profile-image" src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s",}} />
-                            <EditIcon className= "profile-edit-icon"  opacity="0" 
-                            sx={{
-                                fontSize:"90px",
-                                opacity: 0,
-                                position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                color: "white",
-                                pointerEvents: "none",
-                                transform: "translate(-50%, -50%)",
-                                transition: "opacity 0.3s",
-                              }}
-                              />
+                            <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef} />
+                            <Avatar
+                                className="profile-image" src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
+                            <EditIcon className="profile-edit-icon" opacity="0"
+                                sx={{
+                                    fontSize: "90px",
+                                    opacity: 0,
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    color: "white",
+                                    pointerEvents: "none",
+                                    transform: "translate(-50%, -50%)",
+                                    transition: "opacity 0.3s",
+                                }}
+                            />
                         </span>
                     </Tooltip>
-                {/* <Box sx={{position:"relative"}}>
+                    {/* <Box sx={{position:"relative"}}>
                         <Avatar src={profilePic} sx={{ height: "160px", width: "160px", boxShadow: 3 }} />
                         <Tooltip title="Upload Image, 5 MB Limit">
                             <Button variant="outlined" startIcon={<Edit />}
@@ -286,7 +302,7 @@ function PersonalDetails({ user }) {
                 <Grid size={12} sx={{ my: 0 }}>
                     <Divider />
                 </Grid>
-                
+
             </Stack>
         </Box>
     );

@@ -438,6 +438,19 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'avatar' => $avatar]);
     }
 
+    public function getEducationBackground(Request $request)
+    {
+        log::info("EmployeesController::getEducationBackground");
+
+        $user = Auth::user();
+        
+        log::info($user->id);
+
+        $educations = EmployeeEducation::where('employee_id', $user->id)->get();
+
+        return response()->json([ 'educations' => $educations, 'status' => 200 ]);
+    }
+
     public function editMyProfile(Request $request)
     {
         log::info("EmployeesController::editMyProfile");
