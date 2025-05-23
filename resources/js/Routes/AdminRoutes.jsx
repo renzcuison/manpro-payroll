@@ -35,6 +35,7 @@ import PerformanceEvaluationAdd from "../Pages/Admin/PerformanceEvaluation/Modal
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
 import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
+import PerformanceEvaluationRating from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationRating";
 
 import DocumentsList from "../Pages/Documents/DocumentsList";
 
@@ -113,6 +114,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
             <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
+            <Route path="performance-evaluation/rating" element={<ProtectedRoute element={<PerformanceEvaluationRating />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
