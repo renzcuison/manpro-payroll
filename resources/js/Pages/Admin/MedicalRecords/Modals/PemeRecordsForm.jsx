@@ -6,12 +6,6 @@ import {
     FormGroup,
     TextField,
     FormControlLabel,
-    RadioGroup,
-    FormLabel,
-    Radio,
-    Select,
-    MenuItem,
-    InputLabel,
     Checkbox,
 } from "@mui/material";
 import Swal from "sweetalert2";
@@ -37,9 +31,7 @@ const SelectForm = ({
                     label="Form Name"
                 />
             </FormControl>
-            <FormControl
-                onChange={(e) => setFormType((p) => [...p, e.target.value])}
-            >
+            <FormControl>
                 <Box sx={{ display: "flex", marginTop: 2 }}>
                     <FormControlLabel
                         value="Attachment"
@@ -49,6 +41,20 @@ const SelectForm = ({
                                     Array.isArray(formType) &&
                                     formType.includes("Attachment")
                                 }
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormType((prev) => [
+                                            ...prev,
+                                            "Attachment",
+                                        ]);
+                                    } else {
+                                        setFormType((prev) =>
+                                            prev.filter(
+                                                (type) => type !== "Attachment"
+                                            )
+                                        );
+                                    }
+                                }}
                             />
                         }
                         label="Attachment"
@@ -65,6 +71,20 @@ const SelectForm = ({
                                     Array.isArray(formType) &&
                                     formType.includes("Positive/Negative")
                                 }
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormType((prev) => [
+                                            ...prev,
+                                            "Pass/Fail",
+                                        ]);
+                                    } else {
+                                        setFormType((prev) =>
+                                            prev.filter(
+                                                (type) => type !== "Pass/Fail"
+                                            )
+                                        );
+                                    }
+                                }}
                             />
                         }
                         label="Pass/Fail"
@@ -81,16 +101,48 @@ const SelectForm = ({
                                     Array.isArray(formType) &&
                                     formType.includes("Pass/Fail")
                                 }
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormType((prev) => [
+                                            ...prev,
+                                            "Positive/Negative",
+                                        ]);
+                                    } else {
+                                        setFormType((prev) =>
+                                            prev.filter(
+                                                (type) =>
+                                                    type !== "Positive/Negative"
+                                            )
+                                        );
+                                    }
+                                }}
                             />
                         }
                         label="Positive/Negative"
                     />
                     <FormControlLabel
                         value="Remarks"
-                        control={<Checkbox />}
-                        checked={
-                            Array.isArray(formType) &&
-                            formType.includes("Remarks")
+                        control={
+                            <Checkbox
+                                checked={
+                                    Array.isArray(formType) &&
+                                    formType.includes("Remarks")
+                                }
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormType((prev) => [
+                                            ...prev,
+                                            "Remarks",
+                                        ]);
+                                    } else {
+                                        setFormType((prev) =>
+                                            prev.filter(
+                                                (type) => type !== "Remarks"
+                                            )
+                                        );
+                                    }
+                                }}
+                            />
                         }
                         label="Remarks"
                     />{" "}
@@ -102,6 +154,20 @@ const SelectForm = ({
                                     Array.isArray(formType) &&
                                     formType.includes("Text Box")
                                 }
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormType((prev) => [
+                                            ...prev,
+                                            "Text Box",
+                                        ]);
+                                    } else {
+                                        setFormType((prev) =>
+                                            prev.filter(
+                                                (type) => type !== "Text Box"
+                                            )
+                                        );
+                                    }
+                                }}
                             />
                         }
                         label="Text Box"
@@ -210,7 +276,8 @@ const PemeRecordsForm = () => {
     };
 
     const handleConfirmQuestionnaire = () => {
-        // Save the record name, dates and
+        setQuestionnaireConfirm((p) => [...p, questionnaireForms]);
+        console.log("confirm", questionnaireConfirm);
     };
 
     const handleDeleteForm = (index) => {
@@ -305,7 +372,7 @@ const PemeRecordsForm = () => {
                                                             "transparent",
                                                         color: "#3d3d3d",
                                                     },
-                                                    boxShadow: "none", // optional: removes any shadow on hover
+                                                    boxShadow: "none",
                                                 }}
                                             >
                                                 <i
