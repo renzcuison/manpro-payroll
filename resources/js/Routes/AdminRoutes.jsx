@@ -28,6 +28,8 @@ import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 // import AnnouncementAdd from "../Pages/Admin/Announcements/AnnouncementAdd";
 // import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
 
+import AnnouncementPublishFilter from '@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter';
+
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
 
@@ -152,7 +154,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
 
             <Route path="announcements/types" element={<AnnouncementTypes />} />
+            <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
 
+            
         </Routes>
     );
 };

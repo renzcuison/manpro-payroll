@@ -8,6 +8,10 @@ use App\Models\AnnouncementViewsModel;
 use App\Models\AnnouncementBranchesModel;
 use App\Models\AnnouncementDepartmentsModel;
 use App\Models\UsersModel;
+// use App\Models\AnnouncementTypesModel;
+use App\Models\AnnouncementEmployeeRoleModel;
+// use App\Models\AnnouncementEmployeeTypeModel;
+// use App\Models\AnnouncementEmployeeStatusModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -371,51 +375,51 @@ class AnnouncementsController extends Controller
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
 
-    public function publishAnnouncement(Request $request)
-    {
-        //Log::info("AnnouncementsController::publishAnnouncement");
-        //Log::info($request);
+    // public function publishAnnouncement(Request $request)
+    // {
+    //     //Log::info("AnnouncementsController::publishAnnouncement");
+    //     //Log::info($request);
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        if ($this->checkUser()) {
-            try {
-                DB::beginTransaction();
+    //     if ($this->checkUser()) {
+    //         try {
+    //             DB::beginTransaction();
 
-                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
-                $announcement->status = "Published";
-                $announcement->save();
+    //             $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+    //             $announcement->status = "Published";
+    //             $announcement->save();
 
-                foreach ($request->input('departments') as $key => $departmentId) {
-                    Log::info($announcement->id . " " . $departmentId);
-                    AnnouncementDepartmentsModel::create([
-                        'announcement_id' => $announcement->id,
-                        'department_id' => $departmentId
-                    ]);
-                }
+    //             foreach ($request->input('departments') as $key => $departmentId) {
+    //                 Log::info($announcement->id . " " . $departmentId);
+    //                 AnnouncementDepartmentsModel::create([
+    //                     'announcement_id' => $announcement->id,
+    //                     'department_id' => $departmentId
+    //                 ]);
+    //             }
 
-                foreach ($request->input('branches') as $key => $branchId) {
-                    Log::info($announcement->id . " " . $branchId);
-                    AnnouncementBranchesModel::create([
-                        'announcement_id' => $announcement->id,
-                        'branch_id' => $branchId
-                    ]);
-                }
+    //             foreach ($request->input('branches') as $key => $branchId) {
+    //                 Log::info($announcement->id . " " . $branchId);
+    //                 AnnouncementBranchesModel::create([
+    //                     'announcement_id' => $announcement->id,
+    //                     'branch_id' => $branchId
+    //                 ]);
+    //             }
 
-                DB::commit();
+    //             DB::commit();
 
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
+    //             return response()->json(['status' => 200]);
+    //         } catch (\Exception $e) {
+    //             DB::rollBack();
 
-                Log::error("Error saving: " . $e->getMessage());
+    //             Log::error("Error saving: " . $e->getMessage());
 
-                throw $e;
-            }
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
-    }
+    //             throw $e;
+    //         }
+    //     } else {
+    //         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    //     }
+    // }
 
     public function toggleHide(Request $request, $code)
     {
@@ -905,6 +909,53 @@ class AnnouncementsController extends Controller
         } catch (\Exception $e) {
             \Log::error('updateAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    // Publish - Filter Announcement
+    public function publishAnnouncement(Request $request)
+    {
+        //Log::info("AnnouncementsController::publishAnnouncement");
+        //Log::info($request);
+
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            try {
+                DB::beginTransaction();
+
+                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+                $announcement->status = "Published";
+                $announcement->save();
+
+                foreach ($request->input('departments') as $key => $departmentId) {
+                    Log::info($announcement->id . " " . $departmentId);
+                    AnnouncementDepartmentsModel::create([
+                        'announcement_id' => $announcement->id,
+                        'department_id' => $departmentId
+                    ]);
+                }
+
+                foreach ($request->input('branches') as $key => $branchId) {
+                    Log::info($announcement->id . " " . $branchId);
+                    AnnouncementBranchesModel::create([
+                        'announcement_id' => $announcement->id,
+                        'branch_id' => $branchId
+                    ]);
+                }
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
     }
 }
