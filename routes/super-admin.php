@@ -13,6 +13,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/super-admin/clients',[ClientsController::class, 'store']);
     Route::put('/super-admin/clients/{id}',[ClientsController::class, 'update']);
     Route::delete('/super-admin/clients/{id}',[ClientsController::class, 'delete']);
+
+    Route::get('/super-admin/users',[ClientsController::class, 'users']);
         
     Route::get('/super-admin/companies',[ClientsController::class, 'companies']);
     Route::get('/super-admin/companies/{id}',[ClientsController::class, 'show']);
@@ -29,5 +31,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/super-admin/packages/{id}/assignFeature',[PackageController::class, 'assignFeature']);
 
     Route::get('/super-admin/features',[FeatureController::class, 'index']);
+    
 
 });

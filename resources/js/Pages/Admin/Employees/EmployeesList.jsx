@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Table,
     TableHead,
@@ -38,6 +38,7 @@ import {
 } from "../../../components/utils/tableUtils";
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import { useEmployees } from "./hooks/useEmployees";
 
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -147,8 +148,11 @@ const EmployeesList = () => {
             employee.middle_name || ""
         } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
         const matchedName = fullName.includes(searchName.toLowerCase());
-        const matchedBranchDept = filterByBranch === "" || filterByDepartment === "" ||
-        (employee["department"] === filterByDepartment && employee["branch"] === filterByBranch);
+        const matchedBranchDept =
+            filterByBranch === "" ||
+            filterByDepartment === "" ||
+            (employee["department"] === filterByDepartment &&
+                employee["branch"] === filterByBranch);
         return matchedName && matchedBranchDept;
     });
 
@@ -168,7 +172,8 @@ const EmployeesList = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}Employees{" "}
+                            {" "}
+                            Employees{" "}
                         </Typography>
 
                         {/*
@@ -231,9 +236,9 @@ const EmployeesList = () => {
                         <Grid
                             container
                             sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}
-                        >              
+                        >
                             <Grid container size={12} spacing={2}>
-                                {/*<---Name Search field--->*/}  
+                                {/*<---Name Search field--->*/}
                                 <Grid size={6}>
                                     <TextField
                                         id="searchName"
@@ -244,46 +249,64 @@ const EmployeesList = () => {
                                             setSearchName(e.target.value)
                                         }
                                     />
-                                </Grid>  
-                                {/*<---Branch filter field--->*/}   
-                                <Grid size = {3}>
+                                </Grid>
+                                {/*<---Branch filter field--->*/}
+                                <Grid size={3}>
                                     <TextField
                                         select
                                         id="column-view-select"
                                         label="Filter by Branch"
                                         value={filterByBranch}
                                         onChange={(event) => {
-                                            console.log("Selected branch:", event.target.value);
-                                            setFilterByBranch(event.target.value)}}
+                                            console.log(
+                                                "Selected branch:",
+                                                event.target.value
+                                            );
+                                            setFilterByBranch(
+                                                event.target.value
+                                            );
+                                        }}
                                         sx={{ width: "100%" }}
                                     >
                                         {branches.map((branch) => (
-                                            <MenuItem key={branch.id} value={branch.name}>
+                                            <MenuItem
+                                                key={branch.id}
+                                                value={branch.name}
+                                            >
                                                 {branch.name}
                                             </MenuItem>
                                         ))}
                                     </TextField>
                                 </Grid>
-                            
-                                {/*<---Department filter field--->*/}  
-                                <Grid size = {3}>
+
+                                {/*<---Department filter field--->*/}
+                                <Grid size={3}>
                                     <TextField
                                         select
                                         id="column-view-select"
                                         label="Filter by Department"
                                         value={filterByDepartment}
                                         onChange={(event) => {
-                                            console.log("Selected department:", event.target.value);
-                                            setFilterByDepartment(event.target.value)}}
-                                        sx={{ width: "100%"}}
+                                            console.log(
+                                                "Selected department:",
+                                                event.target.value
+                                            );
+                                            setFilterByDepartment(
+                                                event.target.value
+                                            );
+                                        }}
+                                        sx={{ width: "100%" }}
                                     >
                                         {departments.map((department) => (
-                                            <MenuItem key={department.id} value={department.name}>
+                                            <MenuItem
+                                                key={department.id}
+                                                value={department.name}
+                                            >
                                                 {department.name}
                                             </MenuItem>
                                         ))}
                                     </TextField>
-                                </Grid>       
+                                </Grid>
                             </Grid>
                             {/* <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
                                 <Grid item xs={6}>
@@ -347,7 +370,7 @@ const EmployeesList = () => {
                             </Grid> */}
                         </Grid>
 
-                        {/*<---Main Employee List table--->*/}   
+                        {/*<---Main Employee List table--->*/}
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
@@ -360,7 +383,7 @@ const EmployeesList = () => {
                                         stickyHeader
                                         aria-label="employee table"
                                     >
-                                        {/*<--Table Header Section-->*/} 
+                                        {/*<--Table Header Section-->*/}
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell
@@ -368,52 +391,63 @@ const EmployeesList = () => {
                                                     scope="col"
                                                 >
                                                     Name
-                                                </TableCell> 
+                                                </TableCell>
                                                 {[
-                                                    "Branch","Department",
-                                                    "Role","Status","Type",
+                                                    "Branch",
+                                                    "Department",
+                                                    "Role",
+                                                    "Status",
+                                                    "Type",
                                                 ].map(
                                                     (column) =>
-                                                    selectedColumns.includes(
-                                                        column
-                                                    ) && (
-                                                        <TableCell
-                                                            key={column}
-                                                            align="center"
-                                                            scope="col"
-                                                        >
-                                                            {column}
-                                                        </TableCell>
-                                                    )
+                                                        selectedColumns.includes(
+                                                            column
+                                                        ) && (
+                                                            <TableCell
+                                                                key={column}
+                                                                align="center"
+                                                                scope="col"
+                                                            >
+                                                                {column}
+                                                            </TableCell>
+                                                        )
                                                 )}
                                             </TableRow>
                                         </TableHead>
-                                        {/*<--Table Body Section-->*/} 
+                                        {/*<--Table Body Section-->*/}
                                         <TableBody>
-                                            {filteredEmployees.length > 0 ? (
-                                                filteredEmployees.map(
+                                            {filteredEmployees?.length > 0 ? (
+                                                filteredEmployees?.map(
                                                     (employee) => (
                                                         <TableRow
                                                             key={employee.id}
                                                             sx={{
-                                                            "&:last-child td, &:last-child th": {border: 0,},
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
+                                                                "&:last-child td, &:last-child th":
+                                                                    {
+                                                                        border: 0,
+                                                                    },
+                                                                "&:hover": {
+                                                                    backgroundColor:
+                                                                        "rgba(0, 0, 0, 0.1)",
+                                                                    cursor: "pointer",
+                                                                },
+                                                            }}
                                                         >
                                                             <TableCell align="left">
                                                                 <Link
                                                                     to={`/admin/employee/${employee.user_name}`}
                                                                     style={{
-                                                                        textDecoration: "none",
+                                                                        textDecoration:
+                                                                            "none",
                                                                         color: "inherit",
                                                                     }}
                                                                 >
                                                                     <Box
                                                                         display="flex"
-                                                                        sx={{alignItems:"center",}}
+                                                                        sx={{
+                                                                            alignItems:
+                                                                                "center",
+                                                                        }}
                                                                     >
                                                                         <Avatar
                                                                             src={renderImage(
@@ -421,7 +455,9 @@ const EmployeesList = () => {
                                                                                 employee.avatar,
                                                                                 employee.avatar_mime
                                                                             )}
-                                                                            sx={{mr: 2,}}
+                                                                            sx={{
+                                                                                mr: 2,
+                                                                            }}
                                                                         />
                                                                         {
                                                                             employee.first_name
@@ -437,41 +473,51 @@ const EmployeesList = () => {
                                                                 </Link>
                                                             </TableCell>
                                                             {[
-                                                                "Branch","Department",
-                                                                "Role","Status","Type",
+                                                                "Branch",
+                                                                "Department",
+                                                                "Role",
+                                                                "Status",
+                                                                "Type",
                                                             ].map(
                                                                 (column) =>
-                                                                    selectedColumns.includes(column) &&  
-                                                                    (
-                                                                    <TableCell
-                                                                        key={column}
-                                                                        align="center"
-                                                                    >
-                                                                        <Link
-                                                                            to={`/admin/employee/${employee.user_name}`}
-                                                                            style={{
-                                                                                textDecoration: "none",
-                                                                                color: "inherit",
-                                                                            }}
+                                                                    selectedColumns.includes(
+                                                                        column
+                                                                    ) && (
+                                                                        <TableCell
+                                                                            key={
+                                                                                column
+                                                                            }
+                                                                            align="center"
                                                                         >
-                                                                            {employee[
-                                                                                column.toLowerCase()
-                                                                            ] ||
-                                                                                employee[
-                                                                                    `employment_${column.toLowerCase()}`
+                                                                            <Link
+                                                                                to={`/admin/employee/${employee.user_name}`}
+                                                                                style={{
+                                                                                    textDecoration:
+                                                                                        "none",
+                                                                                    color: "inherit",
+                                                                                }}
+                                                                            >
+                                                                                {employee[
+                                                                                    column.toLowerCase()
                                                                                 ] ||
-                                                                                "-"}
-                                                                        </Link>
-                                                                    </TableCell>
-                                                                )
+                                                                                    employee[
+                                                                                        `employment_${column.toLowerCase()}`
+                                                                                    ] ||
+                                                                                    "-"}
+                                                                            </Link>
+                                                                        </TableCell>
+                                                                    )
                                                             )}
                                                         </TableRow>
                                                     )
                                                 )
-                                            ):(
+                                            ) : (
                                                 <TableRow>
                                                     <TableCell
-                                                        colSpan={selectedColumns.length +1}
+                                                        colSpan={
+                                                            selectedColumns.length +
+                                                            1
+                                                        }
                                                         align="center"
                                                     >
                                                         No employees found.
@@ -481,7 +527,7 @@ const EmployeesList = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                                {filteredEmployees.length > 0 && (
+                                {filteredEmployees?.length > 0 && (
                                     <Box
                                         display="flex"
                                         sx={{
@@ -499,7 +545,7 @@ const EmployeesList = () => {
                                             variant="h6"
                                             sx={{ fontWeight: "bold" }}
                                         >
-                                            {filteredEmployees.length}
+                                            {filteredEmployees?.length}
                                         </Typography>
                                     </Box>
                                 )}
