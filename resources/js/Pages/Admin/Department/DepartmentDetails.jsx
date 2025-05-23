@@ -24,10 +24,12 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    InputAdornment
 } from "@mui/material";
 import Swal from "sweetalert2";
 import { red } from "@mui/material/colors";
+import SearchIcon from "@mui/icons-material/Search";
 
 const DepartmentDetails = () => {
     const { id } = useParams();
@@ -43,35 +45,58 @@ const DepartmentDetails = () => {
     const [branchFilter, setBranchFilter] = useState("all");
     const [openEditModal, setOpenEditModal] = useState(false);
     const [branches, setBranches] = useState([]);
+    const [allEmployees, setAllEmployees] = useState([]);
+    const [managerSearch, setManagerSearch] = useState("");
+    const [supervisorSearch, setSupervisorSearch] = useState("");
+    const [approverSearch, setApproverSearch] = useState("");
 
     useEffect(() => {
-        const fetchDepartmentDetails = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axiosInstance.get(`/settings/getDepartment/${id}`, { headers });
-                setDepartment(response.data.department);
-                setEmployees(response.data.employees || []);
+                setIsLoading(true);
                 
-                // Fetch branches if not already available
+                // Fetch department details
+                const deptResponse = await axiosInstance.get(`/settings/getDepartment/${id}`, { headers });
+                setDepartment(deptResponse.data.department);
+                setEmployees(deptResponse.data.employees || []);
+                
+                // Fetch branches
                 const branchesResponse = await axiosInstance.get('/settings/getBranches', { headers });
                 setBranches(branchesResponse.data.branches || []);
                 
+                // Fetch all employees for personnel assignment dropdowns
+                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
+                setAllEmployees(employeesResponse.data.employees || []);
 
             } catch (err) {
-                console.error("Error fetching department:", err);
-                setError("Failed to load department details");
+                console.error("Error fetching data:", err);
+                setError("Failed to load data");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchDepartmentDetails();
+        fetchData();
     }, [id]);
-
+    
     const filteredEmployees = employees.filter(emp => {
         const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
         const branchMatch = branchFilter === "all" || emp.branch_id === branchFilter;
         return nameMatch && branchMatch;
     });
+
+    // Filter functions for dropdown searches
+    const filteredManagerOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(managerSearch.toLowerCase())
+    );
+
+    const filteredSupervisorOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(supervisorSearch.toLowerCase())
+    );
+
+    const filteredApproverOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(approverSearch.toLowerCase())
+    );
 
     if (isLoading) return <LoadingSpinner />;
     if (error) return <Typography color="error">{error}</Typography>;
@@ -445,25 +470,169 @@ const DepartmentDetails = () => {
                             </FormControl>
                         </FormGroup>
 
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {/* Manager Dropdown with Search */}
+                                    <FormControl sx={{ marginBottom: 3, width: '32%' }}>
+                                        <InputLabel id="manager-label">Manager</InputLabel>
+                                        <Select
+                                            labelId="manager-label"
+                                            id="manager-select"
+                                            value={department.manager_id || ''}
+                                            label="Manager"
+                                            onChange={(e) => setDepartment({...department, manager_id: e.target.value})}
+                                            MenuProps={{
+                                                PaperProps: {
+                                                    style: {
+                                                        maxHeight: 300
+                                                    }
+                                                },
+                                                // This prevents the menu from closing when clicking on the search field
+                                                onClick: (e) => e.stopPropagation()
+                                            }}
+                                        >
+                                            <MenuItem value="" sx={{ p: 0 }}>
+                                                <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                                    <TextField
+                                                        fullWidth
+                                                        placeholder="Search manager..."
+                                                        value={managerSearch}
+                                                        onChange={(e) => setManagerSearch(e.target.value)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.nativeEvent.stopImmediatePropagation();
+                                                        }}
+                                                        onKeyDown={(e) => e.stopPropagation()}
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    <SearchIcon />
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                        variant="standard"
+                                                        sx={{ p: 1 }}
+                                                        autoFocus
+                                                    />
+                                                </Box>
+                                            </MenuItem>
+                                            <MenuItem value="">Not assigned</MenuItem>
+                                            {filteredManagerOptions.map((emp) => (
+                                                <MenuItem key={emp.id} value={emp.id}>
+                                                    {`${emp.first_name} ${emp.last_name}`}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    
+                                    {/* Supervisor Dropdown with Search */}
+                                    <FormControl sx={{ marginBottom: 3, width: '32%' }}>
+                                        <InputLabel id="supervisor-label">Supervisor</InputLabel>
+                                        <Select
+                                            labelId="supervisor-label"
+                                            id="supervisor-select"
+                                            value={department.supervisor_id || ''}
+                                            label="Supervisor"
+                                            onChange={(e) => setDepartment({...department, supervisor_id: e.target.value})}
+                                            MenuProps={{
+                                                PaperProps: {
+                                                    style: {
+                                                        maxHeight: 300
+                                                    }
+                                                },
+                                                onClick: (e) => e.stopPropagation()
+                                            }}
+                                        >
+                                            <MenuItem value="" sx={{ p: 0 }}>
+                                                <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                                    <TextField
+                                                        fullWidth
+                                                        placeholder="Search supervisor..."
+                                                        value={supervisorSearch}
+                                                        onChange={(e) => setSupervisorSearch(e.target.value)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.nativeEvent.stopImmediatePropagation();
+                                                        }}
+                                                        onKeyDown={(e) => e.stopPropagation()}
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    <SearchIcon />
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                        variant="standard"
+                                                        sx={{ p: 1 }}
+                                                        autoFocus
+                                                    />
+                                                </Box>
+                                            </MenuItem>
+                                            <MenuItem value="">Not assigned</MenuItem>
+                                            {filteredSupervisorOptions.map((emp) => (
+                                                <MenuItem key={emp.id} value={emp.id}>
+                                                    {`${emp.first_name} ${emp.last_name}`}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+
+                                    {/* Approver Dropdown with Search */}
+                                    <FormControl sx={{ marginBottom: 3, width: '32%' }}>
+                                        <InputLabel id="approver-label">Approver</InputLabel>
+                                        <Select
+                                            labelId="approver-label"
+                                            id="approver-select"
+                                            value={department.approver_id || ''}
+                                            label="Approver"
+                                            onChange={(e) => setDepartment({...department, approver_id: e.target.value})}
+                                            MenuProps={{
+                                                PaperProps: {
+                                                    style: {
+                                                        maxHeight: 300
+                                                    }
+                                                },
+                                                onClick: (e) => e.stopPropagation()
+                                            }}
+                                        >
+                                            <MenuItem value="" sx={{ p: 0 }}>
+                                                <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                                    <TextField
+                                                        fullWidth
+                                                        placeholder="Search approver..."
+                                                        value={approverSearch}
+                                                        onChange={(e) => setApproverSearch(e.target.value)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.nativeEvent.stopImmediatePropagation();
+                                                        }}
+                                                        onKeyDown={(e) => e.stopPropagation()}
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    <SearchIcon />
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                        variant="standard"
+                                                        sx={{ p: 1 }}
+                                                        autoFocus
+                                                    />
+                                                </Box>
+                                            </MenuItem>
+                                            <MenuItem value="">Not assigned</MenuItem>
+                                            {filteredApproverOptions.map((emp) => (
+                                                <MenuItem key={emp.id} value={emp.id}>
+                                                    {`${emp.first_name} ${emp.last_name}`}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                        </FormGroup>
+
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '79%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="description"
-                                    label="Description"
-                                    variant="outlined"
-                                    value={department.description || ''}
-                                    onChange={(e) => setDepartment({...department, description: e.target.value})}
-                                    multiline
-                                    rows={4}
-                                />
-                            </FormControl>
-
                             <FormControl sx={{
                                 marginBottom: 3, width: '19%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -498,6 +667,9 @@ const DepartmentDetails = () => {
                                                 confirmButtonColor: '#177604',
                                             });
                                             setOpenEditModal(false);
+                                            // Refresh the department data
+                                            const updatedResponse = await axiosInstance.get(`/settings/getDepartment/${id}`, { headers });
+                                            setDepartment(updatedResponse.data.department);
                                         }
                                     } catch (error) {
                                         console.error('Error:', error);

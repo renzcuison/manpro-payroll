@@ -40,7 +40,7 @@ const DepartmentsList = () => {
         "Assigned Manager",
         "Assigned Supervisor",
         "Number of Employees",
-        "Approver"
+        "Assigned Approver"
     ]);
 
     const [openModal, setOpenModal] = useState(false);
