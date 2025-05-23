@@ -8,6 +8,9 @@ const PemeExamTypeTable = ({ records }) => {
                     <TableRow sx={{ backgroundColor: "#F5F5F5"}} >
                         <TableCell align="center"><strong>Date</strong></TableCell>
                         <TableCell align="center"><strong>Exam</strong></TableCell>
+                        <TableCell align="center"><strong>Due Date</strong></TableCell>
+                        <TableCell align="center"><strong>Progress</strong></TableCell>
+                        <TableCell align="center"><strong>Status</strong></TableCell>        
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -15,6 +18,9 @@ const PemeExamTypeTable = ({ records }) => {
                         <TableRow sx={{ backgroundColor: "#FAFAFA"}} key={record.id}>
                         <TableCell align="center">{record.date}</TableCell>
                         <TableCell align="center">{record.exam}</TableCell>
+                        <TableCell align="center">{record.dueDate}</TableCell>
+                        <TableCell align="center">{record.progress}</TableCell>
+                        <TableCell align="center">{record.status}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

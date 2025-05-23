@@ -1,15 +1,12 @@
 import React from "react";
-import { Box, Button, Typography, TextField, CircularProgress } from "@mui/material";
+import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
-import PemeOverview from "./PemeOverview";
 
 const PemeRecords = () => {
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
         React.useState(false);
-
-    const [search, setSearch] = React.useState(""); 
 
     const handleCloseAddPemeRecordsModal = (reload) => {
         setOpenAddPemeRecordsModal(false);
@@ -18,24 +15,10 @@ const PemeRecords = () => {
         }
     };
 
-    const records = React.useMemo(() => [
-    {
-        exam: "Annual Physical Exam", 
-        date: "2025-06-01"
-    },
-    {
-        exam: "Drug Test", 
-        date: "2025-06-01"
-    },
-    ], 
-    []);
-
-    const filteredRecords = records.filter((record) =>
-        [record.date, record.exam]
-        .some((field) =>
-            field?.toLowerCase().includes(search.toLowerCase())
-        )
-    );
+    const records = [
+        {date: "May 1, 2025", exam: "Annual Physical Exam", dueDate: "May 2, 2026", progress: "7/7", status: "Clear"},
+        {date: "May 3, 2025", exam: "Drug Test", dueDate: "May 4, 2025", progress: "7/7", status: "Clear"},
+    ];
 
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -83,53 +66,33 @@ const PemeRecords = () => {
                     close={handleCloseAddPemeRecordsModal}
                 />
             )}
+            
+<Box
+  sx={{
+    display: "flex",
+    gap: 4,
+    marginTop: 4,
+    flexWrap: "nowrap",  // prevent wrapping below
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  }}
+>
 
-            <Box
-            sx={{
-                display: "flex",
-                gap: 4,
-                marginTop: 4,
-                flexWrap: "nowrap",  // prevent wrapping below
-                justifyContent: "flex-start",
-                alignItems: "flex-start",
-            }}
-            >
-            <Box
-                sx={{
-                width: "25%",  // fixed width for chart container
-                minWidth: 280,
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: 1,
-                padding: 2,
-                flexShrink: 0, // prevent shrinking
-                }}
-            >
-                <PemeOverview records={records} />
-            </Box>
-            <Box
-                sx={{
-                width: "80%",  // fixed width for table container
-                minWidth: 300,
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: 1,
-                padding: 2,
-                overflow: "hidden",
-                }}
-            >
-                <TextField
-                        label="Search exam, date, or status"
-                        variant="outlined"
-                        fullWidth
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        sx={{ marginBottom: 2 }}
-                    />
-                <PemeExamTypeTable records={filteredRecords} />
-            </Box>
-            </Box>
-            </Layout>
+  <Box
+    sx={{
+      width: "100%",  // fixed width for table container
+      minWidth: 300,
+      backgroundColor: "white",
+      borderRadius: 2,
+      boxShadow: 1,
+      padding: 2,
+      overflow: "hidden",
+    }}
+  >
+    <PemeExamTypeTable records={records} />
+  </Box>
+</Box>
+        </Layout>
     );
 };
 
