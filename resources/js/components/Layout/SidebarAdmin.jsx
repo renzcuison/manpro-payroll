@@ -222,6 +222,22 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+
+        const branchItems = [
+        {
+            id: 11,
+            text: "Branches",
+            icon: "fa fa-pencil-square-o",
+            children: [
+                {
+                    href: `/admin/branches/branchlist?`,
+                    text: "Branch Types",
+                },
+              
+            ],
+        },
+    ];
+
     
 
     const workShifts = [
@@ -429,6 +445,17 @@ const Sidebar = ({ children, closeMini }) => {
                                     })}
 
                                     {departmentItems.map((items, index) => {
+                                        return (
+                                        <SideItem 
+                                            key={index} 
+                                            items={items} 
+                                        
+                                        /> 
+                                       
+                                        );
+                                    })}
+
+                                    {branchItems.map((items, index) => {
                                         return (
                                         <SideItem 
                                             key={index} 

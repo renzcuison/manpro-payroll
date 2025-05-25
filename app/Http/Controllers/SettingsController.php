@@ -46,6 +46,35 @@ class SettingsController extends Controller
         return response()->json(['status' => 200, 'branches' => null]);
     }
 
+
+   public function getBranch($id)
+    {
+        if ($this->checkUser()) {
+            $branch = BranchesModel::with(['manager', 'supervisor', 'approver', 'employees'])->findOrFail($id);
+            $rawEmployees = $branch->employees;
+
+            $employees = [];
+
+            foreach( $rawEmployees as $rawEmployee ){
+                $employees[] = [
+                    'name' => $rawEmployee->last_name . ", " . $rawEmployee->first_name . " " . $rawEmployee->middle_name . " " . $rawEmployee->suffix,
+                    'department' => $rawEmployee->department->name,
+                ];  
+            }
+
+            return response()->json([
+                'status' => 200,
+                'branch' => $branch,
+                'employees' => $employees, 
+                'employeesCount' => $branch->employees->count()
+            ]);
+        }
+
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+
+
     public function saveBranch(Request $request)
     {
         // log::info("SettingsController::saveBranch");

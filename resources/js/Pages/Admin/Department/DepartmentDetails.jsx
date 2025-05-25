@@ -163,122 +163,74 @@ const DepartmentDetails = () => {
                         }}
                     >
                         <Grid container>
-                            {/* Personnel Section */}
-                            <Grid item xs={2}>
-                                <Box sx={{ 
+                 
+                        {/* Personnel Section */}
+                        <Grid item xs={12}>
+                            <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                justifyContent: 'space-between',
+                                gap: 2,
+                                ml:10,
+                                width: '100%',
+                                px: 2,
+                            }}
+                            >
+                            {[
+                                { role: 'Manager', id: department.manager_id },
+                                { role: 'Supervisor', id: department.supervisor_id },
+                                { role: 'Approver', id: department.approver_id },
+                            ].map(({ role, id }) => (
+                                <Box
+                                key={role}
+                                sx={{
+                                    flex: 1,
                                     display: 'flex',
-                                    flexDirection: { xs: 'column', sm: 'row' },
-                                    justifyContent: 'space-between',
-                                    gap: 2,
-                                    width: '100%'
-                                }}>
-                                    {/* Manager */}
-                                    <Box sx={{ 
-                                        ml:15,
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                        p: 2,
-                                        bgcolor: '#white',
-                                        borderRadius: '6px'
-                                    }}>
-                                        <Avatar 
-                                            src={getEmployeeAvatarById(department.manager_id)} 
-                                            sx={{ width: 40, height: 40 }}
-                                        />
-                                        <TextField
-                                            label="Manager"
-                                            value={getEmployeeNameById(department.manager_id)}
-                                            fullWidth
-                                            InputProps={{
-                                                readOnly: true,
-                                                sx: {
-                                                    "& .MuiOutlinedInput-notchedOutline": {
-                                                        border: 'none'
-                                                    }
-                                                }
-                                            }}
-                                            sx={{
-                                                "& .MuiOutlinedInput-root": {
-                                                    backgroundColor: 'transparent',
-                                                }
-                                            }}
-                                        />
-                                    </Box>
-                                    
-                                    {/* Supervisor */}
-                                    <Box sx={{ 
-                                        ml:15,
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                        p: 2,
-                                        bgcolor: '#white',
-                                        borderRadius: '6px'
-                                    }}>
-                                        <Avatar 
-                                            src={getEmployeeAvatarById(department.supervisor_id)} 
-                                            sx={{ width: 40, height: 40 }}
-                                        />
-                                        <TextField
-                                            label="Supervisor"
-                                            value={getEmployeeNameById(department.supervisor_id)}
-                                            fullWidth
-                                            InputProps={{
-                                                readOnly: true,
-                                                sx: {
-                                                    "& .MuiOutlinedInput-notchedOutline": {
-                                                        border: 'none'
-                                                    }
-                                                }
-                                            }}
-                                            sx={{
-                                                "& .MuiOutlinedInput-root": {
-                                                    backgroundColor: 'transparent',
-                                                }
-                                            }}
-                                        />
-                                    </Box>
-                                    
-                                    {/* Approver */}
-                                    <Box sx={{ 
-                                        ml:15,
-                                        flex: 2,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                        p: 2,
-                                        bgcolor: '#white',
-                                        borderRadius: '6px'
-                                    }}>
-                                        <Avatar 
-                                            src={getEmployeeAvatarById(department.approver_id)} 
-                                            sx={{ width: 40, height: 40 }}
-                                        />
-                                        <TextField
-                                            label="Approver"
-                                            value={getEmployeeNameById(department.approver_id)}
-                                            fullWidth
-                                            InputProps={{
-                                                readOnly: true,
-                                                sx: {
-                                                    "& .MuiOutlinedInput-notchedOutline": {
-                                                        border: 'none'
-                                                    }
-                                                }
-                                            }}
-                                            sx={{
-                                                "& .MuiOutlinedInput-root": {
-                                                    backgroundColor: 'transparent',
-                                                }
-                                            }}
-                                        />
-                                    </Box>
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    p: 2,
+                                    ml:10,
+                                    bgcolor: '#fff',
+                                    borderRadius: '6px',
+                                    textAlign: 'center',
+                                }}
+                                >
+                                <Avatar
+                                    src={getEmployeeAvatarById(id)}
+                                    sx={{ width: 60, height: 60, mb: 1 }}
+                                />
+                                <TextField
+                                    value={getEmployeeNameById(id)}
+                                    fullWidth
+                                    InputProps={{
+                                    readOnly: true,
+                                    sx: {
+                                        input: {
+                                        textAlign: 'center', // Center text horizontally
+                                        },
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                        border: 'none',
+                                        },
+                                    },
+                                    }}
+                                    sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        backgroundColor: 'transparent',
+                                    },
+                                    }}
+                                />
+                                <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                    {role}
                                 </Box>
-                            </Grid>
+                                </Box>
+                            ))}
+                            </Box>
                         </Grid>
+                        </Grid>
+
+                     
+
                     </Box>
 
                     <Box

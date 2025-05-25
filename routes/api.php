@@ -92,6 +92,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
+        Route::get('/getBranch/{id}', [SettingsController::class, 'getBranch']);
+
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
 
