@@ -24,7 +24,7 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import VerifyLogin from "./Pages/VerifyLogin";
 
-import Profile from "./Pages/Users/Profile/Profile.jsx";
+import Profile from "./Pages/Users/Profile.jsx";
 
 import Reports from "./Pages/Reports/Reports.jsx";
 import ReportCreate from "./Pages/Reports/ReportCreate.jsx";

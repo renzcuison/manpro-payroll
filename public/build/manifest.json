@@ -1,6 +1,6 @@
 {
   "node_modules/canvg/lib/index.es.js": {
-    "file": "assets/index.es-Bh4-oF-j.js",
+    "file": "assets/index.es-BNYOmn23.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
@@ -81,7 +81,7 @@
     "src": "resources/js/Assets/default_perimeter_image.png"
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-j03yLuxM.js",
+    "file": "assets/app-DDh-A-Bp.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

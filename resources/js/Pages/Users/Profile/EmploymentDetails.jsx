@@ -5,8 +5,7 @@ function EmploymentDetails({ user }) {
     return (
         <Box component={Paper} sx={{ p: 4, borderRadius: 5 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
-                {" "}
-                Employment Details{" "}
+                {" "}Employment Details{" "}
             </Typography>
             <Grid container columnSpacing={4} sx={{ py: 1 }}>
                 <Grid size={{ xs: 5, md: 2 }}>
@@ -14,8 +13,7 @@ function EmploymentDetails({ user }) {
                 </Grid>
                 <Grid size={{ xs: 7, md: 2 }}>
                     <Typography sx={{ fontWeight: "bold" }}>
-                        {" "}
-                        {user.role || "-"}{" "}
+                        {" "}{user.role || "-"}{" "}
                     </Typography>
                 </Grid>
 
