@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BenefitsModel;
@@ -14,8 +15,8 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\Company;
 use App\Models\LoanLimitHistoryModel;
+use App\Models\EmployeeEducation;
 
 // use App\Models\NewModel;
 // use App\Models\NewModel;
@@ -437,10 +438,23 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'avatar' => $avatar]);
     }
 
+    public function getEducationBackground(Request $request)
+    {
+        log::info("EmployeesController::getEducationBackground");
+
+        $user = Auth::user();
+        
+        log::info($user->id);
+
+        $educations = EmployeeEducation::where('employee_id', $user->id)->get();
+
+        return response()->json([ 'educations' => $educations, 'status' => 200 ]);
+    }
+
     public function editMyProfile(Request $request)
     {
-        //log::info("EmployeesController::editMyProfile");
-        //log::info($request);
+        log::info("EmployeesController::editMyProfile");
+        log::info($request);
 
         $user = UsersModel::findOrFail($request->input('id'));
 
@@ -457,12 +471,30 @@ class EmployeesController extends Controller
             $user->contact_number = $request->input('contact_number');
             $user->address = $request->input('address');
 
-                // Save profile pic using spatie media library
+            // Save profile pic using spatie media library
             if ($request->hasFile('profile_pic')) {
                 
 			    $user->clearMediaCollection('profile_pic');
                 $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
+            }
 
+
+            
+            // log::info("Stopper");
+            // dd("Stopper");
+            
+            if ($request->has('employee_educations')){
+                $educations = json_decode($request->input('employee_educations'), true);
+
+                foreach($educations as $education){
+                    EmployeeEducation::create([
+                        'employee_id' => $user->id,
+                        'school_name' => $education['school_name'],
+                        'degree_name' => $education['degree_name'],
+                        'degree_type' => $education['degree_type'],
+                        'year_graduated' => $education['year'],
+                    ]);
+                }
             }
 
             $user->save();

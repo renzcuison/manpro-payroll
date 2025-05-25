@@ -122,9 +122,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
-        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::get('/getEducationBackground', [EmployeesController::class, 'getEducationBackground']);
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
+
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
