@@ -173,15 +173,12 @@ class EvaluationController extends Controller
 
             }
             $evaluationForms->where('deleted_at', '!=', null);
-
-            $evaluationForms = $evaluationForms->get();
-
+            $evaluationForms = $evaluationForms->orderBy('name')->get();
             if( !$evaluationForms->count() ) return response()->json([
                 'status' => 200,
                 'message' => 'No deleted Evaluation Forms found.',
                 'evaluationForms' => $evaluationForms
             ]);
-        
             return response()->json([
                 'status' => 200,
                 'message' => 'Deleted evaluation Forms successfully retrieved.',
@@ -226,15 +223,12 @@ class EvaluationController extends Controller
 
             }
             if( !$request->include_deleted ) $evaluationForms->where('deleted_at', null);
-
-            $evaluationForms = $evaluationForms->get();
-
+            $evaluationForms = $evaluationForms->orderBy('name')->get();
             if( !$evaluationForms->count() ) return response()->json([
                 'status' => 200,
                 'message' => 'No Evaluation Forms found.',
                 'evaluationForms' => $evaluationForms
             ]);
-        
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Forms successfully retrieved.',
