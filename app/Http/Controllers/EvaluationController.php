@@ -21,9 +21,11 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationController extends Controller
 {
 
-    public function saveEvaluationForm(Request $request)
+    // evaluation form
+
+    public function deleteEvaluationForm(Request $request)
     {
-        log::info("EvaluationController::saveEvaluationForm");
+        log::info('EvaluationController::deleteEvaluationForm');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -34,42 +36,318 @@ class EvaluationController extends Controller
         $user = DB::table('users')->select('*')->where('id', $userID)->first();
 
         try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
             DB::beginTransaction();
 
-            $existingEvaluation = EvaluationForm::where('name', $request->name)->first();
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
 
-            if ( !$existingEvaluation ) {
-                $newEvaluation = EvaluationForm::create([
-                    "name" => $request->name,
-                    'creator_id' => $user->id
-                ]);
+            if( !$evaluationForm ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation form not found!',
+                'evaluationFormID' => $request->id
+            ]);
 
-                DB::commit();
-    
-                return response()->json([ 
-                    'status' => 200,
-                    'evaluationID' => $newEvaluation->id,
-                ]);
-            } else {
-                return response()->json([ 
-                    'status' => 409,
-                    'evaluationID' => $existingEvaluation->id,
-                ]);
-            }
+            if( $evaluationForm->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation form already deleted!',
+                'evaluationForm' => $evaluationForm
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationForm->deleted_at = $now;
+            $evaluationForm->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationForm' => $evaluationForm,
+                'message' => 'Evaluation Form successfully deleted'
+            ]);
+
+
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving work shift: " . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
             throw $e;
         }
     }
 
+    public function editEvaluationForm(Request $request)
+    {
+        log::info('EvaluationController::editEvaluationForm');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
+
+            if( !$evaluationForm ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation form not found!',
+                'evaluationFormID' => $request->id
+            ]);
+
+            $isEmptyName = !$request->name;
+
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Name is required!'
+            ]);
+
+            $existingEvaluationForm =
+                EvaluationForm::where('name', $request->name)->where('id', '!=', $request->id)->first()
+            ;
+
+            if( $existingEvaluationForm ) return response()->json([ 
+                'status' => 409,
+                'message' => 'This Evaluation Form Name is already in use!',
+                'evaluationFormID' => $existingEvaluationForm->id
+            ]);
+
+            $evaluationForm->name = $request->name;
+            $evaluationForm->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationForm' => $evaluationForm,
+                'message' => 'Evaluation Form successfully updated'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function getEvaluationForm(Request $request)
+    {
+
+        log::info('EvaluationController::getEvaluationForms');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationForm ) return response()->json([
+                'status' => 404,
+                'message' => 'No Evaluation Form found.',
+                'evaluationForm' => $evaluationForm
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form successfully retrieved.',
+                'evaluationForms' => $evaluationForm
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationForms(Request $request)
+    {
+
+        log::info('EvaluationController::getEvaluationForms');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationForms = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+            ;
+            if( $request->creator_id ) {
+
+                $creator = DB::table('users')->select('*')->where('id', $request->creator_id)->first();
+                if( !$creator ) return response()->json([ 
+                    'status' => 404,
+                    'message' => 'User creator not found!',
+                    'creatorID' => $request->creator_id
+                ]);
+                $evaluationForms->where('evaluation_forms.creator_id', $request->creator_id);
+
+            }
+            $evaluationForms = $evaluationForms->orderBy('name')->get();
+            if( !$evaluationForms->count() ) return response()->json([
+                'status' => 200,
+                'message' => 'No Evaluation Forms found.',
+                'evaluationForms' => $evaluationForms
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Forms successfully retrieved.',
+                'evaluationForms' => $evaluationForms
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationForm(Request $request)
+    {
+        log::info('EvaluationController::saveEvaluationForm');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $isEmptyName = !$request->name;
+
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Name is required!'
+            ]);
+
+            $existingEvaluationForm =
+                EvaluationForm::where('name', $request->name)->first()
+            ;
+
+            if( $existingEvaluationForm ) return response()->json([ 
+                'status' => 409,
+                'message' => 'This Evaluation Form Name is already in use!',
+                'evaluationFormID' => $existingEvaluationForm->id
+            ]);
+
+            $newEvaluationForm = EvaluationForm::create([
+                'name' => $request->name,
+                'creator_id' => $user->id
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationID' => $newEvaluationForm->id,
+                'message' => 'Evaluation Form successfully created'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // evaluation form section
+
+
+
     // old
 
     public function saveEvaluation(Request $request)
     {
-        log::info("EvaluationController::saveEvaluation");
+        log::info('EvaluationController::saveEvaluation');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -86,7 +364,7 @@ class EvaluationController extends Controller
 
             if ( !$existingEvaluation ) {
                 $newEvaluation = Evaluation::create([
-                    "name"   => $request->formName,
+                    'name'   => $request->formName,
                     'creator_id' => $user->user_id,
                 ]);
 
@@ -105,7 +383,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving work shift: " . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
             throw $e;
         }
@@ -113,7 +391,7 @@ class EvaluationController extends Controller
 
     public function editEvaluation(Request $request)
     {
-        log::info("EvaluationController::editEvaluation");
+        log::info('EvaluationController::editEvaluation');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -141,7 +419,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving work shift: " . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
             throw $e;
         }
@@ -166,7 +444,7 @@ class EvaluationController extends Controller
                 // $filePath = public_path('signatures/' . $fileName);
                 Storage::disk('public')->put($fileName, $imageData);
 
-                $evaluationForm->status = "Acknowledged";
+                $evaluationForm->status = 'Acknowledged';
                 $evaluationForm->signature = $fileName;
             }
     
@@ -182,7 +460,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
     
-            Log::error("Error saving work shift: " . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
     
             throw $e;
         }
@@ -234,7 +512,7 @@ class EvaluationController extends Controller
 
     public function saveCategory(Request $request)
     {
-        log::info("EvaluationController::saveCategory");
+        log::info('EvaluationController::saveCategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -252,8 +530,8 @@ class EvaluationController extends Controller
 
             if ( !$existingCategory ) {
                 $newCategory = EvaluationCategory::create([
-                    "evaluation_id"   => $evaluation->id,
-                    "name"   => $request->categoryName,
+                    'evaluation_id'   => $evaluation->id,
+                    'name'   => $request->categoryName,
                 ]);
 
                 DB::commit();
@@ -271,7 +549,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -320,11 +598,11 @@ class EvaluationController extends Controller
 
             if ( !$existingRatingChoice ) {
                 $newRatingChoice = EvaluationRatingChoices::create([
-                    "evaluation_id" => $evaluation->id,
-                    "choice" => $request->choiceName,
-                    "score_min" => $request->scoreMin,
-                    "score_max" => $request->scoreMax,
-                    "description" => $request->description,
+                    'evaluation_id' => $evaluation->id,
+                    'choice' => $request->choiceName,
+                    'score_min' => $request->scoreMin,
+                    'score_max' => $request->scoreMax,
+                    'description' => $request->description,
                 ]);
 
                 DB::commit();
@@ -342,7 +620,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -372,7 +650,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -407,10 +685,10 @@ class EvaluationController extends Controller
 
             if ( !$existingIndicator ) {
                 EvaluationIndicators::create([
-                    "category_id" => $request->categoryID,
-                    "indicator" => $request->indicator,
-                    "type" => $request->type,
-                    "description" => $request->description
+                    'category_id' => $request->categoryID,
+                    'indicator' => $request->indicator,
+                    'type' => $request->type,
+                    'description' => $request->description
                 ]);
 
                 DB::commit();
@@ -422,7 +700,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -449,7 +727,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving indicator: " . $e->getMessage());
+            Log::error('Error saving indicator: ' . $e->getMessage());
 
             throw $e;
         }
@@ -457,7 +735,7 @@ class EvaluationController extends Controller
 
     // public function saveEvaluationForm(Request $request)
     // {
-    //     log::info("EvaluationController::saveEvaluation");
+    //     log::info('EvaluationController::saveEvaluation');
 
     //     if (Auth::check()) {
     //         $userID = Auth::id();
@@ -471,14 +749,14 @@ class EvaluationController extends Controller
     //         DB::beginTransaction();
 
     //         $evaluationForm = EvaluationForm::create([
-    //             "evaluation_id"   => $request->evaluation,
-    //             "employee_id"   => $request->employee,
+    //             'evaluation_id'   => $request->evaluation,
+    //             'employee_id'   => $request->employee,
     //             'evaluator_id' => $request->evaluator,
     //             'date' => $request->date,
     //             'period_from' => $request->periodFrom,
     //             'period_to' => $request->periodTo,
     //             'creator_id' => $userID,
-    //             'status' => "Pending",
+    //             'status' => 'Pending',
     //         ]);
 
     //         DB::commit();
@@ -491,29 +769,29 @@ class EvaluationController extends Controller
     //     } catch (\Exception $e) {
     //         DB::rollBack();
 
-    //         Log::error("Error saving work shift: " . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
     //         throw $e;
     //     }
     // }
 
-    public function getEvaluationForms(Request $request)
-    {
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    // public function getEvaluationForms(Request $request)
+    // {
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
     
-        $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
+    //     $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
     
-        $evaluationForms = EvaluationForm::with('employee')->where('evaluator_id', $user->user_id)->get();
+    //     $evaluationForms = EvaluationForm::with('employee')->where('evaluator_id', $user->user_id)->get();
     
-        return response()->json([
-            'status' => 200,
-            'evaluationForms' => $evaluationForms
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'evaluationForms' => $evaluationForms
+    //     ]);
+    // }
 
     public function getEmployeeEvaluations(Request $request)
     {
@@ -533,34 +811,34 @@ class EvaluationController extends Controller
         ]);
     }
 
-    public function getEvaluationForm(Request $request)
-    {
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    // public function getEvaluationForm(Request $request)
+    // {
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
-        // $evaluationForm = EvaluationForm::where('evaluator_id', $user->user_id)->where('id', $request->formID)->first();
-        $evaluationForm = EvaluationForm::where('id', $request->formID)->first();
-        $evaluation = Evaluation::where('id', $evaluationForm->evaluation_id)->first();
-        $employee = User::where('user_id', $evaluationForm->employee_id)->first();
-        $evaluator = User::where('user_id', $evaluationForm->evaluator_id)->first();
+    //     $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
+    //     // $evaluationForm = EvaluationForm::where('evaluator_id', $user->user_id)->where('id', $request->formID)->first();
+    //     $evaluationForm = EvaluationForm::where('id', $request->formID)->first();
+    //     $evaluation = Evaluation::where('id', $evaluationForm->evaluation_id)->first();
+    //     $employee = User::where('user_id', $evaluationForm->employee_id)->first();
+    //     $evaluator = User::where('user_id', $evaluationForm->evaluator_id)->first();
 
     
-        return response()->json([
-            'status' => 200,
-            'evaluationForm' => $evaluationForm,
-            'evaluation' => $evaluation,
-            'employee' => $employee,
-            'evaluator' => $evaluator
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'evaluationForm' => $evaluationForm,
+    //         'evaluation' => $evaluation,
+    //         'employee' => $employee,
+    //         'evaluator' => $evaluator
+    //     ]);
+    // }
     
     public function saveEvaluationResponse(Request $request)
     {
-        log::info("EvaluationController::saveEvaluationResponse");
+        log::info('EvaluationController::saveEvaluationResponse');
 
         log::info( $request );
 
@@ -574,11 +852,11 @@ class EvaluationController extends Controller
             DB::beginTransaction();
 
             $form = EvaluationForm::find($request->form_id);
-            $form->status = "Evaluated";
+            $form->status = 'Evaluated';
             $form->save();
 
             $formResponse = EvaluationResponse::create([
-                "form_id" => $request->form_id,
+                'form_id' => $request->form_id,
             ]);
 
             $hasNull = false;
@@ -593,18 +871,18 @@ class EvaluationController extends Controller
                     $nullIndicators[] = $indicator;
                 } else {
                     switch ($indicator->type) {
-                        case "Rating":
+                        case 'Rating':
                             EvaluationIndicatorResponses::create([
-                                "response_id" => $formResponse->id,
-                                "indicator_id" => $indicator->id,
-                                "rating" => $response,
+                                'response_id' => $formResponse->id,
+                                'indicator_id' => $indicator->id,
+                                'rating' => $response,
                             ]);
                             break;
-                        case "Comment":
+                        case 'Comment':
                             EvaluationIndicatorResponses::create([
-                                "response_id" => $formResponse->id,
-                                "indicator_id" => $indicator->id,
-                                "comment" => $response,
+                                'response_id' => $formResponse->id,
+                                'indicator_id' => $indicator->id,
+                                'comment' => $response,
                             ]);
                             break;
                         default:
@@ -620,7 +898,7 @@ class EvaluationController extends Controller
                     'nullIndicators' => $nullIndicators,
                 ]);
             } else {
-                // dd("Stopper");
+                // dd('Stopper');
                 DB::commit();
                 return response()->json([ 'status' => 200 ]);
             }
@@ -628,7 +906,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -680,7 +958,7 @@ class EvaluationController extends Controller
             DB::beginTransaction();
 
             $form = EvaluationForm::find($request->formId);
-            $form->status = "Reviewed";
+            $form->status = 'Reviewed';
             $form->save();
             
             DB::commit();
@@ -692,7 +970,7 @@ class EvaluationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error("Error saving category: " . $e->getMessage());
+            Log::error('Error saving category: ' . $e->getMessage());
 
             throw $e;
         }
@@ -700,7 +978,7 @@ class EvaluationController extends Controller
 
     public function getCategoryResponse(Request $request)
     {
-        log::info("EvaluationController::getCategoryResponse");
+        log::info('EvaluationController::getCategoryResponse');
 
         $userID = Auth::check() ? Auth::id() : null;
         $user = $userID ? User::findOrFail($userID) : null;

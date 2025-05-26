@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('category_id');
             $table->string('name');
-            $table->string('rank');
+            $table->string('rank', length: 512);
             $table->enum('subcategory_type', ['checkbox','dropdown','linear_scale','long_answer','multiple_choice','short_answer']);
             $table->string('description');
             $table->boolean('required');

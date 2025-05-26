@@ -59,24 +59,38 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
         const data = { name: formName };
         axiosInstance.post('/saveEvaluationForm', data, { headers })
             .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        text: "Evaluation form saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        setFormName('');
-                        if (onSuccess) onSuccess();
-                        onClose();
-                    });
+
+                switch( response.data.status ) {
+
+                    case 200:
+                        Swal.fire({
+                            text: "Evaluation form saved successfully!",
+                            icon: "success",
+                            timer: 1000,
+                            confirmButtonText: 'Proceed',
+                            confirmButtonColor: '#177604',
+                        }).then(() => {
+                            setFormName('');
+                            if (onSuccess) onSuccess(formName);
+                            onClose();
+                        });
+                        break;
+                    case 409:
+                        Swal.fire({
+                            text: "This Evaluation Form Name is already in use.",
+                            icon: "error",
+                            confirmButtonColor: '#177604',
+                        });
+                        break;
+
                 }
             })
             .catch(error => {
                 Swal.fire({
                     text: "Failed to save evaluation form.",
                     icon: "error",
+                    timer: 1000,
+                    confirmButtonText: 'Proceed',
                     confirmButtonColor: '#177604',
                 });
                 console.error('Error:', error);
