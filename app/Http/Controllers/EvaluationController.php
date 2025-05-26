@@ -18,11 +18,36 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+
 class EvaluationController extends Controller
 {
 
     // evaluation form
 
+    public function getFormDetails(Request $request, $formName)
+    {
+        // Fetch the form details by name along with the creator's name
+        $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+            ->where('evaluation_forms.name', $formName)
+            ->select('evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
+            ->first();
+
+        // If the form doesn't exist, return an error
+        if (!$form) {
+            return response()->json(['message' => 'Form not found'], 404);
+        }
+
+        // Prepare the full creator name
+        $creatorName = $form->first_name . ' ' . $form->last_name;
+
+        // Return the form details along with the creator's name and creation date
+        return response()->json([
+            'formName' => $form->name,
+            'created_at' => $form->created_at,
+            'creator_name' => $creatorName
+        ]);
+    }
+    
     public function deleteEvaluationForm(Request $request)
     {
         log::info('EvaluationController::deleteEvaluationForm');
@@ -340,7 +365,15 @@ class EvaluationController extends Controller
     }
 
     // evaluation form section
+    public function getSections(Request $request)
+    {
+        // You may want to filter by evaluation_form_id if needed
+        $sections = \App\Models\EvaluationFormSection::all();
 
+        return response()->json([
+            'status' => 200,
+            'sections' => $sections,
+        ]);}
 
 
     // old
