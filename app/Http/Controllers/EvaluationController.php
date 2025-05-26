@@ -197,7 +197,13 @@ class EvaluationController extends Controller
                     'evaluation_forms.created_at',
                     'evaluation_forms.updated_at'
                 )
-                ->where('evaluation_forms.id', $request->id)
+            ;
+            $getById = (bool) $request->id;
+            $evaluationForm = $evaluationForm
+                ->where(
+                    $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
+                    $getById ? $request->id : $request->name
+                )
                 ->with(['sections' => fn ($section) =>
                     $section
                         ->select('form_id', 'id','name', 'rank')
