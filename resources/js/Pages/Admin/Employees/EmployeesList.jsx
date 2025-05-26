@@ -149,10 +149,8 @@ const EmployeesList = () => {
         } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
         const matchedName = fullName.includes(searchName.toLowerCase());
         const matchedBranchDept =
-            filterByBranch === "" ||
-            filterByDepartment === "" ||
-            (employee["department"] === filterByDepartment &&
-                employee["branch"] === filterByBranch);
+        (filterByBranch === "" || employee["branch"] === filterByBranch) &&
+        (filterByDepartment === "" || employee["department"] === filterByDepartment);
         return matchedName && matchedBranchDept;
     });
 
