@@ -31,21 +31,21 @@ const PerformanceEvaluationFormPage = () => {
 
                         {/* Add Section Button */}
                         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() => navigate(`/admin/performance-evaluation/form/${formName}/add-section`)}
-                                sx={{
-                                    bgcolor: '#177604',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    px: 4,
-                                    py: 1.5,
-                                    '&:hover': { bgcolor: '#0d5c27' }
-                                }}
-                            >
-                                Add Section
-                            </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/admin/performance-evaluation/add-section')}
+                            sx={{
+                                bgcolor: '#177604',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': { bgcolor: '#0d5c27' }
+                            }}
+                        >
+                            Add Section
+                        </Button>
                         </Box>
                     </CardContent>
                 </Card>
