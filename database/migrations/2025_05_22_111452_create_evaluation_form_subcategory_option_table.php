@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('subcategory_id');
             $table->string('label');
-            $table->string('rank');
+            $table->string('rank', length: 512);
             $table->timestamps();
             $table->softDeletes();
 

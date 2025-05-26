@@ -418,34 +418,36 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     // Evaluation
-    Route::post('/saveEvaluation', [EselvaluationController::class, 'saveEvaluation']);
-    Route::post('/editEvaluation', [EvaluationController::class, 'editEvaluation']);
-    Route::get('/getEvaluation', [EvaluationController::class, 'getEvaluation']);
-    Route::get('/getEvaluations', [EvaluationController::class, 'getEvaluations']);
-    Route::post('/saveAcknowledgement', [EvaluationController::class, 'saveAcknowledgement']);
-
-    Route::post('/saveCategory', [EvaluationController::class, 'saveCategory']);
-    Route::get('/getCategories', [EvaluationController::class, 'getCategories']);
-
-    Route::post('/saveRating', [EvaluationController::class, 'saveRating']);
-    Route::post('/editRating', [EvaluationController::class, 'editRating']);
-    Route::get('/getRatings', [EvaluationController::class, 'getRatings']);
-    Route::get('/getRating', [EvaluationController::class, 'getRating']);
-
-    Route::post('/saveIndicator', [EvaluationController::class, 'saveIndicator']);
-    Route::post('/editIndicator', [EvaluationController::class, 'editIndicator']);
-
-    Route::post('/saveEvaluationForm', [EvaluationController::class, 'saveEvaluationForm']);
-    Route::get('/getEvaluationAllForms', [EvaluationController::class, 'getEvaluationAllForms']);
-    Route::get('/getEvaluationForms', [EvaluationController::class, 'getEvaluationForms']);
+    Route::get('/deleteEvaluationForm', [EvaluationController::class, 'deleteEvaluationForm']);
+    Route::post('/editEvaluationForm', [EvaluationController::class, 'editEvaluationForm']);
+    Route::get('/getDeletedEvaluationForms', [EvaluationController::class, 'getDeletedEvaluationForms']);
     Route::get('/getEvaluationForm', [EvaluationController::class, 'getEvaluationForm']);
+    Route::get('/getEvaluationForms', [EvaluationController::class, 'getEvaluationForms']);
+    Route::get('/restoreEvaluationForm', [EvaluationController::class, 'restoreEvaluationForm']);
+    Route::post('/saveEvaluationForm', [EvaluationController::class, 'saveEvaluationForm']);
+    // Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
+    // Route::post('/editEvaluation', [EvaluationController::class, 'editEvaluation']);
+    // Route::get('/getEvaluation', [EvaluationController::class, 'getEvaluation']);
+    // Route::get('/getEvaluations', [EvaluationController::class, 'getEvaluations']);
+    // Route::post('/saveAcknowledgement', [EvaluationController::class, 'saveAcknowledgement']);
 
-    Route::post('/saveEvaluationResponse', [EvaluationController::class, 'saveEvaluationResponse']);
-    Route::get('/getEvaluationResponse', [EvaluationController::class, 'getEvaluationResponse']);
+    // Route::post('/saveCategory', [EvaluationController::class, 'saveCategory']);
+    // Route::get('/getCategories', [EvaluationController::class, 'getCategories']);
 
-    Route::get('/getEmployeeEvaluations', [EvaluationController::class, 'getEmployeeEvaluations']);
-    Route::get('/getCategoryResponse', [EvaluationController::class, 'getCategoryResponse']);
-    Route::post('/approveEvaluation', [EvaluationController::class, 'approveEvaluation']);
+    // Route::post('/saveRating', [EvaluationController::class, 'saveRating']);
+    // Route::post('/editRating', [EvaluationController::class, 'editRating']);
+    // Route::get('/getRatings', [EvaluationController::class, 'getRatings']);
+    // Route::get('/getRating', [EvaluationController::class, 'getRating']);
+
+    // Route::post('/saveIndicator', [EvaluationController::class, 'saveIndicator']);
+    // Route::post('/editIndicator', [EvaluationController::class, 'editIndicator']);
+
+    // Route::post('/saveEvaluationResponse', [EvaluationController::class, 'saveEvaluationResponse']);
+    // Route::get('/getEvaluationResponse', [EvaluationController::class, 'getEvaluationResponse']);
+
+    // Route::get('/getEmployeeEvaluations', [EvaluationController::class, 'getEmployeeEvaluations']);
+    // Route::get('/getCategoryResponse', [EvaluationController::class, 'getCategoryResponse']);
+    // Route::post('/approveEvaluation', [EvaluationController::class, 'approveEvaluation']);
 
 
     // Reports
