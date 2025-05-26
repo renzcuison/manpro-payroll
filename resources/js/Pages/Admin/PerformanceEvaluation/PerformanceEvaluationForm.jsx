@@ -70,14 +70,17 @@ const PerformanceEvaluationForm = () => {
   };
 
   const handleMultipleChoiceChange = (subCategoryId, value) => {
-    setSubCategories(prevState =>
-      prevState.map((subCategory) =>
-        subCategory.id === subCategoryId
-          ? { ...subCategory, selectedValue: value }
-          : subCategory
-      )
-    );
-  };
+  // Update only the subcategory with the matching subCategoryId
+  setSubCategories(prevState =>
+    prevState.map((subCategory) =>
+      subCategory.id === subCategoryId
+        ? { ...subCategory, selectedValue: value } // Set the selected value for the clicked subCategory
+        : subCategory
+    )
+  );
+};
+
+
 
   const handleSettings = () => {
     alert('Settings clicked!');
@@ -137,19 +140,25 @@ const PerformanceEvaluationForm = () => {
               </Box>
             )}
 
-            {/* Render Multiple Choice */}
-            {subCategory.responseType === 'multipleChoice' && (
-              <Box sx={{ mb: 2 }}>
-                <RadioGroup
-                  value={subCategory.selectedValue || ''}
-                  onChange={(e) => handleMultipleChoiceChange(subCategory.id, e.target.value)}
-                >
-                  {subCategory.options.map((option, index) => (
-                    <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
-                  ))}
-                </RadioGroup>
-              </Box>
-            )}
+{subCategory.responseType === 'multipleChoice' && (
+  <Box sx={{ mb: 2 }}>
+    <RadioGroup
+      value={subCategory.selectedValue || ''} // This ensures only one radio button is selected
+      onChange={(e) => handleMultipleChoiceChange(subCategory.id, e.target.value)} // Handle change by updating the correct subCategory's selectedValue
+    >
+      {subCategory.options.map((option, index) => (
+        <FormControlLabel
+          key={index}
+          value={option} // Each radio button gets a unique value
+          control={<Radio />}
+          label={option}
+        />
+      ))}
+    </RadioGroup>
+  </Box>
+)}
+
+
 
             {/* Render Checkbox */}
             {subCategory.responseType === 'checkbox' && (
