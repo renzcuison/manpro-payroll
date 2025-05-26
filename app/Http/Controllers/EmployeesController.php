@@ -481,8 +481,8 @@ class EmployeesController extends Controller
             // log::info("Stopper");
             // dd("Stopper");
             
-            if ($request->has('employee_educations')){
-                $educations = json_decode($request->input('employee_educations'), true);
+            if ($request->has('add_educations')){
+                $educations = json_decode($request->input('add_educations'), true);
 
                 foreach($educations as $education){
                     EmployeeEducation::create([
@@ -494,7 +494,22 @@ class EmployeesController extends Controller
                     ]);
                 }
             }
-            
+            if ($request->has('update_educations')){
+                $educations = json_decode($request->input('update_educations'), true);
+
+                foreach($educations as $education){
+                    EmployeeEducation::where('id', $education['id'])->update([
+                        'school_name' => $education['school_name'],
+                        'degree_name' => $education['degree_name'],
+                        'degree_type' => $education['degree_type'],
+                        'year_graduated' => $education['year_graduated'],
+                    ]);
+                }
+            }
+            if($request->has('delete_educations_id')){
+                $deleteIds = json_decode($request->input('delete_educations_id'), true);
+                EmployeeEducation::whereIn('id', $deleteIds)->delete();
+            }
 
             $user->save();
 

@@ -33,11 +33,15 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
     const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
-    const [educations, setEducations] = useState([])
+    
     // const [newProfilePic, setNewProfilePic] = useState('');
 
-    //Education Form Fields
+    //Education Form Field Values and Handlers
+    const [educations, setEducations] = useState([])
     const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const [isFieldsChanged, setIsFieldsChanged] = useState(false); //handle any changes to the fields
+    const [updateIds, setUpdateIds] = useState([]); //ids to update
+    const [deleteIds, setDeleteIds] = useState([]); //ids to delete
 
     useEffect(() => {
         axiosInstance.get('/employee/getEducationBackground', { headers })
@@ -59,6 +63,10 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         const updatedFields = [...educations];
         updatedFields[index][field] = value;
         setEducations(updatedFields);
+        if("id" in updatedFields[index]){
+            setUpdateIds(prevIds => [...prevIds, updatedFields[index].id]);
+        }
+        setIsFieldsChanged(true);
     }
     const handleAddFields = () => {
         setEducations([...educations, educationFields]); 
@@ -66,6 +74,11 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const handleRemoveFields = (removalIndx) => {
         const updatedFields = educations.filter((_, index) => index != removalIndx)
         setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+        if("id" in educations[removalIndx]){
+            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
+        }
+        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+        setIsFieldsChanged(true);
     }
 
     // Form Errors
@@ -139,7 +152,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress) {
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress && !isFieldsChanged) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -170,7 +183,9 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
+        const addEducations = educations.filter(e => !e.id);
+        const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+        
         const formData = new FormData();
         formData.append('id', employee.id);
         formData.append('first_name', firstName);
@@ -181,21 +196,27 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         formData.append('gender', gender);
         formData.append('contact_number', contact);
         formData.append('address', address);
-        formData.append('profile_pic', profilePic);
-        formData.append('employee_educations', JSON.stringify(educations));
-
+        // formData.append('profile_pic', profilePic);
+        if(addEducations.length > 0){
+            formData.append('add_educations', JSON.stringify(addEducations));
+        }
+        if(updateIds.length > 0){
+            formData.append('update_educations', JSON.stringify(updateEducations));
+        }
+        if(deleteIds.length > 0){
+            formData.append('delete_educations_id', JSON.stringify(deleteIds));
+        }
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Employee Profile updated successfully!",
+                        text: "Employee Profile Updated Successfully!",
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then((res) => {
-                        queryClient.invalidateQueries(["user"])
                         close(true);
                     });
                 }
@@ -204,8 +225,6 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 console.error('Error:', error);
             });
     }
-
-    console.log(educations);
 
     return (
         <>
