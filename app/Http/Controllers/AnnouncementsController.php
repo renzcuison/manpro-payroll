@@ -47,6 +47,7 @@ class AnnouncementsController extends Controller
 
         try {
             $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments'])
+                ->where('client_id', $user->client_id)
                 ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -369,6 +370,22 @@ class AnnouncementsController extends Controller
         }
 
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+    public function deleteAnnouncement(Request $request)
+    {
+        Log::info("AnnouncementsController::deleteAnnouncement");
+        Log::info($request);
+        Log::info($request->announcement);
+
+        $announcement = AnnouncementsModel::find($request->announcement);
+
+        if ($announcement) {
+            $announcement->delete();
+            return response()->json(['message' => 'Announcement soft deleted successfully.']);
+        } else {
+            return response()->json(['message' => 'Announcement not found.'], 404);
+        }
     }
 
     public function publishAnnouncement(Request $request)
