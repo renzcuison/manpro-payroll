@@ -1,5 +1,5 @@
 import Layout from "../../../../components/Layout/Layout";
-import React from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
@@ -16,6 +16,7 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useNavigate } from "react-router-dom";
 
 const UploadForm = () => {
     return (
@@ -55,7 +56,7 @@ const UploadForm = () => {
     );
 };
 
-const PassOrFail = () => {
+const PassOrFail = ({ setPassOrFail }) => {
     return (
         <>
             <Box
@@ -66,7 +67,7 @@ const PassOrFail = () => {
                 }}
             >
                 <FormControl>
-                    <RadioGroup>
+                    <RadioGroup onChange={(e) => setPassOrFail(e.target.value)}>
                         <FormControlLabel
                             value="Pass"
                             control={<Radio />}
@@ -130,12 +131,25 @@ const PostiveOrNegative = () => {
 };
 
 const PemeQuestionnaireView = () => {
+    const [status, setStatus] = useState();
+    const [expirationDate, setExpirationDate] = useState();
+    const [nextScheduleDate, setNextScheduleDate] = useState();
+    const [passOrFail, setPassOrFail] = useState();
+    const navigator = useNavigate();
+
+    const handleConfirmClick = () => {
+        console.log(passOrFail);
+    };
+    const handleCancelClick = () => {
+        navigator("/admin/medical-records/peme-records/peme-responses");
+    };
     return (
         <Layout>
             <Box
                 sx={{
                     backgroundColor: "white",
-                    padding: 4,
+                    paddingY: 6,
+                    paddingX: 12,
                     borderRadius: 1,
                     boxShadow: 1,
                     display: "flex",
@@ -175,7 +189,7 @@ const PemeQuestionnaireView = () => {
                 </Box>
                 <Box
                     sx={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "#fafafa",
                         paddingX: 8,
                         paddingY: 6,
                         borderRadius: 1,
@@ -185,33 +199,108 @@ const PemeQuestionnaireView = () => {
                         gap: 2,
                     }}
                 >
-                    <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                         Drug Test
                     </Typography>
                     <UploadForm></UploadForm>
-                    <PassOrFail></PassOrFail>
+                    <PassOrFail setPassOrFail={setPassOrFail}></PassOrFail>
                     <Remarks></Remarks>
                     <TextBox></TextBox>
                 </Box>
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 2,
+                        justifyContent: "space-between",
+                        alignItems: "center",
                         marginTop: 6,
                         marginBottom: 24,
                     }}
                 >
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker label="Expiration Date" />
-                    </LocalizationProvider>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker label="Next Schedule" />
-                    </LocalizationProvider>
-                    <Select sx={{ width: 200 }}>
-                        <MenuItem sx={{ padding: 2 }}>Pending</MenuItem>
-                        <MenuItem sx={{ padding: 2 }}>Clear</MenuItem>
-                        <MenuItem sx={{ padding: 2 }}>Rejected</MenuItem>
-                    </Select>
+                    <Box>
+                        <Button
+                            variant="contained"
+                            sx={{ backgroundColor: "#a3a3a3" }}
+                            onClick={handleCancelClick}
+                        >
+                            Cancel
+                        </Button>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                        <LocalizationProvider
+                            dateAdapter={AdapterDayjs}
+                            onChange={(e) => setExpirationDate(e.target.value)}
+                        >
+                            <DatePicker label="Expiration Date" />
+                        </LocalizationProvider>
+                        <LocalizationProvider
+                            dateAdapter={AdapterDayjs}
+                            onChange={(e) =>
+                                setNextScheduleDate(e.target.value)
+                            }
+                        >
+                            <DatePicker label="Next Schedule" />
+                        </LocalizationProvider>
+                        <Select
+                            sx={{ width: 200 }}
+                            defaultValue="Pending"
+                            onChange={(e) => setStatus(e.target.value)}
+                        >
+                            <MenuItem
+                                sx={{
+                                    padding: 2,
+                                    "&:hover": {
+                                        backgroundColor: "#E9AE20",
+                                        transition: ".3s",
+                                    },
+                                    "&.Mui-selected": {
+                                        backgroundColor: "#E9AE20",
+                                    },
+                                }}
+                                value="Pending"
+                            >
+                                Pending
+                            </MenuItem>
+                            <MenuItem
+                                sx={{
+                                    padding: 2,
+                                    "&:hover": {
+                                        backgroundColor: "#E9AE20",
+                                        transition: ".3s",
+                                    },
+                                    "&.Mui-selected": {
+                                        backgroundColor: "#E9AE20",
+                                    },
+                                }}
+                                value="Clear"
+                            >
+                                Clear
+                            </MenuItem>
+                            <MenuItem
+                                sx={{
+                                    padding: 2,
+                                    "&:hover": {
+                                        backgroundColor: "#E9AE20",
+                                        transition: ".3s",
+                                    },
+                                    "&.Mui-selected": {
+                                        backgroundColor: "#E9AE20",
+                                    },
+                                }}
+                                value="Rejected"
+                            >
+                                Rejected
+                            </MenuItem>
+                        </Select>
+                    </Box>
+
+                    <Box>
+                        <Button
+                            variant="contained"
+                            onClick={handleConfirmClick}
+                        >
+                            Confirm
+                        </Button>
+                    </Box>
                 </Box>
             </Box>
         </Layout>
