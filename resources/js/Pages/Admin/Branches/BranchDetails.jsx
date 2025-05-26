@@ -152,9 +152,9 @@ const BranchDetails = () => {
                                     className="fa fa-chevron-left"
                                     aria-hidden="true"
                                     style={{ fontSize: '80%', cursor: 'pointer' }}
-                                    onClick={() => navigate('/admin/branch/branchlist')}
+                                    onClick={() => navigate('/admin/branches/branchlist')}
                                 ></i>
-                                {branch.name} ({branch.code})
+                                {branch.name} ({branch.acronym})
                             </Typography>
                             <Button
                                 variant="contained"
@@ -215,7 +215,7 @@ const BranchDetails = () => {
                                             >
                                                 <Avatar
                                                     src={getEmployeeAvatarById(id)}
-                                                    sx={{ width: 60, height: 60, mb: 1 }}
+                                                    sx={{ width: 90, height: 90, mb: 1 }}
                                                 />
                                                 <TextField
                                                     value={getEmployeeNameById(id)}
@@ -416,11 +416,11 @@ const BranchDetails = () => {
                             }}>
                                 <TextField
                                     required
-                                    id="code"
-                                    label="Code"
+                                    id="acronym"
+                                    label="Acronym"
                                     variant="outlined"
-                                    value={branch.code}
-                                    onChange={(e) => setBranch({ ...branch, code: e.target.value })}
+                                    value={branch.acronym}
+                                    onChange={(e) => setBranch({ ...branch, acronym: e.target.value })}
                                 />
                             </FormControl>
 
