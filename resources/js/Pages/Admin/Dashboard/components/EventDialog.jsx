@@ -7,15 +7,105 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
     Stack,
+    TextField,
     Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PiCalendarHeart, PiCalendarStar } from "react-icons/pi";
-import { format } from "date-fns";
-import moment from "moment";
+import dayjs from "dayjs";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
-function EventDialog({ modalOpen, setModalOpen, selectedEvent, onDelete }) {
+function EventDialog({
+    modalOpen,
+    setModalOpen,
+    selectedEvent,
+    onDelete,
+    isDeleting,
+    fetchEvents,
+}) {
+    const [form, setForm] = useState({
+        title: "",
+        description: "",
+        start_time: "",
+        end_time: "",
+        visibility_type: "",
+    });
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (selectedEvent) {
+            setForm({
+                title: selectedEvent.title || "",
+                description: selectedEvent.description || "",
+                start_time: dayjs(selectedEvent.start).format(
+                    "YYYY-MM-DDTHH:mm"
+                ),
+                end_time: dayjs(selectedEvent.end).format("YYYY-MM-DDTHH:mm"),
+                visibility_type:
+                    selectedEvent.visibility_type === "public"
+                        ? "public"
+                        : "private",
+            });
+        }
+    }, [selectedEvent]);
+
+    const handleChange = (e) => {
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleUpdate = async () => {
+        try {
+            console.log(selectedEvent);
+
+            if (selectedEvent.type === "holiday") {
+                alert("Regular holidays can't be edited.");
+                return;
+            }
+            setIsLoading(true);
+            const storedUser = localStorage.getItem("nasya_user");
+            const headers = storedUser
+                ? getJWTHeader(JSON.parse(storedUser))
+                : [];
+
+            const payload = {
+                title: form.title,
+                description: form.description,
+                start_time: form.start_time,
+                end_time: form.end_time,
+            };
+
+            if (form.visibility_type === "public") {
+                await axiosInstance.put(
+                    `/public-event/${selectedEvent.id.replace("db-", "")}`,
+                    payload,
+                    { headers }
+                );
+            } else {
+                await axiosInstance.put(
+                    `/google/event/${selectedEvent.id}`,
+                    payload,
+                    {
+                        headers,
+                    }
+                );
+            }
+
+            alert("Event updated successfully.");
+            setModalOpen(false);
+            fetchEvents();
+        } catch (error) {
+            console.error("Update failed", error);
+            alert("Failed to update event.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <Dialog
             open={modalOpen}
@@ -36,10 +126,16 @@ function EventDialog({ modalOpen, setModalOpen, selectedEvent, onDelete }) {
                     label={
                         selectedEvent?.type === "holiday"
                             ? "Holiday"
-                            : "Schedule"
+                            : form.visibility === "public"
+                            ? "Public"
+                            : "Private"
                     }
                     color={
-                        selectedEvent?.type === "holiday" ? "error" : "primary"
+                        selectedEvent?.type === "holiday"
+                            ? "error"
+                            : form.visibility === "public"
+                            ? "success"
+                            : "primary"
                     }
                     size="small"
                 />
@@ -47,47 +143,79 @@ function EventDialog({ modalOpen, setModalOpen, selectedEvent, onDelete }) {
 
             <DialogContent dividers>
                 <Stack spacing={2}>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary">
-                            Date & Time
-                        </Typography>
-                        <Typography variant="body2">
-                            {moment(selectedEvent?.start).format(
-                                "MMM. DD, YYYY"
-                            )}
-                            {selectedEvent?.end &&
-                                ` - ${moment(selectedEvent?.end).format(
-                                    "MMM. DD, YYYY"
-                                )} / ${moment(selectedEvent?.start).format(
-                                    "hh:mm a"
-                                )}`}
-                        </Typography>
-                    </Box>
-
-                    {selectedEvent?.description && (
-                        <Box>
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                            >
-                                Description
-                            </Typography>
-                            <Typography variant="body2">
-                                {selectedEvent.description}
-                            </Typography>
-                        </Box>
-                    )}
+                    <TextField
+                        label="Title"
+                        name="title"
+                        value={form.title}
+                        onChange={handleChange}
+                        fullWidth
+                    />
+                    <TextField
+                        label="Description"
+                        name="description"
+                        value={form.description}
+                        onChange={handleChange}
+                        fullWidth
+                        multiline
+                        rows={3}
+                    />
+                    <TextField
+                        label="Start Time"
+                        name="start_time"
+                        type="datetime-local"
+                        value={form.start_time}
+                        onChange={handleChange}
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                        label="End Time"
+                        name="end_time"
+                        type="datetime-local"
+                        value={form.end_time}
+                        onChange={handleChange}
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <FormControl fullWidth>
+                        <InputLabel>Visibility</InputLabel>
+                        <Select
+                            name="visibility"
+                            value={form.visibility_type}
+                            label="Visibility"
+                            onChange={handleChange}
+                            defaultValue={form.visibility_type}
+                            disabled={selectedEvent?.type === "holiday"} // prevent changing holiday type
+                        >
+                            <MenuItem value="private">Private</MenuItem>
+                            <MenuItem value="public">Public</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Stack>
             </DialogContent>
 
             <DialogActions>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => onDelete(selectedEvent.id)}
-                >
-                    Delete Event
-                </Button>
+                {selectedEvent?.type !== "holiday" && (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleUpdate}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Saving..." : "Save Changes"}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => onDelete(selectedEvent)}
+                            loading={isDeleting}
+                        >
+                            Delete Event
+                        </Button>
+                    </>
+                )}
+
                 <Button onClick={() => setModalOpen(false)} variant="outlined">
                     Close
                 </Button>
