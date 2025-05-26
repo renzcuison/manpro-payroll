@@ -39,7 +39,7 @@ const DepartmentDetails = () => {
 
     const [department, setDepartment] = useState(null);
     const [employees, setEmployees] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [branchFilter, setBranchFilter] = useState("all");
@@ -53,7 +53,7 @@ const DepartmentDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIsLoading(true);
+                setIsLoading(false);
                 
                 // Fetch department details
                 const deptResponse = await axiosInstance.get(`/settings/getDepartment/${id}`, { headers });
@@ -144,7 +144,7 @@ const DepartmentDetails = () => {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 px: 1,
-                                alignItems: "center",
+                                alignItems: "center"
                             }}
                         >
                             <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -380,14 +380,6 @@ const DepartmentDetails = () => {
                     </Box>
                 </Box>
             )}
-
-
-
-
-
-
-
-
 
             {/* Edit Department Modal */}
             <Dialog

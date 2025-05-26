@@ -39,7 +39,7 @@ const BranchDetails = () => {
 
     const [branch, setBranch] = useState(null);
     const [employees, setEmployees] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -53,7 +53,7 @@ const BranchDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIsLoading(true);
+                setIsLoading(false);
 
                 // Fetch branch details
                 const branchResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
