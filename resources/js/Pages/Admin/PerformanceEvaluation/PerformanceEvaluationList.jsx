@@ -10,6 +10,10 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 
 const PerformanceEvaluationList = () => {
+
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
@@ -30,7 +34,11 @@ const PerformanceEvaluationList = () => {
     // Example: Fetch data (implement your own logic)
     useEffect(() => {
         setIsLoading(false);
-        // Fetch your data here and update setPerformanceEvaluation
+        axiosInstance.get( '/getEvaluationForms', { headers } )
+            .then((response) => {
+                setPerformanceEvaluation(response.data.evaluationForms);
+            })
+        ;
     }, []);
 
     return (
@@ -77,6 +85,9 @@ const PerformanceEvaluationList = () => {
                                     'aria-labelledby': 'performance-evaluation-menu',
                                 }}
                             >
+                                {
+                                    performanceEvaluations.map( ( { name } ) => <MenuItem>{ name }</MenuItem> )
+                                }
                                 <MenuItem
                                     onClick={() => { setModalOpen(true); handleMenuClose(); }}
                                 >
@@ -89,6 +100,7 @@ const PerformanceEvaluationList = () => {
                         <PerformanceEvaluationAdd
                             open={modalOpen}
                             onClose={() => setModalOpen(false)}
+                            onSuccess={formName => navigate(`forms/${ formName }`)}
                         />
 
                         {isLoading ? (

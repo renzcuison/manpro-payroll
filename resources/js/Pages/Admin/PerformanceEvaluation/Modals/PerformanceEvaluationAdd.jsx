@@ -75,9 +75,9 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
                             onClose();
                         });
                         break;
-                    case 409:
+                    default:
                         Swal.fire({
-                            text: "This Evaluation Form Name is already in use.",
+                            text: response.data.message,
                             icon: "error",
                             confirmButtonColor: '#177604',
                         });

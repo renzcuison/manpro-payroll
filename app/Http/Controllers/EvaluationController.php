@@ -52,7 +52,8 @@ class EvaluationController extends Controller
                     'evaluation_forms.creator_id',
                     'users.user_name as creator_user_name',
                     'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
+                    'evaluation_forms.updated_at',
+                    'evaluation_forms.deleted_at'
                 )
                 ->where('evaluation_forms.id', $request->id)
                 ->first()
@@ -60,13 +61,13 @@ class EvaluationController extends Controller
 
             if( !$evaluationForm ) return response()->json([ 
                 'status' => 404,
-                'message' => 'Evaluation form not found!',
+                'message' => 'Evaluation Form not found!',
                 'evaluationFormID' => $request->id
             ]);
 
             if( $evaluationForm->deleted_at ) return response()->json([ 
                 'status' => 405,
-                'message' => 'Evaluation form already deleted!',
+                'message' => 'Evaluation Form already deleted!',
                 'evaluationForm' => $evaluationForm
             ]);
 
@@ -129,7 +130,7 @@ class EvaluationController extends Controller
 
             if( !$evaluationForm ) return response()->json([ 
                 'status' => 404,
-                'message' => 'Evaluation form not found!',
+                'message' => 'Evaluation Form not found!',
                 'evaluationFormID' => $request->id
             ]);
 
@@ -341,7 +342,140 @@ class EvaluationController extends Controller
 
     // evaluation form section
 
+    public function deleteEvaluationFormSection(Request $request)
+    {
+        log::info('EvaluationController::deleteEvaluationFormSection');
 
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationFormSection = EvaluationFormSection
+                ::select('*')
+                ->where('id', $request->id)
+                ->first()
+            ;
+
+            if( !$evaluationFormSection ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Form Section not found!',
+                'evaluationFormSectionID' => $request->id
+            ]);
+
+            if( $evaluationFormSection->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Form Section already deleted!',
+                'evaluationFormSection' => $evaluationFormSection
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationFormSection->deleted_at = $now;
+            $evaluationFormSection->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationFormSection' => $evaluationFormSection,
+                'message' => 'Evaluation Form Section successfully deleted'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function editEvaluationFormSection(Request $request)
+    {
+        log::info('EvaluationController::editEvaluationFormSection');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationForm = EvaluationFormSection
+                ::select( 'id', 'form_id', 'name', 'rank', 'created_at', 'updated_at' )
+                ->where('id', $request->id)
+                ->first()
+            ;
+
+            if( !$evaluationForm ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Form Section not found!',
+                'evaluationFormID' => $request->id
+            ]);
+
+            $isEmptyName = !$request->name;
+
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Section Name is required!'
+            ]);
+
+            $existingEvaluationFormSection = EvaluationFormSection
+                ::where('form_id', $evaluationForm->form_id)
+                ->where('name', $request->name)
+                ->where('id', '!=', $request->id)
+                ->first()
+            ;
+
+            if( $existingEvaluationFormSection ) return response()->json([ 
+                'status' => 409,
+                'message' => 'This Evaluation Form Name Section is already in use!',
+                'evaluationFormID' => $existingEvaluationFormSection->id
+            ]);
+
+            $evaluationFormSection->name = $request->name;
+            $evaluationFormSection->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationFormSection' => $evaluationFormSection,
+                'message' => 'Evaluation Form Section successfully updated'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     // old
 
