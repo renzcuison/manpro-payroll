@@ -225,6 +225,7 @@ const BranchDetails = () => {
                                                         sx: {
                                                             input: {
                                                                 textAlign: 'center',
+                                                                fontWeight: 'bold'
                                                             },
                                                             "& .MuiOutlinedInput-notchedOutline": {
                                                                 border: 'none',
@@ -302,8 +303,8 @@ const BranchDetails = () => {
                                         <Table stickyHeader>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell align="left">Name</TableCell>
-                                                    <TableCell align="left">Department</TableCell>
+                                                    <TableCell align="left" sx={{fontWeight: 'bold'}}>Name</TableCell>
+                                                    <TableCell align="left" sx={{fontWeight: 'bold'}}>Department</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
