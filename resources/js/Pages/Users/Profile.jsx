@@ -19,17 +19,19 @@ import EmployeeDeductions from "../Admin/Employees/Components/EmployeeDeductions
 import EmploymentDetails from "../Admin/Employees/Components/EmployeeDetails";
 import ProfileBenefits from "./Profile/ProfileBenefits";
 import ProfileEdit from "./Modals/ProfileEdit";
+import EducationalBackground from "./Components/EducationalBackground";
 
 const Profile = () => {
     const theme = useTheme();
     const medScreen = useMediaQuery(theme.breakpoints.up("md"));
-    const { user, isLoading } = useUser();
+    const { user, isLoading, refetchUser} = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
+    const [education, setEducation] = useState([])
 
     //the sidebar toggle i guess
     const handleOpenActions = (event) => {
@@ -46,13 +48,30 @@ const Profile = () => {
     const handleCloseProfileEditModal = (reload) => {
         setOpenProfileEditModal(false);
         if (reload) {
-            getMyDetails();
+            refetchUser();
+            getEducationalBackground();
         }
-    };
-    if (isLoading) {
-        return <div>Loading...</div>;
+    };  
+
+    useEffect(() => {   
+        getEducationalBackground();
+    }, []);
+
+    const getEducationalBackground = () => {
+        axiosInstance.get(`/employee/getEducationBackground`, { headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const educationBackgrounds = response.data.educations
+                    setEducation(educationBackgrounds);             
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching education background:", error);
+                setEducation(null);
+        })
     }
     
+   
     return (
         <Layout title={"ProfileView"}>
             {/*<--Main Box-->*/}
@@ -82,6 +101,7 @@ const Profile = () => {
                         {/*<---Right Side---->*/}
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <UserSummary user={user}></UserSummary>
+                            <EducationalBackground education={education}></EducationalBackground>
                             <UserEmploymentDetails user={user}></UserEmploymentDetails>
                         </Grid>    
                     </Grid>

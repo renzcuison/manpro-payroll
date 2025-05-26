@@ -15,7 +15,6 @@ import { CgAdd, CgTrash } from "react-icons/cg";
 
 
 const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
-    
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -34,22 +33,52 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
     const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
+    
     // const [newProfilePic, setNewProfilePic] = useState('');
 
-    //Education Form Fields
-    const [educationList, setEducationList] = useState(employee.educations ?? [{name: "", degree: "", year: ""}]); //the database result should be stored   
+    //Education Form Field Values and Handlers
+    const [educations, setEducations] = useState([])
+    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const [isFieldsChanged, setIsFieldsChanged] = useState(false); //handle any changes to the fields
+    const [updateIds, setUpdateIds] = useState([]); //ids to update
+    const [deleteIds, setDeleteIds] = useState([]); //ids to delete
+
+    useEffect(() => {
+        axiosInstance.get('/employee/getEducationBackground', { headers })
+            .then((response) => {
+                if(response.status === 200){
+                    const educations = response.data.educations;
+                    setEducations(educations);
+                }
+                else{
+                    setEducations(educationFields);
+                }
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+                setEducations(educationFields);
+            });
+    }, []);
+
     const handleChange = (index, field, value) => {
-        const updatedFields = [...educationList];
+        const updatedFields = [...educations];
         updatedFields[index][field] = value;
-        setEducationList(updatedFields);
+        setEducations(updatedFields);
+        if("id" in updatedFields[index]){
+            setUpdateIds(prevIds => [...prevIds, updatedFields[index].id]);
+        }
+        setIsFieldsChanged(true);
     }
     const handleAddFields = () => {
-        setEducationList([...educationList, {name: "", degree: "", year: ""}]); 
+        setEducations([...educations, educationFields]); 
     }
     const handleRemoveFields = (removalIndx) => {
-        const updatedFields = educationList.filter((_, index) => index != removalIndx)
-        setEducationList(educationList.length > 0 ? updatedFields : [{name: "", degree: "", year: ""}]);
-       
+        const updatedFields = educations.filter((_, index) => index != removalIndx)
+        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+        if("id" in educations[removalIndx]){
+            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
+        }
+        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+        setIsFieldsChanged(true);
     }
 
     // Form Errors
@@ -123,7 +152,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress) {
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress && !isFieldsChanged) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -154,7 +183,9 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
+        const addEducations = educations.filter(e => !e.id);
+        const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+        
         const formData = new FormData();
         formData.append('id', employee.id);
         formData.append('first_name', firstName);
@@ -165,21 +196,27 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         formData.append('gender', gender);
         formData.append('contact_number', contact);
         formData.append('address', address);
-        formData.append('profile_pic', profilePic);
-        formData.append('employee_educations', JSON.stringify(educationList));
-
+        // formData.append('profile_pic', profilePic);
+        if(addEducations.length > 0){
+            formData.append('add_educations', JSON.stringify(addEducations));
+        }
+        if(updateIds.length > 0){
+            formData.append('update_educations', JSON.stringify(updateEducations));
+        }
+        if(deleteIds.length > 0){
+            formData.append('delete_educations_id', JSON.stringify(deleteIds));
+        }
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Employee Profile updated successfully!",
+                        text: "Employee Profile Updated Successfully!",
                         icon: "success",
                         showConfirmButton: true,
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then((res) => {
-                        queryClient.invalidateQueries(["user"])
                         close(true);
                     });
                 }
@@ -421,7 +458,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                             <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
 
                             <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                {educationList.map((item, index) => (
+                                {educations.map((item, index) => (
                                 <Grid container spacing={2} size ={12} key={index} alignItems="center">
                                     <Grid size={3}>
                                         <FormControl fullWidth>
@@ -441,10 +478,11 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                                 select
                                                 id="gender"
                                                 label="Degree"
+                                                value={item.degree_type}
                                                 variant="outlined"
                                                 onChange={(e) => { handleChange(index, "degree_type", e.target.value) }}
                                             >
-                                                <MenuItem value={"College/Bachelor"}>{"College/Bachelor"}</MenuItem>
+                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
                                                 <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
                                                 <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
                                             </TextField>
@@ -452,7 +490,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                     </Grid>
                                     <Grid size={2}>
                                         <FormControl fullWidth>
-                                            <TextField label="Year Graduated" value={item.year} onChange={(e)=>handleChange(index, "year", e.target.value)} />
+                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
                                         </FormControl>
                                     </Grid>
 

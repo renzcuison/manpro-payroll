@@ -5,11 +5,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { CgAdd, CgTrash } from "react-icons/cg";  
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import dayjs from 'dayjs';
 
-const EmployeeDetailsEdit = ({ open, close, employee }) => {
+const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -54,9 +55,53 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
     const [selectedType, setSelectedType] = useState(employee.employment_type);
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
+    //Education Form Field Values and Handlers
+    const [educations, setEducations] = useState([]);
+    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const [updateIds, setUpdateIds] = useState([]); //ids to update
+    const [deleteIds, setDeleteIds] = useState([]); //ids to delete 
+
+    const getEducationalBackground = () => {
+        const data = { username: userName };
+        axiosInstance.get(`/employee/getEmployeeEducationBackground`, { params:data, headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const educationBackgrounds = response.data.educations
+                    setEducations(educationBackgrounds);             
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching education background:", error);
+                setEducations(null);
+        })
+    }
+
     useEffect(() => {
+        getEducationalBackground();
         populateDropdown();
     }, []);
+
+    const handleChange = (index, field, value) => {
+        const updatedFields = [...educations];
+        updatedFields[index][field] = value;
+        setEducations(updatedFields);
+        if("id" in updatedFields[index]){
+            setUpdateIds(prevIds => [...prevIds, updatedFields[index].id]);
+        }
+        
+    }
+    const handleAddFields = () => {
+        setEducations([...educations, educationFields]); 
+    }
+    const handleRemoveFields = (removalIndx) => {
+        const updatedFields = educations.filter((_, index) => index != removalIndx)
+        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+        if("id" in educations[removalIndx]){
+            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
+        }
+        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+        
+    }
 
     const populateDropdown = () => {
         axiosInstance.get('/settings/getRoles', { headers })
@@ -99,10 +144,10 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                 console.error('Error fetching branches:', error);
             });
     };
-
     const saveInput = (event) => {
         event.preventDefault();
-
+        const addEducations = educations.filter(e => !e.id);
+        const updateEducations = educations.filter(e=> updateIds.includes(e.id));
         const data = {
             userName: employee.user_name,
 
@@ -118,7 +163,6 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
             salary: salary,
             salaryType: salaryType,
             creditLimit: creditLimit,
-
             tinNumber: tinNumber,
             taxStatus: taxStatus,
 
@@ -131,7 +175,10 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
             selectedStatus: selectedStatus,
             startDate: startDate,
             endDate: endDate,
-        };
+            addEducations: addEducations, 
+            updateEducations: updateEducations,
+            deleteEducationIds: deleteIds,
+        }; 
 
         axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
             .then(response => {
@@ -279,7 +326,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 />
                             </FormControl>
                         </FormGroup>
-
+                    
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
@@ -298,11 +345,69 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />
+                        {/*<--Educational Forms Field-->*/}
 
+                        <FormGroup row={true} className="d-flex" sx={{
+                            '& label.Mui-focused': {color: '#97a5ba'},
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                        }}> 
+                            <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
+                            <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+
+                            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
+                                {educations.map((item, index) => (
+                                <Grid container spacing={2} size ={12} key={index} alignItems="center">
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={3}>
+                                        <FormControl fullWidth>
+                                            <TextField
+                                                select
+                                                id="gender"
+                                                label="Degree"
+                                                value={item.degree_type}
+                                                variant="outlined"
+                                                onChange={(e) => {handleChange(index, "degree_type", e.target.value) }}
+                                            >
+                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
+                                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
+                                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
+                                            </TextField>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid size={2}>
+                                        <FormControl fullWidth>
+                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid size={1}>
+                                        <Box display="flex" justifyContent="space-between" gap={1}>
+                                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                                ))}    
+                            </Grid>
+                        </FormGroup>
+                        <Divider sx={{ my: 4 }} />
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
+                            <FormControl fullWidth>
+                                <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Employment Details </Typography>
+                            </FormControl>
                             <FormControl sx={{
                                 marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -471,6 +576,9 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}>
+                            <FormControl fullWidth>
+                                <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Payroll Details</Typography>
+                            </FormControl>    
                             <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
@@ -558,6 +666,7 @@ const EmployeeDetailsEdit = ({ open, close, employee }) => {
                                 </TextField>
                             </FormControl>
                         </FormGroup>
+                        
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: 4 }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
