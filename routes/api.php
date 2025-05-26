@@ -45,7 +45,13 @@ use App\Http\Controllers\PreviousFilterController;
 // Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
+
+// Medical Records Controller
+// PEME
+use App\Http\Controllers\PemeController;
+use App\Http\Controllers\PemeQuestionnaireController;
 
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
@@ -313,7 +319,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendanceToday', [AdminDashboardController::class, 'getAttendanceToday']);
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
+        // ADMIN ROUTES
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
     });
+    
+    Route::prefix('admin')->group(function () {
+        // ADMIN ROUTES
+        Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
+    });
+
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
@@ -358,23 +373,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
         Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -629,6 +627,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- End Client Routes ----------------------------------------------------------------
 
     // ---------------------------------------------------------------- Users Routes ----------------------------------------------------------------
+
     Route::get('/user/{user_id}', [UserAuthController::class, 'getUserDetailsById']);
 
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
@@ -637,9 +636,25 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
     Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
+
+    Route::post('/google/event', [GoogleController::class, 'addEvent']);
+    Route::get('/google/events', [GoogleController::class, 'getEvents']);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+
+    // Medical Records
+    // PEME ----------------------------------
+    Route::post('/pemes', [PemeController::class, 'createPeme']);
+    Route::get('/pemes', [PemeController::class, 'getPemeList']);
+    Route::get('/pemes/stats', [PemeController::class, 'getPemeStats']);
+    Route::post('/peme/questionnaire', [PemeQuestionnaireController::class, 'store']);
+    Route::get('/peme/{pemeId}/questionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
+    // ---------------------------------- PEME
+    
 });
 
 
+Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
@@ -654,7 +669,6 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
-
 
 
 

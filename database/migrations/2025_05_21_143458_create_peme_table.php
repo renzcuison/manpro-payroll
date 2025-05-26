@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('peme', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('peme_requirements_id');
-            $table->date('start_date');
-            $table->date('expiration_date');
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('medical_record_id');
+            $table->string('name', 50);
+            $table->integer('respondents')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('peme_requirements_id')->references('id')->on('peme_requirements');
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+            $table->foreign('medical_record_id')->references('id')->on('medical_records')->onDelete('cascade');
         });
     }
 

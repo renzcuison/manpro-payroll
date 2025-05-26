@@ -380,7 +380,7 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
         $employee = $attendance->user;
-
+sc
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
             try {
                 DB::beginTransaction();
