@@ -184,7 +184,7 @@ const BranchList = () => {
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
                             >
                                 <p className="m-0">
-                                    <i className="fa fa-plus mr-2"></i> Add Branch
+                                    <i className="fa fa-plus mr-2"></i> Add
                                 </p>
                             </Button>
                         </Grid>
@@ -221,18 +221,18 @@ const BranchList = () => {
                                     <Table stickyHeader>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center">Branch</TableCell>
+                                                <TableCell align="center" sx={{fontWeight: 'bold'}}>Branch</TableCell>
                                                 {selectedColumns.includes("Assigned Manager") && (
-                                                    <TableCell align="center">Assigned Manager</TableCell>
+                                                    <TableCell align="center"sx={{fontWeight: 'bold'}}>Assigned Manager</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Assigned Supervisor") && (
-                                                    <TableCell align="center">Assigned Supervisor</TableCell>
+                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Supervisor</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Assigned Approver") && (
-                                                    <TableCell align="center">Approver</TableCell>
+                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Approver</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Number of Employees") && (
-                                                    <TableCell align="center">No. of Employees</TableCell>
+                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>No. of Employees</TableCell>
                                                 )}
                                             </TableRow>
                                         </TableHead>

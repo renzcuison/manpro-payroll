@@ -167,7 +167,7 @@ const DepartmentDetails = () => {
                                     }
                                 }}
                             >
-                                Edit Department
+                                Edit 
                             </Button>
                         </Box>
                         
@@ -193,6 +193,8 @@ const DepartmentDetails = () => {
                                     ml:10,
                                     width: '100%',
                                     px: 2,
+                                    
+
                                 }}
                                 >
                                 {[
@@ -212,33 +214,36 @@ const DepartmentDetails = () => {
                                         bgcolor: '#fff',
                                         borderRadius: '6px',
                                         textAlign: 'center',
+                                        
                                     }}
                                     >
                                     <Avatar
                                         src={getEmployeeAvatarById(id)}
                                         sx={{ width: 90, height: 90, mb: 1 }}
                                     />
-                                    <TextField
-                                        value={getEmployeeNameById(id)}
-                                        fullWidth
-                                        InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            input: {
-                                            textAlign: 'center', // Center text horizontally
-                                            },
-                                            "& .MuiOutlinedInput-notchedOutline": {
-                                            border: 'none',
-                                            },
-                                        },
-                                        }}
-                                        sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            backgroundColor: 'transparent',
-                                        },
-                                        }}
-                                    />
-                                    <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                            <TextField
+                                            value={getEmployeeNameById(id)}
+                                            fullWidth
+                                            InputProps={{
+                                                readOnly: true,
+                                                sx: {
+                                                input: {
+                                                    textAlign: 'center',
+                                                    fontWeight: 'bold', // Make the name bold
+                                                },
+                                                "& .MuiOutlinedInput-notchedOutline": {
+                                                    border: 'none',
+                                                },
+                                                },
+                                            }}
+                                            sx={{
+                                                "& .MuiOutlinedInput-root": {
+                                                backgroundColor: 'transparent',
+                                                },
+                                            }}
+                                            />
+
+                                    <Box sx={{ mt: 1, fontSize: '0.9rem', fontSize:"12"}}>
                                         {role}
                                     </Box>
                                     </Box>
@@ -266,10 +271,10 @@ const DepartmentDetails = () => {
                                             fullWidth
                                             label="Search Employees"
                                              sx={{
-                                                    height: 50,              // sets total height
-                                                    fontSize: '1',    // sets text size
-                                                    padding: '4px 10px',     // sets internal padding
-                                                    minWidth: 300,           // optional width
+                                                    height: 50,              
+                                                    fontSize: '1',   
+                                                    padding: '4px 10px',    
+                                                    minWidth: 300,          
                                                 }}
                                             variant="outlined"
                                             value={searchKeyword}
@@ -284,10 +289,10 @@ const DepartmentDetails = () => {
                                                 onChange={(e) => setBranchFilter(e.target.value)}
                                                 label="Filter by Branch"
                                                 sx={{
-                                                    height: 50,              // sets total height
-                                                    fontSize: '1',    // sets text size
-                                                    padding: '4px 10px',     // sets internal padding
-                                                    minWidth: 300,           // optional width
+                                                    height: 50,                 
+                                                    fontSize: '1',      
+                                                    padding: '4px 10px',        
+                                                    minWidth: 300,             
                                                 }}
                                                 >
                                                 <MenuItem value="all">All Branches</MenuItem>
@@ -306,8 +311,8 @@ const DepartmentDetails = () => {
                                     <Table stickyHeader>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="left">Name</TableCell>
-                                                <TableCell align="left">Branch</TableCell>
+                                                <TableCell align="left" sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                                                <TableCell align="left" sx={{ fontWeight: 'bold' }}>Branch</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -460,7 +465,7 @@ const DepartmentDetails = () => {
                         <FormGroup row={true} className="d-flex justify-content-between">
                             {/* Manager Dropdown with Search */}
                                     <FormControl sx={{ marginBottom: 3, width: '32%' }}>
-                                        <InputLabel id="manager-label">Manager</InputLabel>
+                                        <InputLabel id="manager-label" >Manager</InputLabel>
                                         <Select
                                             labelId="manager-label"
                                             id="manager-select"
@@ -565,7 +570,7 @@ const DepartmentDetails = () => {
 
                                     {/* Approver Dropdown with Search */}
                                     <FormControl sx={{ marginBottom: 3, width: '32%' }}>
-                                        <InputLabel id="approver-label">Approver</InputLabel>
+                                        <InputLabel id="approver-label" >Approver</InputLabel>
                                         <Select
                                             labelId="approver-label"
                                             id="approver-select"

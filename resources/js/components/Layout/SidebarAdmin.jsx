@@ -207,36 +207,8 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    const departmentItems = [
-        {
-            id: 10,
-            text: "Department",
-            icon: "fa fa-pencil-square-o",
-            children: [
-                {
-                    href: `/admin/department/departmentlist?`,
-                    text: "Department Types",
-                },
-              
-            ],
-        },
-    ];
 
 
-        const branchItems = [
-        {
-            id: 11,
-            text: "Branches",
-            icon: "fa fa-pencil-square-o",
-            children: [
-                {
-                    href: `/admin/branches/branchlist?`,
-                    text: "Branch Types",
-                },
-              
-            ],
-        },
-    ];
 
     
 
@@ -444,27 +416,42 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
-                                    {departmentItems.map((items, index) => {
-                                        return (
-                                        <SideItem 
-                                            key={index} 
-                                            items={items} 
-                                        
-                                        /> 
-                                       
-                                        );
-                                    })}
 
-                                    {branchItems.map((items, index) => {
-                                        return (
-                                        <SideItem 
-                                            key={index} 
-                                            items={items} 
-                                        
-                                        /> 
-                                       
-                                        );
-                                    })}
+                                         <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i
+                                            className="fa fa-building-o"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Departments{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    
+                                    
+                                    
+
+                                         <StyledNav to={`/admin/branches/branchlist`}>
+                                        <i
+                                            className="fa fa-sitemap"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Branches{" "}
+                                        </span>
+                                    </StyledNav>
+
+
+
+                           
 
 
 
@@ -504,6 +491,9 @@ const Sidebar = ({ children, closeMini }) => {
                                             Announcements{" "}
                                         </span>
                                     </StyledNav>
+
+
+                                    
 
                                     <StyledNav to={`/admin/documents`}>
                                         <i>
