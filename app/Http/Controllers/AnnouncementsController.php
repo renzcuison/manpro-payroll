@@ -1005,16 +1005,23 @@ class AnnouncementsController extends Controller
             // Employment Types (map name -> id)
             $employmentTypeNames = $request->input('employment_types', []);
             if (!empty($employmentTypeNames)) {
-                $typeMap = EmployeeTypeModel::whereIn('name', $employmentTypeNames)->pluck('id', 'name')->toArray();
+                // Get matching types from AnnouncementEmployeeTypeModel
+                $typeMap = AnnouncementEmployeeTypeModel::whereIn('employment_status', $employmentTypeNames)
+                    ->pluck('id', 'employment_status')
+                    ->toArray();
+
                 foreach ($employmentTypeNames as $typeName) {
                     if (isset($typeMap[$typeName])) {
                         AnnouncementEmployeeTypeModel::create([
                             'announcement_id' => $announcement->id,
-                            'employee_type_id' => $typeMap[$typeName],
+                            'user_id' => $user->id,
+                            'employment_status' => $typeName,
                         ]);
                     }
                 }
             }
+
+
 
             // Employment Statuses (optional: you may want to do per-user here as well)
             foreach ($request->input('employment_statuses', []) as $status) {

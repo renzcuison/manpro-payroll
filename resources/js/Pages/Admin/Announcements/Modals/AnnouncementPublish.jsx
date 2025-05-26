@@ -23,14 +23,24 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedRoleIds, setSelectedRoleIds] = useState([]); // multiple roles now
+
+    // Announcement Type selection + Create new
     const [selectedAnnouncementType, setSelectedAnnouncementType] = useState('');
+    const [selectedAnnouncementTypeError, setSelectedAnnouncementTypeError] = useState(false);
+
+    // Create new announcement type states
+    const [isCreatingNewType, setIsCreatingNewType] = useState(false);
+    const [newTypeName, setNewTypeName] = useState('');
+    const [newTypeError, setNewTypeError] = useState('');
+    const [newTypeLoading, setNewTypeLoading] = useState(false);
+
+    // Employment selections
     const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState([]);
     const [selectedEmploymentStatuses, setSelectedEmploymentStatuses] = useState([]);
 
-    // Errors
+    // Other errors
     const [selectedBranchError, setSelectedBranchError] = useState(false);
     const [selectedDepartmentError, setSelectedDepartmentError] = useState(false);
-    const [selectedAnnouncementTypeError, setSelectedAnnouncementTypeError] = useState(false);
 
     // Thumbnail
     const [imagePath, setImagePath] = useState("");
@@ -91,12 +101,114 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
         }
     }, [announceInfo?.unique_code, employee?.role_id]);
 
+    // Helper function to check if all selected
+    const isAllSelected = (allItems, selectedItems) => {
+        return allItems.length > 0 && selectedItems.length === allItems.length;
+    };
+
+    // Departments multi-select handler with "All Departments"
+    const handleDepartmentChange = (event) => {
+        const value = event.target.value;
+
+        if (value.includes('ALL_DEPARTMENTS')) {
+            // Toggle All Departments
+            if (isAllSelected(departments, selectedDepartments)) {
+                // Deselect all
+                setSelectedDepartments([]);
+            } else {
+                // Select all department IDs
+                setSelectedDepartments(departments.map(d => d.id.toString()));
+            }
+        } else {
+            // Select individual departments
+            setSelectedDepartments(value);
+        }
+    };
+
+    // Branches multi-select handler with "All Branches"
+    const handleBranchChange = (event) => {
+        const value = event.target.value;
+
+        if (value.includes('ALL_BRANCHES')) {
+            if (isAllSelected(branches, selectedBranches)) {
+                setSelectedBranches([]);
+            } else {
+                setSelectedBranches(branches.map(b => b.id.toString()));
+            }
+        } else {
+            setSelectedBranches(value);
+        }
+    };
+
+    // Roles multi-select handler with "All Roles"
+    const handleRoleChange = (event) => {
+        const value = event.target.value;
+
+        if (value.includes('ALL_ROLES')) {
+            if (isAllSelected(roles, selectedRoleIds)) {
+                setSelectedRoleIds([]);
+            } else {
+                setSelectedRoleIds(roles.map(r => r.id.toString()));
+            }
+        } else {
+            setSelectedRoleIds(value);
+        }
+    };
+
+
     // Utility
     const toggleSelection = (value, selectedArray, setSelectedArray) => {
         if (selectedArray.includes(value)) {
             setSelectedArray(selectedArray.filter(item => item !== value));
         } else {
             setSelectedArray([...selectedArray, value]);
+        }
+    };
+
+    // Handler when announcement type changes
+    const handleAnnouncementTypeChange = (event) => {
+        const value = event.target.value;
+        if (value === '__create_new__') {
+            setIsCreatingNewType(true);
+            setSelectedAnnouncementType('');
+            setSelectedAnnouncementTypeError(false);
+        } else {
+            setSelectedAnnouncementType(value);
+            setSelectedAnnouncementTypeError(false);
+            setIsCreatingNewType(false);
+        }
+    };
+
+    // Save new announcement type to backend
+    const handleAddNewType = async () => {
+        if (!newTypeName.trim()) {
+            setNewTypeError('Announcement type name is required.');
+            return;
+        }
+        setNewTypeError('');
+        setNewTypeLoading(true);
+
+        try {
+            const response = await axiosInstance.post(
+                '/addAnnouncementType',
+                { name: newTypeName.trim() },
+                { headers }
+            );
+
+            if (response.status === 200 && response.data.status === 200) {
+                const createdType = response.data.type;
+                setAnnouncementTypes(prev => [...prev, createdType]);
+                setSelectedAnnouncementType(createdType.id.toString());
+                setIsCreatingNewType(false);
+                setNewTypeName('');
+            } else {
+                const errMsg = response.data.errors?.name?.[0] || response.data.message || 'Error adding announcement type.';
+                setNewTypeError(errMsg);
+            }
+        } catch (err) {
+            setNewTypeError('Server error.');
+        } finally {
+            setNewTypeLoading(false);
         }
     };
 
@@ -251,47 +363,86 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                     <FormGroup row={true} className="d-flex justify-content-between">
                         {/* Announcement Type */}
                         <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                            <TextField
-                                select
-                                id="announcementType"
-                                label="Announcement Type"
-                                error={selectedAnnouncementTypeError}
-                                value={selectedAnnouncementType}
-                                onChange={e => setSelectedAnnouncementType(e.target.value)}
-                            >
-                                <MenuItem value="">Select Announcement Type</MenuItem>
-                                {announcementTypes.map(type => (
-                                    <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
-                                ))}
-                            </TextField>
+                            {!isCreatingNewType ? (
+                                <TextField
+                                    select
+                                    id="announcementType"
+                                    label="Announcement Type"
+                                    error={selectedAnnouncementTypeError}
+                                    value={selectedAnnouncementType}
+                                    onChange={handleAnnouncementTypeChange}
+                                >
+                                    <MenuItem value="">Select Announcement Type</MenuItem>
+                                    {announcementTypes.map(type => (
+                                        <MenuItem key={type.id} value={type.id.toString()}>
+                                            {type.name}
+                                        </MenuItem>
+                                    ))}
+                                    <MenuItem value="__create_new__" sx={{ fontStyle: 'italic' }}>
+                                        + Create new announcement type
+                                    </MenuItem>
+                                </TextField>
+                            ) : (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                    <TextField
+                                        id="newAnnouncementType"
+                                        label="New Announcement Type"
+                                        value={newTypeName}
+                                        onChange={e => setNewTypeName(e.target.value)}
+                                        error={!!newTypeError}
+                                        helperText={newTypeError}
+                                        disabled={newTypeLoading}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={handleAddNewType}
+                                        disabled={!newTypeName.trim() || newTypeLoading}
+                                        sx={{ ml: 1, whiteSpace: 'nowrap' }}
+                                    >
+                                        {newTypeLoading ? <CircularProgress size={24} /> : 'Save'}
+                                    </Button>
+                                    <Button
+                                        variant="text"
+                                        size="small"
+                                        onClick={() => {
+                                            setIsCreatingNewType(false);
+                                            setNewTypeName('');
+                                            setNewTypeError('');
+                                        }}
+                                        sx={{ ml: 1 }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </Box>
+                            )}
                         </FormControl>
                         {/* Department Selection */}
                         <FormControl sx={{ marginBottom: 2, width: '49%' }}>
                             <TextField
                                 select
-                                id="department"
                                 label="Departments"
-                                error={selectedDepartmentError}
-                                value={selectedDepartments}
                                 SelectProps={{
                                     multiple: true,
-                                    renderValue: (selected) =>
-                                        departments
-                                            .filter((department) => selected.includes(department.id.toString()))
-                                            .map((department) => department.acronym)
-                                            .join(', '),
+                                    value: selectedDepartments,
+                                    onChange: handleDepartmentChange,
+                                    renderValue: (selected) => selected.length === 0 ? "Select Departments" : selected.map(id => {
+                                        const dept = departments.find(d => d.id.toString() === id);
+                                        return dept ? dept.name : id;
+                                    }).join(', '),
                                 }}
+                                fullWidth
                             >
-                                {departments.map((department) => (
-                                    <MenuItem
-                                        key={department.id}
-                                        value={department.id.toString()}
-                                        onClick={() => {
-                                            toggleSelection(department.id.toString(), selectedDepartments, setSelectedDepartments);
-                                        }}
-                                    >
-                                        <Checkbox checked={selectedDepartments.includes(department.id.toString())} />
-                                        <ListItemText primary={`${department.name} (${department.acronym})`} />
+                                <MenuItem value="ALL_DEPARTMENTS" dense>
+                                    <Checkbox checked={isAllSelected(departments, selectedDepartments)} />
+                                    <ListItemText primary="All Departments" />
+                                </MenuItem>
+                                {departments.map(dept => (
+                                    <MenuItem key={dept.id} value={dept.id.toString()}>
+                                        <Checkbox checked={selectedDepartments.includes(dept.id.toString())} />
+                                        <ListItemText primary={dept.name} />
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -300,29 +451,26 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         <FormControl sx={{ marginBottom: 2, width: '49%' }}>
                             <TextField
                                 select
-                                id="branch"
                                 label="Branches"
-                                error={selectedBranchError}
-                                value={selectedBranches}
                                 SelectProps={{
                                     multiple: true,
-                                    renderValue: (selected) =>
-                                        branches
-                                            .filter((branch) => selected.includes(branch.id.toString()))
-                                            .map((branch) => branch.acronym)
-                                            .join(', '),
+                                    value: selectedBranches,
+                                    onChange: handleBranchChange,
+                                    renderValue: (selected) => selected.length === 0 ? "Select Branches" : selected.map(id => {
+                                        const branch = branches.find(b => b.id.toString() === id);
+                                        return branch ? branch.name : id;
+                                    }).join(', '),
                                 }}
+                                fullWidth
                             >
-                                {branches.map((branch) => (
-                                    <MenuItem
-                                        key={branch.id}
-                                        value={branch.id.toString()}
-                                        onClick={() => {
-                                            toggleSelection(branch.id.toString(), selectedBranches, setSelectedBranches);
-                                        }}
-                                    >
+                                <MenuItem value="ALL_BRANCHES" dense>
+                                    <Checkbox checked={isAllSelected(branches, selectedBranches)} />
+                                    <ListItemText primary="All Branches" />
+                                </MenuItem>
+                                {branches.map(branch => (
+                                    <MenuItem key={branch.id} value={branch.id.toString()}>
                                         <Checkbox checked={selectedBranches.includes(branch.id.toString())} />
-                                        <ListItemText primary={`${branch.name} (${branch.acronym})`} />
+                                        <ListItemText primary={branch.name} />
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -330,36 +478,29 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                     </FormGroup>
                     {/* Roles Selection */}
                     <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                    <TextField
+                   <TextField
                         select
-                        id="roles"
                         label="Roles"
-                        value={selectedRoleIds}
                         SelectProps={{
-                        multiple: true,
-                        renderValue: (selected) =>
-                            roles
-                            .filter(role => selected.includes(role.id.toString()))
-                            .map(role => role.name)
-                            .join(', '),
+                            multiple: true,
+                            value: selectedRoleIds,
+                            onChange: handleRoleChange,
+                            renderValue: (selected) => selected.length === 0 ? "Select Roles" : selected.map(id => {
+                                const role = roles.find(r => r.id.toString() === id);
+                                return role ? role.name : id;
+                            }).join(', '),
                         }}
+                        fullWidth
                     >
-                        {roles.map(role => (
-                        <MenuItem
-                            key={role.id}
-                            value={role.id.toString()}
-                            onClick={() => {
-                            const value = role.id.toString();
-                            setSelectedRoleIds(prev =>
-                                prev.includes(value)
-                                ? prev.filter(id => id !== value)
-                                : [...prev, value]
-                            );
-                            }}
-                        >
-                            <Checkbox checked={selectedRoleIds.includes(role.id.toString())} />
-                            <ListItemText primary={role.name} />
+                        <MenuItem value="ALL_ROLES" dense>
+                            <Checkbox checked={isAllSelected(roles, selectedRoleIds)} />
+                            <ListItemText primary="All Roles" />
                         </MenuItem>
+                        {roles.map(role => (
+                            <MenuItem key={role.id} value={role.id.toString()}>
+                                <Checkbox checked={selectedRoleIds.includes(role.id.toString())} />
+                                <ListItemText primary={role.name} />
+                            </MenuItem>
                         ))}
                     </TextField>
                     </FormControl>
