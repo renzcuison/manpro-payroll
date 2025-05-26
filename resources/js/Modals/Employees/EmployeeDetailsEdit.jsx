@@ -223,10 +223,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}>
+                        <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}>
                             <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
@@ -347,11 +344,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                         <Divider sx={{ my: 4 }} />
                         {/*<--Educational Forms Field-->*/}
 
-                        <FormGroup row={true} className="d-flex" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}> 
-                            <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
+                        <FormGroup row={true} className="d-flex" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}> 
+                            <Typography variant="h4" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
                             <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
 
                             <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
@@ -400,7 +394,9 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                 ))}    
                             </Grid>
                         </FormGroup>
+
                         <Divider sx={{ my: 4 }} />
+
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },

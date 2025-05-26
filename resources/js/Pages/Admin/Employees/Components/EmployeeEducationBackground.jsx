@@ -14,29 +14,29 @@ const EmployeeEducationBackground = ({education}) => {
                 <Grid container size={12} sx={{mt:2}} key={index}>
                     {/*<--Left Side-->*/}
                     
-                    <Grid container size={6}>
+                    <Grid container size={8}>
                         <Grid size={12}>
-                            <Typography sx={{color:"gray", fontWeight:"bold"}}>
-                                {item.degree_type} ({item.degree_name})
+                            <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
+                                {item.degree_name}
                             </Typography>
                         </Grid>
                         <Grid size={12}>
-                            <Typography sx={{fontWeight:"bold", fontSize:16}}>
+                            <Typography sx={{color:"gray"}}>
                                 {item.school_name}
                             </Typography>
                         </Grid>
 
                     </Grid>
                     {/*<--Right Side-->*/}
-                    <Grid container size={6}>  
+                    <Grid container size={4}>  
                         <Grid size={12}>
                             <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
-                                {item.year_graduated}
+                                {item.degree_type} 
                             </Typography>
                         </Grid> 
                         <Grid size={12}>
                             <Typography sx={{color:"gray"}}>
-                                Year Graduated
+                                {item.year_graduated}
                             </Typography>
                         </Grid>
                         
