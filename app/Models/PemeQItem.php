@@ -21,9 +21,9 @@ class PemeQItem extends Model
         return $this->belongsTo(Peme::class);
     }
 
-    public function type()
+    public function types()
     {
-    return $this->hasOne(PemeQType::class, 'peme_q_item_id');
+    return $this->hasMany(PemeQType::class, 'peme_q_item_id');
     }
 
 }
