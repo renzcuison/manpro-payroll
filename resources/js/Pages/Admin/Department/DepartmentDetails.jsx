@@ -112,177 +112,195 @@ const DepartmentDetails = () => {
         `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(approverSearch.toLowerCase())
     );
 
-    if (isLoading) return <LoadingSpinner />;
-    if (error) return <Typography color="error">{error}</Typography>;
-    if (!department) return <Typography>Department not found</Typography>;
+    if (error) return (
+        <Layout title={"Departments"}>
+            <Typography color="error">{error}</Typography>
+        </Layout>
+    );
+    
+    if (!department) return (
+        <Layout title={"Departments"}>
+            <Typography></Typography>
+        </Layout>
+    );
 
     return (
         <Layout title={"Departments"}>
-            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <i
-                                className="fa fa-chevron-left"
-                                aria-hidden="true"
-                                style={{ fontSize: '80%', cursor: 'pointer' }}
-                                onClick={() => navigate('/admin/department/departmentlist')}
-                            ></i>
-                            {department.name} ({department.acronym})
-                        </Typography>
-                        <Button 
-                            variant="contained"
-                            onClick={() => setOpenEditModal(true)}
-                            sx={{ 
-                                backgroundColor: '#177604',
-                                color: 'white',
-                                '&:hover': {
-                                    backgroundColor: '#126703'
-                                }
+            {isLoading ? (
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: 'calc(100vh - 200px)' // Adjust based on your header height
+                }}>
+                    <LoadingSpinner />
+                </Box>
+            ) : (
+                <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+                    <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                        <Box
+                            sx={{
+                                mt: 5,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                px: 1,
+                                alignItems: "center",
                             }}
                         >
-                            Edit Department
-                        </Button>
-                    </Box>
-                    
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "white",
-                            borderRadius: "8px",
-                            boxShadow: 1,
-                        }}
-                    >
-                        <Grid container>
-                 
-                        {/* Personnel Section */}
-                        <Grid item xs={12}>
-                            <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: { xs: 'column', sm: 'row' },
-                                justifyContent: 'space-between',
-                                gap: 2,
-                                ml:10,
-                                width: '100%',
-                                px: 2,
-                            }}
+                            <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <i
+                                    className="fa fa-chevron-left"
+                                    aria-hidden="true"
+                                    style={{ fontSize: '80%', cursor: 'pointer' }}
+                                    onClick={() => navigate('/admin/department/departmentlist')}
+                                ></i>
+                                {department.name} ({department.acronym})
+                            </Typography>
+                            <Button 
+                                variant="contained"
+                                onClick={() => setOpenEditModal(true)}
+                                sx={{ 
+                                    backgroundColor: '#177604',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: '#126703'
+                                    }
+                                }}
                             >
-                            {[
-                                { role: 'Manager', id: department.manager_id },
-                                { role: 'Supervisor', id: department.supervisor_id },
-                                { role: 'Approver', id: department.approver_id },
-                            ].map(({ role, id }) => (
+                                Edit Department
+                            </Button>
+                        </Box>
+                        
+                        <Box
+                            sx={{
+                                mt: 6,
+                                p: 3,
+                                bgcolor: "white",
+                                borderRadius: "8px",
+                                boxShadow: 1,
+                            }}
+                        >
+                            <Grid container>
+                     
+                            {/* Personnel Section */}
+                            <Grid item xs={12}>
                                 <Box
-                                key={role}
                                 sx={{
-                                    flex: 1,
                                     display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    p: 2,
+                                    flexDirection: { xs: 'column', sm: 'row' },
+                                    justifyContent: 'space-between',
+                                    gap: 2,
                                     ml:10,
-                                    bgcolor: '#fff',
-                                    borderRadius: '6px',
-                                    textAlign: 'center',
+                                    width: '100%',
+                                    px: 2,
                                 }}
                                 >
-                                <Avatar
-                                    src={getEmployeeAvatarById(id)}
-                                    sx={{ width: 60, height: 60, mb: 1 }}
-                                />
-                                <TextField
-                                    value={getEmployeeNameById(id)}
-                                    fullWidth
-                                    InputProps={{
-                                    readOnly: true,
-                                    sx: {
-                                        input: {
-                                        textAlign: 'center', // Center text horizontally
-                                        },
-                                        "& .MuiOutlinedInput-notchedOutline": {
-                                        border: 'none',
-                                        },
-                                    },
-                                    }}
+                                {[
+                                    { role: 'Manager', id: department.manager_id },
+                                    { role: 'Supervisor', id: department.supervisor_id },
+                                    { role: 'Approver', id: department.approver_id },
+                                ].map(({ role, id }) => (
+                                    <Box
+                                    key={role}
                                     sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        backgroundColor: 'transparent',
-                                    },
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        p: 2,
+                                        ml:10,
+                                        bgcolor: '#fff',
+                                        borderRadius: '6px',
+                                        textAlign: 'center',
                                     }}
-                                />
-                                <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
-                                    {role}
-                                </Box>
-                                </Box>
-                            ))}
-                            </Box>
-                        </Grid>
-                        </Grid>
-
-                     
-
-                    </Box>
-
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <Box sx={{ mt: 1 }}>
-                            <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid rgb(255, 253, 253)" }}>
-                                <Grid item xs={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Search Employees"
-                                         sx={{
-                                                height: 50,              // sets total height
-                                                fontSize: '1',    // sets text size
-                                                padding: '4px 10px',     // sets internal padding
-                                                minWidth: 300,           // optional width
-                                            }}
-                                        variant="outlined"
-                                        value={searchKeyword}
-                                        onChange={(e) => setSearchKeyword(e.target.value)}
+                                    >
+                                    <Avatar
+                                        src={getEmployeeAvatarById(id)}
+                                        sx={{ width: 90, height: 90, mb: 1 }}
                                     />
-                                </Grid>
-                                <Grid item xs={6} ml={90}>
-                                    <FormControl size="medium" fullWidth>
-                                        <InputLabel>Filter by Branch</InputLabel>
-                                        <Select
-                                            value={branchFilter}
-                                            onChange={(e) => setBranchFilter(e.target.value)}
-                                            label="Filter by Branch"
-                                            sx={{
-                                                height: 50,              // sets total height
-                                                fontSize: '1',    // sets text size
-                                                padding: '4px 10px',     // sets internal padding
-                                                minWidth: 300,           // optional width
-                                            }}
-                                            >
-                                            <MenuItem value="all">All Branches</MenuItem>
-                                            {branches.map((branch) => (
-                                                <MenuItem key={branch.id} value={branch.id}>
-                                                {branch.name}
-                                                </MenuItem>
-                                            ))}
-                                            </Select>
-                                    </FormControl>
-                                </Grid>
+                                    <TextField
+                                        value={getEmployeeNameById(id)}
+                                        fullWidth
+                                        InputProps={{
+                                        readOnly: true,
+                                        sx: {
+                                            input: {
+                                            textAlign: 'center', // Center text horizontally
+                                            },
+                                            "& .MuiOutlinedInput-notchedOutline": {
+                                            border: 'none',
+                                            },
+                                        },
+                                        }}
+                                        sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            backgroundColor: 'transparent',
+                                        },
+                                        }}
+                                    />
+                                    <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                        {role}
+                                    </Box>
+                                    </Box>
+                                ))}
+                                </Box>
+                            </Grid>
                             </Grid>
 
+                        
+
+                        </Box>
+
+                        <Box
+                            sx={{
+                                mt: 6,
+                                p: 3,
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <Box sx={{ mt: 1 }}>
+                                <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid rgb(255, 253, 253)" }}>
+                                    <Grid item xs={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Search Employees"
+                                             sx={{
+                                                    height: 50,              // sets total height
+                                                    fontSize: '1',    // sets text size
+                                                    padding: '4px 10px',     // sets internal padding
+                                                    minWidth: 300,           // optional width
+                                                }}
+                                            variant="outlined"
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={6} ml={90}>
+                                        <FormControl size="medium" fullWidth>
+                                            <InputLabel>Filter by Branch</InputLabel>
+                                            <Select
+                                                value={branchFilter}
+                                                onChange={(e) => setBranchFilter(e.target.value)}
+                                                label="Filter by Branch"
+                                                sx={{
+                                                    height: 50,              // sets total height
+                                                    fontSize: '1',    // sets text size
+                                                    padding: '4px 10px',     // sets internal padding
+                                                    minWidth: 300,           // optional width
+                                                }}
+                                                >
+                                                <MenuItem value="all">All Branches</MenuItem>
+                                                {branches.map((branch) => (
+                                                    <MenuItem key={branch.id} value={branch.id}>
+                                                    {branch.name}
+                                                    </MenuItem>
+                                                ))}
+                                                </Select>
+                                        </FormControl>
+                                    </Grid>
+                                </Grid>
+                            
                             {filteredEmployees.length > 0 ? (
                                 <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
                                     <Table stickyHeader>
@@ -350,10 +368,13 @@ const DepartmentDetails = () => {
                                     </Typography>
                                 </Box>
                             )}
+                            </Box>
+
+                           
                         </Box>
                     </Box>
                 </Box>
-            </Box>
+            )}
 
             {/* Edit Department Modal */}
             <Dialog

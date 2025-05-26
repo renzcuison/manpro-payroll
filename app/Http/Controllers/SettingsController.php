@@ -38,7 +38,11 @@ class SettingsController extends Controller
 
         if ($this->checkUser()) {
             $user = Auth::user();
-            $branches = BranchesModel::where('client_id', $user->client_id)->get();
+            $branches = BranchesModel::where('client_id', $user->client_id)
+            ->with(['manager', 'supervisor', 'approver'])
+            ->withCount('employees')
+            
+            ->get();
 
             return response()->json(['status' => 200, 'branches' => $branches]);
         }

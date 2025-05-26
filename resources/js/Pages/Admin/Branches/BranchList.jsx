@@ -121,7 +121,7 @@ const BranchList = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setBranches(prev => [...prev, response.data.branches]);
+                        setBranches(prev => [...prev, response.data.branch]);
                         setName("");
                         setAcronym("");
                         setDescription("");
@@ -206,7 +206,7 @@ const BranchList = () => {
                                                 {selectedColumns.includes("Assigned Supervisor") && (
                                                     <TableCell align="center">Assigned Supervisor</TableCell>
                                                 )}
-                                                {selectedColumns.includes("Approver") && (
+                                                {selectedColumns.includes("Assigned Approver") && (
                                                     <TableCell align="center">Approver</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Number of Employees") && (
@@ -261,13 +261,9 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.manager_name ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={bran.manager_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {bran.manager_name}
+                                                                    {bran.manager_id ? (
+                                                                        <Box display="flex" alignItems="center" justifyContent="center">                           
+                                                                            {bran.manager_id}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>
@@ -286,19 +282,15 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.supervisor_name ? (
+                                                                    {bran.supervisor_id ? (
                                                                         <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={bran.supervisor_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {bran.supervisor_name}
+                                                                            {bran.supervisor_id}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Approver") && (
+                                                        {selectedColumns.includes("Assigned Approver") && (
                                                             <TableCell align="center">
                                                                 <Link
                                                                     to={`/admin/branches/${bran.id}`}
@@ -311,13 +303,9 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.approver_name ? (
+                                                                    {bran.approver_id ? (
                                                                         <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={bran.approver_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {bran.approver_name}
+                                                                            {bran.approver_id}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>

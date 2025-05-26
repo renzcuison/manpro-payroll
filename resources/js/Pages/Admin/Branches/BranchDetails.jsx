@@ -57,7 +57,6 @@ const BranchDetails = () => {
 
                 // Fetch branch details
                 const branchResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
-                console.log(branchResponse.data);
                 setBranch(branchResponse.data.branch);
                 setEmployees(branchResponse.data.employees || []);
 
@@ -113,239 +112,258 @@ const BranchDetails = () => {
         `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(approverSearch.toLowerCase())
     );
 
-    if (isLoading) return <LoadingSpinner />;
-    if (error) return <Typography color="error">{error}</Typography>;
-    if (!branch) return <Typography>Branch not found</Typography>;
+    if (error) return (
+        <Layout title={"Branches"}>
+            <Typography color="error">{error}</Typography>
+        </Layout>
+    );
+    
+    if (!branch) return (
+        <Layout title={"Branches"}>
+            <Typography> </Typography>
+        </Layout>
+    );
 
     return (
         <Layout title={"Branches"}>
-            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <i
-                                className="fa fa-chevron-left"
-                                aria-hidden="true"
-                                style={{ fontSize: '80%', cursor: 'pointer' }}
-                                onClick={() => navigate('/admin/branch/branchlist')}
-                            ></i>
-                            {branch.name} ({branch.code})
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            onClick={() => setOpenEditModal(true)}
+            {isLoading ? (
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: 'calc(100vh - 200px)' // Adjust based on your header height
+                }}>
+                    <LoadingSpinner />
+                </Box>
+            ) : (
+                <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+                    <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                        <Box
                             sx={{
-                                backgroundColor: '#177604',
-                                color: 'white',
-                                '&:hover': {
-                                    backgroundColor: '#126703'
-                                }
+                                mt: 5,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                px: 1,
+                                alignItems: "center",
                             }}
                         >
-                            Edit Branch
-                        </Button>
-                    </Box>
+                            <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <i
+                                    className="fa fa-chevron-left"
+                                    aria-hidden="true"
+                                    style={{ fontSize: '80%', cursor: 'pointer' }}
+                                    onClick={() => navigate('/admin/branch/branchlist')}
+                                ></i>
+                                {branch.name} ({branch.code})
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                onClick={() => setOpenEditModal(true)}
+                                sx={{
+                                    backgroundColor: '#177604',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: '#126703'
+                                    }
+                                }}
+                            >
+                                Edit Branch
+                            </Button>
+                        </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "white",
-                            borderRadius: "8px",
-                            boxShadow: 1,
-                        }}
-                    >
-                        <Grid container>
-                            {/* Personnel Section */}
-                            <Grid item xs={12}>
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: { xs: 'column', sm: 'row' },
-                                        justifyContent: 'space-between',
-                                        gap: 2,
-                                        ml: 10,
-                                        width: '100%',
-                                        px: 2,
-                                    }}
-                                >
-                                    {[
-                                        { role: 'Manager', id: branch.manager_id },
-                                        { role: 'Supervisor', id: branch.supervisor_id },
-                                        { role: 'Approver', id: branch.approver_id },
-                                    ].map(({ role, id }) => (
-                                        <Box
-                                            key={role}
-                                            sx={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                p: 2,
-                                                ml: 10,
-                                                bgcolor: '#fff',
-                                                borderRadius: '6px',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            <Avatar
-                                                src={getEmployeeAvatarById(id)}
-                                                sx={{ width: 60, height: 60, mb: 1 }}
-                                            />
-                                            <TextField
-                                                value={getEmployeeNameById(id)}
-                                                fullWidth
-                                                InputProps={{
-                                                    readOnly: true,
-                                                    sx: {
-                                                        input: {
-                                                            textAlign: 'center',
-                                                        },
-                                                        "& .MuiOutlinedInput-notchedOutline": {
-                                                            border: 'none',
-                                                        },
-                                                    },
-                                                }}
-                                                sx={{
-                                                    "& .MuiOutlinedInput-root": {
-                                                        backgroundColor: 'transparent',
-                                                    },
-                                                }}
-                                            />
-                                            <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
-                                                {role}
-                                            </Box>
-                                        </Box>
-                                    ))}
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Box>
-
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <Box sx={{ mt: 1 }}>
-                            <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid rgb(255, 253, 253)" }}>
-                                <Grid item xs={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Search Employees"
+                        <Box
+                            sx={{
+                                mt: 6,
+                                p: 3,
+                                bgcolor: "white",
+                                borderRadius: "8px",
+                                boxShadow: 1,
+                            }}
+                        >
+                            <Grid container>
+                                {/* Personnel Section */}
+                                <Grid item xs={12}>
+                                    <Box
                                         sx={{
-                                            height: 50,
-                                            fontSize: '1',
-                                            padding: '4px 10px',
-                                            minWidth: 300,
+                                            display: 'flex',
+                                            flexDirection: { xs: 'column', sm: 'row' },
+                                            justifyContent: 'space-between',
+                                            gap: 2,
+                                            ml: 10,
+                                            width: '100%',
+                                            px: 2,
                                         }}
-                                        variant="outlined"
-                                        value={searchKeyword}
-                                        onChange={(e) => setSearchKeyword(e.target.value)}
-                                    />
+                                    >
+                                        {[
+                                            { role: 'Manager', id: branch.manager_id },
+                                            { role: 'Supervisor', id: branch.supervisor_id },
+                                            { role: 'Approver', id: branch.approver_id },
+                                        ].map(({ role, id }) => (
+                                            <Box
+                                                key={role}
+                                                sx={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    p: 2,
+                                                    ml: 10,
+                                                    bgcolor: '#fff',
+                                                    borderRadius: '6px',
+                                                    textAlign: 'center',
+                                                }}
+                                            >
+                                                <Avatar
+                                                    src={getEmployeeAvatarById(id)}
+                                                    sx={{ width: 60, height: 60, mb: 1 }}
+                                                />
+                                                <TextField
+                                                    value={getEmployeeNameById(id)}
+                                                    fullWidth
+                                                    InputProps={{
+                                                        readOnly: true,
+                                                        sx: {
+                                                            input: {
+                                                                textAlign: 'center',
+                                                            },
+                                                            "& .MuiOutlinedInput-notchedOutline": {
+                                                                border: 'none',
+                                                            },
+                                                        },
+                                                    }}
+                                                    sx={{
+                                                        "& .MuiOutlinedInput-root": {
+                                                            backgroundColor: 'transparent',
+                                                        },
+                                                    }}
+                                                />
+                                                <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                                    {role}
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
                                 </Grid>
-                                <Grid item xs={6} ml={90}>
-                                    <FormControl size="medium" fullWidth>
-                                        <InputLabel>Filter by Department</InputLabel>
-                                        <Select
-                                            value={departmentFilter}
-                                            onChange={(e) => setDepartmentFilter(e.target.value)}
-                                            label="Filter by Department"
+                            </Grid>
+                        </Box>
+
+                        <Box
+                            sx={{
+                                mt: 6,
+                                p: 3,
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <Box sx={{ mt: 1 }}>
+                                <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid rgb(255, 253, 253)" }}>
+                                    <Grid item xs={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Search Employees"
                                             sx={{
                                                 height: 50,
                                                 fontSize: '1',
                                                 padding: '4px 10px',
                                                 minWidth: 300,
                                             }}
-                                        >
-                                            <MenuItem value="all">All Departments</MenuItem>
-                                            {departments.map((department) => (
-                                                <MenuItem key={department.id} value={department.name}>
-                                                    {department.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                            variant="outlined"
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={6} ml={90}>
+                                        <FormControl size="medium" fullWidth>
+                                            <InputLabel>Filter by Department</InputLabel>
+                                            <Select
+                                                value={departmentFilter}
+                                                onChange={(e) => setDepartmentFilter(e.target.value)}
+                                                label="Filter by Department"
+                                                sx={{
+                                                    height: 50,
+                                                    fontSize: '1',
+                                                    padding: '4px 10px',
+                                                    minWidth: 300,
+                                                }}
+                                            >
+                                                <MenuItem value="all">All Departments</MenuItem>
+                                                {departments.map((department) => (
+                                                    <MenuItem key={department.id} value={department.name}>
+                                                        {department.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
 
-                            {filteredEmployees.length > 0 ? (
-                                <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
-                                    <Table stickyHeader>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="left">Name</TableCell>
-                                                <TableCell align="left">Department</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {filteredEmployees.map((employee, index) => (
-                                                <TableRow
-                                                    key={index}
-                                                    hover
-                                                    sx={{
-                                                        cursor: "pointer",
-                                                        "&:hover": {
-                                                            backgroundColor: "rgba(0, 0, 0, 0.1)"
-                                                        }
-                                                    }}
-                                                >
-                                                    <TableCell align="left">
-                                                        {employee.name}
-                                                    </TableCell>
-                                                    <TableCell align="left">
-                                                        {employee.department}
-                                                    </TableCell>
+                                {filteredEmployees.length > 0 ? (
+                                    <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
+                                        <Table stickyHeader>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="left">Name</TableCell>
+                                                    <TableCell align="left">Department</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={2} align="center">
-                                        No employees found in this branch.
-                                    </TableCell>
-                                </TableRow>
-                            )}
+                                            </TableHead>
+                                            <TableBody>
+                                                {filteredEmployees.map((employee, index) => (
+                                                    <TableRow
+                                                        key={index}
+                                                        hover
+                                                        sx={{
+                                                            cursor: "pointer",
+                                                            "&:hover": {
+                                                                backgroundColor: "rgba(0, 0, 0, 0.1)"
+                                                            }
+                                                        }}
+                                                    >
+                                                        <TableCell align="left">
+                                                            {employee.name}
+                                                        </TableCell>
+                                                        <TableCell align="left">
+                                                            {employee.department}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={2} align="center">
+                                            No employees found in this branch.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
 
-                            {filteredEmployees.length > 0 && (
-                                <Box
-                                    display="flex"
-                                    sx={{
-                                        py: 2,
-                                        pr: 2,
-                                        width: "100%",
-                                        justifyContent: "flex-end",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <Typography sx={{ mr: 2 }}>
-                                        Number of Employees:
-                                    </Typography>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ fontWeight: "bold" }}
+                                {filteredEmployees.length > 0 && (
+                                    <Box
+                                        display="flex"
+                                        sx={{
+                                            py: 2,
+                                            pr: 2,
+                                            width: "100%",
+                                            justifyContent: "flex-end",
+                                            alignItems: "center",
+                                        }}
                                     >
-                                        {filteredEmployees.length}
-                                    </Typography>
-                                </Box>
-                            )}
+                                        <Typography sx={{ mr: 2 }}>
+                                            Number of Employees:
+                                        </Typography>
+                                        <Typography
+                                            variant="h6"
+                                            sx={{ fontWeight: "bold" }}
+                                        >
+                                            {filteredEmployees.length}
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
                         </Box>
                     </Box>
                 </Box>
-            </Box>
+            )}
 
             {/* Edit Branch Modal */}
             <Dialog

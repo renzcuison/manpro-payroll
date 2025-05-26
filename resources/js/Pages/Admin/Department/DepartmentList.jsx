@@ -121,7 +121,7 @@ const DepartmentsList = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setDepartments(prev => [...prev, response.data.department]);
+                        setDepartments(prev => [...prev, response.data.department ]);
                         setName("");
                         setAcronym("");
                         setDescription("");
@@ -206,7 +206,7 @@ const DepartmentsList = () => {
                                                 {selectedColumns.includes("Assigned Supervisor") && (
                                                     <TableCell align="center">Assigned Supervisor</TableCell>
                                                 )}
-                                                {selectedColumns.includes("Approver") && (
+                                                {selectedColumns.includes("Assigned Approver") && (
                                                     <TableCell align="center">Approver</TableCell>
                                                 )}
                                                 {selectedColumns.includes("Number of Employees") && (
@@ -261,13 +261,9 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.manager_name ? (
+                                                                    {dept.manager_id ? (
                                                                         <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.manager_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.manager_name}
+                                                                            {dept.manager_id}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>
@@ -286,19 +282,15 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.supervisor_name ? (
+                                                                    {dept.supervisor_id ? (
                                                                         <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.supervisor_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.supervisor_name}
+                                                                            {dept.supervisor_id}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Approver") && (
+                                                        {selectedColumns.includes("Assigned Approver") && (
                                                             <TableCell align="center">
                                                                 <Link
                                                                     to={`/admin/department/${dept.id}`}
@@ -311,13 +303,9 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.approver_name ? (
+                                                                    {dept.approver_id ? (
                                                                         <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            <Avatar 
-                                                                                src={dept.approver_avatar} 
-                                                                                sx={{ mr: 2, width: 32, height: 32 }}
-                                                                            />
-                                                                            {dept.approver_name}
+                                                                            {dept.approver?.name || "No Approver"}
                                                                         </Box>
                                                                     ) : "-"}
                                                                 </Link>
