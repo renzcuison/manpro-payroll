@@ -44,7 +44,19 @@ class EvaluationController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm::where('id', $request->id)->first();
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
 
             if( !$evaluationForm ) return response()->json([ 
                 'status' => 404,
@@ -101,7 +113,19 @@ class EvaluationController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm::where('id', $request->id)->first();
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
 
             if( !$evaluationForm ) return response()->json([ 
                 'status' => 404,
@@ -163,8 +187,16 @@ class EvaluationController extends Controller
         try {
 
             $evaluationForm = EvaluationForm
-                ::select('id', 'name', 'creator_id', 'created_at', 'updated_at')
-                ->where('id', $request->id)
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
                 ->first()
             ;
             if( !$evaluationForm ) return response()->json([
@@ -204,8 +236,7 @@ class EvaluationController extends Controller
         try {
 
             $evaluationForms = EvaluationForm
-                ::
-                join('users', 'evaluation_forms.id', '=', 'users.id')
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
                 ->select(
                     'evaluation_forms.id',
                     'evaluation_forms.name', 
@@ -223,7 +254,7 @@ class EvaluationController extends Controller
                     'message' => 'User creator not found!',
                     'creatorID' => $request->creator_id
                 ]);
-                $evaluationForms->where('creator_id', $request->creator_id);
+                $evaluationForms->where('evaluation_forms.creator_id', $request->creator_id);
 
             }
             $evaluationForms = $evaluationForms->orderBy('name')->get();
