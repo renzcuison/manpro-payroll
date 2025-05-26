@@ -266,19 +266,19 @@ class SettingsController extends Controller
         }
     }
 
-    public function getRoles(Request $request)
-    {
-        // Log::info("SettingsController::getRoles");
+    // public function getRoles(Request $request)
+    // {
+    //     // Log::info("SettingsController::getRoles");
 
-        if ($this->checkUser()) {
-            $user = Auth::user();
-            $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
+    //     if ($this->checkUser()) {
+    //         $user = Auth::user();
+    //         $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
 
-            return response()->json(['status' => 200, 'roles' => $roles]);
-        }
+    //         return response()->json(['status' => 200, 'roles' => $roles]);
+    //     }
 
-        return response()->json(['status' => 200, 'roles' => null]);
-    }
+    //     return response()->json(['status' => 200, 'roles' => null]);
+    // }
 
     public function saveRole(Request $request)
     {
@@ -405,5 +405,37 @@ class SettingsController extends Controller
 
             return response()->json(['status' => 200]);
         }
+    }
+
+
+
+    // Trial 
+    public function getRoles()
+    {
+        try {
+            $roles = \App\Models\EmployeeRolesModel::all();
+            return response()->json(['roles' => $roles]);
+        } catch (\Exception $e) {
+            \Log::error('getRoles: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching roles'], 500);
+        }
+    }
+
+    public function getEmploymentTypes()
+    {
+        try {
+            $types = \App\Models\EmployeeTypeModel::all();
+            return response()->json(['employment_types' => $types]);
+        } catch (\Exception $e) {
+            \Log::error('getEmploymentTypes: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching employment types'], 500);
+        }
+    }
+
+    public function getStatuses()
+    {
+        // If you want to use a fixed list:
+        $statuses = ['Active', 'Resigned', 'Terminated'];
+        return response()->json(['statuses' => $statuses]);
     }
 }

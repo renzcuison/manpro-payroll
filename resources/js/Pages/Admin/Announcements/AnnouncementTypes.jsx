@@ -7,7 +7,6 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import AnnouncementTypeAdd from './Modals/AnnouncementTypeAdd';
 import AnnouncementTypeEdit from './Modals/AnnouncementTypeEdit';
 import { useNavigate } from 'react-router-dom';
-import AnnouncementPublishFilter from './Modals/AnnouncementPublishFilter';
 
 
 const AnnouncementTypes = () => {
@@ -15,7 +14,6 @@ const AnnouncementTypes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editType, setEditType] = useState(null);
-  const navigate = useNavigate();
 
   const fetchTypes = async () => {
     setLoading(true);
@@ -51,14 +49,6 @@ const AnnouncementTypes = () => {
         <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
           <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
             <Typography variant="h4" sx={{ fontWeight: "bold" }}> Announcement Types </Typography>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => navigate('/admin/announcements/types/publish-filter')}
-            >
-              <i className="fa fa-filter" style={{ marginRight: 8 }}></i> Publish Filter
-            </Button>
-
           </Box>
           <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
         {loading ? (

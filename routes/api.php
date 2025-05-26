@@ -659,6 +659,9 @@ Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnounc
 Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
 Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
 
+Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
+Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
+
 
 
 
