@@ -289,6 +289,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::post('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
+        Route::post('/deleteAnnouncement', [AnnouncementsController::class, 'deleteAnnouncement']);
 
         // Details
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
@@ -636,7 +637,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
+    Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+
+    Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent']);
+    Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent']);
 });
 
 

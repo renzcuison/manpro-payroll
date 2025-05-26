@@ -36,14 +36,18 @@ function SchedulesHolidays({ setSelectedDate }) {
     const theme = useTheme();
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleEventClick = ({ event }) => {
+        console.log(event.id);
         setSelectedEvent({
+            id: event.id,
             title: event.title,
             start: event.start,
             end: event.end,
             description: event.extendedProps.description,
             type: event.extendedProps.type,
+            visibility_type: event.extendedProps.visibility_type,
         });
         setModalOpen(true);
     };
@@ -60,6 +64,7 @@ function SchedulesHolidays({ setSelectedDate }) {
             });
 
             const mappedEvents = res.data.map((event) => ({
+                id: event.id,
                 title: event.title,
                 start: dayjs(event.start).toISOString(),
                 end: dayjs(event.end).toISOString(),
@@ -69,6 +74,8 @@ function SchedulesHolidays({ setSelectedDate }) {
                 type: event.calendar?.includes("holiday")
                     ? "holiday"
                     : "schedule",
+                description: event.description,
+                visibility_type: event.visibility_type,
             }));
 
             setEvents(mappedEvents);
@@ -76,6 +83,42 @@ function SchedulesHolidays({ setSelectedDate }) {
             console.error("Error loading events", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteEvent = async (event) => {
+        try {
+            console.log(event);
+            setIsDeleting(true);
+            if (confirm("Are you sure you want to delete this event?")) {
+                const storedUser = localStorage.getItem("nasya_user");
+                const headers = storedUser
+                    ? getJWTHeader(JSON.parse(storedUser))
+                    : [];
+
+                if (event.visibility_type === "public") {
+                    await axiosInstance.delete(
+                        `/public-event/${event.id.replace("db-", "")}`,
+                        {
+                            headers,
+                        }
+                    );
+                } else {
+                    await axiosInstance.delete(`/google/event/${event.id}`, {
+                        headers,
+                    });
+                }
+
+                alert("Event deleted.");
+                setModalOpen(false); // Close the modal
+                fetchEvents(); // Refresh calendar
+            }
+
+            setIsDeleting(false);
+        } catch (error) {
+            console.error("Failed to delete event", error);
+            alert("Failed to delete event.");
+            setIsDeleting(false);
         }
     };
 
@@ -137,11 +180,15 @@ function SchedulesHolidays({ setSelectedDate }) {
                                 dateClick={(arg) => {
                                     setSelectedDate(arg.dateStr); // '2025-05-22'
                                 }}
+                                displayEventTime={false}
                             />
                             <EventDialog
                                 modalOpen={modalOpen}
                                 setModalOpen={setModalOpen}
                                 selectedEvent={selectedEvent}
+                                onDelete={handleDeleteEvent}
+                                fetchEvents={fetchEvents}
+                                isDeleting={isDeleting}
                             />
                         </Box>
                     </Box>
@@ -179,7 +226,7 @@ function SchedulesHolidays({ setSelectedDate }) {
                                     </Typography>
                                 </>
                             }
-                            sx={{ px: 0 }}
+                            sx={{ p: 0 }}
                         >
                             <ListItemAvatar>
                                 <Typography

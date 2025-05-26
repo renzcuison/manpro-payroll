@@ -5,36 +5,21 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import dayjs from "dayjs";
 
 // MUI imports
-import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-    Skeleton,
-    Paper,
-    useTheme,
-    Stack,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-    Divider,
-} from "@mui/material";
+import { Box, Typography, Skeleton, useTheme, Stack } from "@mui/material";
 import EventDialog from "../Dashboard/components/EventDialog";
-import GoogleConnectButton from "./GoogleConnectButton";
-import { PiCalendarHeart, PiCalendarStar } from "react-icons/pi";
-import moment from "moment";
-import { Link } from "react-router-dom";
 
 const CalendarView = ({ setCalendarEvents }) => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const theme = useTheme();
+    const [isDeleting, setIsDeleting] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     console.log(selectedEvent);
+    console.log("Events:", events);
 
     const handleEventClick = ({ event }) => {
+        console.log(event.extendedProps);
+
         setSelectedEvent({
             id: event.id,
             title: event.title,
@@ -42,6 +27,7 @@ const CalendarView = ({ setCalendarEvents }) => {
             end: event.end,
             description: event.extendedProps.description,
             type: event.extendedProps.type,
+            visibility_type: event.extendedProps.visibility_type,
         });
         setModalOpen(true);
     };
@@ -68,6 +54,8 @@ const CalendarView = ({ setCalendarEvents }) => {
                 type: event.calendar?.includes("holiday")
                     ? "holiday"
                     : "schedule",
+                description: event.description,
+                visibility_type: event.visibility_type,
             }));
 
             setEvents(mappedEvents);
@@ -79,23 +67,39 @@ const CalendarView = ({ setCalendarEvents }) => {
         }
     };
 
-    const handleDeleteEvent = async (eventId) => {
+    const handleDeleteEvent = async (event) => {
         try {
-            console.log(eventId);
+            console.log(event);
+            setIsDeleting(true);
+            if (confirm("Are you sure you want to delete this event?")) {
+                const storedUser = localStorage.getItem("nasya_user");
+                const headers = storedUser
+                    ? getJWTHeader(JSON.parse(storedUser))
+                    : [];
 
-            const storedUser = localStorage.getItem("nasya_user");
-            const headers = storedUser
-                ? getJWTHeader(JSON.parse(storedUser))
-                : [];
+                if (event.visibility_type === "public") {
+                    await axiosInstance.delete(
+                        `/public-event/${event.id.replace("db-", "")}`,
+                        {
+                            headers,
+                        }
+                    );
+                } else {
+                    await axiosInstance.delete(`/google/event/${event.id}`, {
+                        headers,
+                    });
+                }
 
-            await axiosInstance.delete(`/google/event/${eventId}`, { headers });
+                alert("Event deleted.");
+                setModalOpen(false); // Close the modal
+                fetchEvents(); // Refresh calendar
+            }
 
-            alert("Event deleted.");
-            setModalOpen(false); // Close the modal
-            fetchEvents(); // Refresh calendar
+            setIsDeleting(false);
         } catch (error) {
             console.error("Failed to delete event", error);
             alert("Failed to delete event.");
+            setIsDeleting(false);
         }
     };
 
@@ -127,6 +131,7 @@ const CalendarView = ({ setCalendarEvents }) => {
                     }}
                     contentHeight="auto"
                     eventClick={handleEventClick}
+                    displayEventTime={false}
                 />
             )}
 
@@ -135,6 +140,8 @@ const CalendarView = ({ setCalendarEvents }) => {
                 setModalOpen={setModalOpen}
                 selectedEvent={selectedEvent}
                 onDelete={handleDeleteEvent}
+                fetchEvents={fetchEvents}
+                isDeleting={isDeleting}
             />
         </Stack>
     );
