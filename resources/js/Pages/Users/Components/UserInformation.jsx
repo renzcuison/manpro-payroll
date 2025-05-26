@@ -34,8 +34,11 @@ function UserInformation({ user }) {
         return age;
     };
 
-    const formattedBirthDate = user.birth_date ?
-        new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.birth_date)) : '';
+    const formattedBirthDate = (() => {
+        if (!user.birth_date) return '';
+            const date = new Date(user.birth_date);
+            return isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+    })();
 
     //profile picture handlers
     const handleUpload = (event) => {

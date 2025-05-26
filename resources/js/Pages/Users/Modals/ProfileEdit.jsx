@@ -13,12 +13,15 @@ import { Edit } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
 import { CgAdd, CgTrash } from "react-icons/cg";  
 
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
 const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const queryClient = useQueryClient();
+
+    const [isLoading, setIsLoading] = useState(true);
 
     // Form Fields
     const [firstName, setFirstName] = useState(employee.first_name || '');
@@ -49,9 +52,11 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 if(response.status === 200){
                     const educations = response.data.educations;
                     setEducations(educations);
+                    setIsLoading(false);
                 }
                 else{
                     setEducations(educationFields);
+                    setIsLoading(false);
                 }
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
@@ -93,36 +98,6 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
-
-    // const [profilePicError, setProfilePicError] = useState(false);
-    
-    /* archived -- used to handle uploading profile picture
-    const handleUpload = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.size > 5242880) {
-                document.activeElement.blur();
-                Swal.fire({
-                    customClass: { container: "my-swal" },
-                    title: "File Too Large!",
-                    text: `The file size limit is 5 MB.`,
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: "#177604",
-                });
-            } else {
-                // Save
-                setNewProfilePic(file);
-                // Render
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setProfilePic(reader.result);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    };
-    */
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -228,13 +203,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
 
     return (
         <>
-            <Dialog
-                open={open}
-                fullWidth
-                slotProps={{
-                    paper: { sx: { p: '16px', backgroundColor: "#f8f9fa", boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: { xs: 0, md: "20px" }, minWidth: { xs: "100%", md: "800px" }, maxWidth: { xs: "100%", md: "1000px" }, marginBottom: "5%" }}
-                }}
-            >
+            <Dialog open={open} fullWidth slotProps={{ paper: { sx: { p: '16px', backgroundColor: "#f8f9fa", boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: { xs: 0, md: "20px" }, minWidth: { xs: "100%", md: "800px" }, maxWidth: { xs: "100%", md: "1000px" }, marginBottom: "5%" }} }} >
                 <DialogTitle sx={{ padding: { xs: 1, md: 4 }, paddingBottom: 1, mt: { xs: 1, md: 0 } }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Edit Profile </Typography>
@@ -243,274 +212,141 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ px: { xs: 1, md: 5 }, py: 2 }}>
-                    <Box component="form" sx={{ my: 1 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
-                        {/* Top Section */}
-                        <Grid container spacing={{ xs: 3, md: 2 }}>
-                            {/* Profile Image [archived] -- now moved to PersonalDetails.jsx*/}
-                            {/* <Grid size={{ xs: 12, md: 3 }}>
-                                <FormControl sx={{
-                                    marginBottom: 2, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <Box display="flex" sx={{ justifyContent: "center" }}>
-                                        <Box sx={{ position: "relative" }}>
-                                            <Avatar src={profilePic} sx={{ height: "160px", width: "160px", boxShadow: 3 }} />
-                                            <Tooltip title="Upload Image, 5 MB Limit">
-                                                <Button variant="outlined" startIcon={<Edit />}
-                                                    component="label"
-                                                    sx={{
-                                                        border: "2px solid #e0e0e0", borderRadius: "10px",
-                                                        backgroundColor: "#ffffff", color: "text.secondary",
-                                                        position: "absolute", right: "0px", bottom: "0px",
-                                                        '&:hover': {
-                                                            border: "2px solid #e0e0e0",
-                                                            borderRadius: "10px",
-                                                            backgroundColor: "#ffffff",
-                                                            color: "text.secondary",
-                                                        },
-                                                    }}>
-                                                    Edit
-                                                    <input type="file" hidden onChange={handleUpload} accept=".png, .jpg, .jpeg"></input>
-                                                </Button>
-                                            </Tooltip>
-                                        </Box>
-                                    </Box>
-                                </FormControl>
-                            </Grid> */}
-                            {/* Personal Details */}
-                            <Grid container rowSpacing={{ xs: 3, md: 3 }} size={12}>
-                                {/* Names */}
-                                <Grid container size={{ xs: 12, md: 10 }}>
-                                    {/* First Name */}
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <FormControl fullWidth sx={{
-                                            '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
-                                            <TextField
-                                                id="first_name"
-                                                label="First Name"
-                                                variant="outlined"
-                                                value={firstName}
-                                                error={firstNameError}
-                                                onChange={(e) => setFirstName(e.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Grid>
-                                    {/* Middle Name */}
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <FormControl fullWidth sx={{
-                                            '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
-                                            <TextField
-                                                id="middle_name"
-                                                label="Middle Name"
-                                                variant="outlined"
-                                                value={middleName}
-                                                error={middleNameError}
-                                                onChange={(e) => setMiddleName(e.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Grid>
-                                    {/* Last Name */}
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <FormControl fullWidth sx={{
-                                            '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
-                                            <TextField
-                                                id="last_name"
-                                                label="Last Name"
-                                                variant="outlined"
-                                                value={lastName}
-                                                error={lastNameError}
-                                                onChange={(e) => setLastName(e.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Grid>
-                                </Grid>
-                                {/* Suffix */}
-                                <Grid size={{ xs: 12, md: 2 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            id="suffix"
-                                            label="Suffix"
-                                            variant="outlined"
-                                            value={suffix}
-                                            error={suffixError}
-                                            onChange={(e) => setSuffix(e.target.value)}
-                                        />
-                                    </FormControl>
-                                </Grid>
-                                {/* Username */}
-                                <Grid size={{ xs: 12, md: 5 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            id="username"
-                                            label="Username"
-                                            variant="outlined"
-                                            value={username}
-                                            error={usernameError}
-                                            onChange={(e) => setUsername(e.target.value)}
-                                            inputProps={{
-                                                readOnly: true
-                                            }}
-                                        />
-                                    </FormControl>
-                                </Grid>
-                                {/* Birth Date */}
-                                <Grid size={{ xs: 12, md: 5 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <LocalizationProvider
-                                            dateAdapter={AdapterDayjs}
-                                        >
-                                            <DatePicker
-                                                label="Birth Date"
-                                                value={birthDate}
-                                                onChange={(newDate) => setBirthDate(newDate)}
-                                                slotProps={{
-                                                    textField: {
-                                                        error: birthDateError,
-                                                        readOnly: true,
-                                                    }
-                                                }}
-                                            />
-                                        </LocalizationProvider>
-                                    </FormControl>
-                                </Grid>
-                                {/* Gender */}
-                                <Grid size={{ xs: 12, md: 2 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            select
-                                            id="gender"
-                                            label="Gender"
-                                            variant="outlined"
-                                            value={gender}
-                                            error={genderError}
-                                            onChange={(e) => setGender(e.target.value)}
-                                        >
-                                            <MenuItem value="Male"> Male </MenuItem>
-                                            <MenuItem value="Female"> Female </MenuItem>
-                                        </TextField>
-                                    </FormControl>
-                                </Grid>
-                            </Grid>
 
-                            {/* Contact Information */}
-                            <Grid container rowSpacing={{ xs: 3, md: 0 }} size={12}>
-                                {/* Contact No. */}
-                                <Grid size={{ xs: 12, md: 3 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            id="contact"
-                                            label="Phone Number"
-                                            variant="outlined"
-                                            type="number"
-                                            value={contact}
-                                            error={contactError}
-                                            onChange={(e) => setContact(e.target.value)}
-                                        />
-                                    </FormControl>
-                                </Grid>
-                                {/* Address */}
-                                <Grid size={{ xs: 12, md: 9 }}>
-                                    <FormControl fullWidth sx={{
-                                        '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            id="address"
-                                            label="Address"
-                                            variant="outlined"
-                                            value={address}
-                                            error={addressError}
-                                            onChange={(e) => setAddress(e.target.value)}
-                                        />
-                                    </FormControl>
-                                </Grid>
-                            </Grid>
+                    {isLoading ? (
+                        <LoadingSpinner />
+                    ) : (
+                        <>
+                            <Box component="form" sx={{ my: 1 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
+                                <Grid container spacing={{ xs: 3, md: 2 }}>
+                                    <Grid container rowSpacing={{ xs: 3, md: 3 }} size={12}>
+                                        <Grid container size={{ xs: 12, md: 10 }}>
+                                            <Grid size={{ xs: 12, md: 4 }}>
+                                                <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } }, }}>
+                                                    <TextField id="first_name" label="First Name" variant="outlined" value={firstName} error={firstNameError} onChange={(e) => setFirstName(e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
 
-                            {medScreen &&
-                                <Grid size={12} sx={{ my: 2 }}>
-                                    <Divider />
-                                </Grid>
-                            }
-                            {/* Educational Backgrounds*/}
+                                            <Grid size={{ xs: 12, md: 4 }}>
+                                                <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                                    <TextField id="middle_name" label="Middle Name" variant="outlined" value={middleName} error={middleNameError} onChange={(e) => setMiddleName(e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
 
-                            <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Education </Typography>
-                            <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+                                            <Grid size={{ xs: 12, md: 4 }}>
+                                                <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                                                    <TextField id="last_name" label="Last Name" variant="outlined" value={lastName} error={lastNameError} onChange={(e) => setLastName(e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
 
-                            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                {educations.map((item, index) => (
-                                <Grid container spacing={2} size ={12} key={index} alignItems="center">
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
-                                        </FormControl>
+                                        <Grid size={{ xs: 12, md: 2 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <TextField id="suffix" label="Suffix" variant="outlined" value={suffix} error={suffixError} onChange={(e) => setSuffix(e.target.value)} />
+                                            </FormControl>
+                                        </Grid>
+
+                                        <Grid size={{ xs: 12, md: 5 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <TextField id="username" label="Username" variant="outlined" value={username} error={usernameError} onChange={(e) => setUsername(e.target.value)} inputProps={{ readOnly: true }} />
+                                            </FormControl>
+                                        </Grid>
+
+                                        <Grid size={{ xs: 12, md: 5 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                                    <DatePicker label="Birth Date" value={birthDate} onChange={(newDate) => setBirthDate(newDate)} slotProps={{ textField: { error: birthDateError, readOnly: true } }} />
+                                                </LocalizationProvider>
+                                            </FormControl>
+                                        </Grid>
+
+                                        <Grid size={{ xs: 12, md: 2 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <TextField select id="gender" label="Gender" variant="outlined" value={gender} error={genderError} onChange={(e) => setGender(e.target.value)} >
+                                                    <MenuItem value="Male"> Male </MenuItem>
+                                                    <MenuItem value="Female"> Female </MenuItem>
+                                                </TextField>
+                                            </FormControl>
+                                        </Grid>
                                     </Grid>
 
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
-                                        </FormControl>
+                                    {/* Contact Information */}
+                                    <Grid container rowSpacing={{ xs: 3, md: 0 }} size={12}>
+                                        {/* Contact No. */}
+                                        <Grid size={{ xs: 12, md: 3 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <TextField id="contact" label="Phone Number" variant="outlined" type="number" value={contact} error={contactError} onChange={(e) => setContact(e.target.value)} />
+                                            </FormControl>
+                                        </Grid>
+                                        {/* Address */}
+                                        <Grid size={{ xs: 12, md: 9 }}>
+                                            <FormControl fullWidth sx={{ '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }} }}>
+                                                <TextField id="address" label="Address" variant="outlined" value={address} error={addressError} onChange={(e) => setAddress(e.target.value)} />
+                                            </FormControl>
+                                        </Grid>
                                     </Grid>
 
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField
-                                                select
-                                                id="gender"
-                                                label="Degree"
-                                                value={item.degree_type}
-                                                variant="outlined"
-                                                onChange={(e) => { handleChange(index, "degree_type", e.target.value) }}
-                                            >
-                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
-                                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
-                                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
-                                            </TextField>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid size={2}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
+                                    {medScreen &&
+                                        <Grid size={12} sx={{ my: 2 }}>
+                                            <Divider />
+                                        </Grid>
+                                    }
+                                    
+                                    {/* Educational Backgrounds*/}
 
-                                    <Grid size={1}>
-                                        <Box display="flex" justifyContent="space-between" gap={1}>
-                                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
-                                        </Box>
+                                    <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Education </Typography>
+                                    <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+
+                                    <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
+                                        {educations.map((item, index) => (
+                                        <Grid container spacing={2} size ={12} key={index} alignItems="center">
+                                            <Grid size={3}>
+                                                <FormControl fullWidth>
+                                                    <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
+
+                                            <Grid size={3}>
+                                                <FormControl fullWidth>
+                                                    <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
+
+                                            <Grid size={3}>
+                                                <FormControl fullWidth>
+                                                    <TextField select id="gender" label="Degree" value={item.degree_type} variant="outlined" onChange={(e) => { handleChange(index, "degree_type", e.target.value) }} >
+                                                        <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
+                                                        <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
+                                                        <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
+                                                    </TextField>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid size={2}>
+                                                <FormControl fullWidth>
+                                                    <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
+                                                </FormControl>
+                                            </Grid>
+
+                                            <Grid size={1}>
+                                                <Box display="flex" justifyContent="space-between" gap={1}>
+                                                    <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
+                                                </Box>
+                                            </Grid>
+                                        </Grid>
+                                        ))}    
                                     </Grid>
                                 </Grid>
-                                ))}    
-                            </Grid>
-                        </Grid>
 
-                        {/* Submit Button */}
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Changes </p>
-                            </Button>
-                        </Box>
-                    </Box>
+                                {/* Submit Button */}
+                                <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Changes </p>
+                                    </Button>
+                                </Box>
+                            </Box>
+                        </>
+                    )}  
+
                 </DialogContent>
             </Dialog >
         </>
