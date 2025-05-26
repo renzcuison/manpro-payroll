@@ -6,23 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::table('branches', function (Blueprint $table) {
-            //
+            if (!Schema::hasColumn('branches', 'supervisor_id')) {
+                $table->unsignedBigInteger('supervisor_id')
+                      ->nullable()
+                      ->after('manager_id'); // Position after supervisor_id
+                
+                $table->foreign('supervisor_id')
+                      ->references('id')
+                      ->on('users');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::table('branches', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('branches', 'supervisor_id')) {
+                $table->dropForeign(['supervisor_id']);
+                $table->dropColumn('supervisor_id');
+            }
         });
     }
 };

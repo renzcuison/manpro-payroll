@@ -148,7 +148,7 @@ const BranchList = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}>
-                            Branches 2.0
+                            Branches 
                         </Typography>
 
                          <Grid item>

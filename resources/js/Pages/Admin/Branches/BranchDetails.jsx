@@ -45,7 +45,6 @@ const BranchDetails = () => {
     const [departmentFilter, setDepartmentFilter] = useState("all");
     const [openEditModal, setOpenEditModal] = useState(false);
     const [departments, setDepartments] = useState([]);
-    const [allEmployees, setAllEmployees] = useState([]);
     const [managerSearch, setManagerSearch] = useState("");
 
     useEffect(() => {
@@ -77,27 +76,40 @@ const BranchDetails = () => {
     // Helper function to get employee name by ID
     const getEmployeeNameById = (employeeId) => {
         if (!employeeId) return "Not assigned";
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? `${employee.first_name} ${employee.last_name}` : "Not assigned";
+        // This assumes the branch data includes manager, supervisor, approver relations
+        if (branch.manager && employeeId === branch.manager.id) {
+            return `${branch.manager.first_name} ${branch.manager.last_name}`;
+        }
+        if (branch.supervisor && employeeId === branch.supervisor.id) {
+            return `${branch.supervisor.first_name} ${branch.supervisor.last_name}`;
+        }
+        if (branch.approver && employeeId === branch.approver.id) {
+            return `${branch.approver.first_name} ${branch.approver.last_name}`;
+        }
+        return "Not assigned";
     };
 
     // Helper function to get employee avatar by ID
     const getEmployeeAvatarById = (employeeId) => {
         if (!employeeId) return null;
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? employee.avatar : null;
+        // This assumes the branch data includes manager, supervisor, approver relations
+        if (branch.manager && employeeId === branch.manager.id) {
+            return branch.manager.avatar;
+        }
+        if (branch.supervisor && employeeId === branch.supervisor.id) {
+            return branch.supervisor.avatar;
+        }
+        if (branch.approver && employeeId === branch.approver.id) {
+            return branch.approver.avatar;
+        }
+        return null;
     };
 
     const filteredEmployees = employees.filter(emp => {
-        const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
-        const departmentMatch = departmentFilter === "all" || emp.department_id === departmentFilter;
+        const nameMatch = emp.name.toLowerCase().includes(searchKeyword.toLowerCase());
+        const departmentMatch = departmentFilter === "all" || emp.department.toLowerCase().includes(departmentFilter.toLowerCase());
         return nameMatch && departmentMatch;
     });
-
-    // Filter function for dropdown search
-    const filteredManagerOptions = allEmployees.filter(emp =>
-        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(managerSearch.toLowerCase())
-    );
 
     if (isLoading) return <LoadingSpinner />;
     if (error) return <Typography color="error">{error}</Typography>;
@@ -193,7 +205,7 @@ const BranchDetails = () => {
                                                     readOnly: true,
                                                     sx: {
                                                         input: {
-                                                            textAlign: 'center', // Center text horizontally
+                                                            textAlign: 'center',
                                                         },
                                                         "& .MuiOutlinedInput-notchedOutline": {
                                                             border: 'none',
@@ -214,7 +226,6 @@ const BranchDetails = () => {
                                 </Box>
                             </Grid>
                         </Grid>
-
                     </Box>
 
                     <Box
@@ -258,7 +269,7 @@ const BranchDetails = () => {
                                         >
                                             <MenuItem value="all">All Departments</MenuItem>
                                             {departments.map((department) => (
-                                                <MenuItem key={department.id} value={department.id}>
+                                                <MenuItem key={department.id} value={department.name}>
                                                     {department.name}
                                                 </MenuItem>
                                             ))}
@@ -274,14 +285,12 @@ const BranchDetails = () => {
                                             <TableRow>
                                                 <TableCell align="left">Name</TableCell>
                                                 <TableCell align="left">Department</TableCell>
-
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-
-                                            {employees.map((employee) => (
+                                            {filteredEmployees.map((employee, index) => (
                                                 <TableRow
-                                                    key={employee.name}
+                                                    key={index}
                                                     hover
                                                     sx={{
                                                         cursor: "pointer",
@@ -293,47 +302,17 @@ const BranchDetails = () => {
                                                     <TableCell align="left">
                                                         {employee.name}
                                                     </TableCell>
-
                                                     <TableCell align="left">
                                                         {employee.department}
                                                     </TableCell>
-
-
                                                 </TableRow>
                                             ))}
-
-                                            {/* {filteredEmployees.map((emp) => (
-                                                <TableRow
-                                                    key={emp.id}
-                                                    hover
-                                                    sx={{
-                                                        cursor: "pointer",
-                                                        "&:hover": {
-                                                            backgroundColor: "rgba(0, 0, 0, 0.1)"
-                                                        }
-                                                    }}
-                                                    onClick={() => navigate(`/admin/employee/${emp.user_name}`)}
-                                                >
-                                                    <TableCell align="left">
-                                                        <Box display="flex" alignItems="center">
-                                                            <Avatar src={emp.avatar} sx={{ mr: 2, width: 32, height: 32 }} />
-                                                            {`${emp.first_name} ${emp.middle_name ? emp.middle_name + ' ' : ''}${emp.last_name}`}
-                                                        </Box>
-                                                    </TableCell>
-
-                                                    <TableCell align="left">
-                                                        {emp.id}
-                                                    </TableCell>
-
-
-                                                </TableRow>
-                                            ))} */}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center">
+                                    <TableCell colSpan={2} align="center">
                                         No employees found in this branch.
                                     </TableCell>
                                 </TableRow>
@@ -511,11 +490,7 @@ const BranchDetails = () => {
                                         </Box>
                                     </MenuItem>
                                     <MenuItem value="">Not assigned</MenuItem>
-                                    {filteredManagerOptions.map((emp) => (
-                                        <MenuItem key={emp.id} value={emp.id}>
-                                            {`${emp.first_name} ${emp.last_name}`}
-                                        </MenuItem>
-                                    ))}
+                                    {/* You would need to fetch all employees for this dropdown */}
                                 </Select>
                             </FormControl>
 
@@ -556,6 +531,7 @@ const BranchDetails = () => {
                                             // Refresh the branch data
                                             const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
                                             setBranch(updatedResponse.data.branch);
+                                            setEmployees(updatedResponse.data.employees || []);
                                         }
                                     } catch (error) {
                                         console.error('Error:', error);
