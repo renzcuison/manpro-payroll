@@ -209,7 +209,7 @@ const DepartmentsList = () => {
                                 />
                             </Grid>
                             <Grid item xs={3}>
-                                {/* Empty grid item for alignment */}
+                                {}
                             </Grid>
                         </Grid>
 

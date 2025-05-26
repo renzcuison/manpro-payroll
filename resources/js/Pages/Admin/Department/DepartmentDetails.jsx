@@ -131,7 +131,7 @@ const DepartmentDetails = () => {
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
-                    height: 'calc(100vh - 200px)' // Adjust based on your header height
+                    height: 'calc(100vh - 200px)'
                 }}>
                     <LoadingSpinner />
                 </Box>
@@ -380,6 +380,14 @@ const DepartmentDetails = () => {
                     </Box>
                 </Box>
             )}
+
+
+
+
+
+
+
+
 
             {/* Edit Department Modal */}
             <Dialog

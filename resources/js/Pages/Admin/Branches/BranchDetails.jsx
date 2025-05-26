@@ -192,7 +192,6 @@ const BranchDetails = () => {
                                             ml: 10,
                                             width: '100%',
                                             px: 2,
-                                            fontWeight: 'bold'
                                         }}
                                     >
                                         {[
@@ -223,11 +222,9 @@ const BranchDetails = () => {
                                                     fullWidth
                                                     InputProps={{
                                                         readOnly: true,
-                                                        
                                                         sx: {
                                                             input: {
                                                                 textAlign: 'center',
-                                                                fontWeight: 'bold'
                                                             },
                                                             "& .MuiOutlinedInput-notchedOutline": {
                                                                 border: 'none',
@@ -305,8 +302,8 @@ const BranchDetails = () => {
                                         <Table stickyHeader>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell align="left" sx={{fontWeight: 'bold'}}>Name</TableCell>
-                                                    <TableCell align="left" sx={{fontWeight: 'bold'}}>Department</TableCell>
+                                                    <TableCell align="left">Name</TableCell>
+                                                    <TableCell align="left">Department</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -388,11 +385,11 @@ const BranchDetails = () => {
             >
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Edit  </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Edit Branch </Typography>
                         <IconButton onClick={() => setOpenEditModal(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
-sx={{}}
+
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 3 }} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
