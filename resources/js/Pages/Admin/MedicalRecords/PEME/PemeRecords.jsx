@@ -46,6 +46,8 @@ const PemeRecords = () => {
         navigator("/admin/medical-records/peme-records/peme-responses");
     };
 
+
+    
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
             <Box>
@@ -135,7 +137,7 @@ const PemeRecords = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         sx={{ marginBottom: 2 }}
                     />
-                    <PemeExamTypeTable records={filteredRecords} />
+                    <PemeExamTypeTable records={filteredRecords} onRowClick={handleOnRowClick}/>
                 </Box>
             </Box>
         </Layout>
