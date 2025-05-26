@@ -121,24 +121,57 @@ class SettingsController extends Controller
             'name' => 'required',
             'acronym' => 'required',
             'status' => 'required',
+            'manager_id' => 'nullable|exists:users,id',
+            'supervisor_id' => 'nullable|exists:users,id',
+            'approver_id' => 'nullable|exists:users,id',
+            'leave_limit' => 'required|integer|min:0'
         ]);
 
         if ($this->checkUser() && $validated) {
+        try {
+            DB::beginTransaction();
 
-            $user = Auth::user();
-            $branch = BranchesModel::find($request->input('id'));
+            $branch = BranchesModel::findOrFail($request->id);
+            
+            $branch->update([
+                'name' => $request->name,
+                'acronym' => $request->acronym,
+                'description' => $request->description,
+                'status' => $request->status,
+                'manager_id' => $request->manager_id,
+                'supervisor_id' => $request->supervisor_id,
+                'approver_id' => $request->approver_id,
+                'leave_limit' => $request->leave_limit
+            ]);
 
-            $branch->name = $request->input('name');
-            $branch->acronym = $request->input('acronym');
-            $branch->address = $request->input('address');
-            $branch->status = $request->input('status');
-            $branch->leave_limit = $request->input('leave_limit');
+            DB::commit();
 
-            $branch->save();
+            // Return the updated branch with personnel names
+            $updatedBranch = BranchesModel::with(['manager', 'supervisor', 'approver'])
+                ->find($request->id);
+  
+                
+            return response()->json([
+                'status' => 200,
+                'branch' => $updatedBranch,
+                'message' => 'Branch updated successfully'
+            ]);
 
-            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error updating Branch: " . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error updating branch'
+            ], 500);
         }
     }
+
+    return response()->json([
+        'status' => 403,
+        'message' => 'Unauthorized'
+    ], 403);
+}
 
 
 

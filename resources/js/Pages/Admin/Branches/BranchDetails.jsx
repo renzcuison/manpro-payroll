@@ -45,7 +45,10 @@ const BranchDetails = () => {
     const [departmentFilter, setDepartmentFilter] = useState("all");
     const [openEditModal, setOpenEditModal] = useState(false);
     const [departments, setDepartments] = useState([]);
+    const [allEmployees, setAllEmployees] = useState([]);
     const [managerSearch, setManagerSearch] = useState("");
+    const [supervisorSearch, setSupervisorSearch] = useState("");
+    const [approverSearch, setApproverSearch] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,6 +65,10 @@ const BranchDetails = () => {
                 const departmentsResponse = await axiosInstance.get('/settings/getDepartments', { headers });
                 setDepartments(departmentsResponse.data.departments || []);
 
+                // Fetch all employees for personnel assignment dropdowns
+                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
+                setAllEmployees(employeesResponse.data.employees || []);
+
             } catch (err) {
                 console.error("Error fetching data:", err);
                 setError("Failed to load data");
@@ -76,33 +83,15 @@ const BranchDetails = () => {
     // Helper function to get employee name by ID
     const getEmployeeNameById = (employeeId) => {
         if (!employeeId) return "Not assigned";
-        // This assumes the branch data includes manager, supervisor, approver relations
-        if (branch.manager && employeeId === branch.manager.id) {
-            return `${branch.manager.first_name} ${branch.manager.last_name}`;
-        }
-        if (branch.supervisor && employeeId === branch.supervisor.id) {
-            return `${branch.supervisor.first_name} ${branch.supervisor.last_name}`;
-        }
-        if (branch.approver && employeeId === branch.approver.id) {
-            return `${branch.approver.first_name} ${branch.approver.last_name}`;
-        }
-        return "Not assigned";
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? `${employee.first_name} ${employee.last_name}` : "Not assigned";
     };
 
     // Helper function to get employee avatar by ID
     const getEmployeeAvatarById = (employeeId) => {
         if (!employeeId) return null;
-        // This assumes the branch data includes manager, supervisor, approver relations
-        if (branch.manager && employeeId === branch.manager.id) {
-            return branch.manager.avatar;
-        }
-        if (branch.supervisor && employeeId === branch.supervisor.id) {
-            return branch.supervisor.avatar;
-        }
-        if (branch.approver && employeeId === branch.approver.id) {
-            return branch.approver.avatar;
-        }
-        return null;
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? employee.avatar : null;
     };
 
     const filteredEmployees = employees.filter(emp => {
@@ -110,6 +99,19 @@ const BranchDetails = () => {
         const departmentMatch = departmentFilter === "all" || emp.department.toLowerCase().includes(departmentFilter.toLowerCase());
         return nameMatch && departmentMatch;
     });
+
+    // Filter functions for dropdown searches
+    const filteredManagerOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(managerSearch.toLowerCase())
+    );
+
+    const filteredSupervisorOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(supervisorSearch.toLowerCase())
+    );
+
+    const filteredApproverOptions = allEmployees.filter(emp => 
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(approverSearch.toLowerCase())
+    );
 
     if (isLoading) return <LoadingSpinner />;
     if (error) return <Typography color="error">{error}</Typography>;
@@ -447,7 +449,7 @@ const BranchDetails = () => {
 
                         <FormGroup row={true} className="d-flex justify-content-between">
                             {/* Manager Dropdown with Search */}
-                            <FormControl sx={{ marginBottom: 3, width: '49%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
                                 <InputLabel id="manager-label">Manager</InputLabel>
                                 <Select
                                     labelId="manager-label"
@@ -490,10 +492,120 @@ const BranchDetails = () => {
                                         </Box>
                                     </MenuItem>
                                     <MenuItem value="">Not assigned</MenuItem>
-                                    {/* You would need to fetch all employees for this dropdown */}
+                                    {filteredManagerOptions.map((emp) => (
+                                        <MenuItem key={emp.id} value={emp.id}>
+                                            {`${emp.first_name} ${emp.last_name}`}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            
+                            {/* Supervisor Dropdown with Search */}
+                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
+                                <InputLabel id="supervisor-label">Supervisor</InputLabel>
+                                <Select
+                                    labelId="supervisor-label"
+                                    id="supervisor-select"
+                                    value={branch.supervisor_id || ''}
+                                    label="Supervisor"
+                                    onChange={(e) => setBranch({ ...branch, supervisor_id: e.target.value })}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                maxHeight: 300
+                                            }
+                                        },
+                                        onClick: (e) => e.stopPropagation()
+                                    }}
+                                >
+                                    <MenuItem value="" sx={{ p: 0 }}>
+                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                            <TextField
+                                                fullWidth
+                                                placeholder="Search supervisor..."
+                                                value={supervisorSearch}
+                                                onChange={(e) => setSupervisorSearch(e.target.value)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.nativeEvent.stopImmediatePropagation();
+                                                }}
+                                                onKeyDown={(e) => e.stopPropagation()}
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <SearchIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                }}
+                                                variant="standard"
+                                                sx={{ p: 1 }}
+                                                autoFocus
+                                            />
+                                        </Box>
+                                    </MenuItem>
+                                    <MenuItem value="">Not assigned</MenuItem>
+                                    {filteredSupervisorOptions.map((emp) => (
+                                        <MenuItem key={emp.id} value={emp.id}>
+                                            {`${emp.first_name} ${emp.last_name}`}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
 
+                            {/* Approver Dropdown with Search */}
+                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
+                                <InputLabel id="approver-label">Approver</InputLabel>
+                                <Select
+                                    labelId="approver-label"
+                                    id="approver-select"
+                                    value={branch.approver_id || ''}
+                                    label="Approver"
+                                    onChange={(e) => setBranch({ ...branch, approver_id: e.target.value })}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                maxHeight: 300
+                                            }
+                                        },
+                                        onClick: (e) => e.stopPropagation()
+                                    }}
+                                >
+                                    <MenuItem value="" sx={{ p: 0 }}>
+                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                            <TextField
+                                                fullWidth
+                                                placeholder="Search approver..."
+                                                value={approverSearch}
+                                                onChange={(e) => setApproverSearch(e.target.value)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.nativeEvent.stopImmediatePropagation();
+                                                }}
+                                                onKeyDown={(e) => e.stopPropagation()}
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <SearchIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                }}
+                                                variant="standard"
+                                                sx={{ p: 1 }}
+                                                autoFocus
+                                            />
+                                        </Box>
+                                    </MenuItem>
+                                    <MenuItem value="">Not assigned</MenuItem>
+                                    {filteredApproverOptions.map((emp) => (
+                                        <MenuItem key={emp.id} value={emp.id}>
+                                            {`${emp.first_name} ${emp.last_name}`}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </FormGroup>
+
+                        <FormGroup row={true} className="d-flex justify-content-between">
                             {/* Contact Number */}
                             <FormControl sx={{
                                 marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
