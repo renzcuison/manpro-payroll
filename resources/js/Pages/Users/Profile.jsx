@@ -19,6 +19,7 @@ import EmployeeDeductions from "../Admin/Employees/Components/EmployeeDeductions
 import EmploymentDetails from "../Admin/Employees/Components/EmployeeDetails";
 import ProfileBenefits from "./Profile/ProfileBenefits";
 import ProfileEdit from "./Modals/ProfileEdit";
+import EducationalBackground from "./Components/EducationalBackground";
 
 const Profile = () => {
     const theme = useTheme();
@@ -82,6 +83,7 @@ const Profile = () => {
                         {/*<---Right Side---->*/}
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <UserSummary user={user}></UserSummary>
+                            <EducationalBackground></EducationalBackground>
                             <UserEmploymentDetails user={user}></UserEmploymentDetails>
                         </Grid>    
                     </Grid>

@@ -15,7 +15,6 @@ import { CgAdd, CgTrash } from "react-icons/cg";
 
 
 const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
-    
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -34,22 +33,39 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
     const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
+    const [educations, setEducations] = useState([])
     // const [newProfilePic, setNewProfilePic] = useState('');
 
     //Education Form Fields
-    const [educationList, setEducationList] = useState(employee.educations ?? [{name: "", degree: "", year: ""}]); //the database result should be stored   
+    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+
+    useEffect(() => {
+        axiosInstance.get('/employee/getEducationBackground', { headers })
+            .then((response) => {
+                if(response.status === 200){
+                    const educations = response.data.educations;
+                    setEducations(educations);
+                }
+                else{
+                    setEducations(educationFields);
+                }
+            }).catch((error) => {
+                console.error('Error fetching branches:', error);
+                setEducations(educationFields);
+            });
+    }, []);
+
     const handleChange = (index, field, value) => {
-        const updatedFields = [...educationList];
+        const updatedFields = [...educations];
         updatedFields[index][field] = value;
-        setEducationList(updatedFields);
+        setEducations(updatedFields);
     }
     const handleAddFields = () => {
-        setEducationList([...educationList, {name: "", degree: "", year: ""}]); 
+        setEducations([...educations, educationFields]); 
     }
     const handleRemoveFields = (removalIndx) => {
-        const updatedFields = educationList.filter((_, index) => index != removalIndx)
-        setEducationList(educationList.length > 0 ? updatedFields : [{name: "", degree: "", year: ""}]);
-       
+        const updatedFields = educations.filter((_, index) => index != removalIndx)
+        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
     }
 
     // Form Errors
@@ -166,7 +182,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
         formData.append('contact_number', contact);
         formData.append('address', address);
         formData.append('profile_pic', profilePic);
-        formData.append('employee_educations', JSON.stringify(educationList));
+        formData.append('employee_educations', JSON.stringify(educations));
 
         axiosInstance.post('/employee/editMyProfile', formData, { headers })
             .then(response => {
@@ -188,6 +204,8 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                 console.error('Error:', error);
             });
     }
+
+    console.log(educations);
 
     return (
         <>
@@ -421,7 +439,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                             <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
 
                             <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                {educationList.map((item, index) => (
+                                {educations.map((item, index) => (
                                 <Grid container spacing={2} size ={12} key={index} alignItems="center">
                                     <Grid size={3}>
                                         <FormControl fullWidth>
@@ -441,10 +459,11 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                                 select
                                                 id="gender"
                                                 label="Degree"
+                                                value={item.degree_type}
                                                 variant="outlined"
                                                 onChange={(e) => { handleChange(index, "degree_type", e.target.value) }}
                                             >
-                                                <MenuItem value={"College/Bachelor"}>{"College/Bachelor"}</MenuItem>
+                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
                                                 <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
                                                 <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
                                             </TextField>
@@ -452,7 +471,7 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                     </Grid>
                                     <Grid size={2}>
                                         <FormControl fullWidth>
-                                            <TextField label="Year Graduated" value={item.year} onChange={(e)=>handleChange(index, "year", e.target.value)} />
+                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
                                         </FormControl>
                                     </Grid>
 

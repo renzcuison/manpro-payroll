@@ -478,8 +478,6 @@ class EmployeesController extends Controller
                 $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
             }
 
-
-            
             // log::info("Stopper");
             // dd("Stopper");
             
@@ -492,10 +490,11 @@ class EmployeesController extends Controller
                         'school_name' => $education['school_name'],
                         'degree_name' => $education['degree_name'],
                         'degree_type' => $education['degree_type'],
-                        'year_graduated' => $education['year'],
+                        'year_graduated' => $education['year_graduated'],
                     ]);
                 }
             }
+            
 
             $user->save();
 
