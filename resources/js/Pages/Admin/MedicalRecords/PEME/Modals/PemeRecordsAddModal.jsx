@@ -10,15 +10,40 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from'@/utils/axiosConfig';
 
 const PemeRecordsAddModal = ({ open, close }) => {
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
-    const handleSubmit = () => {
-        navigator("/admin/medical-records/peme-records/peme-form");
-        console.log("Record Name:", recordName);
-        //Backend Save Logic
+    const getJWTHeader = (user) => {
+        return {
+        Authorization: `Bearer ${user.token}`, 
     };
+    };
+
+    const handleSubmit = async () => {
+     console.log("Record Name:", recordName);
+
+    if (!recordName.trim()) {
+        alert("Please enter exam name.");
+        return;
+    }
+
+    const storedUser = localStorage.getItem("nasya_user"); 
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    try {
+        const response = await axiosInstance.post(
+        "/pemes",
+        { name: recordName },
+        { headers }
+        );
+        console.log("Successfully created questionnaire:", response.data); 
+        close(true); 
+    } catch (error) {
+        console.error("Error creating questionnaire:", error);
+    }
+    }
+
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
         console.log(recordName);
@@ -88,13 +113,12 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                    onClick={() => {
-                                        handleSubmit();
-                                        close(true);
-                                    }}
-                                    variant="contained"
+                                onClick={async () => {
+                                    await handleSubmit();
+                                }}
+                                variant="contained"
                                 >
-                                    Confirm
+                                Confirm
                                 </Button>
                             </Box>
                         </Box>
