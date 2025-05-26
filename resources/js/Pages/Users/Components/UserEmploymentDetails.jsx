@@ -3,7 +3,7 @@ import React from "react";
 
 function EmploymentDetails({ user }) {
     return (
-        <Box component={Paper} sx={{ p: 4, borderRadius: 5 }}>
+        <Box component={Paper} sx={{ my: 4, p: 4, borderRadius: 5 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
                 {" "}Employment Details{" "}
             </Typography>

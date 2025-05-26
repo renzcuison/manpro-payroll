@@ -1,7 +1,7 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography,
      CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Avatar, Stack, Tooltip, Divider } from '@mui/material';
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

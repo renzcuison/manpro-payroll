@@ -7,14 +7,18 @@ import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
 import { useUser } from "../../hooks/useUser";
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 
+
+
+import UserSummary from "./Components/UserSummary";
 import UserInformation from "./Components/UserInformation";
+import UserEmploymentDetails from "./Components/UserEmploymentDetails";
+
 
 import EmployeeHistory from "../Admin/Employees/Components/EmployeeHistory";
-import EmployeeSummary from "../Admin/Employees/Components/EmployeeSummary";
 import EmployeeDeductions from "../Admin/Employees/Components/EmployeeDeductions";
 import EmploymentDetails from "../Admin/Employees/Components/EmployeeDetails";
 import ProfileBenefits from "./Profile/ProfileBenefits";
-import ProfileEdit from "./Profile/Modals/ProfileEdit";
+import ProfileEdit from "./Modals/ProfileEdit";
 
 const Profile = () => {
     const theme = useTheme();
@@ -77,9 +81,8 @@ const Profile = () => {
                         
                         {/*<---Right Side---->*/}
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
-                            <EmployeeSummary employee={user}></EmployeeSummary>
-                            <EmploymentDetails employee={user}></EmploymentDetails>
-                            <EmployeeHistory userName={user.user_name} headers={headers} />
+                            <UserSummary user={user}></UserSummary>
+                            <UserEmploymentDetails user={user}></UserEmploymentDetails>
                         </Grid>    
                     </Grid>
                 </Box>
