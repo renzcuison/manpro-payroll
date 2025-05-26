@@ -23,6 +23,7 @@ import { useUsers } from "../../SuperAdmin/hooks/useUsers";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import BranchesChart from "./BranchesBarChart";
 import { useTodaysAttendance } from "./useDashboard";
+import { Link } from "react-router-dom";
 
 function MainSection({ infoCardsData, adminName, dashboardData }) {
     const theme = useTheme();
@@ -169,6 +170,8 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             },
                         }}
                         key={index}
+                        component={Link}
+                        to={info.link}
                     >
                         <Typography
                             variant="subtitle1"

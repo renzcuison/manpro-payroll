@@ -13,6 +13,10 @@ import {
     Divider,
     Skeleton,
     Stack,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from "@mui/material";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import { PiCalendarHeart, PiCalendarStar } from "react-icons/pi";
@@ -26,6 +30,7 @@ const EventForm = ({ onEventCreated, events }) => {
         description: "",
         start_time: "",
         end_time: "",
+        visibility: "private",
     });
 
     const [loading, setLoading] = useState(false);
@@ -115,6 +120,18 @@ const EventForm = ({ onEventCreated, events }) => {
                     InputLabelProps={{ shrink: true }}
                     sx={{ mb: 2 }}
                 />
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Visibility</InputLabel>
+                    <Select
+                        name="visibility"
+                        value={form.visibility}
+                        label="Visibility"
+                        onChange={handleChange}
+                    >
+                        <MenuItem value="private">Private (Google)</MenuItem>
+                        <MenuItem value="public">Public (Local)</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <Button

@@ -164,26 +164,31 @@ const Dashboard = () => {
             title: "Total Employees",
             value: dashboard?.employees?.length,
             icon: <Users size={42} />,
+            link: "/admin/employees",
         },
         {
             title: "Present",
             value: presentUsers.length,
             icon: <Check size={42} />,
+            link: "/admin/attendance/today",
         },
         {
             title: "Late",
             value: lateUsers.length,
             icon: <Clock size={42} />,
+            link: "/admin/attendance/today",
         },
         {
             title: "On Leave",
             value: 0,
             icon: <CalendarCheck size={42} />,
+            link: "/admin/attendance/today",
         },
         {
             title: "Absent",
             value: absentUsers.length,
             icon: <CalendarMinus size={42} />,
+            link: "/admin/attendance/today",
         },
     ];
 

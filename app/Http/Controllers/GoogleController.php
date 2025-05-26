@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PublicEvent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Google_Client;
@@ -68,10 +69,22 @@ class GoogleController extends Controller
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
         ]);
+
         $start = Carbon::parse($request->start_time)->toRfc3339String(); // ensures correct format
         $end = Carbon::parse($request->end_time)->toRfc3339String();
         $user = auth()->user();
     
+        if ($request->visibility === 'public') {
+            PublicEvent::create([
+                'user_id' => $user->id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+            ]);
+            return response()->json(['message' => 'Public event saved to DB.']);
+        }
+        
         if (!$user->google_token) {
             return response()->json(['error' => 'Google account not connected.'], 403);
         }
@@ -117,11 +130,77 @@ class GoogleController extends Controller
         }
     }
     
-
+    public function updateEvent(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+        ]);
+    
+        $user = auth()->user();
+    
+        if (!$user->google_token) {
+            return response()->json(['error' => 'Google Calendar not connected.'], 403);
+        }
+    
+        $token = json_decode($user->google_token, true);
+        $client = $this->getGoogleClient();
+        $client->setAccessToken($token);
+    
+        if ($client->isAccessTokenExpired() && isset($token['refresh_token'])) {
+            $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+            $user->google_token = json_encode($client->getAccessToken());
+            $user->save();
+        }
+    
+        $service = new \Google_Service_Calendar($client);
+    
+        try {
+            $event = $service->events->get('primary', $id);
+            $event->setSummary($request->title);
+            $event->setDescription($request->description);
+    
+            $start = new \Google_Service_Calendar_EventDateTime();
+            $start->setDateTime(Carbon::parse($request->start_time)->toRfc3339String());
+            $start->setTimeZone('Asia/Manila');
+            $event->setStart($start);
+    
+            $end = new \Google_Service_Calendar_EventDateTime();
+            $end->setDateTime(Carbon::parse($request->end_time)->toRfc3339String());
+            $end->setTimeZone('Asia/Manila');
+            $event->setEnd($end);
+    
+            $updatedEvent = $service->events->update('primary', $id, $event);
+    
+            return response()->json(['message' => 'Event updated successfully.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to update event.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
     // Fetch events
     public function getEvents()
     {
         $user = auth()->user();
+        $allEvents = [];
+
+        // 1. Get DB events (public)
+        $dbEvents = PublicEvent::where('user_id', $user->id)->get()->map(function ($e) {
+            return [
+                'id' => 'db-' . $e->id,
+                'title' => $e->title,
+                'start' => $e->start_time,
+                'end' => $e->end_time,
+                'description' => $e->description,
+                'visibility_type' => 'public',
+                'color' => '#43a047',
+            ]; 
+        })->toArray(); // <- convert to plain array
     
         if (!$user->google_token) {
             return response()->json(['error' => 'Google account not connected.'], 403);
@@ -150,8 +229,8 @@ class GoogleController extends Controller
         ];
         
         try {
-            $allEvents = [];
 
+            $googleEvents = [];
             foreach ($calendarsToCheck as $calendarId) {
                 $events = $service->events->listEvents($calendarId, [
                     'timeMin' => now()->toRfc3339String(),
@@ -161,18 +240,20 @@ class GoogleController extends Controller
                 ]);
         
                 foreach ($events->getItems() as $event) {
-                    $allEvents[] = [
+                    $googleEvents[] = [
                         'id' => $event->getId(),
                         'title' => $event->getSummary(),
                         'start' => $event->getStart()->getDateTime() ?? $event->getStart()->getDate(),
                         'end' => $event->getEnd()->getDateTime() ?? $event->getEnd()->getDate(),
                         'description' => $event->getDescription() ?? '',
                         'calendar' => $calendarId,
+                        'visibility_type' => 'private',
+                        'color' => '#1976d2',
                     ];
                 }
             }
         
-            return response()->json($allEvents);
+            return response()->json(array_merge($dbEvents, $googleEvents));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve events.', 'details' => $e->getMessage()], 500);
         }
@@ -222,6 +303,29 @@ class GoogleController extends Controller
                 'details' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function updatePublicEvent(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+        ]);
+
+        $event = PublicEvent::where('user_id', auth()->id())->findOrFail($id);
+        $event->update($request->only(['title', 'description', 'start_time', 'end_time']));
+
+        return response()->json(['message' => 'Public event updated successfully.']);
+    }
+
+    public function deletePublicEvent($id)
+    {
+        $event = PublicEvent::where('user_id', auth()->id())->findOrFail($id);
+        $event->delete();
+
+        return response()->json(['message' => 'Public event deleted successfully.']);
     }
 
 }
