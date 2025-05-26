@@ -8,7 +8,8 @@ import {
     TextField,
     FormGroup,
     FormControl,
-    IconButton
+    IconButton,
+    Typography
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -55,47 +56,50 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
     };
 
     const saveInput = (event) => {
-        event.preventDefault();
-        const data = { name: formName };
-        axiosInstance.post('/saveEvaluationForm', data, { headers })
-            .then(response => {
-
-                switch( response.data.status ) {
-
-                    case 200:
-                        Swal.fire({
-                            text: "Evaluation form saved successfully!",
-                            icon: "success",
-                            timer: 1000,
-                            confirmButtonText: 'Proceed',
-                            confirmButtonColor: '#177604',
-                        }).then(() => {
-                            setFormName('');
-                            if (onSuccess) onSuccess(formName);
-                            onClose();
-                        });
-                        break;
-                    case 409:
-                        Swal.fire({
-                            text: "This Evaluation Form Name is already in use.",
-                            icon: "error",
-                            confirmButtonColor: '#177604',
-                        });
-                        break;
-
-                }
-            })
-            .catch(error => {
+    event.preventDefault();
+    const data = { name: formName };
+    axiosInstance.post('/saveEvaluationForm', data, { headers })
+        .then(response => {
+            if (response.data.status === 200) {
                 Swal.fire({
-                    text: "Failed to save evaluation form.",
-                    icon: "error",
+                    text: "Evaluation form saved successfully!",
+                    icon: "success",
                     timer: 1000,
-                    confirmButtonText: 'Proceed',
                     confirmButtonColor: '#177604',
+                    customClass: {
+                        popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                    }
+                }).then(() => {
+                    setFormName('');
+                    if (onSuccess) onSuccess(formName);
+                    onClose();
                 });
-                console.error('Error:', error);
+            } else if (response.data.status === 409) {
+                Swal.fire({
+                    text: "This Evaluation Form Name is already in use.",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                    customClass: {
+                        popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                text: "Failed to save evaluation form.",
+                icon: "error",
+                timer: 1000,
+                confirmButtonText: 'Proceed',
+                confirmButtonColor: '#177604',
+                customClass: {
+                    popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                }
             });
-    };
+            console.error('Error:', error);
+        });
+};
+
 
     const handleCancel = () => {
         setFormName('');
@@ -104,6 +108,8 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
     };
 
     return (
+
+        
         <Dialog
             open={open}
             onClose={onClose}
@@ -116,29 +122,37 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
                     minWidth: 400,
                     maxWidth: 800,
                     backgroundColor: '#f8f9fa',
-                    padding: 0
+                    
                 }
             }}
+            sx={{
+                '& .MuiPaper-root': {
+                    width: '1000px', 
+                    height: '340px', 
+                    px: 3,
+                },
+            }}
         >
-            <DialogTitle sx={{ fontWeight: 'bold', fontSize: 26, pb: 0, mt: 2, mb: 2 }}>
-                CREATE EVALUATION FORM
-                <Box
+            <DialogTitle sx={{ paddingTop: '50px', paddingBottom:'50px' }}>
+                
+                {/* Add Sub-Category Title */}
+                <Typography
+                    variant="h4"
                     sx={{
-                        height: '2px',
-                        width: '100%',
-                        bgcolor: '#E6E6E6',
-                        borderRadius: 2
+                        textAlign: 'left',
+                        fontFamily: 'Roboto, sans-serif', // Set font to Roboto
+                        fontWeight: 'bold',
                     }}
-                />
-                <IconButton
-                    onClick={onClose}
-                    sx={{ position: 'absolute', right: 20, top: 20, color: '#727F91' }}
                 >
-                    <CloseIcon />
-                </IconButton>
+                    CREATE EVALUATION FORM
+                </Typography>
+
+                {/* Thin line beneath the title */}
+                <Box sx={{ borderBottom: '1px solid #ccc', marginTop: '5px' }}></Box>
             </DialogTitle>
+
             <DialogContent>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 1 , mb: 4 }}>
                     <TextField
                         label="Evaluation Form Name*"
                         variant="outlined"
@@ -151,35 +165,49 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                         <Button
                             variant="contained"
-                            startIcon={<CloseIcon />}
+                            startIcon={<CloseIcon sx={{ 
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                stroke: 'white', 
+                                strokeWidth: 2, 
+                                fill: 'none' 
+                            }}/>}
                             onClick={handleCancel}
                             sx={{
-                                bgcolor: '#7b8794',
-                                color: '#fff',
-                                fontWeight: 'bold',
-                                px: 4,
-                                py: 1.5,
-                                borderRadius: '8px',
-                                boxShadow: 1,
-                                '&:hover': { bgcolor: '#5a6473' }
+                                backgroundColor: '#727F91',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '120px', // Set fixed width
+                                height: '35px', // Set fixed height
+                                fontSize: '14px', // Ensure consistent font size
                             }}
+                            
                         >
                             CANCEL
                         </Button>
                         <Button
                             variant="contained"
-                            startIcon={<AddIcon />}
+                            startIcon={<AddIcon sx={{
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                stroke: 'white', 
+                                strokeWidth: 2,
+                                fill: 'none' 
+                            }}/>}
                             onClick={checkInput}
                             sx={{
-                                bgcolor: '#137333',
-                                color: '#fff',
-                                fontWeight: 'bold',
-                                px: 4,
-                                py: 1.5,
-                                borderRadius: '8px',
-                                boxShadow: 1,
-                                '&:hover': { bgcolor: '#0d5c27' }
+                                backgroundColor: '#177604',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '120px', // Set fixed width
+                                height: '35px', // Set fixed height
+                                fontSize: '14px', // Ensure consistent font size
                             }}
+                            
                         >
                             SAVE
                         </Button>

@@ -1,20 +1,20 @@
-
-import React, { useEffect, useState } from 'react'
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
+import React, { useEffect, useState } from 'react';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider } from '@mui/material';
+import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
+import { useNavigate } from 'react-router-dom';
 
 const PerformanceEvaluationList = () => {
+
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
-    // ----- Menu Items
+    // Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => {
@@ -27,32 +27,18 @@ const PerformanceEvaluationList = () => {
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
 
-    // // Example: Fetch data (implement your own logic)
-    // useEffect(() => {
-    //     setIsLoading(false);
-    //     // Fetch your data here and update setPerformanceEvaluation
-    // }, []);
-
-const [evaluationForms, setEvaluationForms] = useState([]);
-
-useEffect(() => {
-    setIsLoading(true);
-    axiosInstance.get('/getEvaluationForms', { headers: getJWTHeader(JSON.parse(localStorage.getItem("nasya_user"))) })
-        .then(res => {
-            console.log(res.data);  // Check the full response
-            if (res.data && res.data.forms) {
-                setEvaluationForms(res.data.forms);  // Set forms to state
-            } else {
-                console.error('No forms found in the response');
-            }
-            setIsLoading(false);
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);  // Log any errors
-            setIsLoading(false);
-        });
-}, []);
-
+    // Fetch data from the API
+    useEffect(() => {
+        setIsLoading(false);
+        axiosInstance.get('/getEvaluationForms', { headers })
+            .then((response) => {
+                setPerformanceEvaluation(response.data.evaluationForms);
+            })
+            .catch(error => {
+                console.error('Error fetching evaluation forms:', error);
+                setIsLoading(false);
+            });
+    }, []);
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -61,7 +47,7 @@ useEffect(() => {
 
                     {/* Title outside of the white box */}
                     <Box sx={{ mt: 5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Performance Evaluation</Typography>
                     </Box>
 
                     {/* White Box Containing the Buttons and Table */}
@@ -79,58 +65,55 @@ useEffect(() => {
 
                             {/* Forms Dropdown Button */}
                             <Button
-    id="performance-evaluation-menu"
-    variant="contained"
-    color="success"
-    aria-controls={open ? 'perf-eval-menu' : undefined}
-    aria-haspopup="true"
-    aria-expanded={open ? 'true' : undefined}
-    onClick={handleMenuOpen}
->
-    Forms <i className="fa fa-caret-down ml-2"></i>
-</Button>
-<Menu
-    id="perf-eval-menu"
-    anchorEl={anchorEl}
-    open={open}
-    onClose={handleMenuClose}
-    MenuListProps={{
-        'aria-labelledby': 'performance-evaluation-menu',
-    }}
->
-    {evaluationForms.length === 0 ? (
-        <MenuItem disabled>No forms found</MenuItem>
-    ) : (
-        evaluationForms.map(form => (
-            <MenuItem
-                key={form.id}
-                onClick={() => {
-                    navigate(`/admin/performance-evaluation/form/${form.id}`);
-                    handleMenuClose();
-                }}
-            >
-                {form.name}
-            </MenuItem>
-        ))
-    )}
-    <MenuItem
-        onClick={() => { setModalOpen(true); handleMenuClose(); }}
-        sx={{ borderTop: '1px solid #eee', mt: 1 }}
-    >
-        + New Form
-    </MenuItem>
-</Menu>
+                                id="performance-evaluation-menu"
+                                variant="contained"
+                                color="success"
+                                aria-controls={open ? 'perf-eval-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={open ? 'true' : undefined}
+                                onClick={handleMenuOpen}
+                            >
+                                Forms <i className="fa fa-caret-down ml-2"></i>
+                            </Button>
+                            <Menu
+                                id="perf-eval-menu"
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={handleMenuClose}
+                                MenuListProps={{
+                                    'aria-labelledby': 'performance-evaluation-menu',
+                                }}
+                            >
+                                {
+                                    performanceEvaluations.map(({ name }) => (
+                                        <MenuItem key={name} onClick={() => navigate(`/admin/performance-evaluation/form/${name}`)}>
+                                            {name}
+                                        </MenuItem>
+                                    ))
+                                }
 
+                                {/* Divider before the New Form */}
+                                <Divider sx={{ my: 1 }} />
+
+                                {/* New Form Option */}
+                                <MenuItem
+                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
+                                    sx={{ display: 'flex', alignItems: 'center' }}
+                                >
+                                    <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
+                                </MenuItem>
+                            </Menu>
                         </Box>
 
                         {/* Modal for New Form */}
                         <PerformanceEvaluationAdd
                             open={modalOpen}
                             onClose={() => setModalOpen(false)}
+                            onSuccess={formName => navigate(`forms/${formName}`)}
                         />
 
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
                                 <CircularProgress />
                             </Box>
                         ) : (
@@ -161,14 +144,21 @@ useEffect(() => {
                                     Go to Performance Evaluation Form
                                 </Button>
 
+                                
                                 {/* Pagination controls */}
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                    <Typography variant="body1" sx={{ mr: 1, fontWeight: 'normal', fontSize: '0.875rem' }}>
+                                        Rows Per Page
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 'normal', fontSize: '0.875rem' }}>
+                                        10
+                                    </Typography>
                                     <TablePagination
                                         rowsPerPageOptions={[10]}
                                         component="div"
-                                        count={performanceEvaluations.length}  // replace with actual count
+                                        count={performanceEvaluations.length}
                                         rowsPerPage={10}
-                                        page={0}  // implement page control logic here
+                                        page={0}
                                         onPageChange={() => {}}
                                     />
                                 </Box>
@@ -178,7 +168,7 @@ useEffect(() => {
                 </Box>
             </Box>
         </Layout>
-    )
-}
+    );
+};
 
-export default PerformanceEvaluationList
+export default PerformanceEvaluationList;
