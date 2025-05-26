@@ -32,7 +32,7 @@ class EvaluationForm extends Model
 
     public function sections()
     {
-        return $this->hasMany(EvaluationFormSection::class, 'section_id');
+        return $this->hasMany(EvaluationFormSection::class, 'form_id');
     }
 
 }

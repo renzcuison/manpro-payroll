@@ -198,6 +198,35 @@ class EvaluationController extends Controller
                     'evaluation_forms.updated_at'
                 )
                 ->where('evaluation_forms.id', $request->id)
+                ->with(['sections' => fn ($section) =>
+                    $section
+                        ->select('form_id', 'id','name', 'rank')
+                        ->orderBy('rank')
+                        ->with(['categories' => fn ($category) =>
+                            $category
+                                ->select('section_id', 'id','name', 'rank')
+                                ->with(['subcategories' => fn ($subcategory) =>
+                                    $subcategory
+                                        ->select(
+                                            'category_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end',
+                                            'rank'
+                                        )
+                                        ->with(['options' => fn ($option) =>
+                                            $option
+                                                ->select(
+                                                    'subcategory_id', 'id',
+                                                    'label', 'rank'
+                                                )
+                                                ->orderBy('rank')
+                                        ])
+                                        ->orderBy('rank')
+                                ])
+                                ->orderBy('rank')
+                        ])
+                ])
                 ->first()
             ;
             if( !$evaluationForm ) return response()->json([
@@ -443,19 +472,6 @@ class EvaluationController extends Controller
                 'message' => 'Evaluation Form Section Name is required!'
             ]);
 
-            $existingEvaluationFormSection = EvaluationFormSection
-                ::where('form_id', $evaluationForm->form_id)
-                ->where('name', $request->name)
-                ->where('id', '!=', $request->id)
-                ->first()
-            ;
-
-            if( $existingEvaluationFormSection ) return response()->json([ 
-                'status' => 409,
-                'message' => 'This Evaluation Form Name Section is already in use!',
-                'evaluationFormID' => $existingEvaluationFormSection->id
-            ]);
-
             $evaluationFormSection->name = $request->name;
             $evaluationFormSection->save();
 
@@ -475,6 +491,55 @@ class EvaluationController extends Controller
 
             throw $e;
         }
+    }
+
+    public function getEvaluationFormSection(Request $request)
+    {
+
+        log::info('EvaluationController::getEvaluationForms');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationForm = EvaluationForm
+                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+                ->where('evaluation_forms.id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationForm ) return response()->json([
+                'status' => 404,
+                'message' => 'No Evaluation Form found.',
+                'evaluationForm' => $evaluationForm
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form successfully retrieved.',
+                'evaluationForms' => $evaluationForm
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
     }
 
     // old
