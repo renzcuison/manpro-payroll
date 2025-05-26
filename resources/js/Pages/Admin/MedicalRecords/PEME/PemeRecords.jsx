@@ -4,11 +4,15 @@ import { Box, Button, Typography } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
+import PemeOverview from "./PemeOverview";
+
 const PemeRecords = () => {
     const navigator = useNavigate();
 
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
         React.useState(false);
+
+    const [search, setSearch] = React.useState("");
 
     const handleCloseAddPemeRecordsModal = (reload) => {
         setOpenAddPemeRecordsModal(false);
@@ -17,10 +21,25 @@ const PemeRecords = () => {
         }
     };
 
-    const records = [
-        { exam: "Annual Physical Exam", date: "2025-06-01" },
-        { exam: "Drug Test", date: "2025-06-01" },
-    ];
+    const records = React.useMemo(
+        () => [
+            {
+                exam: "Annual Physical Exam",
+                date: "2025-06-01",
+            },
+            {
+                exam: "Drug Test",
+                date: "2025-06-01",
+            },
+        ],
+        []
+    );
+
+    const filteredRecords = records.filter((record) =>
+        [record.date, record.exam].some((field) =>
+            field?.toLowerCase().includes(search.toLowerCase())
+        )
+    );
 
     const handleOnRowClick = () => {
         navigator("/admin/medical-records/peme-records/peme-responses");
@@ -73,10 +92,51 @@ const PemeRecords = () => {
                 />
             )}
 
-            <PemeExamTypeTable
-                records={records}
-                onRowClick={handleOnRowClick}
-            />
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 4,
+                    marginTop: 4,
+                    flexWrap: "nowrap", // prevent wrapping below
+                    justifyContent: "flex-start",
+                    alignItems: "flex-start",
+                }}
+            >
+                <Box
+                    sx={{
+                        width: "25%", // fixed width for chart container
+                        minWidth: 280,
+                        backgroundColor: "white",
+                        borderRadius: 2,
+                        boxShadow: 1,
+                        padding: 2,
+                        flexShrink: 0, // prevent shrinking
+                    }}
+                >
+                    <PemeOverview records={records} />
+                </Box>
+                <Box
+                    sx={{
+                        width: "80%", // fixed width for table container
+                        minWidth: 300,
+                        backgroundColor: "white",
+                        borderRadius: 2,
+                        boxShadow: 1,
+                        padding: 2,
+                        overflow: "hidden",
+                    }}
+                >
+                    <TextField
+                        label="Search exam, date, or status"
+                        variant="outlined"
+                        fullWidth
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        sx={{ marginBottom: 2 }}
+                    />
+                    <PemeExamTypeTable records={filteredRecords} />
+                </Box>
+            </Box>
         </Layout>
     );
 };
