@@ -1,16 +1,12 @@
 {
   "node_modules/canvg/lib/index.es.js": {
-<<<<<<< HEAD
-    "file": "assets/index.es-bzm0gRHy.js",
-=======
-    "file": "assets/index.es-CuYPopOR.js",
->>>>>>> 17abefd1 (Add/Feat Forms and Create Evaluation Form for Performance Evaluation Module)
-    "name": "index.es",
-    "src": "node_modules/canvg/lib/index.es.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "resources/js/app.jsx"
-    ]
+"file": "assets/index.es-CuYPopOR.js",
+"name": "index.es",
+"src": "node_modules/canvg/lib/index.es.js",
+"isDynamicEntry": true,
+"imports": [
+  "resources/js/app.jsx"
+]
   },
   "node_modules/dompurify/dist/purify.es.mjs": {
     "file": "assets/purify.es-Bf0oSh3b.js",

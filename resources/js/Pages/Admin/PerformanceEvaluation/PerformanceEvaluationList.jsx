@@ -27,11 +27,32 @@ const PerformanceEvaluationList = () => {
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
 
-    // Example: Fetch data (implement your own logic)
-    useEffect(() => {
-        setIsLoading(false);
-        // Fetch your data here and update setPerformanceEvaluation
-    }, []);
+    // // Example: Fetch data (implement your own logic)
+    // useEffect(() => {
+    //     setIsLoading(false);
+    //     // Fetch your data here and update setPerformanceEvaluation
+    // }, []);
+
+const [evaluationForms, setEvaluationForms] = useState([]);
+
+useEffect(() => {
+    setIsLoading(true);
+    axiosInstance.get('/getEvaluationForms', { headers: getJWTHeader(JSON.parse(localStorage.getItem("nasya_user"))) })
+        .then(res => {
+            console.log(res.data);  // Check the full response
+            if (res.data && res.data.forms) {
+                setEvaluationForms(res.data.forms);  // Set forms to state
+            } else {
+                console.error('No forms found in the response');
+            }
+            setIsLoading(false);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);  // Log any errors
+            setIsLoading(false);
+        });
+}, []);
+
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -58,31 +79,48 @@ const PerformanceEvaluationList = () => {
 
                             {/* Forms Dropdown Button */}
                             <Button
-                                id="performance-evaluation-menu"
-                                variant="contained"
-                                color="success"
-                                aria-controls={open ? 'perf-eval-menu' : undefined}
-                                aria-haspopup="true"
-                                aria-expanded={open ? 'true' : undefined}
-                                onClick={handleMenuOpen}
-                            >
-                                Forms <i className="fa fa-caret-down ml-2"></i>
-                            </Button>
-                            <Menu
-                                id="perf-eval-menu"
-                                anchorEl={anchorEl}
-                                open={open}
-                                onClose={handleMenuClose}
-                                MenuListProps={{
-                                    'aria-labelledby': 'performance-evaluation-menu',
-                                }}
-                            >
-                                <MenuItem
-                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
-                                >
-                                    New Form
-                                </MenuItem>
-                            </Menu>
+    id="performance-evaluation-menu"
+    variant="contained"
+    color="success"
+    aria-controls={open ? 'perf-eval-menu' : undefined}
+    aria-haspopup="true"
+    aria-expanded={open ? 'true' : undefined}
+    onClick={handleMenuOpen}
+>
+    Forms <i className="fa fa-caret-down ml-2"></i>
+</Button>
+<Menu
+    id="perf-eval-menu"
+    anchorEl={anchorEl}
+    open={open}
+    onClose={handleMenuClose}
+    MenuListProps={{
+        'aria-labelledby': 'performance-evaluation-menu',
+    }}
+>
+    {evaluationForms.length === 0 ? (
+        <MenuItem disabled>No forms found</MenuItem>
+    ) : (
+        evaluationForms.map(form => (
+            <MenuItem
+                key={form.id}
+                onClick={() => {
+                    navigate(`/admin/performance-evaluation/form/${form.id}`);
+                    handleMenuClose();
+                }}
+            >
+                {form.name}
+            </MenuItem>
+        ))
+    )}
+    <MenuItem
+        onClick={() => { setModalOpen(true); handleMenuClose(); }}
+        sx={{ borderTop: '1px solid #eee', mt: 1 }}
+    >
+        + New Form
+    </MenuItem>
+</Menu>
+
                         </Box>
 
                         {/* Modal for New Form */}

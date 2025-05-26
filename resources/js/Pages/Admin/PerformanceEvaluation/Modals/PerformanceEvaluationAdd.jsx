@@ -57,7 +57,7 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { name: formName };
-        axiosInstance.post('/saveEvaluation', data, { headers })
+        axiosInstance.post('/saveEvaluationForm', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
