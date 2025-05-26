@@ -67,10 +67,11 @@ const AnnouncementHidden = () => {
       .then((response) => {
         console.log('API Response:', response.data);
         if (response.data.status === 200) {
-          setAnnouncements(response.data.announcements || []);
-          setTotalAnnouncements(response.data.announcements?.length || 0);
+          // Filter here
+          const published = (response.data.announcements || []).filter(a => a.status === 'Hidden');
+          setAnnouncements(published);
+          setTotalAnnouncements(published.length);
         } else {
-          console.error('Unexpected status:', response.data.status);
           setAnnouncements([]);
           setTotalAnnouncements(0);
         }
@@ -78,7 +79,6 @@ const AnnouncementHidden = () => {
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching announcements:', error.response?.data || error.message);
         setAnnouncements([]);
         setTotalAnnouncements(0);
         setIsLoading(false);
