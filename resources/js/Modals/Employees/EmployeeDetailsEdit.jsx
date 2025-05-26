@@ -351,7 +351,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                         }}> 
-                            <Typography variant="h4" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
+                            <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
                             <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
 
                             <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
@@ -405,6 +405,9 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
+                            <FormControl fullWidth>
+                                <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Employment Details </Typography>
+                            </FormControl>
                             <FormControl sx={{
                                 marginBottom: 3, width: '38%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
@@ -572,7 +575,10 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': {color: '#97a5ba'},
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}>    
+                        }}>
+                            <FormControl fullWidth>
+                                <Typography variant="h5" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Payroll Details</Typography>
+                            </FormControl>    
                             <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
