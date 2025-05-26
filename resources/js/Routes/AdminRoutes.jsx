@@ -62,7 +62,14 @@ import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 import PemeRecords from "../Pages/Admin/MedicalRecords/PemeRecords";
 import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLifeMasterlist";
 import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
+<<<<<<< Updated upstream
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/Modals/PemeRecordsForm";
+=======
+import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
+import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
+import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
+import PemeOverview from "../Pages/Admin/MedicalRecords/PEME/PemeOverview";
+>>>>>>> Stashed changes
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -339,6 +346,16 @@ const AdminRoutes = ({ user }) => {
                 path="medical-records/peme-records/peme-form"
                 element={
                     <ProtectedRoute element={<PemeRecordsForm />} user={user} />
+                }
+            />
+
+            <Route
+                path="medical-records/peme-records/peme-overview"
+                element={
+                    <ProtectedRoute
+                        element={<PemeOverview />}
+                        user={user}
+                    />
                 }
             />
 

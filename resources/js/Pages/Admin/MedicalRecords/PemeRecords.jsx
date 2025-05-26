@@ -1,9 +1,16 @@
 import React from "react";
+<<<<<<< Updated upstream:resources/js/Pages/Admin/MedicalRecords/PemeRecords.jsx
 import { Box, Button, Typography, TextField, CircularProgress } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
+=======
+import { useNavigate } from "react-router-dom";
+import { Box, Button, Typography, TextField } from "@mui/material";
+import Layout from "../../../../components/Layout/Layout";
+>>>>>>> Stashed changes:resources/js/Pages/Admin/MedicalRecords/PEME/PemeRecords.jsx
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
 import PemeOverview from "./PemeOverview";
+import DueDatePicker from "./PemeDueDatePicker";
 
 const PemeRecords = () => {
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
@@ -96,6 +103,7 @@ const PemeRecords = () => {
             >
             <Box
                 sx={{
+<<<<<<< Updated upstream:resources/js/Pages/Admin/MedicalRecords/PemeRecords.jsx
                 width: "25%",  // fixed width for chart container
                 minWidth: 280,
                 backgroundColor: "white",
@@ -120,13 +128,54 @@ const PemeRecords = () => {
             >
                 <TextField
                         label="Search exam, date, or status"
+=======
+                    display: "flex",
+                    gap: 4,
+                    marginTop: 4,
+                    flexWrap: "nowrap",
+                    justifyContent: "flex-start",
+                    alignItems: "flex-start",
+                }}
+            >
+                <Box
+                    sx={{
+                        width: "25%",
+                        minWidth: 280,
+                        backgroundColor: "white",
+                        borderRadius: 2,
+                        boxShadow: 1,
+                        padding: 2,
+                        flexShrink: 0, 
+                    }}
+                >
+                    <PemeOverview records={records} />
+                </Box>
+                <Box
+                    sx={{
+                        width: "80%",
+                        minWidth: 300,
+                        backgroundColor: "white",
+                        borderRadius: 2,
+                        boxShadow: 1,
+                        padding: 2,
+                        overflow: "hidden",
+                    }}
+                >
+                    <TextField
+                        label="Search exam or date"
+>>>>>>> Stashed changes:resources/js/Pages/Admin/MedicalRecords/PEME/PemeRecords.jsx
                         variant="outlined"
                         fullWidth
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         sx={{ marginBottom: 2 }}
                     />
+<<<<<<< Updated upstream:resources/js/Pages/Admin/MedicalRecords/PemeRecords.jsx
                 <PemeExamTypeTable records={filteredRecords} />
+=======
+                <PemeExamTypeTable records={filteredRecords} onRowClick={handleOnRowClick} />
+                </Box>
+>>>>>>> Stashed changes:resources/js/Pages/Admin/MedicalRecords/PEME/PemeRecords.jsx
             </Box>
             </Box>
             </Layout>
