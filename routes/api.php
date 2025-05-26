@@ -8,6 +8,7 @@ use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceMobileController;
 use App\Http\Controllers\ApplicationsController;
@@ -94,15 +95,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
+        Route::get('/getBranch/{id}', [SettingsController::class, 'getBranch']);
+
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
 
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+        Route::post('/saveJobTitle', [SeterttingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
@@ -129,6 +133,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeeController::class, 'getEmployeesByDepartment']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 

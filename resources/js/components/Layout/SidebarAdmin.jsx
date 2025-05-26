@@ -229,6 +229,11 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+
+
+
+    
+
     const workShifts = [
         {
             id: 5,
@@ -314,6 +319,10 @@ const Sidebar = ({ children, closeMini }) => {
             ],
         },
     ];
+
+    
+
+    // console.log("User: ", user);
 
     return (
         <nav
@@ -456,6 +465,46 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+
+                                         <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i
+                                            className="fa fa-building-o"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Departments{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    
+                                    
+                                    
+
+                                         <StyledNav to={`/admin/branches/branchlist`}>
+                                        <i
+                                            className="fa fa-sitemap"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Branches{" "}
+                                        </span>
+                                    </StyledNav>
+
+
+
+                           
+
+
+
+
                                     {payrollItems.map((items, index) => {
                                         return (
                                             <SideItem
@@ -502,6 +551,9 @@ const Sidebar = ({ children, closeMini }) => {
                                             Announcements{" "}
                                         </span>
                                     </StyledNav>
+
+
+                                    
 
                                     <StyledNav to={`/admin/documents`}>
                                         <i>

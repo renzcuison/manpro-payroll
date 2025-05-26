@@ -33,6 +33,7 @@ import ReportEdit from "./Pages/Reports/ReportEdit.jsx";
 
 import HrRoutes from "./Routes/HrRoutes.jsx";
 
+
 import AdminRoutes from "./Routes/AdminRoutes.jsx";
 import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
 import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
@@ -168,6 +169,9 @@ function App() {
             <Route path="/verifyLogin" element={<VerifyLogin />} />
 
             <Route path="/error-404" element={<Error404 />} />
+
+            
+            
         </Routes>
     );
 }

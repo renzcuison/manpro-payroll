@@ -371,12 +371,14 @@ const EmployeesList = () => {
                         {/*<---Main Employee List table--->*/}
                         {isLoading ? (
                             <LoadingSpinner />
-                        ) : (
-                            <>
-                                <TableContainer
-                                    style={{ overflowX: "auto" }}
-                                    sx={{ minHeight: 400, maxHeight: 500 }}
-                                >
+
+                                
+                            ) : (
+                                <>
+                                    <TableContainer
+                                        style={{ overflowX: "auto" }}
+                                        sx={{ minHeight: 400, maxHeight: 500 }}
+                                    >
                                     <Table
                                         stickyHeader
                                         aria-label="employee table"
@@ -548,7 +550,7 @@ const EmployeesList = () => {
                                     </Box>
                                 )}
                             </>
-                        )}
+                        )}  
                     </Box>
                 </Box>
             </Box>

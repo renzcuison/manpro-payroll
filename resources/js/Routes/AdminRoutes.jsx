@@ -5,6 +5,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import Error404 from "../Pages/Errors/Error404";
 
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
+import DepartmentList from "../Pages/Admin/Department/DepartmentList";
+import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
+import BranchList from "../Pages/Admin/Branches/BranchList";
+import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
+
+
 
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
@@ -72,10 +78,15 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route
-                path="dashboard"
-                element={<ProtectedRoute element={<Dashboard />} user={user} />}
-            />
+
+            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
+            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+
+            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
+            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
+            
+
+            <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
 
             <Route
                 path="employee/:user"
@@ -134,33 +145,13 @@ const AdminRoutes = ({ user }) => {
                 }
             />
 
-            <Route
-                path="attendance/logs"
-                element={
-                    <ProtectedRoute element={<AttendanceLogs />} user={user} />
-                }
-            />
-            <Route
-                path="attendance/:user"
-                element={
-                    <ProtectedRoute element={<AttendanceView />} user={user} />
-                }
-            />
-            <Route
-                path="attendance/today"
-                element={
-                    <ProtectedRoute element={<AttendanceToday />} user={user} />
-                }
-            />
-            <Route
-                path="attendance/summary"
-                element={
-                    <ProtectedRoute
-                        element={<AttendanceSummary />}
-                        user={user}
-                    />
-                }
-            />
+
+           
+
+            <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
+            <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />
+            <Route path="attendance/today" element={<ProtectedRoute element={<AttendanceToday />} user={user} />} />
+            <Route path="attendance/summary" element={<ProtectedRoute element={<AttendanceSummary />} user={user} />} />
 
             <Route
                 path="applications"
@@ -336,6 +327,8 @@ const AdminRoutes = ({ user }) => {
             />
         </Routes>
     );
+
 };
+
 
 export default AdminRoutes;
