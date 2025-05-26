@@ -418,13 +418,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     // Evaluation
-    Route::get('/deleteEvaluationForm', [EvaluationController::class, 'deleteEvaluationForm']);
+    Route::post('/deleteEvaluationForm', [EvaluationController::class, 'deleteEvaluationForm']);
     Route::post('/editEvaluationForm', [EvaluationController::class, 'editEvaluationForm']);
-    Route::get('/getDeletedEvaluationForms', [EvaluationController::class, 'getDeletedEvaluationForms']);
     Route::get('/getEvaluationForm', [EvaluationController::class, 'getEvaluationForm']);
     Route::get('/getEvaluationForms', [EvaluationController::class, 'getEvaluationForms']);
-    Route::get('/restoreEvaluationForm', [EvaluationController::class, 'restoreEvaluationForm']);
     Route::post('/saveEvaluationForm', [EvaluationController::class, 'saveEvaluationForm']);
+
+    Route::post('/deleteEvaluationFormSection', [EvaluationController::class, 'deleteEvaluationFormSection']);
+    Route::post('/editEvaluationFormSection', [EvaluationController::class, 'editEvaluationFormSection']);
+    Route::get('/getEvaluationFormSection', [EvaluationController::class, 'getEvaluationFormSection']);
+    Route::get('/getEvaluationFormSections', [EvaluationController::class, 'getEvaluationFormSections']);
+    Route::post('/insertEvaluationFormSection', [EvaluationController::class, 'insertEvaluationFormSection']);
     // Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
     // Route::post('/editEvaluation', [EvaluationController::class, 'editEvaluation']);
     // Route::get('/getEvaluation', [EvaluationController::class, 'getEvaluation']);

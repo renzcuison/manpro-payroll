@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationController extends Controller
 {
 
+    // evaluation form
+
     public function deleteEvaluationForm(Request $request)
     {
         log::info('EvaluationController::deleteEvaluationForm');
@@ -145,7 +147,7 @@ class EvaluationController extends Controller
         }
     }
 
-    public function getDeletedEvaluationForms(Request $request)
+    public function getEvaluationForm(Request $request)
     {
 
         log::info('EvaluationController::getEvaluationForms');
@@ -156,33 +158,24 @@ class EvaluationController extends Controller
             $userID = null;
         }
     
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->where('id', $userID)->first();
 
         try {
 
-            $evaluationForms = EvaluationForm::select('*');
-            if( $request->creator_id ) {
-
-                $creator = DB::table('users')->select('*')->where('id', $request->creator_id)->first();
-                if( !$creator ) return response()->json([ 
-                    'status' => 404,
-                    'message' => 'User creator not found!',
-                    'creatorID' => $request->creator_id
-                ]);
-                $evaluationForms->where('creator_id', $request->creator_id);
-
-            }
-            $evaluationForms->where('deleted_at', '!=', null);
-            $evaluationForms = $evaluationForms->orderBy('name')->get();
-            if( !$evaluationForms->count() ) return response()->json([
-                'status' => 200,
-                'message' => 'No deleted Evaluation Forms found.',
-                'evaluationForms' => $evaluationForms
+            $evaluationForm = EvaluationForm
+                ::select('id', 'name', 'creator_id', 'created_at', 'updated_at')
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationForm ) return response()->json([
+                'status' => 404,
+                'message' => 'No Evaluation Form found.',
+                'evaluationForm' => $evaluationForm
             ]);
             return response()->json([
                 'status' => 200,
-                'message' => 'Deleted evaluation Forms successfully retrieved.',
-                'evaluationForms' => $evaluationForms
+                'message' => 'Evaluation Form successfully retrieved.',
+                'evaluationForms' => $evaluationForm
             ]);
 
         } catch (\Exception $e) {
@@ -206,11 +199,22 @@ class EvaluationController extends Controller
             $userID = null;
         }
     
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->where('id', $userID)->first();
 
         try {
 
-            $evaluationForms = EvaluationForm::select('*');
+            $evaluationForms = EvaluationForm
+                ::
+                join('users', 'evaluation_forms.id', '=', 'users.id')
+                ->select(
+                    'evaluation_forms.id',
+                    'evaluation_forms.name', 
+                    'evaluation_forms.creator_id',
+                    'users.user_name as creator_user_name',
+                    'evaluation_forms.created_at',
+                    'evaluation_forms.updated_at'
+                )
+            ;
             if( $request->creator_id ) {
 
                 $creator = DB::table('users')->select('*')->where('id', $request->creator_id)->first();
@@ -222,7 +226,6 @@ class EvaluationController extends Controller
                 $evaluationForms->where('creator_id', $request->creator_id);
 
             }
-            if( !$request->include_deleted ) $evaluationForms->where('deleted_at', null);
             $evaluationForms = $evaluationForms->orderBy('name')->get();
             if( !$evaluationForms->count() ) return response()->json([
                 'status' => 200,
@@ -243,62 +246,6 @@ class EvaluationController extends Controller
             throw $e;
         }
     
-    }
-
-    public function restoreEvaluationForm(Request $request)
-    {
-        log::info('EvaluationController::restoreEvaluationForm');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-        try {
-
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-
-            DB::beginTransaction();
-
-            $evaluationForm = EvaluationForm::where('id', $request->id)->first();
-
-            if( !$evaluationForm ) return response()->json([ 
-                'status' => 404,
-                'message' => 'Evaluation form not found!',
-                'evaluationFormID' => $request->id
-            ]);
-
-            if( !$evaluationForm->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation form was never deleted!',
-                'evaluationForm' => $evaluationForm
-            ]);
-
-            $evaluationForm->deleted_at = null;
-            $evaluationForm->save();
-
-            DB::commit();
-
-            return response()->json([ 
-                'status' => 200,
-                'evaluationForm' => $evaluationForm,
-                'message' => 'Evaluation Form successfully restored'
-            ]);
-
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
-        }
     }
 
     public function saveEvaluationForm(Request $request)
@@ -360,6 +307,10 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
+
+    // evaluation form section
+
+
 
     // old
 
@@ -829,30 +780,30 @@ class EvaluationController extends Controller
         ]);
     }
 
-    public function getEvaluationForm(Request $request)
-    {
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    // public function getEvaluationForm(Request $request)
+    // {
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
-        // $evaluationForm = EvaluationForm::where('evaluator_id', $user->user_id)->where('id', $request->formID)->first();
-        $evaluationForm = EvaluationForm::where('id', $request->formID)->first();
-        $evaluation = Evaluation::where('id', $evaluationForm->evaluation_id)->first();
-        $employee = User::where('user_id', $evaluationForm->employee_id)->first();
-        $evaluator = User::where('user_id', $evaluationForm->evaluator_id)->first();
+    //     $user = DB::table('user')->select('*')->where('user_id', $userID)->first();
+    //     // $evaluationForm = EvaluationForm::where('evaluator_id', $user->user_id)->where('id', $request->formID)->first();
+    //     $evaluationForm = EvaluationForm::where('id', $request->formID)->first();
+    //     $evaluation = Evaluation::where('id', $evaluationForm->evaluation_id)->first();
+    //     $employee = User::where('user_id', $evaluationForm->employee_id)->first();
+    //     $evaluator = User::where('user_id', $evaluationForm->evaluator_id)->first();
 
     
-        return response()->json([
-            'status' => 200,
-            'evaluationForm' => $evaluationForm,
-            'evaluation' => $evaluation,
-            'employee' => $employee,
-            'evaluator' => $evaluator
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'evaluationForm' => $evaluationForm,
+    //         'evaluation' => $evaluation,
+    //         'employee' => $employee,
+    //         'evaluator' => $evaluator
+    //     ]);
+    // }
     
     public function saveEvaluationResponse(Request $request)
     {
