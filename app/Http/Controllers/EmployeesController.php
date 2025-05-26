@@ -438,6 +438,21 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'avatar' => $avatar]);
     }
 
+    public function getEmployeeEducationBackground(Request $request){
+        // log::info("EmployeesController::getEducationBackground");
+        $validated = $request->validate([
+            'username' => 'required|string'
+        ]);
+
+        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
+            $user = Auth::user();
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+            log::info($employee);
+            $educations = EmployeeEducation::where('employee_id', $employee->id)->get();
+            return response()->json(['educations' => $educations, 'status' => 200]);
+        }
+    }
+
     public function getEducationBackground(Request $request)
     {
         log::info("EmployeesController::getEducationBackground");
@@ -583,6 +598,36 @@ class EmployeesController extends Controller
                         "new_limit" => $request->creditLimit,
                         "user_id" => $user->id,
                     ]);
+                }
+
+                //education handlers
+                $addEducations = $request->input('addEducations');
+                $updateEducations = $request->input('updateEducations');
+                $deleteEducationIds = $request->input('deleteEducationIds');
+
+                if (is_array($addEducations) && !empty($addEducations)){
+                    foreach($addEducations as $education){
+                        EmployeeEducation::create([
+                            'employee_id' => $employee->id,
+                            'school_name' => $education['school_name'],
+                            'degree_name' => $education['degree_name'],
+                            'degree_type' => $education['degree_type'],
+                            'year_graduated' => $education['year_graduated'],
+                        ]);
+                    }
+                }
+                if (is_array($updateEducations) && !empty($updateEducations)){
+                    foreach($updateEducations as $education){
+                        EmployeeEducation::where('id', $education['id'])->update([
+                            'school_name' => $education['school_name'],
+                            'degree_name' => $education['degree_name'],
+                            'degree_type' => $education['degree_type'],
+                            'year_graduated' => $education['year_graduated'],
+                        ]);
+                    }
+                }
+                if(is_array($deleteEducationIds) && !empty($deleteEducationIds)){
+                    EmployeeEducation::whereIn('id', $deleteEducationIds)->delete();
                 }
 
                 // Taxes

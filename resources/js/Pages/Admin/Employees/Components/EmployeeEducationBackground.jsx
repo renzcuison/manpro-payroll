@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Avatar, Box, Grid, Paper, Stack, Typography, Tooltip, Button, Divider } from "@mui/material";
 
-const EducationalBackground = ({education}) => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+const EmployeeEducationBackground = ({education}) => {
     
     return(
-        <Box component={Paper} sx={{ my: 4, p: 4, borderRadius: 5,  overflow: "auto" }}>
+        <Box bgcolor="#ffffff" sx={{ my: 4, p: 4, borderRadius: '8px',  overflow: "auto" }}>
             <Typography variant="h5" sx={{ mb: 4, fontWeight: "bold" }}>
                 {" "}Educational Background{" "}
             </Typography>
@@ -60,4 +57,4 @@ const EducationalBackground = ({education}) => {
         </Box>
     )
 }
-export default EducationalBackground;
+export default EmployeeEducationBackground;
