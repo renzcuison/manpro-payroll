@@ -34,6 +34,7 @@ const BranchList = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [branches, setBranches] = useState([]);
+    const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedColumns, setSelectedColumns] = useState([
@@ -51,17 +52,41 @@ const BranchList = () => {
     const [description, setDescription] = useState("");
 
     useEffect(() => {
-        axiosInstance
-            .get("/settings/getBranches", { headers })
-            .then((response) => {
-                setBranches(response.data.branches || []);
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                
+                // Fetch branches
+                const branchResponse = await axiosInstance.get("/settings/getBranches", { headers });
+                setBranches(branchResponse.data.branches || []);
+                
+                // Fetch all employees for name mapping
+                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
+                setAllEmployees(employeesResponse.data.employees || []);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
                 setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching branches:", error);
-                setIsLoading(false);
-            });
+            }
+        };
+
+        fetchData();
     }, []);
+
+    // Helper function to get employee name by ID
+    const getEmployeeNameById = (employeeId) => {
+        if (!employeeId) return "-";
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? `${employee.first_name} ${employee.last_name}` : "-";
+    };
+
+    // Helper function to get employee avatar by ID
+    const getEmployeeAvatarById = (employeeId) => {
+        if (!employeeId) return null;
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? employee.avatar : null;
+    };
 
     const filteredBranches = branches.filter((bran) =>
         bran.name.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -151,18 +176,18 @@ const BranchList = () => {
                             Branches 
                         </Typography>
 
-                         <Grid item>
-                                <Button 
+                        <Grid item>
+                            <Button 
                                 variant="contained" 
                                 color="primary"
                                 onClick={() => setOpenModal(true)}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
-                                >
+                            >
                                 <p className="m-0">
-                                    <i className="fa fa-plus mr-2"></i> Add Branches
+                                    <i className="fa fa-plus mr-2"></i> Add Branch
                                 </p>
-                                </Button>
-                            </Grid>
+                            </Button>
+                        </Grid>
                     </Box>
 
                     <Box
@@ -184,11 +209,8 @@ const BranchList = () => {
                                 />
                             </Grid>
                             <Grid item xs={3}>
-                               
+                                {/* Empty grid item for alignment */}
                             </Grid>
-                            <Grid container justifyContent="flex-end">
- 
-</Grid>
                         </Grid>
 
                         {isLoading ? (
@@ -261,11 +283,9 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.manager_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">                           
-                                                                            {bran.manager_id}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(bran.manager_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -282,11 +302,9 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.supervisor_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            {bran.supervisor_id}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(bran.supervisor_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -303,11 +321,9 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {bran.approver_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            {bran.approver_id}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(bran.approver_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -369,7 +385,7 @@ const BranchList = () => {
                 </Box>
             </Box>
 
-            {/*  Add branches Modal */}
+            {/* Add Branch Modal */}
             <Dialog
                 open={openModal}
                 onClose={() => setOpenModal(false)}
@@ -453,7 +469,7 @@ const BranchList = () => {
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save branches </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
                             </Button>
                         </Box>
                     </Box>

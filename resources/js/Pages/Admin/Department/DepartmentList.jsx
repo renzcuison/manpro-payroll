@@ -34,6 +34,7 @@ const DepartmentsList = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [departments, setDepartments] = useState([]);
+    const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedColumns, setSelectedColumns] = useState([
@@ -51,17 +52,41 @@ const DepartmentsList = () => {
     const [description, setDescription] = useState("");
 
     useEffect(() => {
-        axiosInstance
-            .get("/settings/getDepartments", { headers })
-            .then((response) => {
-                setDepartments(response.data.departments || []);
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                
+                // Fetch departments
+                const deptResponse = await axiosInstance.get("/settings/getDepartments", { headers });
+                setDepartments(deptResponse.data.departments || []);
+                
+                // Fetch all employees for name mapping
+                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
+                setAllEmployees(employeesResponse.data.employees || []);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
                 setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching departments:", error);
-                setIsLoading(false);
-            });
+            }
+        };
+
+        fetchData();
     }, []);
+
+    // Helper function to get employee name by ID
+    const getEmployeeNameById = (employeeId) => {
+        if (!employeeId) return "-";
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? `${employee.first_name} ${employee.last_name}` : "-";
+    };
+
+    // Helper function to get employee avatar by ID
+    const getEmployeeAvatarById = (employeeId) => {
+        if (!employeeId) return null;
+        const employee = allEmployees.find(emp => emp.id === employeeId);
+        return employee ? employee.avatar : null;
+    };
 
     const filteredDepartments = departments.filter((dept) =>
         dept.name.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -121,7 +146,7 @@ const DepartmentsList = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setDepartments(prev => [...prev, response.data.department ]);
+                        setDepartments(prev => [...prev, response.data.department]);
                         setName("");
                         setAcronym("");
                         setDescription("");
@@ -151,18 +176,18 @@ const DepartmentsList = () => {
                             Departments
                         </Typography>
 
-                         <Grid item>
-                                <Button 
+                        <Grid item>
+                            <Button 
                                 variant="contained" 
                                 color="primary"
                                 onClick={() => setOpenModal(true)}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
-                                >
+                            >
                                 <p className="m-0">
                                     <i className="fa fa-plus mr-2"></i> Add Department
                                 </p>
-                                </Button>
-                            </Grid>
+                            </Button>
+                        </Grid>
                     </Box>
 
                     <Box
@@ -184,11 +209,8 @@ const DepartmentsList = () => {
                                 />
                             </Grid>
                             <Grid item xs={3}>
-                               
+                                {/* Empty grid item for alignment */}
                             </Grid>
-                            <Grid container justifyContent="flex-end">
- 
-</Grid>
                         </Grid>
 
                         {isLoading ? (
@@ -261,11 +283,9 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.manager_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            {dept.manager_id}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(dept.manager_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -282,11 +302,9 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.supervisor_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            {dept.supervisor_id}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(dept.supervisor_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -303,11 +321,9 @@ const DepartmentsList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    {dept.approver_id ? (
-                                                                        <Box display="flex" alignItems="center" justifyContent="center">
-                                                                            {dept.approver?.name || "No Approver"}
-                                                                        </Box>
-                                                                    ) : "-"}
+                                                                    <Box display="flex" alignItems="center" justifyContent="center">
+                                                                        {getEmployeeNameById(dept.approver_id)}
+                                                                    </Box>
                                                                 </Link>
                                                             </TableCell>
                                                         )}
@@ -369,7 +385,7 @@ const DepartmentsList = () => {
                 </Box>
             </Box>
 
-            {/*  Add Department Modal */}
+            {/* Add Department Modal */}
             <Dialog
                 open={openModal}
                 onClose={() => setOpenModal(false)}
