@@ -57,38 +57,42 @@ const PerformanceEvaluationFormPage = () => {
 
     // Handle save action from the modal (this is where you can handle logic for saving a section)
     const handleSaveSection = (sectionName) => {
-        if (!formId || !sectionName) {
+            if (!formId || !sectionName) {
+                Swal.fire({
+                    text: "Form ID and Section Name are required!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        // Use the correct endpoint and payload
+        axiosInstance.post('/saveEvaluationFormSection', {
+            form_id: formId,
+            name: sectionName
+        }, { headers })
+        .then(() => {
+            // Refetch sections after adding
+            axiosInstance.get('/getEvaluationForm', { headers, params: { id: formId } })
+                .then(response => {
+                    const { evaluationForm, status } = response.data;
+                    if(status.toString().startsWith(4)) throw response.data;
+                    setFormData(evaluationForm);
+                });
+            handleCloseAddSectionModal();
+        })
+        .catch(error => {
+            console.error('Error saving section:', error);
             Swal.fire({
-                text: "Form ID and Section Name are required!",
+                text: "Error saving section.",
                 icon: "error",
                 confirmButtonColor: '#177604',
             });
-            return;
-        }
-
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    // Use the correct endpoint and payload
-    axiosInstance.post('/saveEvaluationFormSection', {
-        form_id: formId,
-        name: sectionName
-    }, { headers })
-    .then(() => {
-        // Refetch sections after adding
-        axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
-            .then(res => setSections(res.data.sections || []));
-        handleCloseAddSectionModal();
-    })
-    .catch(error => {
-        console.error('Error saving section:', error);
-        Swal.fire({
-            text: "Error saving section.",
-            icon: "error",
-            confirmButtonColor: '#177604',
         });
-    });
-};
+    };
 
  
     return (
