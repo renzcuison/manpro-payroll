@@ -112,7 +112,8 @@ const PerformanceEvaluationList = () => {
                         <PerformanceEvaluationAdd
                             open={modalOpen}
                             onClose={() => setModalOpen(false)}
-                            onSuccess={formName => navigate(`forms/${formName}`)}
+                            onOpen={() => setModalOpen(true)}
+                            onSuccess={formName => navigate(`form/${formName}`)}
                         />
 
                         {isLoading ? (

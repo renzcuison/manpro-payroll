@@ -17,7 +17,7 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
 
-const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
+const PerformanceEvaluationAdd = ({ open, onClose, onOpen, onSuccess }) => {
     const { user } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -32,13 +32,18 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
             Swal.fire({
                 text: "Evaluation Form Name is required!",
                 icon: "error",
-                confirmButtonColor: '#177604',
+                confirmButtonColor: '#177604'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    onOpen();
+                }
             });
+            onClose();
             return;
         } else {
             setFormNameError(false);
         }
-
+        onClose();
         Swal.fire({
             title: "Are you sure?",
             text: "You want to save this evaluation form?",
@@ -56,49 +61,49 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
     };
 
     const saveInput = (event) => {
-    event.preventDefault();
-    const data = { name: formName };
-    axiosInstance.post('/saveEvaluationForm', data, { headers })
-        .then(response => {
-            if (response.data.status === 200) {
-                Swal.fire({
-                    text: "Evaluation form saved successfully!",
-                    icon: "success",
-                    timer: 1000,
-                    confirmButtonColor: '#177604',
-                    customClass: {
-                        popup: 'swal-popup-overlay' // Custom class to ensure overlay
-                    }
-                }).then(() => {
-                    setFormName('');
-                    if (onSuccess) onSuccess(formName);
-                    onClose();
-                });
-            } else if (response.data.status === 409) {
-                Swal.fire({
-                    text: "This Evaluation Form Name is already in use.",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                    customClass: {
-                        popup: 'swal-popup-overlay' // Custom class to ensure overlay
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                text: "Failed to save evaluation form.",
-                icon: "error",
-                timer: 1000,
-                confirmButtonText: 'Proceed',
-                confirmButtonColor: '#177604',
-                customClass: {
-                    popup: 'swal-popup-overlay' // Custom class to ensure overlay
+        event.preventDefault();
+        const data = { name: formName };
+        axiosInstance.post('/saveEvaluationForm', data, { headers })
+            .then(response => {
+                if (response.data.status.toString().startsWith(2)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "success",
+                        timer: 1000,
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    }).then(() => {
+                        setFormName('');
+                        if (onSuccess) onSuccess(formName);
+                        onClose();
+                    });
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
                 }
+            })
+            .catch(error => {
+                Swal.fire({
+                    text: "Failed to save evaluation form.",
+                    icon: "error",
+                    timer: 1000,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                    customClass: {
+                        popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                    }
+                });
+                console.error('Error:', error);
             });
-            console.error('Error:', error);
-        });
-};
+    };
 
 
     const handleCancel = () => {
