@@ -17,6 +17,7 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
+import SubCategoryModal from './Modals/SubcategoryModal'; // Import your modal
 import Swal from 'sweetalert2';
 
 const PerformanceEvaluationFormPage = () => {
@@ -33,6 +34,10 @@ const PerformanceEvaluationFormPage = () => {
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
     const [categorySectionId, setCategorySectionId] = useState(null);
+
+    // SubCategory modal state
+    const [addSubCategoryOpen, setAddSubCategoryOpen] = useState(false);
+    const [subCategorySectionId, setSubCategorySectionId] = useState(null);
 
     // Fetch form details
     useEffect(() => {
@@ -167,6 +172,59 @@ const PerformanceEvaluationFormPage = () => {
         });
     };
 
+    // SubCategory modal handlers
+    const handleOpenAddSubCategoryModal = (sectionId) => {
+        setSubCategorySectionId(sectionId);
+        setAddSubCategoryOpen(true);
+    };
+
+    const handleCloseAddSubCategoryModal = () => {
+        setAddSubCategoryOpen(false);
+        setSubCategorySectionId(null);
+    };
+
+    // Save SubCategory
+    const handleSaveSubCategory = (subCategoryData) => {
+        const section = sections.find(s => s.id === subCategorySectionId);
+        const categoryId = section?.categories?.[0]?.id;
+        if (!categoryId || !subCategoryData.subCategoryName) {
+            Swal.fire({
+                text: "Category and Sub-Category Name are required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        axiosInstance.post('/saveEvaluationFormSubcategory', {
+            category_id: categoryId,
+            name: subCategoryData.subCategoryName,
+            subcategory_type: subCategoryData.responseType,
+            description: subCategoryData.description,
+            // Add more fields as needed (like options, scale, etc.)
+        }, { headers })
+        .then(() => {
+            fetchSections();
+            handleCloseAddSubCategoryModal();
+            Swal.fire({
+                text: "Sub-Category added successfully!",
+                icon: "success",
+                confirmButtonColor: '#177604',
+            });
+        })
+        .catch(error => {
+            console.error('Error saving subcategory:', error);
+            Swal.fire({
+                text: "Error saving sub-category.",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+        });
+    };
+
     return (
         <Layout title="Performance Evaluation Form">
             <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto' }}>
@@ -275,21 +333,39 @@ const PerformanceEvaluationFormPage = () => {
                                                 </Typography>
                                             )}
                                             <Box sx={{ textAlign: 'center', mt: 2 }}>
-                                                <Button
-                                                    variant="contained"
-                                                    sx={{
-                                                        bgcolor: '#177604',
-                                                        color: 'white',
-                                                        fontWeight: 'bold',
-                                                        borderRadius: 1,
-                                                        px: 4,
-                                                        py: 1.5,
-                                                        '&:hover': { bgcolor: '#0d5c27' }
-                                                    }}
-                                                    onClick={() => handleOpenAddCategoryModal(section.id)}
-                                                >
-                                                    ADD CATEGORY
-                                                </Button>
+                                                {section.categories && section.categories.length === 0 ? (
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={{
+                                                            bgcolor: '#177604',
+                                                            color: 'white',
+                                                            fontWeight: 'bold',
+                                                            borderRadius: 1,
+                                                            px: 4,
+                                                            py: 1.5,
+                                                            '&:hover': { bgcolor: '#0d5c27' }
+                                                        }}
+                                                        onClick={() => handleOpenAddCategoryModal(section.id)}
+                                                    >
+                                                        ADD CATEGORY
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={{
+                                                            bgcolor: '#177604',
+                                                            color: 'white',
+                                                            fontWeight: 'bold',
+                                                            borderRadius: 1,
+                                                            px: 4,
+                                                            py: 1.5,
+                                                            '&:hover': { bgcolor: '#0d5c27' }
+                                                        }}
+                                                        onClick={() => handleOpenAddSubCategoryModal(section.id)}
+                                                    >
+                                                        ADD SUB-CATEGORY
+                                                    </Button>
+                                                )}
                                             </Box>
                                         </Paper>
                                     </AccordionDetails>
@@ -308,6 +384,11 @@ const PerformanceEvaluationFormPage = () => {
                     open={addCategoryOpen}
                     onClose={handleCloseAddCategoryModal}
                     onSave={handleSaveCategory}
+                />
+                <SubCategoryModal
+                    open={addSubCategoryOpen}
+                    onClose={handleCloseAddSubCategoryModal}
+                    onSave={handleSaveSubCategory}
                 />
             </Box>
         </Layout>
