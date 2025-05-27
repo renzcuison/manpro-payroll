@@ -23,28 +23,31 @@ class EvaluationController extends Controller
 
     // evaluation form
 
-    public function getEvaluationFormSections(Request $request)
-{
-    $formId = $request->form_id;
+        public function getEvaluationFormSections(Request $request)
+    {
+        $formId = $request->form_id;
 
-    if (!$formId) {
+        if (!$formId) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Form ID is required',
+                'sections' => []
+            ]);
+        }
+
+        $sections = \App\Models\EvaluationFormSection::with(['categories' => function($query) {
+                $query->whereNull('deleted_at')->orderBy('order');
+            }])
+            ->where('form_id', $formId)
+            ->whereNull('deleted_at')
+            ->orderBy('order')
+            ->get();
+
         return response()->json([
-            'status' => 400,
-            'message' => 'Form ID is required',
-            'sections' => []
+            'status' => 200,
+            'sections' => $sections
         ]);
     }
-
-    $sections = \App\Models\EvaluationFormSection::where('form_id', $formId)
-        ->whereNull('deleted_at')
-        ->orderBy('order')
-        ->get();
-
-    return response()->json([
-        'status' => 200,
-        'sections' => $sections
-    ]);
-}
        public function getFormDetails(Request $request, $formName)
     {
         // Fetch the form details by name along with the creator's name

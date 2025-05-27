@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, CardContent, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, TextField, Paper } from '@mui/material';
+import {
+    Box,
+    Typography,
+    CardContent,
+    Button,
+    IconButton,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Paper
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
+import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
 import Swal from 'sweetalert2';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
-    const navigate = useNavigate();
 
     const [creatorName, setCreatorName] = useState('');
     const [createdDate, setCreatedDate] = useState('');
@@ -20,6 +30,11 @@ const PerformanceEvaluationFormPage = () => {
     const [formId, setFormId] = useState(null);
     const [expanded, setExpanded] = useState(false);
 
+    // Category modal state
+    const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+    const [categorySectionId, setCategorySectionId] = useState(null);
+
+    // Fetch form details
     useEffect(() => {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
@@ -41,15 +56,20 @@ const PerformanceEvaluationFormPage = () => {
             });
     }, [formName]);
 
-    useEffect(() => {
+    // Fetch sections with categories
+    const fetchSections = () => {
         if (!formId) return;
-
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
 
         axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
             .then(res => setSections(res.data.sections || []))
             .catch(() => setSections([]));
+    };
+
+    useEffect(() => {
+        fetchSections();
+        // eslint-disable-next-line
     }, [formId]);
 
     const handleSettings = () => {
@@ -82,8 +102,7 @@ const PerformanceEvaluationFormPage = () => {
             name: sectionName
         }, { headers })
         .then(() => {
-            axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
-                .then(res => setSections(res.data.sections || []));
+            fetchSections();
             handleCloseAddSectionModal();
         })
         .catch(error => {
@@ -98,6 +117,54 @@ const PerformanceEvaluationFormPage = () => {
 
     const handleAccordionChange = (sectionId) => (event, isExpanded) => {
         setExpanded(isExpanded ? sectionId : false);
+    };
+
+    // Category modal handlers
+    const handleOpenAddCategoryModal = (sectionId) => {
+        setCategorySectionId(sectionId);
+        setAddCategoryOpen(true);
+    };
+
+    const handleCloseAddCategoryModal = () => {
+        setAddCategoryOpen(false);
+        setCategorySectionId(null);
+    };
+
+    // Save category
+    const handleSaveCategory = (categoryName) => {
+        if (!categorySectionId || !categoryName) {
+            Swal.fire({
+                text: "Section ID and Category Name are required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        axiosInstance.post('/saveEvaluationFormCategory', {
+            section_id: categorySectionId,
+            name: categoryName
+        }, { headers })
+        .then(() => {
+            fetchSections();
+            handleCloseAddCategoryModal();
+            Swal.fire({
+                text: "Category added successfully!",
+                icon: "success",
+                confirmButtonColor: '#177604',
+            });
+        })
+        .catch(error => {
+            console.error('Error saving category:', error);
+            Swal.fire({
+                text: "Error saving category.",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+        });
     };
 
     return (
@@ -184,14 +251,29 @@ const PerformanceEvaluationFormPage = () => {
                                                 borderRadius: 1,
                                                 minHeight: 48,
                                             }}>
-                                                Category Name
+                                                Categories
                                             </Typography>
-                                            <TextField
-                                                fullWidth
-                                                label="Category Name"
-                                                variant="standard"
-                                                sx={{ mb: 3, bgcolor: 'white' }}
-                                            />
+                                            {section.categories && section.categories.length > 0 ? (
+                                                section.categories.map(category => (
+                                                    <Paper
+                                                        key={category.id}
+                                                        sx={{
+                                                            mb: 1,
+                                                            p: 2,
+                                                            bgcolor: "#fff8e1",
+                                                            borderLeft: "5px solid #eab31a",
+                                                            fontWeight: "bold"
+                                                        }}
+                                                        elevation={1}
+                                                    >
+                                                        {category.name}
+                                                    </Paper>
+                                                ))
+                                            ) : (
+                                                <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
+                                                    No categories yet.
+                                                </Typography>
+                                            )}
                                             <Box sx={{ textAlign: 'center', mt: 2 }}>
                                                 <Button
                                                     variant="contained"
@@ -204,6 +286,7 @@ const PerformanceEvaluationFormPage = () => {
                                                         py: 1.5,
                                                         '&:hover': { bgcolor: '#0d5c27' }
                                                     }}
+                                                    onClick={() => handleOpenAddCategoryModal(section.id)}
                                                 >
                                                     ADD CATEGORY
                                                 </Button>
@@ -220,6 +303,11 @@ const PerformanceEvaluationFormPage = () => {
                     open={addSectionOpen}
                     onClose={handleCloseAddSectionModal}
                     onSave={handleSaveSection}
+                />
+                <PerformanceEvaluationFormAddCategory
+                    open={addCategoryOpen}
+                    onClose={handleCloseAddCategoryModal}
+                    onSave={handleSaveCategory}
                 />
             </Box>
         </Layout>
