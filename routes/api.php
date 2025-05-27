@@ -450,6 +450,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/moveEvaluationFormSubcategoryOption', [EvaluationController::class, 'moveEvaluationFormSubcategoryOption']);
     Route::post('/saveEvaluationFormSubcategoryOption', [EvaluationController::class, 'saveEvaluationFormSubcategoryOption']);
 
+    Route::get('/form/{formName}', [EvaluationController::class, 'getFormDetails']);
+
     // Reports
     Route::get('/getReport', [ReportsController::class, 'getReport']);
     Route::get('/getReports', [ReportsController::class, 'getReports']);
