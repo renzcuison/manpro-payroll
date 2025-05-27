@@ -18,8 +18,6 @@ const GradientProgressBar = ({ currentProgress, completeProgress, status }) => {
     const gradient =
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
-            : status === "Clear"
-            ? "#177604" // solid green for "Clear"
             : "linear-gradient(to right, #177604, #E9AE20)"; // default
 
     return (
@@ -84,6 +82,7 @@ const PemeResponsesTable = ({ responses, onRowClick }) => {
                             <TableCell>{response.employee}</TableCell>
                             <TableCell>{response.branch}</TableCell>
                             <TableCell>{response.department}</TableCell>
+
                             <TableCell>
                                 <Box
                                     sx={{

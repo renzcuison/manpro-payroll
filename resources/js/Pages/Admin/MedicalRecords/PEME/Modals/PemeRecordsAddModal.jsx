@@ -48,7 +48,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                     }}
                 >
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        Create Exam
+                        Create Record
                     </Typography>
                 </Box>
             </DialogTitle>
@@ -66,7 +66,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                         <TextField
                             required
                             fullWidth
-                            label="Exam Name"
+                            label="Record Name"
                             variant="outlined"
                             onChange={handleTextFieldChange}
                         />

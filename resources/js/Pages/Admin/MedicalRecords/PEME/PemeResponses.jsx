@@ -9,7 +9,6 @@ const PemeResponses = () => {
 
     const responses = [
         {
-            id: 1,
             date: "2025-06-01",
             dueDate: "2025-06-12",
             employee: "Ram Christian D. Nacar",
@@ -20,20 +19,18 @@ const PemeResponses = () => {
             status: "Pending",
         },
         {
-            id: 2,
             date: "2025-06-01",
             dueDate: "2025-06-12",
             employee: "Ram Christian D. Nacar",
             branch: "Makati",
             department: "Finance",
-            currentProgress: 4,
+            currentProgress: 1,
             fullProgress: 4,
-            status: "Clear",
+            status: "Pending",
         },
         {
-            id: 3,
             date: "2025-06-01",
-            dueDate: "2025-06-07",
+            dueDate: "2025-06-12",
             employee: "Ram Christian D. Nacar",
             branch: "Makati",
             department: "Finance",
@@ -42,9 +39,8 @@ const PemeResponses = () => {
             status: "Pending",
         },
         {
-            id: 4,
             date: "2025-06-01",
-            dueDate: "2025-06-30",
+            dueDate: "2025-06-12",
             employee: "Ram Christian D. Nacar",
             branch: "Makati",
             department: "Finance",
@@ -56,11 +52,6 @@ const PemeResponses = () => {
     const handleOnRowClick = () => {
         navigator(
             "/admin/medical-records/peme-records/peme-questionnaire-view"
-        );
-    };
-    const handleOnPreviewClick = () => {
-        navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-preview"
         );
     };
     return (
@@ -86,13 +77,12 @@ const PemeResponses = () => {
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Questionnaire Name
                         </Typography>
-                        <Button
-                            variant="contained"
-                            sx={{ backgroundColor: "#E9AE20" }}
-                            onClick={handleOnPreviewClick}
-                        >
-                            Preview
-                        </Button>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "12px",
+                            }}
+                        ></div>
                     </Box>
                 </Box>
                 <PemeResponsesTable
