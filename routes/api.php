@@ -8,6 +8,7 @@ use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceMobileController;
 use App\Http\Controllers\ApplicationsController;
@@ -45,6 +46,7 @@ use App\Http\Controllers\PreviousFilterController;
 // Desktop Controller
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [UserAuthController::class, 'login']);
@@ -93,15 +95,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
+        Route::get('/getBranch/{id}', [SettingsController::class, 'getBranch']);
+
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
 
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+        Route::post('/saveJobTitle', [SeterttingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
@@ -121,10 +126,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
-        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::get('/getEducationBackground', [EmployeesController::class, 'getEducationBackground']);
+        Route::get('/getEmployeeEducationBackground', [EmployeesController::class, 'getEmployeeEducationBackground']);
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
+
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeeController::class, 'getEmployeesByDepartment']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -286,6 +295,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
         Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
         Route::post('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
+        Route::post('/deleteAnnouncement', [AnnouncementsController::class, 'deleteAnnouncement']);
 
         // Details
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
@@ -313,7 +323,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
         Route::get('/getAttendanceToday', [AdminDashboardController::class, 'getAttendanceToday']);
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
+        // ADMIN ROUTES
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
     });
+    
+    Route::prefix('admin')->group(function () {
+        // ADMIN ROUTES
+        Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
+    });
+
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
@@ -358,23 +377,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
         Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -638,6 +640,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- End Client Routes ----------------------------------------------------------------
 
     // ---------------------------------------------------------------- Users Routes ----------------------------------------------------------------
+
     Route::get('/user/{user_id}', [UserAuthController::class, 'getUserDetailsById']);
 
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
@@ -646,9 +649,19 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
     Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
+
+    Route::post('/google/event', [GoogleController::class, 'addEvent']);
+    Route::get('/google/events', [GoogleController::class, 'getEvents']);
+    Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+
+    Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent']);
+    Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent']);
 });
 
 
+Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
@@ -663,7 +676,6 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
-
 
 
 

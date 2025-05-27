@@ -163,7 +163,7 @@ const AttendanceSummary = () => {
                                         />
                                     </LocalizationProvider>
                                 </Grid>
-                                <Grid>
+                                <Grid sx={{maxWidth:250, minWidth:250}} >
                                     <FormControl fullWidth>
                                         <InputLabel id="branch-select-label">Branch</InputLabel>
                                         <Select
@@ -182,7 +182,7 @@ const AttendanceSummary = () => {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-                                <Grid>
+                                <Grid sx={{maxWidth:250, minWidth:250}}>
                                     <FormControl fullWidth>
                                         <InputLabel id="department-select-label">Department</InputLabel>
                                         <Select

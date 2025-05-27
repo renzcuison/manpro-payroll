@@ -92,6 +92,11 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
 
+    public function latestAttendanceLog()
+    {
+        return $this->hasOne(AttendanceLogsModel::class, 'user_id')->latestOfMany();
+    }
+    
     public function workShift()
     {
         return $this->hasOneThrough(
@@ -116,6 +121,10 @@ class UsersModel extends Authenticatable implements HasMedia
         );
     }
 
+    // public function educations(): HasMany{
+    //     return $this.hasMany(EmployeeEducation::class, 'user_id');
+    // }
+
     public function allowances()
     {
         return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
@@ -130,4 +139,5 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         return $this->BelongsTo(Company::class, 'company_id');
     }
+    
 }

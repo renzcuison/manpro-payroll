@@ -22,6 +22,12 @@ class ClientsController extends Controller
         $clients = UsersModel::with('company.package')->where('user_type', "Admin")->get();
         return response()->json($clients);
     }
+    
+    public function users(): JsonResponse
+    {
+        $users = UsersModel::with('branch', 'department', 'jobTitle','latestAttendanceLog')->get();
+        return response()->json($users);
+    }
 
     public function show($id): JsonResponse
     {

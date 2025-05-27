@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\BenefitsModel;
@@ -14,8 +15,8 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
-use App\Models\Company;
 use App\Models\LoanLimitHistoryModel;
+use App\Models\EmployeeEducation;
 
 // use App\Models\NewModel;
 // use App\Models\NewModel;
@@ -318,6 +319,12 @@ class EmployeesController extends Controller
         }
     }
 
+  
+
+
+
+
+
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
@@ -437,10 +444,38 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'avatar' => $avatar]);
     }
 
+    public function getEmployeeEducationBackground(Request $request){
+        // log::info("EmployeesController::getEducationBackground");
+        $validated = $request->validate([
+            'username' => 'required|string'
+        ]);
+
+        if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
+            $user = Auth::user();
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+            log::info($employee);
+            $educations = EmployeeEducation::where('employee_id', $employee->id)->get();
+            return response()->json(['educations' => $educations, 'status' => 200]);
+        }
+    }
+
+    public function getEducationBackground(Request $request)
+    {
+        log::info("EmployeesController::getEducationBackground");
+
+        $user = Auth::user();
+        
+        log::info($user->id);
+
+        $educations = EmployeeEducation::where('employee_id', $user->id)->get();
+
+        return response()->json([ 'educations' => $educations, 'status' => 200 ]);
+    }
+
     public function editMyProfile(Request $request)
     {
-        //log::info("EmployeesController::editMyProfile");
-        //log::info($request);
+        log::info("EmployeesController::editMyProfile");
+        log::info($request);
 
         $user = UsersModel::findOrFail($request->input('id'));
 
@@ -457,12 +492,44 @@ class EmployeesController extends Controller
             $user->contact_number = $request->input('contact_number');
             $user->address = $request->input('address');
 
-                // Save profile pic using spatie media library
+            // Save profile pic using spatie media library
             if ($request->hasFile('profile_pic')) {
                 
 			    $user->clearMediaCollection('profile_pic');
                 $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
+            }
 
+            // log::info("Stopper");
+            // dd("Stopper");
+            
+            if ($request->has('add_educations')){
+                $educations = json_decode($request->input('add_educations'), true);
+
+                foreach($educations as $education){
+                    EmployeeEducation::create([
+                        'employee_id' => $user->id,
+                        'school_name' => $education['school_name'],
+                        'degree_name' => $education['degree_name'],
+                        'degree_type' => $education['degree_type'],
+                        'year_graduated' => $education['year_graduated'],
+                    ]);
+                }
+            }
+            if ($request->has('update_educations')){
+                $educations = json_decode($request->input('update_educations'), true);
+
+                foreach($educations as $education){
+                    EmployeeEducation::where('id', $education['id'])->update([
+                        'school_name' => $education['school_name'],
+                        'degree_name' => $education['degree_name'],
+                        'degree_type' => $education['degree_type'],
+                        'year_graduated' => $education['year_graduated'],
+                    ]);
+                }
+            }
+            if($request->has('delete_educations_id')){
+                $deleteIds = json_decode($request->input('delete_educations_id'), true);
+                EmployeeEducation::whereIn('id', $deleteIds)->delete();
             }
 
             $user->save();
@@ -537,6 +604,36 @@ class EmployeesController extends Controller
                         "new_limit" => $request->creditLimit,
                         "user_id" => $user->id,
                     ]);
+                }
+
+                //education handlers
+                $addEducations = $request->input('addEducations');
+                $updateEducations = $request->input('updateEducations');
+                $deleteEducationIds = $request->input('deleteEducationIds');
+
+                if (is_array($addEducations) && !empty($addEducations)){
+                    foreach($addEducations as $education){
+                        EmployeeEducation::create([
+                            'employee_id' => $employee->id,
+                            'school_name' => $education['school_name'],
+                            'degree_name' => $education['degree_name'],
+                            'degree_type' => $education['degree_type'],
+                            'year_graduated' => $education['year_graduated'],
+                        ]);
+                    }
+                }
+                if (is_array($updateEducations) && !empty($updateEducations)){
+                    foreach($updateEducations as $education){
+                        EmployeeEducation::where('id', $education['id'])->update([
+                            'school_name' => $education['school_name'],
+                            'degree_name' => $education['degree_name'],
+                            'degree_type' => $education['degree_type'],
+                            'year_graduated' => $education['year_graduated'],
+                        ]);
+                    }
+                }
+                if(is_array($deleteEducationIds) && !empty($deleteEducationIds)){
+                    EmployeeEducation::whereIn('id', $deleteEducationIds)->delete();
                 }
 
                 // Taxes
@@ -681,6 +778,10 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'form_status' => $formLink->status]);
     }
 
+    
+
+
+    
     function generateRandomCode($length)
     {
         // log::info("EmployeesController::generateRandomCode");
