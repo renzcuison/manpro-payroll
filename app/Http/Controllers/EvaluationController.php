@@ -499,39 +499,50 @@ class EvaluationController extends Controller
         }
     }
 
-    public function getFirstEvaluationFormSection(Request $request)
-    {
+    // move evaluation form section
 
-        log::info('EvaluationController::getFirstEvaluationFormSection');
+    public function saveEvaluationFormSection(Request $request)
+    {
+        log::info('EvaluationController::saveEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
         } else {
             $userID = null;
         }
-    
-        $user = DB::table('users')->where('id', $userID)->first();
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
 
         try {
 
-            $evaluationFormSection = EvaluationFormSection
-                ::select(
-                    'id', 'name', 'order', 'created_at', 'updated_at'
-                )
-                ->where('form_id', $request->form_id)
-                ->orderBy('order')
-                ->first()
-            ;
-            if( !$evaluationFormSection ) return response()->json([
-                'status' => 200,
-                'message' => 'No Evaluation Form Section found.',
-                'form_id' => $request->form_id
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
             ]);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Form Section successfully retrieved.',
+
+            DB::beginTransaction();
+
+            $isEmptyName = !$request->name;
+
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Section Name is required!'
+            ]);
+
+            $max = EvaluationFormSection::where('form_id', $request->form_id)->max('order') ?? 0;
+
+            $newEvaluationFormSection = EvaluationFormSection::create([
                 'form_id' => $request->form_id,
-                'evaluationFormSection' => $evaluationFormSection
+                'name' => $request->name,
+                'order' => $max + 1
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationSectionID' => $newEvaluationFormSection->id,
+                'message' => 'Evaluation Form Section successfully created'
             ]);
 
         } catch (\Exception $e) {
@@ -541,98 +552,7 @@ class EvaluationController extends Controller
 
             throw $e;
         }
-    
     }
-
-    public function getLastEvaluationFormSection(Request $request)
-    {
-
-        log::info('EvaluationController::getLastEvaluationFormSection');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-    
-        $user = DB::table('users')->where('id', $userID)->first();
-
-        try {
-
-            $evaluationFormSection = EvaluationFormSection
-                ::select(
-                    'id', 'name', 'order', 'created_at', 'updated_at'
-                )
-                ->where('form_id', $request->form_id)
-                ->orderBy('order', 'desc')
-                ->first()
-            ;
-            if( !$evaluationFormSection ) return response()->json([
-                'status' => 200,
-                'message' => 'No Evaluation Form Section found.',
-                'form_id' => $request->form_id
-            ]);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Form Section successfully retrieved.',
-                'form_id' => $request->form_id,
-                'evaluationFormSection' => $evaluationFormSection
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
-        }
-    
-    }
-
-    public function moveEvaluationFormSection(Request $request)
-    {
-
-        log::info('EvaluationController::moveEvaluationFormSection');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-    
-        $user = DB::table('users')->where('id', $userID)->first();
-
-        $lastSection = EvaluationController::getFirstEvaluationFormSection(
-            new Request([
-                'form_id' => 1
-            ])
-        )->original['evaluationFormSection'];
-        $lastOrder = $lastSection->order;
-
-        return response()->json([
-            'status' => 200,
-            'message' => $lastOrder
-        ]);
-
-        try {
-
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 89
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
-        }
-    
-    }
-
-
 
     // old
 
