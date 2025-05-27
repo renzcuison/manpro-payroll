@@ -143,11 +143,12 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation/add-section" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSection />} user={user} />} />
             <Route path="performance-evaluation/save-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationFormSaveEvaluation />} user={user} />} />
             <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<SubcategoryModal />} user={user} />} />
+            <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />    
+            <Route path="performance-evaluation/form/:formName" element={<ProtectedRoute element={<PerformanceEvaluationFormPage />} user={user} />} />
 
-            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
-            <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
-
+            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
+            <Route path="performance-evaluation/forms/:name" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
 
             <Route
                 path="documents"
@@ -176,6 +177,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="announcements/types" element={<AnnouncementTypes />} />
             <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
 
+            
             
         </Routes>
     );
