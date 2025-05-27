@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('evaluation_form_categories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('section_id');
+            $table->unsignedBigInteger('order');
             $table->string('name');
-            $table->string('order', length: 512);
             $table->timestamps();
             $table->softDeletes();
 

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('evaluation_form_subcategories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('order');
             $table->string('name');
-            $table->string('order', length: 512);
             $table->enum('subcategory_type', ['checkbox','dropdown','linear_scale','long_answer','multiple_choice','short_answer']);
             $table->string('description');
             $table->boolean('required');

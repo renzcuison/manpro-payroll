@@ -50,9 +50,9 @@ const HistoryTabPayroll = ({ userName, headers }) => {
                                     <TableCell align="center">Payroll Date</TableCell>
                                     <TableCell align="center">Cut-Off</TableCell>
                                     <TableCell align="center">Days</TableCell>
-                                    <TableCell align="center">Total Earnings</TableCell>
-                                    <TableCell align="center">Total Deductions</TableCell>
-                                    <TableCell align="center">Net Pay</TableCell>
+                                    {/* <TableCell align="center">Total Earnings</TableCell> */}
+                                    {/* <TableCell align="center">Total Deductions</TableCell> */}
+                                    {/* <TableCell align="center">Net Pay</TableCell> */}
                                 </TableRow>
                             </TableHead>
 
@@ -62,9 +62,9 @@ const HistoryTabPayroll = ({ userName, headers }) => {
                                         <TableCell align="center">{dayjs(record.payrollStartDate).format("MMM D, YYYY")} - {dayjs(record.payrollEndDate).format("MMM D, YYYY")}</TableCell>
                                         <TableCell align="center">{record.payrollCutOff}</TableCell>
                                         <TableCell align="center">{record.payrollWorkingDays}</TableCell>
-                                        <TableCell align="center">{record.payrollEarnings}</TableCell>
-                                        <TableCell align="center">{record.payrollDeductions}</TableCell>
-                                        <TableCell align="center">{record.payrollEarnings - record.payrollDeductions}</TableCell>
+                                        {/* <TableCell align="center">{record.payrollEarnings}</TableCell> */}
+                                        {/* <TableCell align="center">{record.payrollDeductions}</TableCell> */}
+                                        {/* <TableCell align="center">{record.payrollEarnings - record.payrollDeductions}</TableCell> */}
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('evaluation_form_subcategory_options', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('subcategory_id');
+            $table->unsignedBigInteger('order');
             $table->string('label');
-            $table->string('order', length: 512);
             $table->timestamps();
             $table->softDeletes();
 

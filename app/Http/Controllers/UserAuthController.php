@@ -141,4 +141,5 @@ class UserAuthController extends Controller
     {
         $user_details = UsersModel::find($user_id);
     }
+
 }

@@ -11,6 +11,7 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
+import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
 
 import EmployeeHistory from './Components/EmployeeHistory';
 import EmployeeBenefits from './Components/EmployeeBenefits';
@@ -26,7 +27,7 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState('');
-
+    const [education, setEducation] = useState([]);
     const [imagePath, setImagePath] = useState('');
 
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
@@ -36,7 +37,24 @@ const EmployeeView = () => {
 
     useEffect(() => {
         getEmployeeDetails();
+        getEducationalBackground();
     }, []);
+
+    const getEducationalBackground = () => {
+        const data = { username: user };
+
+        axiosInstance.get(`/employee/getEmployeeEducationBackground`, { params:data, headers })
+            .then((response) => {
+                if (response.data.status === 200) {
+                    const educationBackgrounds = response.data.educations
+                    setEducation(educationBackgrounds);             
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching education background:", error);
+                setEducation(null);
+        })
+    }
 
     const getEmployeeDetails = () => {
         const data = { username: user };
@@ -110,6 +128,7 @@ const EmployeeView = () => {
         setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
+            getEducationalBackground();
         }
     }
 
@@ -289,7 +308,7 @@ const EmployeeView = () => {
                                     <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                                         <Typography> {employee.jobTitle || '-'} </Typography>
                                     </Grid>
-                                </Grid>
+                                </Grid>   
 
                                 <Grid container spacing={4} sx={{ py: 1 }}>
                                     <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
@@ -372,6 +391,8 @@ const EmployeeView = () => {
                                 </Grid>
                             </Box>
 
+                            <EmployeeEducationBackground education={education}></EmployeeEducationBackground>
+
                             <EmployeeHistory userName={user} headers={headers} />
 
                         </Grid>
@@ -379,7 +400,7 @@ const EmployeeView = () => {
                 </Box>
 
                 {openEmployeeDetailsEditModal &&
-                    <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} />
+                    <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} userName={user} />
                 }
 
                 {openEmployeeAllowanceModal &&

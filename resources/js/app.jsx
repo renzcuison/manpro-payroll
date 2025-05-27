@@ -24,7 +24,7 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import VerifyLogin from "./Pages/VerifyLogin";
 
-import Profile from "./Pages/Users/Profile/Profile.jsx";
+import Profile from "./Pages/Users/Profile.jsx";
 
 import Reports from "./Pages/Reports/Reports.jsx";
 import ReportCreate from "./Pages/Reports/ReportCreate.jsx";
@@ -32,6 +32,7 @@ import ReportView from "./Pages/Reports/ReportView.jsx";
 import ReportEdit from "./Pages/Reports/ReportEdit.jsx";
 
 import HrRoutes from "./Routes/HrRoutes.jsx";
+
 
 import AdminRoutes from "./Routes/AdminRoutes.jsx";
 import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
@@ -52,8 +53,8 @@ const theme = createTheme({
     },
     typography: {
         fontFamily: [
+            "Poppins",
             "Nunito",
-            "Roboto",
             '"Helvetica Neue"',
             "Arial",
             "sans-serif",
@@ -168,6 +169,9 @@ function App() {
             <Route path="/verifyLogin" element={<VerifyLogin />} />
 
             <Route path="/error-404" element={<Error404 />} />
+
+            
+            
         </Routes>
     );
 }

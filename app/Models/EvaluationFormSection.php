@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvaluationFormSection extends Model
 {
-    use HasFactory;
     use HasFactory, SoftDeletes;
 
     protected $table = 'evaluation_form_sections';
