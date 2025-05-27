@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Button, Typography, FormGroup, TextField, FormControl } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../../hooks/useUser';
 import Swal from "sweetalert2";
-
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import { useUser } from "../../../../hooks/useUser";
 
 const PerformanceEvaluationAdd = () => {
     const { user } = useUser();
@@ -13,14 +12,13 @@ const PerformanceEvaluationAdd = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    // Define state variables
-    const [fromName, setFromName] = useState('');
+    const [formName, setFormName] = useState('');
     const [formNameError, setFormError] = useState(false);
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!fromName) {
+        if (!formName) {
             setFormError(true);
             Swal.fire({
                 text: "Evaluation Form Name is required!",
@@ -50,8 +48,7 @@ const PerformanceEvaluationAdd = () => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
-        const data = { name: fromName };
+        const data = { name: formName };
 
         axiosInstance.post('/saveEvaluationForm', data, { headers })
             .then(response => {
@@ -63,7 +60,8 @@ const PerformanceEvaluationAdd = () => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        navigate(`/admin/employees`);
+                        // Navigate to the new page with formName in the URL
+                        navigate(`/admin/performance-evaluation/form/${formName}`);
                     });
                 }
             })
@@ -95,26 +93,48 @@ const PerformanceEvaluationAdd = () => {
                                     id="fromName"
                                     label="Evaluation Form Name"
                                     variant="outlined"
-                                    value={fromName}
+                                    value={formName}
                                     error={formNameError}
-                                    onChange={(e) => setFromName(e.target.value)}
+                                    onChange={(e) => setFormName(e.target.value)}
                                 />
                             </FormControl>
                         </FormGroup>
 
-                        <Box display="flex" justifyContent="space-between" sx={{ marginTop: '20px', gap: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                             <Button
-                                type="button"
                                 variant="contained"
-                                sx={{ backgroundColor: '#727F91', color: 'white'}}
-                                onClick={() => navigate(-1)}
+                                startIcon={<CloseIcon />}
+                                onClick={handleCancel}
+                                sx={{
+                                    bgcolor: '#7b8794',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    px: 4,
+                                    py: 1.5,
+                                    borderRadius: '8px',
+                                    boxShadow: 1,
+                                    '&:hover': { bgcolor: '#5a6473' }
+                                }}
                             >
-                                <p className='m-0'><i className="fa fa-times mr-2 mt-1"></i> Cancel </p>
+                                CANCEL
                             </Button>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }}>
-                                <p className='m-0'><i className="fa fa-check mr-2 mt-1"></i> Confirm </p>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={checkInput}
+                                sx={{
+                                    bgcolor: '#137333',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    px: 4,
+                                    py: 1.5,
+                                    borderRadius: '8px',
+                                    boxShadow: 1,
+                                    '&:hover': { bgcolor: '#0d5c27' }
+                                }}
+                            >
+                                SAVE
                             </Button>
-                            
                         </Box>
                     </Box>
                 </div>
