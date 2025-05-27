@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import PageHead from '../../../components/Table/PageHead'
+import PageToolbar from '../../../components/Table/PageToolbar'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
-import { useNavigate } from 'react-router-dom';
 
 const PerformanceEvaluationList = () => {
 
@@ -14,7 +17,7 @@ const PerformanceEvaluationList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
-    // Menu Items
+    // ----- Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => {
@@ -27,17 +30,17 @@ const PerformanceEvaluationList = () => {
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
 
-    // Fetch data from the API
+    // Fetch evaluation forms
     useEffect(() => {
-        setIsLoading(false);
+        setIsLoading(true);
         axiosInstance.get('/getEvaluationForms', { headers })
             .then((response) => {
-                setPerformanceEvaluation(response.data.evaluationForms);
+                setPerformanceEvaluation(response.data.evaluationForms || []);
             })
-            .catch(error => {
-                console.error('Error fetching evaluation forms:', error);
-                setIsLoading(false);
-            });
+            .catch(() => {
+                setPerformanceEvaluation([]);
+            })
+            .finally(() => setIsLoading(false));
     }, []);
 
     return (
@@ -47,7 +50,7 @@ const PerformanceEvaluationList = () => {
 
                     {/* Title outside of the white box */}
                     <Box sx={{ mt: 5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Performance Evaluation</Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
                     </Box>
 
                     {/* White Box Containing the Buttons and Table */}
@@ -84,7 +87,7 @@ const PerformanceEvaluationList = () => {
                                     'aria-labelledby': 'performance-evaluation-menu',
                                 }}
                             >
-                                {
+{
                                     performanceEvaluations.map(({ name }) => (
                                         <MenuItem key={name} onClick={() => navigate(`/admin/performance-evaluation/form/${name}`)}>
                                             {name}
@@ -113,7 +116,7 @@ const PerformanceEvaluationList = () => {
                         />
 
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
@@ -144,15 +147,8 @@ const PerformanceEvaluationList = () => {
                                     Go to Performance Evaluation Form
                                 </Button>
 
-                                
                                 {/* Pagination controls */}
-                               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                    <Typography variant="body1" sx={{ mr: 1, fontWeight: 'normal', fontSize: '0.875rem' }}>
-                                        Rows Per Page
-                                    </Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 'normal', fontSize: '0.875rem' }}>
-                                        10
-                                    </Typography>
+                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
                                         rowsPerPageOptions={[10]}
                                         component="div"
@@ -168,7 +164,7 @@ const PerformanceEvaluationList = () => {
                 </Box>
             </Box>
         </Layout>
-    );
-};
+    )
+}
 
-export default PerformanceEvaluationList;
+export default PerformanceEvaluationList
