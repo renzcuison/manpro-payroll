@@ -16,7 +16,7 @@ class EvaluationFormCategory extends Model
     protected $fillable = [
         'section_id',
         'name',
-        'rank',
+        'order',
         'deleted_at'
     ];
 

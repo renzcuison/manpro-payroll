@@ -206,11 +206,11 @@ class EvaluationController extends Controller
                 )
                 ->with(['sections' => fn ($section) =>
                     $section
-                        ->select('form_id', 'id','name', 'rank')
-                        ->orderBy('rank')
+                        ->select('form_id', 'id','name', 'order')
+                        ->orderBy('order')
                         ->with(['categories' => fn ($category) =>
                             $category
-                                ->select('section_id', 'id','name', 'rank')
+                                ->select('section_id', 'id','name', 'order')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -218,19 +218,19 @@ class EvaluationController extends Controller
                                             'name', 'subcategory_type', 'description',
                                             'required', 'allow_other_option',
                                             'linear_scale_start', 'linear_scale_end',
-                                            'rank'
+                                            'order'
                                         )
                                         ->with(['options' => fn ($option) =>
                                             $option
                                                 ->select(
                                                     'subcategory_id', 'id',
-                                                    'label', 'rank'
+                                                    'label', 'order'
                                                 )
-                                                ->orderBy('rank')
+                                                ->orderBy('order')
                                         ])
-                                        ->orderBy('rank')
+                                        ->orderBy('order')
                                 ])
-                                ->orderBy('rank')
+                                ->orderBy('order')
                         ])
                 ])
                 ->first()
@@ -460,7 +460,7 @@ class EvaluationController extends Controller
             DB::beginTransaction();
 
             $evaluationForm = EvaluationFormSection
-                ::select( 'id', 'form_id', 'name', 'rank', 'created_at', 'updated_at' )
+                ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
                 ->where('id', $request->id)
                 ->first()
             ;
@@ -516,10 +516,10 @@ class EvaluationController extends Controller
 
             $evaluationFormSection = EvaluationFormSection
                 ::select(
-                    'id', 'name', 'rank', 'created_at', 'updated_at'
+                    'id', 'name', 'order', 'created_at', 'updated_at'
                 )
                 ->where('form_id', $request->form_id)
-                ->orderBy('rank')
+                ->orderBy('order')
                 ->first()
             ;
             if( !$evaluationFormSection ) return response()->json([
@@ -561,10 +561,10 @@ class EvaluationController extends Controller
 
             $evaluationFormSection = EvaluationFormSection
                 ::select(
-                    'id', 'name', 'rank', 'created_at', 'updated_at'
+                    'id', 'name', 'order', 'created_at', 'updated_at'
                 )
                 ->where('form_id', $request->form_id)
-                ->orderBy('rank', 'desc')
+                ->orderBy('order', 'desc')
                 ->first()
             ;
             if( !$evaluationFormSection ) return response()->json([
@@ -607,11 +607,11 @@ class EvaluationController extends Controller
                 'form_id' => 1
             ])
         )->original['evaluationFormSection'];
-        $lastRank = $lastSection->rank;
+        $lastOrder = $lastSection->order;
 
         return response()->json([
             'status' => 200,
-            'message' => $lastRank
+            'message' => $lastOrder
         ]);
 
         try {

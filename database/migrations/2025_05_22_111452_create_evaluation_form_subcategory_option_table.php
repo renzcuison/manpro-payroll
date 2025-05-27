@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('evaluation_form_subcategory_options', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('subcategory_id');
+            $table->unsignedBigInteger('order');
             $table->string('label');
-            $table->string('rank', length: 512);
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('subcategory_id')->references('id')->on('evaluation_form_subcategories');
             $table->unique(['subcategory_id','label']);
-            $table->unique(['subcategory_id','rank']);
+            $table->unique(['subcategory_id','order']);
         });
     }
 

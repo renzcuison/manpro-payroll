@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('evaluation_form_subcategories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('order');
             $table->string('name');
-            $table->string('rank', length: 512);
             $table->enum('subcategory_type', ['checkbox','dropdown','linear_scale','long_answer','multiple_choice','short_answer']);
             $table->string('description');
             $table->boolean('required');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('category_id')->references('id')->on('evaluation_form_categories');
-            $table->unique(['category_id','rank']);
+            $table->unique(['category_id','order']);
         });
     }
 

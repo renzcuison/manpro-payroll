@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('evaluation_form_categories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('section_id');
+            $table->unsignedBigInteger('order');
             $table->string('name');
-            $table->string('rank', length: 512);
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('section_id')->references('id')->on('evaluation_form_sections');
-            $table->unique(['section_id','rank']);
+            $table->unique(['section_id','order']);
         });
     }
 
