@@ -246,23 +246,7 @@ const PerformanceEvaluationFormPage = () => {
                             Date Created: {createdDate ? new Date(createdDate).toLocaleString() : 'N/A'}
                         </Typography>
 
-                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleOpenAddSectionModal}
-                                sx={{
-                                    bgcolor: '#177604',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    px: 4,
-                                    py: 1.5,
-                                    '&:hover': { bgcolor: '#0d5c27' }
-                                }}
-                            >
-                                Add Section
-                            </Button>
-                        </Box>
+                        
 
                         {/* Sections as Accordions */}
                         <Box sx={{ mt: 2 }}>
@@ -369,8 +353,29 @@ const PerformanceEvaluationFormPage = () => {
                                             </Box>
                                         </Paper>
                                     </AccordionDetails>
+                                    
                                 </Accordion>
+
+
+
                             ))}
+                        </Box>
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleOpenAddSectionModal}
+                                sx={{
+                                    bgcolor: '#177604',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': { bgcolor: '#0d5c27' }
+                                }}
+                            >
+                                Add Section
+                            </Button>
                         </Box>
                     </CardContent>
                 )}
