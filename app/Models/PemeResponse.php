@@ -23,19 +23,20 @@ class PemeResponse extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Belongs to a PEME
     public function peme()
     {
-        return $this->belongsTo(Peme::class, 
-    'peme_id');
+        return $this->belongsTo(
+            Peme::class,
+            'peme_id'
+        );
     }
 
     public function details()
     {
-    return $this->hasMany(PemeResponseDetails::class);
+        return $this->hasMany(PemeResponseDetails::class);
     }
-
 }

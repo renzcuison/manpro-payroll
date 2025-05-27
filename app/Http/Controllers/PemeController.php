@@ -47,6 +47,7 @@ class PemeController extends Controller
                 400
             );
         }
+
         $validatedData["client_id"] = $user->client_id;
 
         $exists = Peme::where("name", $validatedData["name"])
@@ -58,7 +59,7 @@ class PemeController extends Controller
             return response()->json(
                 ["message" => "Duplicate record exists."],
                 409
-            ); 
+            );
         }
 
         $peme = Peme::create($validatedData);

@@ -23,7 +23,6 @@ class PemeQItem extends Model
 
     public function types()
     {
-    return $this->hasMany(PemeQType::class, 'peme_q_item_id');
+        return $this->hasMany(PemeQType::class, 'peme_q_item_id');
     }
-
 }

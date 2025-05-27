@@ -19,7 +19,8 @@ class PemeResponseDetails extends Model implements HasMedia
         'peme_q_type_id',
         'value_text',
         'value_remark',
-        'value_radio',
+        'value_pass_fail',
+        'value_pos_neg',
     ];
 
     public function registerMediaCollections(): void
@@ -29,7 +30,7 @@ class PemeResponseDetails extends Model implements HasMedia
 
     public function response()
     {
-    return $this->belongsTo(PemeResponse::class, 'peme_response_id');
+        return $this->belongsTo(PemeResponse::class, 'peme_response_id');
     }
 
     public function questionItem()

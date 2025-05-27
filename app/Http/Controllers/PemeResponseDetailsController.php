@@ -39,7 +39,8 @@ class PemeResponseDetailsController extends Controller
             "details.*.peme_q_item_id" => "required|exists:peme_q_item,id",
             "details.*.peme_q_type_id" => "required|exists:peme_q_type,id",
             "details.*.value_text" => "nullable|string",
-            "details.*.value_radio" => "nullable|string",
+            "details.*.value_pass_fail" => "nullable|string",
+            "details.*.value_pos_neg" => "nullable|string",
             "details.*.value_remark" => "nullable|string",
             "details.*.media_id" => "nullable|exists:media,id",
         ]);
@@ -71,7 +72,8 @@ class PemeResponseDetailsController extends Controller
             "peme_q_item_id" => "required|exists:peme_q_item,id",
             "peme_q_type_id" => "required|exists:peme_q_type,id",
             "value_text" => "nullable|string",
-            "value_radio" => "nullable|string",
+            "value_pass_fail" => "nullable|string",
+            "value_pos_neg" => "nullable|string",
             "value_remark" => "nullable|string",
             "media_id" => "nullable|exists:media,id",
         ]);
@@ -128,7 +130,8 @@ class PemeResponseDetailsController extends Controller
 
         $validated = $request->validate([
             "value_text" => "nullable|string",
-            "value_radio" => "nullable|string",
+            "value_pass_fail" => "nullable|string",
+            "value_pos_neg" => "nullable|string",
             "value_remark" => "nullable|string",
             "media_id" => "nullable|exists:media,id",
         ]);

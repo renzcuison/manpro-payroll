@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('peme_q_type', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('peme_q_item_id');
-            $table->enum('input_type', ['attachment', 'radio', 'remarks', 'text']);
+            $table->enum('input_type', ['attachment', 'pass_fail', 'pos_neg', 'remarks', 'text']);
             $table->timestamps();
             $table->softDeletes();
 

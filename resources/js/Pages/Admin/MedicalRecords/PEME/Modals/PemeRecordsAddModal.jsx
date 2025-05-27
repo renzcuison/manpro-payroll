@@ -22,14 +22,8 @@ const PemeRecordsAddModal = ({ open, close }) => {
     };
 
     const handleSubmit = async () => {
-     console.log("Record Name:", recordName);
-
-    if (!recordName.trim()) {
-        alert("Please enter exam name.");
-        return;
-    }
-
-    const storedUser = localStorage.getItem("nasya_user"); 
+    console.log("Record Name:", recordName);
+    const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     try {
         const response = await axiosInstance.post(
@@ -37,12 +31,17 @@ const PemeRecordsAddModal = ({ open, close }) => {
         { name: recordName },
         { headers }
         );
-        console.log("Successfully created questionnaire:", response.data); 
-        close(true); 
+        console.log("Successfully created questionnaire:", response.data);
+        
+        const newId = response?.data?.peme?.id;
+        console.log("New PEME ID:", newId);
+        
+        return newId;
     } catch (error) {
         console.error("Error creating questionnaire:", error);
+        return null;
     }
-    }
+    };
 
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
@@ -114,7 +113,10 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             <Box>
                                 <Button
                                 onClick={async () => {
-                                    await handleSubmit();
+                                    const newId = await handleSubmit();
+                                    if (newId) {
+                                    navigator(`/admin/medical-records/peme-records/${newId}/peme-form`);
+                                    }
                                 }}
                                 variant="contained"
                                 >

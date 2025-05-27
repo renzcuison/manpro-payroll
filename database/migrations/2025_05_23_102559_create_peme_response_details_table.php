@@ -18,7 +18,8 @@ return new class extends Migration
             $table->unsignedBigInteger('peme_q_type_id')->nullable();
             $table->string('value_text', 256)->nullable();
             $table->string('value_remark', 512)->nullable();
-            $table->enum('value_radio', ['Pass', 'Fail'])->nullable();           
+            $table->enum('value_pass_fail', ['Pass', 'Fail'])->nullable();
+            $table->enum('value_pos_neg', ['Positive', 'Negative'])->nullable();
             $table->timestamps();
             $table->softDeletes();
 

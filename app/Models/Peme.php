@@ -28,9 +28,9 @@ class Peme extends Model
     {
         return $this->belongsTo(MedicalRecords::class);
     }
-    
+
     public function questions()
     {
-    return $this->hasMany(PemeQItem::class);
+        return $this->hasMany(PemeQItem::class);
     }
 }

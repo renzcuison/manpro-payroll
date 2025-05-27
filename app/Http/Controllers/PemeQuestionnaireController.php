@@ -29,8 +29,22 @@ class PemeQuestionnaireController extends Controller
             "peme_id" => "required|exists:peme,id",
             "question" => "required|string|max:255",
             "input_types" => "required|array|min:1",
-            "input_types.*" => "in:attachment,radio,remarks,text",
+            "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
+            "file_size_limit" => "nullable|numeric|min:0.1|max:500",
         ]);
+
+        if (
+            in_array("attachment", $validated["input_types"]) &&
+            !$request->has("file_size_limit")
+        ) {
+            return response()->json(
+                [
+                    "message" =>
+                    "file_size_limit is required when using attachment input type.",
+                ],
+                422
+            );
+        }
 
         if (
             $this->isDuplicateQuestion(
@@ -52,10 +66,19 @@ class PemeQuestionnaireController extends Controller
         ]);
 
         foreach ($validated["input_types"] as $inputType) {
-            PemeQType::create([
+            $data = [
                 "peme_q_item_id" => $question->id,
                 "input_type" => $inputType,
-            ]);
+            ];
+
+            if (
+                $inputType === "attachment" &&
+                $request->has("file_size_limit")
+            ) {
+                $data["file_size_limit"] = $validated["file_size_limit"];
+            }
+
+            PemeQType::create($data);
         }
 
         $question->load("types");
@@ -79,13 +102,28 @@ class PemeQuestionnaireController extends Controller
             "peme_id" => "required|exists:peme,id",
             "question" => "required|string|max:255",
             "input_types" => "required|array|min:1",
-            "input_types.*" => "in:attachment,radio,remarks,text",
+            "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
+            "file_size_limit" => "nullable|numeric|min:0.1|max:100",
         ]);
+
+        if (
+            in_array("attachment", $validated["input_types"]) &&
+            !$request->has("file_size_limit")
+        ) {
+            return response()->json(
+                [
+                    "message" =>
+                    "file_size_limit is required when using attachment input type.",
+                ],
+                422
+            );
+        }
 
         if (
             $this->isDuplicateQuestion(
                 $validated["peme_id"],
-                $validated["question"]
+                $validated["question"],
+                $questionId
             )
         ) {
             return response()->json(
@@ -106,10 +144,19 @@ class PemeQuestionnaireController extends Controller
         $question->types()->delete();
 
         foreach ($validated["input_types"] as $inputType) {
-            PemeQType::create([
+            $data = [
                 "peme_q_item_id" => $question->id,
                 "input_type" => $inputType,
-            ]);
+            ];
+
+            if (
+                $inputType === "attachment" &&
+                $request->has("file_size_limit")
+            ) {
+                $data["file_size_limit"] = $validated["file_size_limit"];
+            }
+
+            PemeQType::create($data);
         }
 
         $question->load("types");
@@ -134,9 +181,21 @@ class PemeQuestionnaireController extends Controller
         }
 
         $questions = $peme->questions->map(function ($question) {
+            $inputTypes = $question->types->map(function ($type) {
+                $input = [
+                    "input_type" => $type->input_type,
+                ];
+
+                if ($type->input_type === "attachment") {
+                    $input["file_size_limit"] = $type->file_size_limit;
+                }
+
+                return $input;
+            });
+
             return [
                 "question" => $question->question,
-                "input_types" => $question->types->pluck("input_type")->all(),
+                "input_types" => $inputTypes,
             ];
         });
 
@@ -145,7 +204,7 @@ class PemeQuestionnaireController extends Controller
             "questions" => $questions,
         ]);
     }
-
+    
     public function destroy($questionId)
     {
         $question = PemeQItem::findOrFail($questionId);

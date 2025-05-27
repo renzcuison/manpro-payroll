@@ -15,11 +15,15 @@ class PemeQType extends Model
     protected $fillable = [
         'peme_q_item_id',
         'input_type',
+        'file_size_limit',
+    ];
+
+    protected $casts = [
+        'file_size_limit' => 'float',
     ];
 
     public function pemeQuestionItem()
     {
         return $this->belongsTo(PemeQItem::class, 'peme_q_item_id');
     }
-
 }
