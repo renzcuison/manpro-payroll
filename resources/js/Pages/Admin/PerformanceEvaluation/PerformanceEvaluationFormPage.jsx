@@ -10,46 +10,34 @@ const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams(); // Retrieve formName from the URL parameter
     const navigate = useNavigate();
 
-    const [creatorName, setCreatorName] = useState('');  // Store creator's name
-    const [createdDate, setCreatedDate] = useState('');   // Store the creation date
+    const [formData, setFormData] = useState({});
+    const {
+        id: formId,
+        creator_user_name: creatorName,
+        created_at: createdDate,
+        sections
+    } = formData;
+
     const [loading, setLoading] = useState(true);         // Loading state
     const [addSectionOpen, setAddSectionOpen] = useState(false); // State to control the modal visibility
-    const [sections, setSections] = useState([]);
-    const [formId, setFormId] = useState(null); // Also store formId for future use
-
     // Fetch form data including creator info
     useEffect(() => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
 
-    axiosInstance.get(`/form/${formName}`, { headers })
-        .then((response) => {
-            const formData = response.data;
-            if (formData) {
-                setCreatorName(formData.creator_name);
-                setCreatedDate(formData.created_at);
-                setFormId(formData.id); // Save formId for fetching sections
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching form data:', error);
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-}, [formName]);
-
-useEffect(() => {
-    if (!formId) return; // Early return if formId is not set
-
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
-        .then(res => setSections(res.data.sections || []))
-        .catch(() => setSections([]));
-}, [formId]);
-
+        axiosInstance.get(`/getEvaluationForm`, { headers, params: { name: formName } })
+            .then((response) => {
+                const { evaluationForm, status } = response.data;
+                if(status.toString().startsWith(4)) throw response.data;
+                setFormData(evaluationForm);
+            })
+            .catch(error => {
+                console.error('Error fetching form data:', error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [formName]);
 
     // Handle Settings Button click
     const handleSettings = () => {
@@ -67,45 +55,40 @@ useEffect(() => {
     };
 
     // Handle save action from the modal (this is where you can handle logic for saving a section)
-const handleSaveSection = (sectionName) => {
-    if (!formId || !sectionName) {
-        Swal.fire({
-            text: "Form ID and Section Name are required!",
-            icon: "error",
-            confirmButtonColor: '#177604',
+    const handleSaveSection = (sectionName) => {
+        if (!formId || !sectionName) {
+            Swal.fire({
+                text: "Form ID and Section Name are required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        // Send the POST request to the backend
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        console.log('Sending data:', { form_id: formId, section_name: sectionName });
+
+        axiosInstance.post('/insertEvaluationFormSection', {
+            form_id: formId,
+            section_name: sectionName,
+            rank: 1  // Default rank
+        }, { headers })
+        .then(response => {
+            setSections(prevSections => [...prevSections, response.data.section]);
+            handleCloseAddSectionModal();
+        })
+        .catch(error => {
+            console.error('Error saving section:', error);
+            Swal.fire({
+                text: "Error saving section.",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
         });
-        return;
-    }
-
-    // Send the POST request to the backend
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    console.log('Sending data:', { form_id: formId, section_name: sectionName });
-
-    axiosInstance.post('/insertEvaluationFormSection', {
-        form_id: formId,
-        section_name: sectionName,
-        rank: 1  // Default rank
-    }, { headers })
-    .then(response => {
-        setSections(prevSections => [...prevSections, response.data.section]);
-        handleCloseAddSectionModal();
-    })
-    .catch(error => {
-        console.error('Error saving section:', error);
-        Swal.fire({
-            text: "Error saving section.",
-            icon: "error",
-            confirmButtonColor: '#177604',
-        });
-    });
-};
-
-
-
-
-
+    };
 
     return (
         <Layout title="Performance Evaluation Form">

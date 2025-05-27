@@ -17,7 +17,7 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
 
-const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
+const PerformanceEvaluationAdd = ({ open, onClose, onOpen, onSuccess }) => {
     const { user } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -32,8 +32,13 @@ const PerformanceEvaluationAdd = ({ open, onClose, onSuccess }) => {
             Swal.fire({
                 text: "Evaluation Form Name is required!",
                 icon: "error",
-                confirmButtonColor: '#177604',
+                confirmButtonColor: '#177604'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    onOpen();
+                }
             });
+            onClose();
             return;
         } else {
             setFormNameError(false);

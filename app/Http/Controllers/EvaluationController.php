@@ -243,7 +243,7 @@ class EvaluationController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form successfully retrieved.',
-                'evaluationForms' => $evaluationForm
+                'evaluationForm' => $evaluationForm
             ]);
 
         } catch (\Exception $e) {
