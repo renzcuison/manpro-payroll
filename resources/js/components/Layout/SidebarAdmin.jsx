@@ -215,6 +215,7 @@ const Sidebar = ({ children, closeMini }) => {
             children: [
                 {
                     // href: `/admin/announcements/types?`,
+                    href: `/admin/announcements/types`,
                     text: "Announcement Types",
                 },
                 {
@@ -601,8 +602,7 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* </StyledNav> */}
 
                                     <StyledNav to={`/admin/performance-evaluation`} >
-                                        <i className="fa fa-check" style={{ color: '#2a800f' }}></i>
-                                        <span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
+                                    <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                     </StyledNav>
 
                                     {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
