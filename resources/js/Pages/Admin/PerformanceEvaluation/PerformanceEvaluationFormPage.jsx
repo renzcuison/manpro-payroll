@@ -1,134 +1,126 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, CardContent, Button, IconButton } from '@mui/material';
+import { Box, Typography, CardContent, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, TextField, Paper } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useParams, useNavigate } from 'react-router-dom';
-import Layout from '../../../components/Layout/Layout'; 
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig"; 
-import SettingsIcon from '@mui/icons-material/Settings'; 
-import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection'; // Import the Add Section Modal
+import Layout from '../../../components/Layout/Layout';
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import SettingsIcon from '@mui/icons-material/Settings';
+import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import Swal from 'sweetalert2';
 
 const PerformanceEvaluationFormPage = () => {
-    const { formName } = useParams(); // Retrieve formName from the URL parameter
+    const { formName } = useParams();
     const navigate = useNavigate();
 
-    const [creatorName, setCreatorName] = useState('');  // Store creator's name
-    const [createdDate, setCreatedDate] = useState('');   // Store the creation date
-    const [loading, setLoading] = useState(true);         // Loading state
-    const [addSectionOpen, setAddSectionOpen] = useState(false); // State to control the modal visibility
+    const [creatorName, setCreatorName] = useState('');
+    const [createdDate, setCreatedDate] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [addSectionOpen, setAddSectionOpen] = useState(false);
     const [sections, setSections] = useState([]);
-    const [formId, setFormId] = useState(null); // Also store formId for future use
+    const [formId, setFormId] = useState(null);
+    const [expanded, setExpanded] = useState(false);
 
-    // Fetch form data including creator info
     useEffect(() => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
 
-    axiosInstance.get(`/form/${formName}`, { headers })
-        .then((response) => {
-            const formData = response.data;
-            if (formData) {
-                setCreatorName(formData.creator_name);
-                setCreatedDate(formData.created_at);
-                setFormId(formData.id); // Save formId for fetching sections
-            }
+        axiosInstance.get(`/form/${formName}`, { headers })
+            .then((response) => {
+                const formData = response.data;
+                if (formData) {
+                    setCreatorName(formData.creator_name);
+                    setCreatedDate(formData.created_at);
+                    setFormId(formData.id);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching form data:', error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [formName]);
+
+    useEffect(() => {
+        if (!formId) return;
+
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
+            .then(res => setSections(res.data.sections || []))
+            .catch(() => setSections([]));
+    }, [formId]);
+
+    const handleSettings = () => {
+        console.log("Settings clicked!");
+    };
+
+    const handleOpenAddSectionModal = () => {
+        setAddSectionOpen(true);
+    };
+
+    const handleCloseAddSectionModal = () => {
+        setAddSectionOpen(false);
+    };
+
+    const handleSaveSection = (sectionName) => {
+        if (!formId || !sectionName) {
+            Swal.fire({
+                text: "Form ID and Section Name are required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+
+        axiosInstance.post('/saveEvaluationFormSection', {
+            form_id: formId,
+            name: sectionName
+        }, { headers })
+        .then(() => {
+            axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
+                .then(res => setSections(res.data.sections || []));
+            handleCloseAddSectionModal();
         })
         .catch(error => {
-            console.error('Error fetching form data:', error);
-        })
-        .finally(() => {
-            setLoading(false);
+            console.error('Error saving section:', error);
+            Swal.fire({
+                text: "Error saving section.",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
         });
-}, [formName]);
-
-useEffect(() => {
-    if (!formId) return; // Early return if formId is not set
-
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
-        .then(res => setSections(res.data.sections || []))
-        .catch(() => setSections([]));
-}, [formId]);
-
-
-    // Handle Settings Button click
-    const handleSettings = () => {
-        console.log("Settings clicked!"); // Placeholder for your settings functionality
     };
 
-    // Handle opening the Add Section modal
-    const handleOpenAddSectionModal = () => {
-        setAddSectionOpen(true);  // Open the modal
+    const handleAccordionChange = (sectionId) => (event, isExpanded) => {
+        setExpanded(isExpanded ? sectionId : false);
     };
 
-    // Handle closing the Add Section modal
-    const handleCloseAddSectionModal = () => {
-        setAddSectionOpen(false); // Close the modal
-    };
-
-    // Handle save action from the modal (this is where you can handle logic for saving a section)
-const handleSaveSection = (sectionName) => {
-    if (!formId || !sectionName) {
-        Swal.fire({
-            text: "Form ID and Section Name are required!",
-            icon: "error",
-            confirmButtonColor: '#177604',
-        });
-        return;
-    }
-
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    // Use the correct endpoint and payload
-    axiosInstance.post('/saveEvaluationFormSection', {
-        form_id: formId,
-        name: sectionName
-    }, { headers })
-    .then(() => {
-        // Refetch sections after adding
-        axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
-            .then(res => setSections(res.data.sections || []));
-        handleCloseAddSectionModal();
-    })
-    .catch(error => {
-        console.error('Error saving section:', error);
-        Swal.fire({
-            text: "Error saving section.",
-            icon: "error",
-            confirmButtonColor: '#177604',
-        });
-    });
-};
-
- 
     return (
         <Layout title="Performance Evaluation Form">
             <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto' }}>
-                {/* Settings Icon */}
                 <IconButton sx={{ position: 'absolute', top: 24, right: 24 }} onClick={handleSettings}>
                     <SettingsIcon sx={{ color: '#bdbdbd', fontSize: 32 }} />
                 </IconButton>
 
                 {loading ? (
-                    <Typography variant="h6">Loading...</Typography> 
+                    <Typography variant="h6">Loading...</Typography>
                 ) : (
                     <CardContent>
-                        {/* Form Name */}
                         <Typography variant="h4" sx={{ fontWeight: 'bold', textAlign: 'left', mb: 2 }}>
                             {formName}
                         </Typography>
-
-                        {/* Form metadata */}
                         <Typography variant="body1" sx={{ textAlign: 'left', color: '#777', mb: 1 }}>
-                            Created by: {creatorName || 'N/A'}  
+                            Created by: {creatorName || 'N/A'}
                         </Typography>
                         <Typography variant="body1" sx={{ textAlign: 'left', color: '#777' }}>
-                            Date Created: {createdDate ? new Date(createdDate).toLocaleString() : 'N/A'}  
+                            Date Created: {createdDate ? new Date(createdDate).toLocaleString() : 'N/A'}
                         </Typography>
 
-                        {/* Add Section Button */}
                         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                             <Button
                                 variant="contained"
@@ -147,32 +139,83 @@ const handleSaveSection = (sectionName) => {
                             </Button>
                         </Box>
 
-                        {/* Display sections here */}
-                        {sections.map(section => (
-                            <Box key={section.id} sx={{ my: 2 }}>
-                                <Button
-                                    fullWidth
-                                    variant="contained"
+                        {/* Sections as Accordions */}
+                        <Box sx={{ mt: 2 }}>
+                            {sections.map(section => (
+                                <Accordion
+                                    key={section.id}
+                                    expanded={expanded === section.id}
+                                    onChange={handleAccordionChange(section.id)}
                                     sx={{
-                                        bgcolor: '#eab31a',
-                                        color: 'white',
-                                        fontWeight: 'bold',
+                                        my: 2,
+                                        boxShadow: 3,
                                         borderRadius: 2,
-                                        textTransform: 'none',
-                                        fontSize: 18,
-                                        py: 2,
-                                        mb: 2,
-                                        '&:hover': { bgcolor: '#c99c17' }
+                                        '&:before': { display: 'none' },
+                                        bgcolor: expanded === section.id ? '#eab31a' : 'white',
                                     }}
                                 >
-                                    {section.name}
-                                </Button>
-                            </Box>
-                        ))}
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon sx={{ color: expanded === section.id ? 'white' : '#eab31a' }} />}
+                                        aria-controls={`section-content-${section.id}`}
+                                        id={`section-header-${section.id}`}
+                                        sx={{
+                                            bgcolor: '#eab31a',
+                                            color: 'white',
+                                            borderRadius: 2,
+                                            fontWeight: 'bold',
+                                            fontSize: 18,
+                                            minHeight: 64,
+                                            '& .MuiAccordionSummary-content': { my: 1 },
+                                        }}
+                                    >
+                                        {section.name}
+                                    </AccordionSummary>
+                                    <AccordionDetails sx={{ bgcolor: '#fafafa', borderRadius: 2 }}>
+                                        <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
+                                            <Typography variant="h6" sx={{
+                                                mb: 2,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                color: '#444',
+                                                fontWeight: 'bold',
+                                                borderLeft: '8px solid #eab31a',
+                                                pl: 2,
+                                                bgcolor: '#f4f4f4',
+                                                borderRadius: 1,
+                                                minHeight: 48,
+                                            }}>
+                                                Category Name
+                                            </Typography>
+                                            <TextField
+                                                fullWidth
+                                                label="Category Name"
+                                                variant="standard"
+                                                sx={{ mb: 3, bgcolor: 'white' }}
+                                            />
+                                            <Box sx={{ textAlign: 'center', mt: 2 }}>
+                                                <Button
+                                                    variant="contained"
+                                                    sx={{
+                                                        bgcolor: '#177604',
+                                                        color: 'white',
+                                                        fontWeight: 'bold',
+                                                        borderRadius: 1,
+                                                        px: 4,
+                                                        py: 1.5,
+                                                        '&:hover': { bgcolor: '#0d5c27' }
+                                                    }}
+                                                >
+                                                    ADD CATEGORY
+                                                </Button>
+                                            </Box>
+                                        </Paper>
+                                    </AccordionDetails>
+                                </Accordion>
+                            ))}
+                        </Box>
                     </CardContent>
                 )}
 
-                {/* Add Section Modal */}
                 <PerformanceEvaluationFormAddSection
                     open={addSectionOpen}
                     onClose={handleCloseAddSectionModal}
