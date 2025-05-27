@@ -128,6 +128,32 @@ const handleSaveSection = (sectionName) => {
                             Date Created: {createdDate ? new Date(createdDate).toLocaleString() : 'N/A'}  
                         </Typography>
 
+                        
+
+                        {/* Display sections here */}
+                        {sections.map(section => (
+                            <Box key={section.id} sx={{ my: 2 }}>
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{
+                                        bgcolor: '#eab31a',
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        borderRadius: 5,
+                                        textTransform: 'none',
+                                        fontSize: 18,
+                                        py: 2,
+                                        mb: 2,
+                                        '&:hover': { bgcolor: '#c99c17' },
+                                        justifyContent: 'flex-start',
+                                    }}
+                                >
+                                    {section.name}
+                                </Button>
+                            </Box>
+                        ))}
+
                         {/* Add Section Button */}
                         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                             <Button
@@ -146,29 +172,6 @@ const handleSaveSection = (sectionName) => {
                                 Add Section
                             </Button>
                         </Box>
-
-                        {/* Display sections here */}
-                        {sections.map(section => (
-                            <Box key={section.id} sx={{ my: 2 }}>
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    sx={{
-                                        bgcolor: '#eab31a',
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                        fontSize: 18,
-                                        py: 2,
-                                        mb: 2,
-                                        '&:hover': { bgcolor: '#c99c17' }
-                                    }}
-                                >
-                                    {section.name}
-                                </Button>
-                            </Box>
-                        ))}
                     </CardContent>
                 )}
 
