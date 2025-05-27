@@ -147,6 +147,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
             <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
+            <Route path="performance-evaluation/form/:formName" element={<ProtectedRoute element={<PerformanceEvaluationFormPage />} user={user} />} />
 
 
             <Route
