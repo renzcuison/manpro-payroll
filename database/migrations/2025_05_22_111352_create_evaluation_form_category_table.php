@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('section_id');
             $table->string('name');
-            $table->string('rank', length: 512);
+            $table->string('order', length: 512);
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('section_id')->references('id')->on('evaluation_form_sections');
-            $table->unique(['section_id','rank']);
+            $table->unique(['section_id','order']);
         });
     }
 

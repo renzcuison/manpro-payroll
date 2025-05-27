@@ -22,9 +22,60 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationController extends Controller
 {
 
+    public function saveEvaluationFormSection(Request $request)
+{
+    log::info('EvaluationController::saveEvaluationFormSection');
+
+    if (Auth::check()) {
+        $userID = Auth::id();
+    } else {
+        $userID = null;
+    }
+
+    $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    try {
+        if( $user === null ) return response()->json([ 
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ]);
+
+        DB::beginTransaction();
+
+        $isEmptyName = !$request->name;
+
+        if( $isEmptyName ) return response()->json([ 
+            'status' => 400,
+            'message' => 'Evaluation Form Section Name is required!'
+        ]);
+
+        $max = EvaluationFormSection::where('form_id', $request->form_id)->max('order') ?? 0;
+
+        $newEvaluationFormSection = EvaluationFormSection::create([
+            'form_id' => $request->form_id,
+            'name' => $request->name,
+            'order' => $max + 1
+        ]);
+
+        DB::commit();
+
+        return response()->json([ 
+            'status' => 201,
+            'evaluationSectionID' => $newEvaluationFormSection->id,
+            'message' => 'Evaluation Form Section successfully created'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error('Error saving work shift: ' . $e->getMessage());
+
+        throw $e;
+    }
+}
     // evaluation form
 
-    public function getFormDetails(Request $request, $formName)
+       public function getFormDetails(Request $request, $formName)
     {
         // Fetch the form details by name along with the creator's name
         $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
@@ -86,11 +137,11 @@ class EvaluationController extends Controller
 
                 ->with(['sections' => fn ($section) =>
                     $section
-                        ->select('form_id', 'id','name', 'rank')
-                        ->orderBy('rank')
+                        ->select('form_id', 'id','name', 'order')
+                        ->orderBy('order')
                         ->with(['categories' => fn ($category) =>
                             $category
-                                ->select('section_id', 'id','name', 'rank')
+                                ->select('section_id', 'id','name', 'order')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -98,19 +149,19 @@ class EvaluationController extends Controller
                                             'name', 'subcategory_type', 'description',
                                             'required', 'allow_other_option',
                                             'linear_scale_start', 'linear_scale_end',
-                                            'rank'
+                                            'order'
                                         )
                                         ->with(['options' => fn ($option) =>
                                             $option
                                                 ->select(
                                                     'subcategory_id', 'id',
-                                                    'label', 'rank'
+                                                    'label', 'order'
                                                 )
-                                                ->orderBy('rank')
+                                                ->orderBy('order')
                                         ])
-                                        ->orderBy('rank')
+                                        ->orderBy('order')
                                 ])
-                                ->orderBy('rank')
+                                ->orderBy('order')
                         ])
                 ])
                 ->first()
@@ -416,12 +467,12 @@ public function insertEvaluationFormSection(Request $request)
 {
     $formId = $request->input('form_id');
     $sectionName = $request->input('section_name');
-    $rank = $request->input('rank', 1); // Default rank is 1 if not provided
+    $order = $request->input('order', 1); // Default order is 1 if not provided
 
     // Log to check incoming data
     \Log::info('Form ID: ' . $formId);
     \Log::info('Section Name: ' . $sectionName);
-    \Log::info('Rank: ' . $rank);
+    \Log::info('order: ' . $order);
 
     // Check if form_id and section_name are provided
     if (!$formId || !$sectionName) {
@@ -438,7 +489,7 @@ public function insertEvaluationFormSection(Request $request)
     $section = new EvaluationFormSection();
     $section->form_id = $formId;
     $section->name = $sectionName;
-    $section->rank = $rank;
+    $section->order = $order;
     $section->save();
 
     // Return the saved section

@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('subcategory_id');
             $table->string('label');
-            $table->string('rank', length: 512);
+            $table->string('order', length: 512);
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('subcategory_id')->references('id')->on('evaluation_form_subcategories');
             $table->unique(['subcategory_id','label']);
-            $table->unique(['subcategory_id','rank']);
+            $table->unique(['subcategory_id','order']);
         });
     }
 

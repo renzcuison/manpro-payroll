@@ -85,8 +85,8 @@ const handleSaveSection = (sectionName) => {
 
     axiosInstance.post('/insertEvaluationFormSection', {
         form_id: formId,
-        section_name: sectionName,
-        rank: 1  // Default rank
+        name: sectionName,
+        order: 1  // Default order
     }, { headers })
     .then(response => {
         setSections(prevSections => [...prevSections, response.data.section]);
@@ -106,7 +106,7 @@ const handleSaveSection = (sectionName) => {
 
 
 
-
+ 
     return (
         <Layout title="Performance Evaluation Form">
             <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto' }}>
