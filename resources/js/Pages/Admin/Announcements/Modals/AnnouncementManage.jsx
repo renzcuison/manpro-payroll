@@ -108,6 +108,48 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         }
     };
 
+
+    const handleDeleteAnnouncement = (announcement) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `Delete Announcement?`,
+            text: `Are you sure you want to delete this announcement?\This action can't be undone!`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+
+                const data = {
+                    announcement: announcement.id,
+                };
+
+                axiosInstance.post('/announcements/deleteAnnouncement', data, { headers })
+                    .then(response => {
+                        Swal.fire({
+                            customClass: { container: 'my-swal' },
+                            text: "Announcement deleted successfully!",
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Proceed',
+                            confirmButtonColor: '#177604',
+                        }).then(() => {
+                            setExitReload(true);
+                            close(exitReload);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+
+            }
+        });
+    };
+
     // ---------------- Announcement Acknowledgements
     const [openAnnouncementAcknowledgements, setOpenAnnouncementAcknowledgements] = useState(null);
     const handleOpenAnnouncementAcknowledgements = (unicode) => {
@@ -393,29 +435,11 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     return (
         <>
-            <Dialog
-                open={open}
-                fullWidth
-                maxWidth="md"
-                PaperProps={{
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: { xs: "100%", sm: "800px" },
-                        maxWidth: '1000px',
-                        maxHeight: '750px',
-                        marginBottom: '5%'
-                    }
-                }}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '1000px', maxHeight: '750px', marginBottom: '5%' } }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}>
-                            {announcement.title || "Announcement"}
-                        </Typography>
-                        <IconButton onClick={() => close(exitReload)}>
-                            <i className="si si-close"></i>
-                        </IconButton>
+                        <Typography variant="h4" sx={{ ml: 1, my: 1, fontWeight: "bold" }}> {announcement.title || "Announcement"} </Typography>
+                        <IconButton onClick={() => close(exitReload)}> <i className="si si-close"></i> </IconButton>
                     </Box>
                 </DialogTitle>
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
@@ -423,28 +447,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
                             <Grid size={{ xs: 5 }}>
-                                <Box sx={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    height: 210,
-                                    borderRadius: "4px",
-                                    border: '2px solid #e0e0e0',
-                                }}>
+                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0', }}>
                                     {imageLoading ?
-                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                                            <CircularProgress />
-                                        </Box>
-                                        :
-                                        <img
-                                            src={imagePath}
-                                            alt={`${announcement.title || 'Announcement'} thumbnail`}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                                borderRadius: "4px",
-                                            }}
-                                        />
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}> <CircularProgress /> </Box> : <img src={imagePath} alt={`${announcement.title || 'Announcement'} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
                                     }
                                 </Box>
                             </Grid>
@@ -468,15 +473,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             >
                                                 <MoreVert />
                                             </IconButton>
-                                            <Menu
-                                                id="basic-menu"
-                                                anchorEl={anchorEl}
-                                                open={menuOpen}
-                                                onClose={handleMenuClose}
-                                                MenuListProps={{
-                                                    'aria-labelledby': 'basic-button',
-                                                }}
-                                            >
+
+                                            <Menu id="basic-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'basic-button' }} >
                                                 {announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
@@ -497,6 +495,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Publish
                                                     </MenuItem>
                                                 )}
+
                                                 {announcement.status !== "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
@@ -515,6 +514,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         {announcement.status === "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
                                                     </MenuItem>
                                                 )}
+
+                                                <MenuItem
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleDeleteAnnouncement(announcement);
+                                                        handleMenuClose();
+                                                    }}>
+                                                    Delete Announcement
+                                                </MenuItem>
+
                                             </Menu>
                                         </Stack>
                                     </Grid>
