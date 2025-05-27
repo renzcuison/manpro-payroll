@@ -430,6 +430,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationFormSections', [EvaluationController::class, 'getEvaluationFormSections']);
     Route::post('/insertEvaluationFormSection', [EvaluationController::class, 'insertEvaluationFormSection']);
     Route::get('/form/{formName}', [EvaluationController::class, 'getFormDetails']);
+    Route::get('/getEvaluationFormSections', [EvaluationController::class, 'getEvaluationFormSections']);
 
     // Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
     // Route::post('/editEvaluation', [EvaluationController::class, 'editEvaluation']);

@@ -42,6 +42,7 @@ class EvaluationController extends Controller
 
         // Return the form details along with the creator's name and creation date
         return response()->json([
+            'id' => $form->id,
             'formName' => $form->name,
             'created_at' => $form->created_at,
             'creator_name' => $creatorName
@@ -77,7 +78,8 @@ class EvaluationController extends Controller
                     'evaluation_forms.creator_id',
                     'users.user_name as creator_user_name',
                     'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
+                    'evaluation_forms.updated_at',
+                    'evaluation_forms.deleted_at'
                 )
                 ->where('evaluation_forms.id', $request->id)
 
@@ -396,15 +398,55 @@ class EvaluationController extends Controller
     }
 
     // evaluation form section
-    public function getSections(Request $request)
-    {
-        // You may want to filter by evaluation_form_id if needed
-        $sections = \App\Models\EvaluationFormSection::all();
+ public function getEvaluationFormSections(Request $request)
+{
+    $request->validate([
+        'form_id' => 'required|exists:evaluation_forms,id',
+    ]);
 
-        return response()->json([
-            'status' => 200,
-            'sections' => $sections,
-        ]);}
+    $sections = \App\Models\EvaluationFormSection::where('form_id', $request->form_id)->get();
+
+    return response()->json([
+        'status' => 200,
+        'sections' => $sections,
+    ]);
+}
+
+public function insertEvaluationFormSection(Request $request)
+{
+    $formId = $request->input('form_id');
+    $sectionName = $request->input('section_name');
+    $rank = $request->input('rank', 1); // Default rank is 1 if not provided
+
+    // Log to check incoming data
+    \Log::info('Form ID: ' . $formId);
+    \Log::info('Section Name: ' . $sectionName);
+    \Log::info('Rank: ' . $rank);
+
+    // Check if form_id and section_name are provided
+    if (!$formId || !$sectionName) {
+        return response()->json(['error' => 'Form ID and Section Name are required'], 400);
+    }
+
+    // Check if the form exists
+    $form = EvaluationForm::find($formId);
+    if (!$form) {
+        return response()->json(['error' => 'Form not found'], 404);
+    }
+
+    // Insert the section
+    $section = new EvaluationFormSection();
+    $section->form_id = $formId;
+    $section->name = $sectionName;
+    $section->rank = $rank;
+    $section->save();
+
+    // Return the saved section
+    return response()->json(['section' => $section], 200);
+}
+
+
+
 
 
     // old

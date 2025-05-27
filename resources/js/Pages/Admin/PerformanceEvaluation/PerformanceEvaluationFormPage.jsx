@@ -14,28 +14,42 @@ const PerformanceEvaluationFormPage = () => {
     const [createdDate, setCreatedDate] = useState('');   // Store the creation date
     const [loading, setLoading] = useState(true);         // Loading state
     const [addSectionOpen, setAddSectionOpen] = useState(false); // State to control the modal visibility
+    const [sections, setSections] = useState([]);
+    const [formId, setFormId] = useState(null); // Also store formId for future use
 
     // Fetch form data including creator info
     useEffect(() => {
-        const storedUser = localStorage.getItem("nasya_user");
-        const headers = getJWTHeader(JSON.parse(storedUser));
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
 
-        // Fetch form metadata from the backend
-        axiosInstance.get(`/form/${formName}`, { headers })
-            .then((response) => {
-                const formData = response.data;
-                if (formData) {
-                    setCreatorName(formData.creator_name);  // Assuming the response contains creator_name
-                    setCreatedDate(formData.created_at);    // Assuming the response contains created_at
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching form data:', error);
-            })
-            .finally(() => {
-                setLoading(false);  // Set loading to false once the data is fetched
-            });
-    }, [formName]);
+    axiosInstance.get(`/form/${formName}`, { headers })
+        .then((response) => {
+            const formData = response.data;
+            if (formData) {
+                setCreatorName(formData.creator_name);
+                setCreatedDate(formData.created_at);
+                setFormId(formData.id); // Save formId for fetching sections
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching form data:', error);
+        })
+        .finally(() => {
+            setLoading(false);
+        });
+}, [formName]);
+
+useEffect(() => {
+    if (!formId) return; // Early return if formId is not set
+
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
+    axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
+        .then(res => setSections(res.data.sections || []))
+        .catch(() => setSections([]));
+}, [formId]);
+
 
     // Handle Settings Button click
     const handleSettings = () => {
@@ -53,11 +67,45 @@ const PerformanceEvaluationFormPage = () => {
     };
 
     // Handle save action from the modal (this is where you can handle logic for saving a section)
-    const handleSaveSection = (sectionName) => {
-        console.log('New Section Saved:', sectionName); 
-        // Implement section save logic here (e.g., API request to save the section)
-        handleCloseAddSectionModal(); // Close the modal after saving
-    };
+const handleSaveSection = (sectionName) => {
+    if (!formId || !sectionName) {
+        Swal.fire({
+            text: "Form ID and Section Name are required!",
+            icon: "error",
+            confirmButtonColor: '#177604',
+        });
+        return;
+    }
+
+    // Send the POST request to the backend
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
+    console.log('Sending data:', { form_id: formId, section_name: sectionName });
+
+    axiosInstance.post('/insertEvaluationFormSection', {
+        form_id: formId,
+        section_name: sectionName,
+        rank: 1  // Default rank
+    }, { headers })
+    .then(response => {
+        setSections(prevSections => [...prevSections, response.data.section]);
+        handleCloseAddSectionModal();
+    })
+    .catch(error => {
+        console.error('Error saving section:', error);
+        Swal.fire({
+            text: "Error saving section.",
+            icon: "error",
+            confirmButtonColor: '#177604',
+        });
+    });
+};
+
+
+
+
+
 
     return (
         <Layout title="Performance Evaluation Form">
@@ -89,7 +137,7 @@ const PerformanceEvaluationFormPage = () => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={handleOpenAddSectionModal} // Open the modal on button click
+                                onClick={handleOpenAddSectionModal}
                                 sx={{
                                     bgcolor: '#177604',
                                     color: 'white',
@@ -102,6 +150,29 @@ const PerformanceEvaluationFormPage = () => {
                                 Add Section
                             </Button>
                         </Box>
+
+                        {/* Display sections here */}
+                        {sections.map(section => (
+                            <Box key={section.id} sx={{ my: 2 }}>
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{
+                                        bgcolor: '#eab31a',
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        fontSize: 18,
+                                        py: 2,
+                                        mb: 2,
+                                        '&:hover': { bgcolor: '#c99c17' }
+                                    }}
+                                >
+                                    {section.name}
+                                </Button>
+                            </Box>
+                        ))}
                     </CardContent>
                 )}
 
