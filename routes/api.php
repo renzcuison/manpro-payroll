@@ -21,6 +21,7 @@ use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 
 
+
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -622,8 +623,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/add_evaluation', [CategoriesController::class, 'addEvaluation']);
     Route::get('/incidents', [CategoriesController::class, 'getIncident']);
     Route::post('/add_incident', [CategoriesController::class, 'addIncident']);
-
-
     // Mailer routes
     Route::get('/mail', [MailController::class, 'referralConfirmationMail']);
     Route::get('/sendPayrollMail/{id}', [MailController::class, 'payrollMail']);
@@ -670,6 +669,18 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
+
+//Annoucements Type
+Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+
+Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
+Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
+
+
+
+
 
 
 
