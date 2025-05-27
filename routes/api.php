@@ -430,7 +430,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/editEvaluationFormSection', [EvaluationController::class, 'editEvaluationFormSection']);
     Route::get('/getEvaluationFormSection', [EvaluationController::class, 'getEvaluationFormSection']);
     Route::post('/moveEvaluationFormSection', [EvaluationController::class, 'moveEvaluationFormSection']);
-    Route::post('/saveEvaluationFormSection', [EvaluationController::class, 'saveEvaluationFormSection']);
 
     Route::post('/deleteEvaluationFormCategory', [EvaluationController::class, 'deleteEvaluationFormCategory']);
     Route::post('/editEvaluationFormCategory', [EvaluationController::class, 'editEvaluationFormCategory']);
@@ -451,6 +450,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/saveEvaluationFormSubcategoryOption', [EvaluationController::class, 'saveEvaluationFormSubcategoryOption']);
 
     Route::get('/form/{formName}', [EvaluationController::class, 'getFormDetails']);
+    Route::post('/saveEvaluationFormSection', [EvaluationController::class, 'saveEvaluationFormSection']);
+    Route::get('/getEvaluationFormSections', [EvaluationController::class, 'getEvaluationFormSections']);
 
     // Reports
     Route::get('/getReport', [ReportsController::class, 'getReport']);

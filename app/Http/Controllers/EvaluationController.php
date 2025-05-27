@@ -28,7 +28,7 @@ class EvaluationController extends Controller
         // Fetch the form details by name along with the creator's name
         $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
             ->where('evaluation_forms.name', $formName)
-            ->select('evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
+            ->select('evaluation_forms.id','evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
             ->first();
 
         // If the form doesn't exist, return an error
