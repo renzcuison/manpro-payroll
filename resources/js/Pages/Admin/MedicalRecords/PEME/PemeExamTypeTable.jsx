@@ -10,7 +10,7 @@ import {
 
 const PemeExamTypeTable = ({ records, onRowClick }) => {
     return (
-        <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+        <TableContainer component={Paper} sx={{ marginTop: 2, overflowY:"scroll", maxHeight: 500 }}>
             <Table>
                 <TableHead>
                     <TableRow>
@@ -34,7 +34,7 @@ const PemeExamTypeTable = ({ records, onRowClick }) => {
                             }}
                         >
                             <TableCell>{record.date}</TableCell>
-                            <TableCell>{record.exam}</TableCell>
+                            <TableCell>{record.name}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

@@ -12,6 +12,9 @@ import Swal from "sweetalert2";
 
 import Layout from "../../../../../components/Layout/Layout";
 import { useState } from "react";
+import axiosInstance, { getJWTHeader } from '../../../../../utils/axiosConfig';
+
+
 
 const SelectForm = ({
     formName,
@@ -34,23 +37,23 @@ const SelectForm = ({
             <FormControl>
                 <Box sx={{ display: "flex", marginTop: 2 }}>
                     <FormControlLabel
-                        value="Attachment"
+                        value="attachment"
                         control={
                             <Checkbox
                                 checked={
                                     Array.isArray(formType) &&
-                                    formType.includes("Attachment")
+                                    formType.includes("attachment")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setFormType((prev) => [
                                             ...prev,
-                                            "Attachment",
+                                            "attachment",
                                         ]);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
-                                                (type) => type !== "Attachment"
+                                                (type) => type !== "attachment"
                                             )
                                         );
                                     }
@@ -121,23 +124,23 @@ const SelectForm = ({
                         label="Positive/Negative"
                     />
                     <FormControlLabel
-                        value="Remarks"
+                        value="remarks"
                         control={
                             <Checkbox
                                 checked={
                                     Array.isArray(formType) &&
-                                    formType.includes("Remarks")
+                                    formType.includes("remarks")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setFormType((prev) => [
                                             ...prev,
-                                            "Remarks",
+                                            "remarks",
                                         ]);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
-                                                (type) => type !== "Remarks"
+                                                (type) => type !== "remarks"
                                             )
                                         );
                                     }
@@ -147,23 +150,23 @@ const SelectForm = ({
                         label="Remarks"
                     />{" "}
                     <FormControlLabel
-                        value="Text Box"
+                        value="text"
                         control={
                             <Checkbox
                                 checked={
                                     Array.isArray(formType) &&
-                                    formType.includes("Text Box")
+                                    formType.includes("text")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setFormType((prev) => [
                                             ...prev,
-                                            "Text Box",
+                                            "text",
                                         ]);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
-                                                (type) => type !== "Text Box"
+                                                (type) => type !== "text"
                                             )
                                         );
                                     }
@@ -232,11 +235,19 @@ const SelectForm = ({
 
 const PemeRecordsForm = () => {
     const [questionnaireForms, setQuestionnaireForms] = useState([]); // Collection of forms
-    const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]); // Saves Entire Questionnaire
+    const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]); 
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
     const [fileSize, setFileSize] = useState("");
-    const handleAddForm = () => {
+    const getJWTHeader = (user) => {
+        return {
+        Authorization: `Bearer ${user.token}`, 
+        }
+        }
+    const handleAddForm = async () => {
+        
+        const storedUser = localStorage.getItem("nasya_user"); 
+        const headers = getJWTHeader(JSON.parse(storedUser));
         // IF MISSING FIELDS
         if (formName === "" || formType.length === 0) {
             Swal.fire({
@@ -248,26 +259,50 @@ const PemeRecordsForm = () => {
             });
             return;
         }
-
         // Save current form
         else {
-            // Set fileSize to 10 if empty or 0
-            let size =
+            try{
+                let size =
                 fileSize === "" || Number(fileSize) === 0
                     ? 10
                     : Number(fileSize);
-            setQuestionnaireForms((prev) => [
-                ...prev,
+            // setQuestionnaireForms((prev) => [
+            //     ...prev,
+            //     {
+            //         formName,
+            //         formType,
+            //         fileSize: size,
+            //     },
+            // ]);
+
+            // console.log("questionnaireForms", questionnaireForms);
+            
+             const payload = {
+                peme_id: 1,
+                question: formName,
+                input_types: formType,
+            };
+
+            // Log the payload
+            console.log("Payload to send:", payload);
+
+            const response = await axiosInstance.post(
+                "/peme/questionnaire",
                 {
-                    formName,
-                    formType,
-                    fileSize: size,
+                peme_id: 37,
+                question: formName,       
+                input_types: formType
                 },
-            ]);
-            console.log(questionnaireForms);
+                { headers }
+                );
+                console.log("Successfully created questionnaire:", response.data);
+            }
+            // Set fileSize to 10 if empty or 0
+            catch (error) {
+
+            }
         }
 
-        // PUSH QUESTIONNAIRE FORM IN BACKEND
 
         // Reset form fields
         setFormName("");

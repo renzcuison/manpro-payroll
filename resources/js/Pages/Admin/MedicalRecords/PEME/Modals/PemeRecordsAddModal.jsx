@@ -15,14 +15,13 @@ import axiosInstance from'@/utils/axiosConfig';
 const PemeRecordsAddModal = ({ open, close }) => {
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
-     const getJWTHeader = (user) => {
+    const getJWTHeader = (user) => {
         return {
         Authorization: `Bearer ${user.token}`, 
     };
     };
 
     const handleSubmit = async () => {
-     console.log("Record Name:", recordName);
 
     if (!recordName.trim()) {
         alert("Please enter exam name.");
@@ -38,6 +37,10 @@ const PemeRecordsAddModal = ({ open, close }) => {
         { headers }
         );
         console.log("Successfully created questionnaire:", response.data); 
+        
+        navigator(
+            `/admin/medical-records/peme-records/peme-form`
+        );
         close(true); 
     } catch (error) {
         console.error("Error creating questionnaire:", error);
@@ -45,7 +48,6 @@ const PemeRecordsAddModal = ({ open, close }) => {
     }
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
-        console.log(recordName);
     };
 
     return (
@@ -114,7 +116,6 @@ const PemeRecordsAddModal = ({ open, close }) => {
                                 <Button
                                     onClick={() => {
                                         handleSubmit();
-                                        close(true);
                                     }}
                                     variant="contained"
                                 >

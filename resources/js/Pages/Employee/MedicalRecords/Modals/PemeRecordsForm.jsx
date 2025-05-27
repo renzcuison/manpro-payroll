@@ -30,7 +30,7 @@ const SelectForm = ({
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     label="Form Name"
-                    inputProps={{ readOnly: readOnly }}
+                    inputprops={{ readOnly: readOnly }}
                 />
             </FormControl>
             <FormControl>
@@ -104,7 +104,7 @@ const SelectForm = ({
                                 }}
                                 type="number"
                                 label="Size"
-                                inputProps={{
+                                inputprops={{
                                     min: 0,
                                     max: 500,
                                 }}

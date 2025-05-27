@@ -1,14 +1,21 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
 import PemeOverview from "./PemeOverview";
-import TextField from '@mui/material/TextField'; // temp. error-fix
+import TextField from '@mui/material/TextField';
+import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import Swal from "sweetalert2";
+
 
 const PemeRecords = () => {
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
     const navigator = useNavigate();
+    const [pemeRecords, setPemeRecords] = React.useState([]);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
         React.useState(false);
@@ -33,8 +40,8 @@ const PemeRecords = () => {
         []
     );
 
-    const filteredRecords = records.filter((record) =>
-        [record.date, record.exam].some((field) =>
+    const filteredRecords = pemeRecords.filter((record) =>
+        [record.date, record.name].some((field) =>
             field?.toLowerCase().includes(search.toLowerCase())
         )
     );
@@ -42,6 +49,29 @@ const PemeRecords = () => {
     const handleOnRowClick = () => {
         navigator("/admin/medical-records/peme-records/peme-responses");
     };
+
+     useEffect(() => {
+            axiosInstance.get('/pemes', { headers })
+                .then((response) => {
+                        setPemeRecords(response.data);
+                        console.log("PEME Records:", pemeRecords);
+
+                    setIsLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching loan applications:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to fetch loan applications. Please try again later.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay',
+                        confirmButtonColor: '#177604',
+                    });
+                    setIsLoading(false);
+                });
+        }, []);
+
+
 
 
     
@@ -113,7 +143,7 @@ const PemeRecords = () => {
                         flexShrink: 0, // prevent shrinking
                     }}
                 >
-                    <PemeOverview records={records} />
+                    <PemeOverview records={pemeRecords} />
                 </Box>
                 <Box
                     sx={{
@@ -134,7 +164,7 @@ const PemeRecords = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         sx={{ marginBottom: 2 }}
                     />
-                    <PemeExamTypeTable records={filteredRecords} onRowClick={handleOnRowClick}/>
+                    <PemeExamTypeTable records={pemeRecords} onRowClick={handleOnRowClick}/>
                 </Box>
             </Box>
         </Layout>
