@@ -80,6 +80,37 @@ class EvaluationController extends Controller
                     'evaluation_forms.updated_at'
                 )
                 ->where('evaluation_forms.id', $request->id)
+
+
+                ->with(['sections' => fn ($section) =>
+                    $section
+                        ->select('form_id', 'id','name', 'rank')
+                        ->orderBy('rank')
+                        ->with(['categories' => fn ($category) =>
+                            $category
+                                ->select('section_id', 'id','name', 'rank')
+                                ->with(['subcategories' => fn ($subcategory) =>
+                                    $subcategory
+                                        ->select(
+                                            'category_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end',
+                                            'rank'
+                                        )
+                                        ->with(['options' => fn ($option) =>
+                                            $option
+                                                ->select(
+                                                    'subcategory_id', 'id',
+                                                    'label', 'rank'
+                                                )
+                                                ->orderBy('rank')
+                                        ])
+                                        ->orderBy('rank')
+                                ])
+                                ->orderBy('rank')
+                        ])
+                ])
                 ->first()
             ;
 
