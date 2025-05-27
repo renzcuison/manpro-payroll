@@ -13,6 +13,8 @@ use App\Models\AnnouncementEmployeeRoleModel;
 use App\Models\AnnouncementEmployeeTypeModel; 
 use App\Models\AnnouncementEmployeeStatusModel;
 use App\Models\EmployeeTypeModel;
+use App\Models\AnnouncementRecipientModel;
+use App\Mail\NewAnnouncementMail;
 
 
 use Illuminate\Http\Request;
@@ -20,7 +22,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
 
 class AnnouncementsController extends Controller
 {
@@ -936,119 +940,140 @@ class AnnouncementsController extends Controller
         }
     }
 
- public function publishAnnouncement(Request $request)
-    {
-        $user = Auth::user();
+public function publishAnnouncement(Request $request)
+{
+    $user = Auth::user();
 
-        if (!$this->checkUser()) {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
-
-        $validated = $request->validate([
-            'unique_code' => 'required|string|exists:announcements,unique_code',
-            'departments' => 'required|array|min:1',
-            'branches' => 'required|array|min:1',
-            'announcement_type_id' => 'required|integer|exists:announcement_types,id',
-            'role_ids' => 'array',
-            'employment_types' => 'array',
-            'employment_statuses' => 'array',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
-            if (!$announcement) {
-                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
-            }
-
-            $announcement->status = "Published";
-            $announcement->announcement_type_id = $request->input('announcement_type_id');
-            $announcement->save();
-
-            // Clean up old relations
-            AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)->delete();
-            AnnouncementBranchesModel::where('announcement_id', $announcement->id)->delete();
-            AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)->delete();
-            AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)->delete();
-            AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)->delete();
-
-            // Departments
-            foreach ($request->input('departments', []) as $departmentId) {
-                AnnouncementDepartmentsModel::create([
-                    'announcement_id' => $announcement->id,
-                    'department_id' => (int)$departmentId
-                ]);
-            }
-
-            // Branches
-            foreach ($request->input('branches', []) as $branchId) {
-                AnnouncementBranchesModel::create([
-                    'announcement_id' => $announcement->id,
-                    'branch_id' => (int)$branchId
-                ]);
-            }
-
-            // Roles: For each role, insert for each user in that role
-            foreach ($request->input('role_ids', []) as $roleId) {
-                // Optional: Add additional filters for branches/departments if you want
-                $usersForRole = UsersModel::where('role_id', $roleId)->get();
-                foreach ($usersForRole as $targetUser) {
-                    AnnouncementEmployeeRoleModel::create([
-                        'announcement_id' => $announcement->id,
-                        'role_id' => (int)$roleId,
-                        'user_id' => $targetUser->id,
-                    ]);
-                }
-            }
-
-            // Employment Types (map name -> id)
-            $employmentTypeNames = $request->input('employment_types', []);
-            if (!empty($employmentTypeNames)) {
-                // Get matching types from AnnouncementEmployeeTypeModel
-                $typeMap = AnnouncementEmployeeTypeModel::whereIn('employment_status', $employmentTypeNames)
-                    ->pluck('id', 'employment_status')
-                    ->toArray();
-
-                foreach ($employmentTypeNames as $typeName) {
-                    if (isset($typeMap[$typeName])) {
-                        AnnouncementEmployeeTypeModel::create([
-                            'announcement_id' => $announcement->id,
-                            'user_id' => $user->id,
-                            'employment_status' => $typeName,
-                        ]);
-                    }
-                }
-            }
-
-
-
-            // Employment Statuses (optional: you may want to do per-user here as well)
-            foreach ($request->input('employment_statuses', []) as $status) {
-                // If you want to target all users with this status:
-                // $usersForStatus = UsersModel::where('employment_status', $status)->get();
-                // foreach ($usersForStatus as $targetUser) {
-                //     AnnouncementEmployeeStatusModel::create([
-                //         'announcement_id' => $announcement->id,
-                //         'employment_status' => $status,
-                //         'user_id' => $targetUser->id,
-                //     ]);
-                // }
-                // Otherwise, just assign to the current user:
-                AnnouncementEmployeeStatusModel::create([
-                    'announcement_id' => $announcement->id,
-                    'employment_status' => $status,
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            DB::commit();
-
-            return response()->json(['status' => 200]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error("Error saving: " . $e->getMessage());
-            return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
-        }
+    if (!$this->checkUser()) {
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
+
+    $validated = $request->validate([
+        'unique_code' => 'required|string|exists:announcements,unique_code',
+        'departments' => 'required|array|min:1',
+        'branches' => 'required|array|min:1',
+        'announcement_type_id' => 'required|integer|exists:announcement_types,id',
+        'role_ids' => 'array',
+        'employment_types' => 'array',
+        'employment_statuses' => 'array',
+        'scheduled_send_datetime' => 'nullable|date',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+        if (!$announcement) {
+            return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
+        }
+
+        $announcement->status = "Published";
+        $announcement->announcement_type_id = $request->input('announcement_type_id');
+
+        // Set scheduled_send_datetime if provided
+        if ($request->filled('scheduled_send_datetime')) {
+            $announcement->scheduled_send_datetime = $request->input('scheduled_send_datetime');
+        } else {
+            $announcement->scheduled_send_datetime = null;
+        }
+        $announcement->save();
+
+        // Clean up old relations
+        AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)->delete();
+        AnnouncementBranchesModel::where('announcement_id', $announcement->id)->delete();
+        AnnouncementRecipientModel::where('announcement_id', $announcement->id)->delete();
+
+        // Departments
+        foreach ($request->input('departments', []) as $departmentId) {
+            AnnouncementDepartmentsModel::create([
+                'announcement_id' => $announcement->id,
+                'department_id' => (int)$departmentId
+            ]);
+        }
+
+        // Branches
+        foreach ($request->input('branches', []) as $branchId) {
+            AnnouncementBranchesModel::create([
+                'announcement_id' => $announcement->id,
+                'branch_id' => (int)$branchId
+            ]);
+        }
+
+        // Recipients query logic
+        $roleIds = $request->input('role_ids', []);
+        $employmentTypes = $request->input('employment_types', []);
+        $employmentStatuses = $request->input('employment_statuses', []);
+        $branchIds = $request->input('branches', []);
+        $departmentIds = $request->input('departments', []);
+
+        // Eager load company relation for company name in email
+        $recipientsQuery = UsersModel::with('company');
+
+        if (!empty($roleIds)) {
+            $recipientsQuery->whereIn('role_id', $roleIds);
+        }
+        if (!empty($employmentTypes)) {
+            $recipientsQuery->whereIn('employment_type', $employmentTypes);
+        }
+        if (!empty($employmentStatuses)) {
+            $recipientsQuery->whereIn('employment_status', $employmentStatuses);
+        }
+        if (!empty($branchIds)) {
+            $recipientsQuery->whereIn('branch_id', $branchIds);
+        }
+        if (!empty($departmentIds)) {
+            $recipientsQuery->whereIn('department_id', $departmentIds);
+        }
+
+        $recipientUsers = $recipientsQuery->get();
+
+        foreach ($recipientUsers as $targetUser) {
+            AnnouncementRecipientModel::create([
+                'announcement_id' => $announcement->id,
+                'branch_id' => $targetUser->branch_id,
+                'department_id' => $targetUser->department_id,
+                'role_id' => $targetUser->role_id,
+                'employment_type' => $targetUser->employment_type,
+                'employment_status' => $targetUser->employment_status,
+                'user_id' => $targetUser->id,
+            ]);
+
+            // Get company name safely
+            $company = '';
+            // If you have a company relation and it is loaded
+            if (isset($targetUser->company) && isset($targetUser->company->name)) {
+                $company = $targetUser->company->name;
+            }
+            // If you use 'team' field for company
+            elseif (isset($targetUser->team)) {
+                $company = $targetUser->team;
+            }
+            // Fallback
+            elseif (isset($targetUser->company)) {
+                $company = $targetUser->company;
+            }
+
+            try {
+                $details = [
+                    'name' => trim($targetUser->first_name . ' ' . $targetUser->last_name),
+                    'company' => $company,
+                    'announcement_title' => $announcement->title,
+                    'announcement_description' => $announcement->description,
+                ];
+                \Mail::to($targetUser->email)->send(new \App\Mail\NewAnnouncementMail($details));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send announcement email to ' . $targetUser->email . ': ' . $e->getMessage());
+                // Continue sending to others if one fails
+            }
+        }
+
+        DB::commit();
+
+        return response()->json(['status' => 200]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error("Error saving: " . $e->getMessage());
+        return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
+    }
+}
 }

@@ -5,6 +5,9 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Swal from 'sweetalert2';
+import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const employmentTypes = ['Probationary', 'Regular', 'Full-Time', 'Part-Time'];
 const employmentStatuses = ['Active', 'Resigned', 'Terminated'];
@@ -46,20 +49,21 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const [imagePath, setImagePath] = useState("");
     const [imageLoading, setImageLoading] = useState(true);
 
+    // Scheduled Sent
+    const [scheduledDate, setScheduledDate] = useState(null);
+    const [scheduledTime, setScheduledTime] = useState(null);
+
     // Fetch data on mount
     useEffect(() => {
         axiosInstance.get('/settings/getBranches', { headers })
             .then((res) => {
                 setBranches(res.data.branches);
-                // Optionally select all by default:
-                // setSelectedBranches(res.data.branches.map(b => b.id.toString()));
             })
             .catch((err) => console.error('Error fetching branches:', err));
 
         axiosInstance.get('/settings/getDepartments', { headers })
             .then((res) => {
                 setDepartments(res.data.departments);
-                // setSelectedDepartments(res.data.departments.map(d => d.id.toString()));
             })
             .catch((err) => console.error('Error fetching departments:', err));
 
@@ -155,6 +159,35 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
         }
     };
 
+    // Employment Types multi-select handler with "All Employment Types"
+    const handleEmploymentTypesChange = (event) => {
+        const value = event.target.value;
+
+        if (value.includes('ALL_EMPLOYMENT_TYPES')) {
+            if (isAllSelected(employmentTypes, selectedEmploymentTypes)) {
+                setSelectedEmploymentTypes([]);
+            } else {
+                setSelectedEmploymentTypes([...employmentTypes]);
+            }
+        } else {
+            setSelectedEmploymentTypes(value);
+        }
+    };
+
+    // Employment Statuses multi-select handler with "All Employment Statuses"
+    const handleEmploymentStatusesChange = (event) => {
+        const value = event.target.value;
+
+        if (value.includes('ALL_EMPLOYMENT_STATUSES')) {
+            if (isAllSelected(employmentStatuses, selectedEmploymentStatuses)) {
+                setSelectedEmploymentStatuses([]);
+            } else {
+                setSelectedEmploymentStatuses([...employmentStatuses]);
+            }
+        } else {
+            setSelectedEmploymentStatuses(value);
+        }
+    };
 
     // Utility
     const toggleSelection = (value, selectedArray, setSelectedArray) => {
@@ -266,6 +299,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     };
 
     const saveInput = () => {
+        const scheduledSend = scheduledDate && scheduledTime
+            ? dayjs(
+                dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
+                'YYYY-MM-DD HH:mm'
+            ).format('YYYY-MM-DD HH:mm:ss')
+            : null;
+
         const data = {
             unique_code: announceInfo?.unique_code,
             branches: selectedBranches,
@@ -274,7 +314,9 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             role_ids: selectedRoleIds,
             employment_types: selectedEmploymentTypes,
             employment_statuses: selectedEmploymentStatuses,
+            scheduled_send_datetime: scheduledSend,
         };
+
 
         axiosInstance.post('/announcements/publishAnnouncement', data, { headers })
             .then(() => {
@@ -478,94 +520,120 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                     </FormGroup>
                     {/* Roles Selection */}
                     <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                   <TextField
-                        select
-                        label="Roles"
-                        SelectProps={{
-                            multiple: true,
-                            value: selectedRoleIds,
-                            onChange: handleRoleChange,
-                            renderValue: (selected) => selected.length === 0 ? "Select Roles" : selected.map(id => {
-                                const role = roles.find(r => r.id.toString() === id);
-                                return role ? role.name : id;
-                            }).join(', '),
-                        }}
-                        fullWidth
-                    >
-                        <MenuItem value="ALL_ROLES" dense>
-                            <Checkbox checked={isAllSelected(roles, selectedRoleIds)} />
-                            <ListItemText primary="All Roles" />
-                        </MenuItem>
-                        {roles.map(role => (
-                            <MenuItem key={role.id} value={role.id.toString()}>
-                                <Checkbox checked={selectedRoleIds.includes(role.id.toString())} />
-                                <ListItemText primary={role.name} />
+                        <TextField
+                            select
+                            label="Roles"
+                            SelectProps={{
+                                multiple: true,
+                                value: selectedRoleIds,
+                                onChange: handleRoleChange,
+                                renderValue: (selected) => selected.length === 0 ? "Select Roles" : selected.map(id => {
+                                    const role = roles.find(r => r.id.toString() === id);
+                                    return role ? role.name : id;
+                                }).join(', '),
+                            }}
+                            fullWidth
+                        >
+                            <MenuItem value="ALL_ROLES" dense>
+                                <Checkbox checked={isAllSelected(roles, selectedRoleIds)} />
+                                <ListItemText primary="All Roles" />
                             </MenuItem>
-                        ))}
-                    </TextField>
+                            {roles.map(role => (
+                                <MenuItem key={role.id} value={role.id.toString()}>
+                                    <Checkbox checked={selectedRoleIds.includes(role.id.toString())} />
+                                    <ListItemText primary={role.name} />
+                                </MenuItem>
+                            ))}
+                        </TextField>
                     </FormControl>
-                    {/* Employment Types Selection */}
+                    {/* Employment Types Selection with All Option */}
                     <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                    <TextField
-                        select
-                        id="employmentTypes"
-                        label="Employment Types"
-                        value={selectedEmploymentTypes}
-                        SelectProps={{
-                        multiple: true,
-                        renderValue: (selected) =>
-                            selected.join(', '),
-                        }}
-                    >
-                        {employmentTypes.map(type => (
-                        <MenuItem
-                            key={type}
-                            value={type}
-                            onClick={() => {
-                            setSelectedEmploymentTypes(prev =>
-                                prev.includes(type)
-                                ? prev.filter(t => t !== type)
-                                : [...prev, type]
-                            );
+                        <TextField
+                            select
+                            id="employmentTypes"
+                            label="Employment Types"
+                            value={selectedEmploymentTypes}
+                            SelectProps={{
+                                multiple: true,
+                                value: selectedEmploymentTypes,
+                                onChange: handleEmploymentTypesChange,
+                                renderValue: (selected) =>
+                                    selected.length === 0
+                                        ? "Select Employment Types"
+                                        : selected.join(', '),
                             }}
+                            fullWidth
                         >
-                            <Checkbox checked={selectedEmploymentTypes.includes(type)} />
-                            <ListItemText primary={type} />
-                        </MenuItem>
-                        ))}
-                    </TextField>
+                            <MenuItem value="ALL_EMPLOYMENT_TYPES" dense>
+                                <Checkbox checked={isAllSelected(employmentTypes, selectedEmploymentTypes)} />
+                                <ListItemText primary="All Employment Types" />
+                            </MenuItem>
+                            {employmentTypes.map(type => (
+                                <MenuItem
+                                    key={type}
+                                    value={type}
+                                >
+                                    <Checkbox checked={selectedEmploymentTypes.includes(type)} />
+                                    <ListItemText primary={type} />
+                                </MenuItem>
+                            ))}
+                        </TextField>
                     </FormControl>
-
-                   {/* Employment Statuses Selection */}
+                    {/* Employment Statuses Selection with All Option */}
                     <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                    <TextField
-                        select
-                        id="employmentStatuses"
-                        label="Employment Statuses"
-                        value={selectedEmploymentStatuses}
-                        SelectProps={{
-                        multiple: true,
-                        renderValue: (selected) =>
-                            selected.join(', '),
-                        }}
-                    >
-                        {employmentStatuses.map(status => (
-                        <MenuItem
-                            key={status}
-                            value={status}
-                            onClick={() => {
-                            setSelectedEmploymentStatuses(prev =>
-                                prev.includes(status)
-                                ? prev.filter(s => s !== status)
-                                : [...prev, status]
-                            );
+                        <TextField
+                            select
+                            id="employmentStatuses"
+                            label="Employment Statuses"
+                            value={selectedEmploymentStatuses}
+                            SelectProps={{
+                                multiple: true,
+                                value: selectedEmploymentStatuses,
+                                onChange: handleEmploymentStatusesChange,
+                                renderValue: (selected) =>
+                                    selected.length === 0
+                                        ? "Select Employment Statuses"
+                                        : selected.join(', ')
                             }}
+                            fullWidth
                         >
-                            <Checkbox checked={selectedEmploymentStatuses.includes(status)} />
-                            <ListItemText primary={status} />
-                        </MenuItem>
-                        ))}
-                    </TextField>
+                            <MenuItem value="ALL_EMPLOYMENT_STATUSES" dense>
+                                <Checkbox checked={isAllSelected(employmentStatuses, selectedEmploymentStatuses)} />
+                                <ListItemText primary="All Employment Statuses" />
+                            </MenuItem>
+                            {employmentStatuses.map(status => (
+                                <MenuItem
+                                    key={status}
+                                    value={status}
+                                >
+                                    <Checkbox checked={selectedEmploymentStatuses.includes(status)} />
+                                    <ListItemText primary={status} />
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </FormControl>
+                    {/* Scheduled Sent */}
+                    <FormControl sx={{ marginBottom: 2, width: '100%' }}>
+                    <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 1 }}>
+                        Schedule Send
+                    </Typography>
+                    {/* Removed preset buttons */}
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <DatePicker
+                            label="Select Date"
+                            value={scheduledDate}
+                            onChange={setScheduledDate}
+                            sx={{ width: 180 }}
+                        />
+                        <TimePicker
+                            label="Select Time"
+                            value={scheduledTime ? dayjs(`${dayjs(scheduledDate).format('YYYY-MM-DD')}T${scheduledTime}`) : null}
+                            onChange={val => setScheduledTime(val ? dayjs(val).format('HH:mm') : null)}
+                            sx={{ width: 120 }}
+                        />
+                        </Box>
+                    </LocalizationProvider>
                     </FormControl>
                     <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
                         <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
