@@ -23,7 +23,7 @@ class EvaluationController extends Controller
 
     // evaluation form
 
-       public function getFormDetails(Request $request, $formName)
+    public function getFormDetails(Request $request, $formName)
     {
         // Fetch the form details by name along with the creator's name
         $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
@@ -224,6 +224,10 @@ class EvaluationController extends Controller
                 )
             ;
             $getById = (bool) $request->id;
+            if(!$getById && !$request->name) response()->json([
+                'status' => 400,
+                'message' => 'Either Evaluation Form ID or Name must be given!'
+            ]);
             $evaluationForm = $evaluationForm
                 ->where(
                     $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
@@ -262,7 +266,7 @@ class EvaluationController extends Controller
             ;
             if( !$evaluationForm ) return response()->json([
                 'status' => 404,
-                'message' => 'No Evaluation Form found.',
+                'message' => 'Evaluation Form not found!',
                 'evaluationForm' => $evaluationForm
             ]);
             return response()->json([
@@ -493,7 +497,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormSection ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Section not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSectionID' => $request->id
             ]);
 
             $isEmptyName = !$request->name;
@@ -525,8 +529,94 @@ class EvaluationController extends Controller
     }
 
         // get evaluation form section
+    
+    public function moveEvaluationFormSection(Request $request)
+    {
+        log::info('EvaluationController::moveEvaluationFormSection');
 
-        // move evaluation form section
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationFormSection = EvaluationFormSection
+                ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+                ->where('id', $request->id)
+                ->first()
+            ;
+
+            if( !$evaluationFormSection ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Form Section not found!',
+                'evaluationFormSectionID' => $request->id
+            ]);
+
+            $oldOrder = $evaluationFormSection->order;
+            $newOrder = $request->order;
+            $tempOrder = (
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->max('order')
+                ?? -1
+            ) + 1;
+            if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Section Order is not within valid range!',
+                'evaluationFormSectionID' => $request->id
+            ]);
+            $evaluationFormSection->order = $tempOrder;
+            $evaluationFormSection->save();
+            
+            $moveUp = $oldOrder < $newOrder;
+            $evaluationFormSectionsToMove = EvaluationFormSection
+                ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+                ->where('form_id', $evaluationFormSection->form_id)
+                ->where('order', $moveUp ? '>' : '<', $oldOrder)
+                ->where('order', $moveUp ? '<=' : '>=', $newOrder)
+                ->orderBy('order', $moveUp ? 'asc' : 'desc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationFormSectionsToMove as $evaluationFormSectionToMove) {
+
+                $evaluationFormSectionToMove->order = $curOrder;
+                $evaluationFormSectionToMove->save();
+                $curOrder += $moveUp ? 1 : -1;
+
+            }
+
+            $evaluationFormSection->order = $newOrder;
+            $evaluationFormSection->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationFormSection' => $evaluationFormSection,
+                'message' => 'Evaluation Form Section successfully moved'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function saveEvaluationFormSection(Request $request)
     {
@@ -556,7 +646,10 @@ class EvaluationController extends Controller
                 'message' => 'Evaluation Form Section Name is required!'
             ]);
 
-            $max = EvaluationFormSection::where('form_id', $request->form_id)->max('order') ?? 0;
+            $max =
+                EvaluationFormSection::where('form_id', $request->form_id)->max('order')
+                ?? -1
+            ;
 
             $newEvaluationFormSection = EvaluationFormSection::create([
                 'form_id' => $request->form_id,
@@ -674,7 +767,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormCategory ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Category not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormCategoryID' => $request->id
             ]);
 
             $isEmptyName = !$request->name;
@@ -737,7 +830,10 @@ class EvaluationController extends Controller
                 'message' => 'Evaluation Form Category Name is required!'
             ]);
 
-            $max = EvaluationFormCategory::where('section_id', $request->section_id)->max('order') ?? 0;
+            $max =
+                EvaluationFormCategory::where('section_id', $request->section_id)->max('order')
+                ?? -1
+            ;
 
             $newEvaluationFormCategory = EvaluationFormCategory::create([
                 'section_id' => $request->section_id,
@@ -859,7 +955,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormSubcategory ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSubcategoryID' => $request->id
             ]);
 
             if($request->name) $evaluationFormSubcategory->name = $request->name;
@@ -959,7 +1055,11 @@ class EvaluationController extends Controller
                 'message' => 'Evaluation Form Subcategory Description is required!'
             ]);
 
-            $max = EvaluationFormSubcategory::where('category_id', $request->category_id)->max('order') ?? 0;
+            $max =
+                EvaluationFormSubcategory
+                    ::where('category_id', $request->category_id)->max('order')
+                    ?? -1
+            ;
 
             $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
                 'category_id' => $request->category_id,
@@ -1082,7 +1182,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormSubcategoryOption ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory Option not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSubcategoryOptionID' => $request->id
             ]);
 
             $isEmptyName = !$request->label;
@@ -1172,7 +1272,7 @@ class EvaluationController extends Controller
 
             $max = (
                 EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
-                ?? 0
+                ?? -1
             );
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
