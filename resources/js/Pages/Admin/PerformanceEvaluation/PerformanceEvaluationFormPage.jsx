@@ -5,6 +5,7 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig"; 
 import SettingsIcon from '@mui/icons-material/Settings'; 
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection'; // Import the Add Section Modal
+import Swal from 'sweetalert2';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams(); // Retrieve formName from the URL parameter
@@ -77,19 +78,18 @@ const handleSaveSection = (sectionName) => {
         return;
     }
 
-    // Send the POST request to the backend
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    console.log('Sending data:', { form_id: formId, section_name: sectionName });
-
-    axiosInstance.post('/insertEvaluationFormSection', {
+    // Use the correct endpoint and payload
+    axiosInstance.post('/saveEvaluationFormSection', {
         form_id: formId,
-        section_name: sectionName,
-        rank: 1  // Default rank
+        name: sectionName
     }, { headers })
-    .then(response => {
-        setSections(prevSections => [...prevSections, response.data.section]);
+    .then(() => {
+        // Refetch sections after adding
+        axiosInstance.get('/getEvaluationFormSections', { headers, params: { form_id: formId } })
+            .then(res => setSections(res.data.sections || []));
         handleCloseAddSectionModal();
     })
     .catch(error => {
@@ -101,10 +101,6 @@ const handleSaveSection = (sectionName) => {
         });
     });
 };
-
-
-
-
 
  
     return (
