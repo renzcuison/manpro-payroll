@@ -25,21 +25,21 @@ class PemeResponseController extends Controller
 
         $responses =
             $user->user_type === "Admin"
-                ? PemeResponse::with("peme")
-                    ->latest()
-                    ->get()
-                : PemeResponse::where("user_id", $user->id)
-                    ->with("peme")
-                    ->latest()
-                    ->get();
+            ? PemeResponse::with("peme")
+            ->latest()
+            ->get()
+            : PemeResponse::where("user_id", $user->id)
+            ->with("peme")
+            ->latest()
+            ->get();
 
         $responses = $responses->map(function ($response) {
             return [
                 "date" => $response->created_at->format("Y-m-d"),
                 "due_date" => optional($response->expiry_date)->format("Y-m-d"),
-                "employee" => $response->peme->user->name ?? "N/A", 
+                "employee" => $response->peme->user->name ?? "N/A",
                 "branch" => $response->peme->branch ?? "N/A",
-                "department" => $response->peme->department ?? "N/A", 
+                "department" => $response->peme->department ?? "N/A",
                 "progress" => $this->calculateProgress($response),
                 "status" => ucfirst($response->status),
             ];
@@ -58,13 +58,13 @@ class PemeResponseController extends Controller
 
         if (
             PemeResponse::where("user_id", Auth::id())
-                ->where("peme_id", $validated["peme_id"])
-                ->exists()
+            ->where("peme_id", $validated["peme_id"])
+            ->exists()
         ) {
             return response()->json(
                 [
                     "message" =>
-                        "You have already submitted a response for this form.",
+                    "You have already submitted a response for this form.",
                 ],
                 409
             );

@@ -36,16 +36,18 @@ const PemeRecordsAddModal = ({ open, close }) => {
         { name: recordName },
         { headers }
         );
-        console.log("Successfully created questionnaire:", response.data); 
+        console.log("Successfully created questionnaire:", response.data);
         
-        navigator(
-            `/admin/medical-records/peme-records/peme-form`
-        );
-        close(true); 
+        const newId = response?.data?.peme?.id;
+        console.log("New PEME ID:", newId);
+        
+        return newId;
     } catch (error) {
         console.error("Error creating questionnaire:", error);
+        return null;
     }
-    }
+    };
+
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
     };
@@ -114,10 +116,13 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                    onClick={() => {
-                                        handleSubmit();
-                                    }}
-                                    variant="contained"
+                                onClick={async () => {
+                                    const newId = await handleSubmit();
+                                    if (newId) {
+                                    navigator(`/admin/medical-records/peme-records/${newId}/peme-form`);
+                                    }
+                                }}
+                                variant="contained"
                                 >
                                     Confirm
                                 </Button>
