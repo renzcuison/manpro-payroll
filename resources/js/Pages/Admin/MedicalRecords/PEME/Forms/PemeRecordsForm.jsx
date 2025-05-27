@@ -63,27 +63,27 @@ const SelectForm = ({
                         label="Attachment"
                     />
                     <FormControlLabel
-                        value="Pass/Fail"
+                        value="pass_fail"
                         control={
                             <Checkbox
                                 checked={
                                     Array.isArray(formType) &&
-                                    formType.includes("Pass/Fail")
+                                    formType.includes("pass_fail")
                                 }
                                 disabled={
                                     Array.isArray(formType) &&
-                                    formType.includes("Positive/Negative")
+                                    formType.includes("postive_negative")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setFormType((prev) => [
                                             ...prev,
-                                            "Pass/Fail",
+                                            "pass_fail",
                                         ]);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
-                                                (type) => type !== "Pass/Fail"
+                                                (type) => type !== "pass_fail"
                                             )
                                         );
                                     }
@@ -93,28 +93,28 @@ const SelectForm = ({
                         label="Pass/Fail"
                     />
                     <FormControlLabel
-                        value="Positive/Negative"
+                        value="pos_neg"
                         control={
                             <Checkbox
                                 checked={
                                     Array.isArray(formType) &&
-                                    formType.includes("Positive/Negative")
+                                    formType.includes("pos_neg")
                                 }
                                 disabled={
                                     Array.isArray(formType) &&
-                                    formType.includes("Pass/Fail")
+                                    formType.includes("pass_fail")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setFormType((prev) => [
                                             ...prev,
-                                            "Positive/Negative",
+                                            "pos_neg",
                                         ]);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
                                                 (type) =>
-                                                    type !== "Positive/Negative"
+                                                    type !== "pos_neg"
                                             )
                                         );
                                     }
@@ -177,7 +177,7 @@ const SelectForm = ({
                     />
                 </Box>
             </FormControl>
-            {formType.includes("Attachment") && (
+            {Array.isArray(formType) && formType.includes("attachment") && (
                 <Box
                     sx={{
                         marginTop: 2,
@@ -234,11 +234,12 @@ const SelectForm = ({
 };
 
 const PemeRecordsForm = () => {
-    const [questionnaireForms, setQuestionnaireForms] = useState([]); // Collection of forms
+    
+    const [questionnaireForms, setQuestionnaireForms] = useState([]);
     const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]); 
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
-    const [fileSize, setFileSize] = useState("");
+    const [fileSize, setFileSize] = useState();
     const getJWTHeader = (user) => {
         return {
         Authorization: `Bearer ${user.token}`, 
@@ -266,16 +267,7 @@ const PemeRecordsForm = () => {
                 fileSize === "" || Number(fileSize) === 0
                     ? 10
                     : Number(fileSize);
-            // setQuestionnaireForms((prev) => [
-            //     ...prev,
-            //     {
-            //         formName,
-            //         formType,
-            //         fileSize: size,
-            //     },
-            // ]);
-
-            // console.log("questionnaireForms", questionnaireForms);
+       
             
              const payload = {
                 peme_id: 1,
@@ -289,13 +281,18 @@ const PemeRecordsForm = () => {
             const response = await axiosInstance.post(
                 "/peme/questionnaire",
                 {
-                peme_id: 37,
+                peme_id: 39,
                 question: formName,       
-                input_types: formType
+                input_types: formType,
+                file_size_limit: size,
                 },
                 { headers }
                 );
-                console.log("Successfully created questionnaire:", response.data);
+                console.log("Successfully created form:", response.data);
+                setQuestionnaireForms((prev) => [
+                    ...prev, response.data])
+
+                    console.log(questionnaireForms, "questionnaireForms");
             }
             // Set fileSize to 10 if empty or 0
             catch (error) {
@@ -311,8 +308,8 @@ const PemeRecordsForm = () => {
     };
 
     const handleConfirmQuestionnaire = () => {
-        setQuestionnaireConfirm((p) => [...p, questionnaireForms]);
-        console.log("confirm", questionnaireConfirm);
+        // setQuestionnaireConfirm((p) => [...p, questionnaireForms]);
+        // console.log("confirm", questionnaireConfirm);
     };
 
     const handleDeleteForm = (index) => {

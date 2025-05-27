@@ -8,11 +8,13 @@ import {
     TextField,
     Button,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from'@/utils/axiosConfig';
 
 const PemeRecordsAddModal = ({ open, close }) => {
+    const { recordId } = useParams();
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
     const getJWTHeader = (user) => {
@@ -23,11 +25,6 @@ const PemeRecordsAddModal = ({ open, close }) => {
 
     const handleSubmit = async () => {
 
-    if (!recordName.trim()) {
-        alert("Please enter exam name.");
-        return;
-    }
-
     const storedUser = localStorage.getItem("nasya_user"); 
     const headers = getJWTHeader(JSON.parse(storedUser));
     try {
@@ -37,6 +34,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
         { headers }
         );
         console.log("Successfully created questionnaire:", response.data);
+        navigator(`/admin/medical-records/peme-records/peme-form`);
         
         const newId = response?.data?.peme?.id;
         console.log("New PEME ID:", newId);
@@ -116,12 +114,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                onClick={async () => {
-                                    const newId = await handleSubmit();
-                                    if (newId) {
-                                    navigator(`/admin/medical-records/peme-records/${newId}/peme-form`);
-                                    }
-                                }}
+                                onClick={handleSubmit}
                                 variant="contained"
                                 >
                                     Confirm

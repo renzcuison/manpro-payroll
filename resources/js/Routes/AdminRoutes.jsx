@@ -65,6 +65,7 @@ import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
+import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -354,6 +355,16 @@ const AdminRoutes = ({ user }) => {
                 element={
                     <ProtectedRoute
                         element={<PemeQuestionnaireView />}
+                        user={user}
+                    />
+                }
+            />
+
+            <Route
+                path="medical-records/peme-records/peme-questionnaire-preview"
+                element={
+                    <ProtectedRoute
+                        element={<PemeQuestionnairePreview />}
                         user={user}
                     />
                 }
