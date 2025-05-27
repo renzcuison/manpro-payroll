@@ -461,11 +461,9 @@ class EmployeesController extends Controller
 
     public function getEducationBackground(Request $request)
     {
-        log::info("EmployeesController::getEducationBackground");
+        // log::info("EmployeesController::getEducationBackground");
 
         $user = Auth::user();
-        
-        log::info($user->id);
 
         $educations = EmployeeEducation::where('employee_id', $user->id)->get();
 

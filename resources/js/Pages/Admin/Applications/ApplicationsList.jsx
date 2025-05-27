@@ -137,8 +137,8 @@ const ApplicationsList = () => {
                                             </TableRow>
                                         </TableHead>
 
-                                        <TableBody>{
-                                            applications.length > 0 ? (applications.map(
+                                        <TableBody>
+                                            {applications.length > 0 ? (applications.map(
                                                 (application, index) => {
                                                     const createDate = dayjs(application.app_date_requested).format("MMM D, YYYY h:mm A");
                                                     const startDate = dayjs(application.app_duration_start).format("MMM D, YYYY h:mm A");

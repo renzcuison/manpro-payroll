@@ -48,7 +48,7 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = ApplicationsModel::where('client_id', $clientId)->orderBy('created_at', 'asc')->get();
+            $apps = ApplicationsModel::where('client_id', $clientId)->orderBy('created_at', 'desc')->get();
 
             $applications = [];
 
