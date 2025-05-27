@@ -41,23 +41,37 @@ const PerformanceEvaluationFormAddCategory = ({ open, onClose, onSave }) => {
                     minWidth: 400,
                     maxWidth: 800,
                     backgroundColor: '#f8f9fa',
-                    padding: 0
+                    
                 }
             }}
+            sx={{
+                '& .MuiPaper-root': {
+                    width: '1100px', 
+                    height: '350px', 
+                    px: 3,
+                },
+            }}
         >
-        <DialogTitle sx={{ fontWeight: 'bold', fontSize: 26, pb: 0, mt: 2, mb: 2 }}>
-            ADD CATEGORY
-            <Box
-                sx={{
-                    height: '2px',
-                    width: '100%',
-                    bgcolor: '#E6E6E6',
-                    borderRadius: 2
-                }}
-            />
-        </DialogTitle>
+        <DialogTitle sx={{ paddingTop: '50px', paddingBottom:'50px' }}>
+                        
+                {/* Add Sub-Category Title */}
+                <Typography
+                    variant="h4"
+                    sx={{
+                        textAlign: 'left',
+                        fontFamily: 'Roboto, sans-serif', // Set font to Roboto
+                        fontWeight: 'bold',
+                    }}
+                >
+                    ADD CATEGORY
+                </Typography>
+
+                {/* Thin line beneath the title */}
+                <Box sx={{ borderBottom: '1px solid #ccc', marginTop: '5px' }}></Box>
+            </DialogTitle>
+
             <DialogContent>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 1, mb: 4 }}>
                     <TextField
                         label="Category Name*"
                         variant="outlined"
@@ -66,42 +80,59 @@ const PerformanceEvaluationFormAddCategory = ({ open, onClose, onSave }) => {
                         onChange={e => setCategoryName(e.target.value)}
                         sx={{ mb: 4 }}
                     />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt:2 }}>
-                        <Button
-                            variant="contained"
-                            startIcon={<CloseIcon />}
-                            onClick={handleCancel}
-                            sx={{
-                                bgcolor: '#7b8794',
-                                color: '#fff',
+                    {/* Cancel and Save Buttons */}
+                <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
+                    <Button
+                        onClick={onClose}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#727F91',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '120px', // Set fixed width
+                            height: '35px', // Set fixed height
+                            fontSize: '14px', // Ensure consistent font size
+                        }}
+                        startIcon={
+                            <CloseIcon sx={{ 
+                                fontSize: '1rem', 
                                 fontWeight: 'bold',
-                                px: 4,
-                                py: 1.5,
-                                borderRadius: '8px',
-                                boxShadow: 1,
-                                '&:hover': { bgcolor: '#5a6473' }
-                            }}
-                        >
-                            CANCEL
-                        </Button>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={handleSave}
-                            sx={{
-                                bgcolor: '#137333',
-                                color: '#fff',
+                                stroke: 'white', 
+                                strokeWidth: 2, 
+                                fill: 'none' 
+                            }}/>
+                        }
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSave}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#177604',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '120px', // Set fixed width
+                            height: '35px', // Set fixed height
+                            fontSize: '14px', // Ensure consistent font size
+                        }}
+                        startIcon={
+                            <AddIcon sx={{
+                                fontSize: '1rem', 
                                 fontWeight: 'bold',
-                                px: 4,
-                                py: 1.5,
-                                borderRadius: '8px',
-                                boxShadow: 1,
-                                '&:hover': { bgcolor: '#0d5c27' }
-                            }}
-                        >
-                            SAVE
-                        </Button>
-                    </Box>
+                                stroke: 'white', 
+                                strokeWidth: 2,
+                                fill: 'none' 
+                            }}/>
+                        }
+                    >
+                        Save
+                    </Button>
+                </Box>
                 </Box>
             </DialogContent>
         </Dialog>

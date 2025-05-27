@@ -4,225 +4,215 @@ import {
   Typography,
   Button,
   IconButton,
-  Paper,
-  TextField,
   Grid,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormControlLabel,
   Radio,
   RadioGroup,
   Checkbox,
+  TextField,
+  Paper
 } from '@mui/material';
+import Layout from '../../../components/Layout/Layout';
+import { useNavigate } from 'react-router-dom';
 import {
   Settings as SettingsIcon,
   LinearScale as LinearScaleIcon,
-  CheckBox as CheckBoxIcon,
   RadioButtonChecked as RadioButtonCheckedIcon,
+  CheckBox as CheckBoxIcon,
   ShortText as ShortTextIcon,
   TextFields as TextFieldsIcon,
-  Close as CloseIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
-import Layout from '../../../components/Layout/Layout';
-import { useNavigate } from 'react-router-dom';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
 import PerformanceEvaluationFormAcknowledge from './Modals/PerformanceEvaluationFormAcknowledge';
+import SubCategoryModal from './Modals/SubcategoryModal';
 
+const PerformanceEvaluationForm = () => {
+  const [openModal, setOpenModal] = useState(false);
+  const [subCategories, setSubCategories] = useState([]);
+  const [editingSubCategory, setEditingSubCategory] = useState(null);
+  const [addSectionOpen, setAddSectionOpen] = useState(false);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
+  const [acknowledgeOpen, setAcknowledgeOpen] = useState(false);
+  const navigate = useNavigate();
 
-const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
-  const [subCategoryName, setSubCategoryName] = useState(subCategory?.subCategoryName || '');
-  const [responseType, setResponseType] = useState(subCategory?.responseType || '');
-  const [description, setDescription] = useState(subCategory?.description || '');
-  const [options, setOptions] = useState(subCategory?.options || []);
-  const [label1, setLabel1] = useState(subCategory?.label1 || '');
-  const [label2, setLabel2] = useState(subCategory?.label2 || '');
-  const [minValue, setMinValue] = useState(subCategory?.minValue || 1);
-  const [maxValue, setMaxValue] = useState(subCategory?.maxValue || 5);
-
-  const handleSave = () => {
-    onSave({ subCategoryName, responseType, description, options, label1, label2, minValue, maxValue });
-    onClose();
+  const handleOpenModal = (subCategory) => {
+    setEditingSubCategory(subCategory);
+    setOpenModal(true);
   };
 
-  const handleOptionChange = (index, event) => {
-    const newOptions = [...options];
-    newOptions[index] = event.target.value;
-    setOptions(newOptions);
+  const handleCloseModal = () => {
+    setOpenModal(false);
   };
 
-  const handleAddOption = () => setOptions([...options, '']);
-  const handleRemoveOption = (index) => setOptions(options.filter((_, i) => i !== index));
+  const handleLinearScaleChange = (subCategoryId, value) => {
+    setSubCategories(subCategories.map((subCategory) =>
+      subCategory.id === subCategoryId
+        ? { ...subCategory, selectedValue: value }
+        : subCategory
+    ));
+  };
 
-  return (
-    open && (
-      <Box sx={{ p: 3, bgcolor: 'white', borderRadius: '8px', maxWidth: '500px', mx: 'auto' }}>
-        <Typography variant="h6">Add/Edit Sub-Category</Typography>
-        <TextField label="Sub-Category Name" fullWidth value={subCategoryName} onChange={(e) => setSubCategoryName(e.target.value)} sx={{ mb: 2 }} />
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Response Type</InputLabel>
-          <Select value={responseType} onChange={(e) => setResponseType(e.target.value)} label="Response Type">
-            <MenuItem value="linearScale"><LinearScaleIcon sx={{ mr: 2 }} /> Linear Scale</MenuItem>
-            <MenuItem value="multipleChoice"><RadioButtonCheckedIcon sx={{ mr: 2 }} /> Multiple Choice</MenuItem>
-            <MenuItem value="checkbox"><CheckBoxIcon sx={{ mr: 2 }} /> Checkbox</MenuItem>
-            <MenuItem value="shortText"><ShortTextIcon sx={{ mr: 2 }} /> Short Text</MenuItem>
-            <MenuItem value="longText"><TextFieldsIcon sx={{ mr: 2 }} /> Long Text</MenuItem>
-          </Select>
-        </FormControl>
+  const handleSaveSubCategory = (updatedSubCategory) => {
+    if (editingSubCategory) {
+      setSubCategories(subCategories.map(sc =>
+        sc.id === editingSubCategory.id ? { ...sc, ...updatedSubCategory } : sc
+      ));
+    } else {
+      setSubCategories([...subCategories, { id: Date.now(), ...updatedSubCategory }]);
+    }
+    setEditingSubCategory(null);
+    setOpenModal(false);
+  };
 
-        {responseType === 'linearScale' && (
-          <>
-            <Grid container spacing={2}>
-              <Grid item xs={5}><FormControl fullWidth><InputLabel>Min Value</InputLabel><Select value={minValue} onChange={(e) => setMinValue(e.target.value)}><MenuItem value={0}>0</MenuItem><MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem></Select></FormControl></Grid>
-              <Grid item xs={2}><Typography variant="h6" align="center">to</Typography></Grid>
-              <Grid item xs={5}><FormControl fullWidth><InputLabel>Max Value</InputLabel><Select value={maxValue} onChange={(e) => setMaxValue(e.target.value)}><MenuItem value={3}>3</MenuItem><MenuItem value={4}>4</MenuItem><MenuItem value={5}>5</MenuItem></Select></FormControl></Grid>
-            </Grid>
-            <Grid container spacing={2} sx={{ mt: 2 }}>
-              <Grid item xs={6}><TextField label="Min Label" fullWidth value={label1} onChange={(e) => setLabel1(e.target.value)} /></Grid>
-              <Grid item xs={6}><TextField label="Max Label" fullWidth value={label2} onChange={(e) => setLabel2(e.target.value)} /></Grid>
-            </Grid>
-          </>
-        )}
-
-        {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
-          <Box>
-            {options.map((option, i) => (
-              <Grid container spacing={1} key={i}>
-                <Grid item xs={10}><TextField fullWidth value={option} onChange={(e) => handleOptionChange(i, e)} /></Grid>
-                <Grid item xs={2}><IconButton onClick={() => handleRemoveOption(i)}><CloseIcon /></IconButton></Grid>
-              </Grid>
-            ))}
-            <Button onClick={handleAddOption}>Add Option</Button>
-          </Box>
-        )}
-
-        {(responseType === 'shortText' || responseType === 'longText') && (
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={responseType === 'shortText' ? 2 : 4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-        )}
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="contained" sx={{ ml: 2 }} onClick={handleSave}>Save</Button>
-        </Box>
-      </Box>
+  const handleMultipleChoiceChange = (subCategoryId, value) => {
+  // Update only the subcategory with the matching subCategoryId
+  setSubCategories(prevState =>
+    prevState.map((subCategory) =>
+      subCategory.id === subCategoryId
+        ? { ...subCategory, selectedValue: value } // Set the selected value for the clicked subCategory
+        : subCategory
     )
   );
 };
 
-const PerformanceEvaluationForm = () => {
-  const navigate = useNavigate();
-  const [addSectionOpen, setAddSectionOpen] = useState(false);
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [subCategories, setSubCategories] = useState([]);
-  const [editingSubCategory, setEditingSubCategory] = useState(null);
-  const [acknowledgeOpen, setAcknowledgeOpen] = useState(false);
 
+
+  const handleSettings = () => {
+    alert('Settings clicked!');
+  };
 
   const handleAddSection = () => setAddSectionOpen(true);
   const handleAddCategory = () => setAddCategoryOpen(true);
   const handleSaveEvaluation = () => setSaveEvaluationOpen(true);
-  const handleSettings = () => alert('Settings clicked!');
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
-
-  const handleSaveSubCategory = (subCategory) => {
-    if (editingSubCategory) {
-      setSubCategories(subCategories.map(sc => sc.id === editingSubCategory.id ? { ...sc, ...subCategory } : sc));
-    } else {
-      setSubCategories([...subCategories, { id: Date.now(), ...subCategory }]);
-    }
-    setEditingSubCategory(null);
-  };
 
   return (
     <Layout title="Performance Evaluation Form">
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-        <Paper elevation={2} sx={{ borderRadius: '16px', width: '100%', maxWidth: '900px', p: 4, position: 'relative' }}>
-          <IconButton sx={{ position: 'absolute', top: 24, right: 24 }} onClick={handleSettings}>
-            <SettingsIcon sx={{ color: '#bdbdbd', fontSize: 32 }} />
-          </IconButton>
-          <Typography variant="h4" fontWeight="bold">Sample Form</Typography>
-          <Typography variant="body2" color="text.secondary">Created by: User Name</Typography>
-          <Typography variant="body2" color="text.secondary" mb={4}>Date Created: May 16, 2025 - 11:21 AM</Typography>
-          <Box sx={{ gap: 2 }}>
-            <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, marginLeft: 2, marginRight: 2, mt: 2 }} onClick={handleAddSection}>
-                ADD SECTION
-            </Button>
-            <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, marginLeft: 2, marginRight: 2, mt: 2}} onClick={handleAddCategory}>
-                ADD CATEGORY
-            </Button>
-            <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, marginLeft: 2, marginRight: 2, mt: 2 }} onClick={handleSaveEvaluation}>
-                SAVE EVALUATION
-            </Button>
-            <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, marginLeft: 2, marginRight: 2, mt: 2 }} color="success" onClick={handleOpenModal}>
-                ADD SUB-CATEGORY
-            </Button>
-            <Button
-              variant="contained"
-              sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', mb: 2, ml: 2, mr: 2, mt: 2 }}
-              onClick={() => setAcknowledgeOpen(true)}
-            >
-              ACKNOWLEDGE
-            </Button>
+      <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>Performance Evaluation Form</Typography>
 
-            </Box>
-          {subCategories.map((subCategory) => (
-            <Box key={subCategory.id} sx={{ mt: 3, border: '1px solid #ccc', borderRadius: 2, p: 2 }}>
-              <Typography variant="h6">{subCategory.subCategoryName}</Typography>
-              <Typography variant="body2">Type: {subCategory.responseType}</Typography>
-              {subCategory.responseType === 'linearScale' && (
-                <>
-                  <Typography>{subCategory.label1}</Typography>
-                  <Grid container spacing={1} justifyContent="center">
-                    {[...Array(subCategory.maxValue - subCategory.minValue + 1)].map((_, idx) => (
-                      <Grid item key={idx}><FormControlLabel control={<Radio />} label={subCategory.minValue + idx} /></Grid>
-                    ))}
+        {/* Settings Icon */}
+        <IconButton sx={{ position: 'absolute', top: 24, right: 24 }} onClick={handleSettings}>
+          <SettingsIcon sx={{ color: '#bdbdbd', fontSize: 32 }} />
+        </IconButton>
+
+        {/* List of saved sub-categories */}
+        {subCategories.map((subCategory) => (
+          <Box
+            key={subCategory.id}
+            sx={{ mb: 2, border: '1px solid #ddd', borderRadius: 2, p: 2, cursor: 'pointer' }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleOpenModal(subCategory); // Open modal only when the box is clicked
+              }
+            }}
+          >
+            <Typography variant="h6">{subCategory.subCategoryName}</Typography>
+            <Typography variant="body1">Response Type: {subCategory.responseType}</Typography>
+            <Typography variant="body2">Description: {subCategory.description}</Typography>
+
+            {subCategory.responseType === 'linearScale' && (
+              <Box sx={{ mb: 2 }}>
+                <Grid container alignItems="center" spacing={2} justifyContent='center'>
+                  <Grid item><Typography variant="body1">{subCategory.label1}</Typography></Grid>
+                  <Grid item xs>
+                    <Grid container justifyContent="center" spacing={1}>
+                      {[...Array(subCategory.maxValue - subCategory.minValue + 1)].map((_, index) => {
+                        const value = subCategory.minValue + index;
+                        return (
+                          <Grid item key={value}>
+                            <FormControlLabel
+                              control={<Radio checked={subCategory.selectedValue === value.toString()} onChange={() => handleLinearScaleChange(subCategory.id, value.toString())} value={value.toString()} />}
+                              label={value}
+                              labelPlacement="top"
+                            />
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
                   </Grid>
-                  <Typography>{subCategory.label2}</Typography>
-                </>
-              )}
-              {subCategory.responseType === 'multipleChoice' && (
-                <RadioGroup>
-                  {subCategory.options.map((opt, i) => (
-                    <FormControlLabel key={i} value={opt} control={<Radio />} label={opt} />
-                  ))}
-                </RadioGroup>
-              )}
-              {subCategory.responseType === 'checkbox' && (
-                subCategory.options.map((opt, i) => (
-                  <FormControlLabel key={i} control={<Checkbox />} label={opt} />
-                ))
-              )}
-              {(subCategory.responseType === 'shortText' || subCategory.responseType === 'longText') && (
-                <TextField fullWidth label="Response" variant="outlined" rows={subCategory.responseType === 'shortText' ? 2 : 4} multiline />
-              )}
-            </Box>
-          ))}
-        </Paper>
+                  <Grid item><Typography variant="body1">{subCategory.label2}</Typography></Grid>
+                </Grid>
+              </Box>
+            )}
+
+{subCategory.responseType === 'multipleChoice' && (
+  <Box sx={{ mb: 2 }}>
+    <RadioGroup
+      value={subCategory.selectedValue || ''} // This ensures only one radio button is selected
+      onChange={(e) => handleMultipleChoiceChange(subCategory.id, e.target.value)} // Handle change by updating the correct subCategory's selectedValue
+    >
+      {subCategory.options.map((option, index) => (
+        <FormControlLabel
+          key={index}
+          value={option} // Each radio button gets a unique value
+          control={<Radio />}
+          label={option}
+        />
+      ))}
+    </RadioGroup>
+  </Box>
+)}
+
+
+
+            {/* Render Checkbox */}
+            {subCategory.responseType === 'checkbox' && (
+              <Box sx={{ mb: 2 }}>
+                {subCategory.options.map((option, index) => (
+                  <FormControlLabel key={index} control={<Checkbox />} label={option} />
+                ))}
+              </Box>
+            )}
+
+            {/* Render Short Text and Long Text */}
+            {subCategory.responseType === 'shortText' || subCategory.responseType === 'longText' ? (
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  label="Your Response"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={subCategory.userResponse || ''}
+                  onChange={(e) => {}}
+                />
+              </Box>
+            ) : null}
+          </Box>
+        ))}
+
+        {/* Modals */}
+        <SubCategoryModal
+          open={openModal}
+          onClose={handleCloseModal}
+          onSave={handleSaveSubCategory}
+          subCategory={editingSubCategory || {}}
+        />
+        <PerformanceEvaluationFormAddSection open={addSectionOpen} onClose={() => setAddSectionOpen(false)} onSave={() => {}} />
+        <PerformanceEvaluationFormAddCategory open={addCategoryOpen} onClose={() => setAddCategoryOpen(false)} onSave={() => {}} />
+        <PerformanceEvaluationFormSaveEvaluation open={saveEvaluationOpen} onClose={() => setSaveEvaluationOpen(false)} onProceed={() => setSaveEvaluationOpen(false)} />
+        <PerformanceEvaluationFormAcknowledge open={acknowledgeOpen} onClose={() => setAcknowledgeOpen(false)} />
+
+        {/* Add Section, Add Category, Save Evaluation buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={handleAddSection}>ADD SECTION</Button>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={handleAddCategory}>ADD CATEGORY</Button>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={handleSaveEvaluation}>SAVE EVALUATION</Button>
+        </Box>
+        {/* The correct button for adding sub-category */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={() => setOpenModal(true)}>Add Sub-Category</Button>
+        </Box>
       </Box>
-
-      <PerformanceEvaluationFormAddSection open={addSectionOpen} onClose={() => setAddSectionOpen(false)} onSave={() => {}} />
-      <PerformanceEvaluationFormAddCategory open={addCategoryOpen} onClose={() => setAddCategoryOpen(false)} onSave={() => {}} />
-      <PerformanceEvaluationFormSaveEvaluation open={saveEvaluationOpen} onClose={() => setSaveEvaluationOpen(false)} onProceed={() => setSaveEvaluationOpen(false)} />
-      <SubCategoryModal open={openModal} onClose={handleCloseModal} onSave={handleSaveSubCategory} subCategory={editingSubCategory} />
-      <PerformanceEvaluationFormAcknowledge
-        open={acknowledgeOpen}
-        onClose={() => setAcknowledgeOpen(false)}
-      />
-
     </Layout>
   );
 };
