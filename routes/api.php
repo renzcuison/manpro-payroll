@@ -316,6 +316,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
         // ADMIN ROUTES
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/admin/dashboard1', [AdminDashboardController::class, 'getAttendanceToday1']);
     });
     
     Route::prefix('admin')->group(function () {

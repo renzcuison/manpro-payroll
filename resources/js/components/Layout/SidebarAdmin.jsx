@@ -33,7 +33,7 @@ const StyledNav = styled(NavLink)(({ isActive }) => ({
 }));
 
 const Sidebar = ({ children, closeMini }) => {
-    const { user } = useUser();
+    const { user, refetchUser, isLoading } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -41,6 +41,9 @@ const Sidebar = ({ children, closeMini }) => {
     const handleNavigate = (link) => {
         navigate(link);
     };
+
+    console.log(user);
+
     const { palette } = useTheme();
 
     const [workshifts, setWorkshifts] = useState([]);
@@ -281,21 +284,6 @@ const Sidebar = ({ children, closeMini }) => {
             ],
         },
     ];
-
-    // const loanItems = [{
-    //     id: 8,
-    //     text: 'Performance Evaluation',
-    //     icon: 'fa fa-check',
-    //     children: [
-    //         {
-    //             href: `/member/evaluate`,
-    //             text: 'Evaluate',
-    //         }, {
-    //             href: `/member/evaluation`,
-    //             text: 'My Evaluation',
-    //         }
-    //     ]
-    // }]
 
     const evaluationItems = [
         {

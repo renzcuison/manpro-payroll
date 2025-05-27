@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
 import {
     Avatar,
     Typography,
     Divider,
     Grid,
-    useTheme,
     Paper,
     List,
     ListItem,
@@ -38,7 +36,6 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
-import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
 const Dashboard = () => {
     const { data, isFetched } = useUsers();
@@ -51,7 +48,6 @@ const Dashboard = () => {
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-    console.log("Selected Date: ", selectedDate);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -63,10 +59,11 @@ const Dashboard = () => {
         if (!dashboard || !isFetched) return [];
         const today = new Date();
         const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
+        return dashboard?.employees?.filter((user) => {
             if (!user.latest_attendance_log) {
                 return false;
             }
+
             const attendanceDate = new Date(
                 user.latest_attendance_log?.timestamp
             )
@@ -92,7 +89,7 @@ const Dashboard = () => {
         if (!dashboard || !isFetched) return [];
         const today = new Date();
         const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
+        return dashboard?.employees?.filter((user) => {
             if (!user.latest_attendance_log) {
                 return false;
             }
@@ -109,7 +106,7 @@ const Dashboard = () => {
         if (data) {
             return data
                 ?.filter((user) => user.department_id !== null)
-                .slice(0, 3);
+                ?.slice(0, 3);
         }
     }, [data, isFetched]);
 
@@ -168,7 +165,7 @@ const Dashboard = () => {
         },
         {
             title: "Present",
-            value: presentUsers.length,
+            value: presentUsers?.length,
             icon: <Check size={42} />,
             link: "/admin/attendance/today",
         },
@@ -186,7 +183,7 @@ const Dashboard = () => {
         },
         {
             title: "Absent",
-            value: absentUsers.length,
+            value: dashboard?.employees?.length - presentUsers?.length,
             icon: <CalendarMinus size={42} />,
             link: "/admin/attendance/today",
         },
@@ -284,9 +281,8 @@ const Dashboard = () => {
                             }}
                         >
                             {latestEmployees?.map((emp, index) => (
-                                <React.Fragment>
+                                <React.Fragment key={index}>
                                     <ListItem
-                                        key={index}
                                         alignItems="flex-start"
                                         secondaryAction={
                                             <>

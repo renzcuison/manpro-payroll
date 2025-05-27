@@ -32,8 +32,10 @@ class AdminDashboardController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
         // get employees
-        $employees = UsersModel::with(['department', 'branch', 'jobTitle', 'latestAttendanceLog'])->where('user_type', 'Employee')
-        ->where('client_id', $clientId)->get();
+        $employeesQry = UsersModel::with(['department', 'branch', 'jobTitle', 'latestAttendanceLog', 'attendanceLogs' => function($qry){
+            $qry->orderBy('timestamp', 'desc');
+        }, 'workHours'])->where('user_type', 'Employee')
+        ->where('client_id', $clientId);
 
         $attendanceQry = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
             $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
@@ -41,7 +43,10 @@ class AdminDashboardController extends Controller
 
         $presentEmployees = $attendanceQry->clone()->whereDate('timestamp', $today)->get();
         $allEmployees = $attendanceQry->get();
-        $absentEmployees = $attendanceQry->whereDate('timestamp', '!=', $today)->get();
+        $absentEmployees = $attendanceQry->clone()->whereDate('timestamp', '!=', $today)->get();
+
+        $present = $employeesQry->clone()->get();
+        $employees = $employeesQry->get();
 
         return response()->json([
             'employees' => $employees,
@@ -50,6 +55,143 @@ class AdminDashboardController extends Controller
             'absent' => $absentEmployees
         ]);
     }
+
+    public function getAttendanceToday1(Request $request)
+    {
+        $user = Auth::user();
+        $today = Carbon::now()->toDateString();
+
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 200, 'attendance' => null]);
+        }
+
+        $clientId = $user->client_id;
+
+        // Fetch all Active Employees
+        $allEmployees = UsersModel::where('client_id', $clientId)
+            ->where('user_type', 'Employee')
+            ->where('employment_status', 'Active')
+            ->get();
+
+        $attendanceLogs = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId)
+                ->where('user_type', 'Employee')
+                ->where('employment_status', 'Active');
+        })
+            ->whereDate('timestamp', $today)
+            ->with('user', 'workHour')
+            ->get()
+            ->groupBy('user_id');
+
+        $onLeaveUserIds = ApplicationsModel::whereHas('user', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId)->where('user_type', 'Employee')->where('employment_status', 'Active');
+        })
+            ->where('status', 'Approved')
+            ->whereDate('duration_start', '<=', $today)
+            ->whereDate('duration_end', '>=', $today)
+            ->pluck('user_id')
+            ->toArray();
+
+        $present = [];
+        $late = [];
+        $onLeave = [];
+        $absent = [];
+
+        foreach ($allEmployees as $employee) {
+            $userId = $employee->id;
+
+            if (in_array($userId, $onLeaveUserIds)) {
+                $application = ApplicationsModel::where('user_id', $userId)
+                    ->where('status', 'Approved')
+                    ->whereDate('duration_start', '<=', $today)
+                    ->whereDate('duration_end', '>=', $today)
+                    ->with('type')
+                    ->first();
+
+                $onLeave[] = [
+                    'id' => $employee->id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'middle_name' => $employee->middle_name,
+                    'suffix' => $employee->suffix,
+                    'type_name' => $application->type->name ?? 'Unknown',
+                    'leave_start' => $application->duration_start,
+                    'leave_end' => $application->duration_end,
+                ];
+                continue;
+            }
+
+            $logs = $attendanceLogs[$userId] ?? null;
+
+            if ($logs && $logs->isNotEmpty()) {
+                $workHours = $logs->first()->workHour;
+                $date = Carbon::parse($logs->first()->timestamp)->toDateString();
+                $firstTimeIn = null;
+                $secondTimeIn = null;
+                $isLate = false;
+
+                if ($workHours->shift_type == "Regular") {
+                    $firstTimeIn = $logs->firstWhere('action', 'Duty In');
+                } else {
+                    $firstOut = Carbon::parse("$date {$workHours->first_time_out}");
+                    $secondIn = Carbon::parse("$date {$workHours->second_time_in}");
+                    $secondOut = Carbon::parse("$date {$workHours->second_time_out}");
+
+                    $firstTimeIn = $logs->first(function ($log) use ($firstOut) {
+                        return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->lt($firstOut);
+                    });
+
+                    $secondTimeIn = $logs->first(function ($log) use ($firstOut, $secondOut) {
+                        return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->gt($firstOut) && Carbon::parse($log->timestamp)->lt($secondOut);
+                    });
+                }
+
+                $firstAttendance = $firstTimeIn ?: $secondTimeIn;
+
+                if ($firstAttendance && Carbon::parse($firstAttendance->timestamp)->gt(Carbon::parse("$date {$workHours->first_time_in}"))) {
+                    $isLate = true;
+                }
+
+                $record = [
+                    'id' => $employee->id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'middle_name' => $employee->middle_name,
+                    'suffix' => $employee->suffix,
+                    'shift_type' => $workHours->shift_type,
+                    'first_time_in' => $firstTimeIn ? $firstTimeIn->timestamp : null,
+                    'second_time_in' => $secondTimeIn ? $secondTimeIn->timestamp : null,
+                    'is_late' => $isLate,
+                ];
+
+                $present[] = $record;
+
+                if ($isLate) {
+                    $late[] = $record;
+                }
+            } else {
+                $absent[] = [
+                    'id' => $employee->id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'middle_name' => $employee->middle_name,
+                    'suffix' => $employee->suffix,
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 200,
+            'attendance' => [
+                'all' => $allEmployees,
+                'present' => $present,
+                'late' => $late,
+                'absent' => $absent,
+                'on_leave' => $onLeave,
+            ]
+        ]);
+    }
+
     public function checkUser()
     {
         // Log::info("AdminDashboardController::checkUser");

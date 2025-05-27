@@ -29,8 +29,8 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
     const theme = useTheme();
     const { data, isFetched, isLoading } = useUsers();
     const { data: attendance } = useTodaysAttendance();
-    console.log(data);
-    console.log(dashboardData);
+    // console.log(data);
+    // console.log(dashboardData);
 
     const latestEmployees = useMemo(() => {
         if (dashboardData) {
@@ -62,8 +62,6 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
             }));
         }
     }, [dashboardData, isFetched]);
-
-    // console.log("Branches:", branches);
 
     const departments = useMemo(() => {
         if (dashboardData) {
@@ -249,7 +247,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                         }}
                     >
                         {latestEmployees?.map((emp, index) => (
-                            <React.Fragment>
+                            <React.Fragment key={index}>
                                 <ListItem
                                     alignItems="flex-start"
                                     secondaryAction={
@@ -339,7 +337,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             <MoreVertical />
                         </IconButton>
                     </Box>
-                    <EmployeeBarChart data={departments} />
+                    {departments && <EmployeeBarChart data={departments} />}
                     {/* <List
                         sx={{
                             bgcolor: "background.paper",
@@ -398,8 +396,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             <MoreVertical />
                         </IconButton>
                     </Box>
-
-                    <BranchesChart data={branches} />
+                    {branches && <BranchesChart data={branches} />}
                     {/* <List
                         sx={{
                             bgcolor: "background.paper",
