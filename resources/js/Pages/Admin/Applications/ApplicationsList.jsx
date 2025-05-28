@@ -129,10 +129,10 @@ const ApplicationsList = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center" sx={{ width: "18%" }}> Employee </TableCell>
+                                                <TableCell align="center" sx={{ width: "18%" }}> Date of Application </TableCell>
                                                 <TableCell align="center" sx={{ width: "18%" }}> Application Type </TableCell>
                                                 <TableCell align="center" sx={{ width: "18%" }}> Start Date/Time </TableCell>
                                                 <TableCell align="center" sx={{ width: "18%" }}> End Date/Time </TableCell>
-                                                <TableCell align="center" sx={{ width: "18%" }}> Date of Application </TableCell>
                                                 <TableCell align="center" sx={{ width: "10%" }}> Status </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -157,9 +157,9 @@ const ApplicationsList = () => {
                                                                 </Box>
                                                             </TableCell>
                                                             <TableCell align="center">{application.app_type_name || "-"}</TableCell>
+                                                            <TableCell align="center">{createDate || "-"}</TableCell>
                                                             <TableCell align="center">{startDate || "-"}</TableCell>
                                                             <TableCell align="center">{endDate || "-"}</TableCell>
-                                                            <TableCell align="center">{createDate || "-"}</TableCell>
                                                             <TableCell align="center">
                                                                 {application.app_status ? (
                                                                     <Chip label={application.app_status}

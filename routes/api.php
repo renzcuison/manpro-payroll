@@ -106,7 +106,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
 
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SeterttingsController::class, 'saveJobTitle']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
@@ -133,7 +133,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
-        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeeController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
