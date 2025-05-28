@@ -36,6 +36,6 @@ return new class extends Migration
         });
 
         // Revert enum to old values and make NOT NULL (adjust to your original state)
-        DB::statement("ALTER TABLE employee_educations MODIFY COLUMN degree_type ENUM('College/Bachelors', 'Master', 'Doctoral') NULL");
+        DB::statement("ALTER TABLE employee_educations MODIFY COLUMN degree_type ENUM('College/Bachelors', 'Masters', 'Doctoral') NULL");
     }
 };
