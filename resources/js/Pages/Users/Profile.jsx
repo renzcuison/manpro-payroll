@@ -109,7 +109,7 @@ const Profile = () => {
             </Box>
 
             {openProfileEditModal &&
-                <ProfileEdit open={openProfileEditModal} close={handleCloseProfileEditModal} employee={user} avatar={user?.media[0]?.original_url} medScreen={medScreen} />
+                <ProfileEdit open={openProfileEditModal} close={handleCloseProfileEditModal} employee={user} medScreen={medScreen} />
             }
         </Layout>
     );

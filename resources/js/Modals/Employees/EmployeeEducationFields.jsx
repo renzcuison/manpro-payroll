@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography,
-     CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Avatar, Stack, Tooltip, Divider } from '@mui/material';
+import { Box, Button, Grid, TextField, Typography, FormControl,  MenuItem } from '@mui/material';
 import { CgAdd, CgTrash } from "react-icons/cg";  
 
 
-function EducationFields({educations, handleChange, handleAddFields, handleRemoveFields}){
+function EmployeeEducationFields({educations, handleChange, handleAddFields, handleRemoveFields}){
     return(
         <Box>
             <Box display="flex" sx={{mb:2}}>
@@ -54,8 +53,7 @@ function EducationFields({educations, handleChange, handleAddFields, handleRemov
                 </Grid>
                 ))}    
             </Grid>
-
         </Box>
     );
 }
-export default EducationFields;
+export default EmployeeEducationFields;

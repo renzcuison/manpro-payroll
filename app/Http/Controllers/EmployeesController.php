@@ -492,16 +492,6 @@ class EmployeesController extends Controller
             $user->contact_number = $request->input('contact_number');
             $user->address = $request->input('address');
 
-            // Save profile pic using spatie media library
-            if ($request->hasFile('profile_pic')) {
-                
-			    $user->clearMediaCollection('profile_pic');
-                $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
-            }
-
-            // log::info("Stopper");
-            // dd("Stopper");
-            
             if ($request->has('add_educations')){
                 $educations = json_decode($request->input('add_educations'), true);
 
@@ -509,8 +499,8 @@ class EmployeesController extends Controller
                     EmployeeEducation::create([
                         'employee_id' => $user->id,
                         'school_name' => $education['school_name'],
-                        'degree_name' => $education['degree_name'],
-                        'degree_type' => $education['degree_type'],
+                        'program_name' => $education['program_name'],
+                        'education_level' => $education['education_level'],
                         'year_graduated' => $education['year_graduated'],
                     ]);
                 }
@@ -521,8 +511,8 @@ class EmployeesController extends Controller
                 foreach($educations as $education){
                     EmployeeEducation::where('id', $education['id'])->update([
                         'school_name' => $education['school_name'],
-                        'degree_name' => $education['degree_name'],
-                        'degree_type' => $education['degree_type'],
+                        'program_name' => $education['program_name'],
+                        'education_level' => $education['education_level'],
                         'year_graduated' => $education['year_graduated'],
                     ]);
                 }
@@ -540,9 +530,27 @@ class EmployeesController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
             Log::error("Error saving: " . $e->getMessage());
+            throw $e;
+        }
+    }
 
+    public function editMyProfileAvatar(Request $request){
+        $user = UsersModel::findOrFail($request->input('id'));
+        try {
+            // Save profile pic using spatie media library
+            if ($request->hasFile('profile_pic')) {             
+			    $user->clearMediaCollection('profile_pic');
+                $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');   
+            }
+            $user->save();
+            return response()->json([
+                'user' => $user->load('media'),
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving: " . $e->getMessage());
             throw $e;
         }
     }
@@ -616,8 +624,8 @@ class EmployeesController extends Controller
                         EmployeeEducation::create([
                             'employee_id' => $employee->id,
                             'school_name' => $education['school_name'],
-                            'degree_name' => $education['degree_name'],
-                            'degree_type' => $education['degree_type'],
+                            'program_name' => $education['program_name'],
+                            'education_level' => $education['education_level'],
                             'year_graduated' => $education['year_graduated'],
                         ]);
                     }
@@ -626,8 +634,8 @@ class EmployeesController extends Controller
                     foreach($updateEducations as $education){
                         EmployeeEducation::where('id', $education['id'])->update([
                             'school_name' => $education['school_name'],
-                            'degree_name' => $education['degree_name'],
-                            'degree_type' => $education['degree_type'],
+                            'program_name' => $education['program_name'],
+                            'education_level' => $education['education_level'],
                             'year_graduated' => $education['year_graduated'],
                         ]);
                     }
@@ -637,15 +645,11 @@ class EmployeesController extends Controller
                 }
 
                 // Taxes
-
                 DB::commit();
-
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
                 Log::error("Error saving: " . $e->getMessage());
-
                 throw $e;
             }
         }
