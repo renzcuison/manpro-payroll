@@ -28,31 +28,20 @@ class AdminDashboardController extends Controller
         if (!Auth::check()) {
             return response()->json(["error" => 'Unautorized' ], 401);
         }
-        $today = Carbon::now()->toDateString();
+
         $user = Auth::user();
         $clientId = $user->client_id;
         // get employees
-        $employeesQry = UsersModel::with(['department', 'branch', 'jobTitle', 'latestAttendanceLog', 'attendanceLogs' => function($qry){
+        $employees = UsersModel::with(['media','department', 'branch', 'jobTitle', 'latestAttendanceLog', 'attendanceLogs' => function($qry){
             $qry->orderBy('timestamp', 'desc');
         }, 'workHours'])->where('user_type', 'Employee')
-        ->where('client_id', $clientId);
+        ->where('client_id', $clientId)->orderBy('created_at', 'DESC')->get();
 
-        $attendanceQry = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
-            $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
-        })->with('user', 'workHour');
-
-        $presentEmployees = $attendanceQry->clone()->whereDate('timestamp', $today)->get();
-        $allEmployees = $attendanceQry->get();
-        $absentEmployees = $attendanceQry->clone()->whereDate('timestamp', '!=', $today)->get();
-
-        $present = $employeesQry->clone()->get();
-        $employees = $employeesQry->get();
+        $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->orderBy('created_at', 'asc')->get();
 
         return response()->json([
             'employees' => $employees,
-            'attendance' => $allEmployees,
-            'present' => $presentEmployees,
-            'absent' => $absentEmployees
+            'requests' => $apps
         ]);
     }
 

@@ -42,8 +42,6 @@ const Sidebar = ({ children, closeMini }) => {
         navigate(link);
     };
 
-    console.log(user);
-
     const { palette } = useTheme();
 
     const [workshifts, setWorkshifts] = useState([]);
@@ -475,6 +473,18 @@ const Sidebar = ({ children, closeMini }) => {
                                             className="sidebar-mini-hide"
                                         >
                                             Schedules & Holidays
+                                        </span>
+                                    </StyledNav>
+                                    <StyledNav to={`/admin/milestones`}>
+                                        <i
+                                            className="fa fa-external-link"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Milestones
                                         </span>
                                     </StyledNav>
                                     <StyledNav to={`/admin/announcements`}>

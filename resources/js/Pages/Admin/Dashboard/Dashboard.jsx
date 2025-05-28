@@ -49,16 +49,18 @@ const Dashboard = () => {
         moment().format("YYYY-MM-DD")
     );
 
+    console.log(dashboard);
+
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
 
     const [adminName, setAdminName] = useState("Admin");
 
+    console.log("Selected date:", selectedDate);
+
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
         return dashboard?.employees?.filter((user) => {
             if (!user.latest_attendance_log) {
                 return false;
@@ -69,9 +71,11 @@ const Dashboard = () => {
             )
                 .toISOString()
                 .split("T")[0];
-            return attendanceDate === todayDate;
+            return attendanceDate === selectedDate;
         });
-    }, [dashboard, isFetched]);
+    }, [dashboard, selectedDate]);
+
+    console.log("Present users: ", presentUsers);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
@@ -156,6 +160,27 @@ const Dashboard = () => {
         }
     }, [data, isFetched]);
 
+    function normalizeDate(date) {
+        return new Date(date.toISOString().split("T")[0]);
+    }
+    const onLeave = useMemo(() => {
+        if (dashboard) {
+            return dashboard.requests.filter((leave) => {
+                const checkDate = normalizeDate(new Date());
+                const startDate = normalizeDate(new Date(leave.duration_start));
+                const endDate = normalizeDate(new Date(leave.duration_end));
+
+                return (
+                    leave.status === "approved" &&
+                    checkDate >= startDate &&
+                    checkDate <= endDate
+                );
+            });
+        }
+    }, [dashboard]);
+
+    console.log("On leave: ", onLeave);
+
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -177,21 +202,27 @@ const Dashboard = () => {
         },
         {
             title: "On Leave",
-            value: 0,
+            value: onLeave?.length,
             icon: <CalendarCheck size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Absent",
-            value: dashboard?.employees?.length - presentUsers?.length,
+            value:
+                dashboard?.employees?.length -
+                presentUsers?.length -
+                onLeave?.length,
             icon: <CalendarMinus size={42} />,
             link: "/admin/attendance/today",
         },
     ];
 
+    console.log(latestEmployees);
+
     return (
         <Layout>
             <Grid container spacing={3} sx={{ mb: 5 }}>
+                {/* MAIN DASHBOARD CARD */}
                 <Grid size={{ xs: 12, lg: 9 }}>
                     {!isLoading ? (
                         <MainSection
@@ -220,6 +251,8 @@ const Dashboard = () => {
                         </Stack>
                     )}
                 </Grid>
+
+                {/* SCHEDULES & HOLIDAYS CARD */}
                 <Grid
                     size={{ xs: 12, lg: 3 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -231,6 +264,7 @@ const Dashboard = () => {
                     )}
                 </Grid>
 
+                {/* OVERVIEW SUMMARY CARD */}
                 <Grid
                     size={{ xs: 12, lg: 8 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -255,6 +289,7 @@ const Dashboard = () => {
                         </Tabs>
                     </Paper>
                 </Grid>
+                {/* BIRTHDAYS AND MILESTONES CARD */}
                 <Grid
                     size={{ xs: 12, lg: 4 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
