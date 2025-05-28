@@ -25,7 +25,8 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    InputAdornment
+    InputAdornment,
+    Checkbox
 } from "@mui/material";
 import Swal from "sweetalert2";
 import { red } from "@mui/material/colors";
@@ -46,9 +47,9 @@ const BranchDetails = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [allEmployees, setAllEmployees] = useState([]);
-    const [managerSearch, setManagerSearch] = useState("");
-    const [supervisorSearch, setSupervisorSearch] = useState("");
-    const [approverSearch, setApproverSearch] = useState("");
+    const [branchPositions, setBranchPositions] = useState([]);
+    const [positionAssignments, setPositionAssignments] = useState([]);
+    const [searchQueries, setSearchQueries] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,6 +68,14 @@ const BranchDetails = () => {
                 // Fetch all employees for personnel assignment dropdowns
                 const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
                 setAllEmployees(employeesResponse.data.employees || []);
+
+                // Fetch branch positions
+                const positionsResponse = await axiosInstance.get('/settings/getBranchPositions', { headers });
+                setBranchPositions(positionsResponse.data.positions || []);
+
+                // Fetch current position assignments for this branch
+                const assignmentsResponse = await axiosInstance.get(`/settings/getBranchPositionAssignments/${id}`, { headers });
+                setPositionAssignments(assignmentsResponse.data.assignments || []);
 
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -93,24 +102,54 @@ const BranchDetails = () => {
         return employee ? employee.avatar : null;
     };
 
+    // Get assigned employee for a specific position
+    const getAssignedEmployeeForPosition = (positionId) => {
+        const assignment = positionAssignments.find(a => a.branch_position_id === positionId);
+        return assignment ? assignment.employee_id : null;
+    };
+
+    // Update position assignment
+    const handlePositionAssignmentChange = (positionId, employeeId) => {
+        const updatedAssignments = [...positionAssignments];
+        const existingIndex = updatedAssignments.findIndex(a => a.branch_position_id === positionId);
+        
+        if (existingIndex >= 0) {
+            if (employeeId) {
+                updatedAssignments[existingIndex].employee_id = employeeId;
+            } else {
+                updatedAssignments.splice(existingIndex, 1);
+            }
+        } else if (employeeId) {
+            updatedAssignments.push({
+                branch_id: id,
+                branch_position_id: positionId,
+                employee_id: employeeId
+            });
+        }
+        
+        setPositionAssignments(updatedAssignments);
+    };
+
     const filteredEmployees = employees.filter(emp => {
         const nameMatch = emp.name.toLowerCase().includes(searchKeyword.toLowerCase());
         const departmentMatch = departmentFilter === "all" || emp.department.toLowerCase().includes(departmentFilter.toLowerCase());
         return nameMatch && departmentMatch;
     });
 
-    // Filter functions for dropdown searches
-    const filteredManagerOptions = allEmployees.filter(emp => 
-        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(managerSearch.toLowerCase())
-    );
+    // Filter function for dropdown searches
+    const getFilteredEmployeeOptions = (positionId) => {
+        const searchQuery = searchQueries[positionId] || "";
+        return allEmployees.filter(emp => 
+            `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    };
 
-    const filteredSupervisorOptions = allEmployees.filter(emp => 
-        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(supervisorSearch.toLowerCase())
-    );
-
-    const filteredApproverOptions = allEmployees.filter(emp => 
-        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(approverSearch.toLowerCase())
-    );
+    const handleSearchChange = (positionId, value) => {
+        setSearchQueries(prev => ({
+            ...prev,
+            [positionId]: value
+        }));
+    };
 
     if (error) return (
         <Layout title={"Branches"}>
@@ -194,55 +233,54 @@ const BranchDetails = () => {
                                             px: 2,
                                         }}
                                     >
-                                        {[
-                                            { role: 'Manager', id: branch.manager_id },
-                                            { role: 'Supervisor', id: branch.supervisor_id },
-                                            { role: 'Approver', id: branch.approver_id },
-                                        ].map(({ role, id }) => (
-                                            <Box
-                                                key={role}
-                                                sx={{
-                                                    flex: 1,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    p: 2,
-                                                    ml: 10,
-                                                    bgcolor: '#fff',
-                                                    borderRadius: '6px',
-                                                    textAlign: 'center',
-                                                }}
-                                            >
-                                                <Avatar
-                                                    src={getEmployeeAvatarById(id)}
-                                                    sx={{ width: 90, height: 90, mb: 1 }}
-                                                />
-                                                <TextField
-                                                    value={getEmployeeNameById(id)}
-                                                    fullWidth
-                                                    InputProps={{
-                                                        readOnly: true,
-                                                        sx: {
-                                                            input: {
-                                                                textAlign: 'center',
-                                                                fontWeight: 'bold'
-                                                            },
-                                                            "& .MuiOutlinedInput-notchedOutline": {
-                                                                border: 'none',
-                                                            },
-                                                        },
-                                                    }}
+                                        {branchPositions.map(position => {
+                                            const assignedEmployeeId = getAssignedEmployeeForPosition(position.id);
+                                            return (
+                                                <Box
+                                                    key={position.id}
                                                     sx={{
-                                                        "& .MuiOutlinedInput-root": {
-                                                            backgroundColor: 'transparent',
-                                                        },
+                                                        flex: 1,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        p: 2,
+                                                        ml: 10,
+                                                        bgcolor: '#fff',
+                                                        borderRadius: '6px',
+                                                        textAlign: 'center',
                                                     }}
-                                                />
-                                                <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
-                                                    {role}
+                                                >
+                                                    <Avatar
+                                                        src={getEmployeeAvatarById(assignedEmployeeId)}
+                                                        sx={{ width: 90, height: 90, mb: 1 }}
+                                                    />
+                                                    <TextField
+                                                        value={getEmployeeNameById(assignedEmployeeId)}
+                                                        fullWidth
+                                                        InputProps={{
+                                                            readOnly: true,
+                                                            sx: {
+                                                                input: {
+                                                                    textAlign: 'center',
+                                                                    fontWeight: 'bold'
+                                                                },
+                                                                "& .MuiOutlinedInput-notchedOutline": {
+                                                                    border: 'none',
+                                                                },
+                                                            },
+                                                        }}
+                                                        sx={{
+                                                            "& .MuiOutlinedInput-root": {
+                                                                backgroundColor: 'transparent',
+                                                            },
+                                                        }}
+                                                    />
+                                                    <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                                        {position.name}
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        ))}
+                                            );
+                                        })}
                                     </Box>
                                 </Grid>
                             </Grid>
@@ -325,6 +363,7 @@ const BranchDetails = () => {
                                                         <TableCell align="left">
                                                             {employee.department}
                                                         </TableCell>
+
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -332,7 +371,7 @@ const BranchDetails = () => {
                                     </TableContainer>
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={2} align="center">
+                                        <TableCell colSpan={3} align="center">
                                             No employees found in this branch.
                                         </TableCell>
                                     </TableRow>
@@ -466,163 +505,61 @@ const BranchDetails = () => {
                             </FormControl>
                         </FormGroup>
 
-                        <FormGroup row={true} className="d-flex justify-content-between">
-                            {/* Manager Dropdown with Search */}
-                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
-                                <InputLabel id="manager-label">Manager</InputLabel>
-                                <Select
-                                    labelId="manager-label"
-                                    id="manager-select"
-                                    value={branch.manager_id || ''}
-                                    label="Manager"
-                                    onChange={(e) => setBranch({ ...branch, manager_id: e.target.value })}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            style: {
-                                                maxHeight: 300
-                                            }
-                                        },
-                                        onClick: (e) => e.stopPropagation()
-                                    }}
-                                >
-                                    <MenuItem value="" sx={{ p: 0 }}>
-                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-                                            <TextField
-                                                fullWidth
-                                                placeholder="Search manager..."
-                                                value={managerSearch}
-                                                onChange={(e) => setManagerSearch(e.target.value)}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    e.nativeEvent.stopImmediatePropagation();
-                                                }}
-                                                onKeyDown={(e) => e.stopPropagation()}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <SearchIcon />
-                                                        </InputAdornment>
-                                                    ),
-                                                }}
-                                                variant="standard"
-                                                sx={{ p: 1 }}
-                                                autoFocus
-                                            />
-                                        </Box>
-                                    </MenuItem>
-                                    <MenuItem value="">Not assigned</MenuItem>
-                                    {filteredManagerOptions.map((emp) => (
-                                        <MenuItem key={emp.id} value={emp.id}>
-                                            {`${emp.first_name} ${emp.last_name}`}
+                        {/* Position Assignments */}
+                        {branchPositions.map(position => (
+                            <FormGroup key={position.id} row={true} className="d-flex justify-content-between">
+                                <FormControl sx={{ marginBottom: 3, width: '100%' }}>
+                                    <InputLabel id={`position-${position.id}-label`}>{position.name}</InputLabel>
+                                    <Select
+                                        labelId={`position-${position.id}-label`}
+                                        id={`position-${position.id}-select`}
+                                        value={getAssignedEmployeeForPosition(position.id) || ''}
+                                        label={position.name}
+                                        onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
+                                        MenuProps={{
+                                            PaperProps: {
+                                                style: {
+                                                    maxHeight: 300
+                                                }
+                                            },
+                                            onClick: (e) => e.stopPropagation()
+                                        }}
+                                    >
+                                        <MenuItem value="" sx={{ p: 0 }}>
+                                            <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder={`Search ${position.name}...`}
+                                                    value={searchQueries[position.id] || ''}
+                                                    onChange={(e) => handleSearchChange(position.id, e.target.value)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.nativeEvent.stopImmediatePropagation();
+                                                    }}
+                                                    onKeyDown={(e) => e.stopPropagation()}
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <SearchIcon />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    variant="standard"
+                                                    sx={{ p: 1 }}
+                                                    autoFocus
+                                                />
+                                            </Box>
                                         </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            
-                            {/* Supervisor Dropdown with Search */}
-                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
-                                <InputLabel id="supervisor-label">Supervisor</InputLabel>
-                                <Select
-                                    labelId="supervisor-label"
-                                    id="supervisor-select"
-                                    value={branch.supervisor_id || ''}
-                                    label="Supervisor"
-                                    onChange={(e) => setBranch({ ...branch, supervisor_id: e.target.value })}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            style: {
-                                                maxHeight: 300
-                                            }
-                                        },
-                                        onClick: (e) => e.stopPropagation()
-                                    }}
-                                >
-                                    <MenuItem value="" sx={{ p: 0 }}>
-                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-                                            <TextField
-                                                fullWidth
-                                                placeholder="Search supervisor..."
-                                                value={supervisorSearch}
-                                                onChange={(e) => setSupervisorSearch(e.target.value)}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    e.nativeEvent.stopImmediatePropagation();
-                                                }}
-                                                onKeyDown={(e) => e.stopPropagation()}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <SearchIcon />
-                                                        </InputAdornment>
-                                                    ),
-                                                }}
-                                                variant="standard"
-                                                sx={{ p: 1 }}
-                                                autoFocus
-                                            />
-                                        </Box>
-                                    </MenuItem>
-                                    <MenuItem value="">Not assigned</MenuItem>
-                                    {filteredSupervisorOptions.map((emp) => (
-                                        <MenuItem key={emp.id} value={emp.id}>
-                                            {`${emp.first_name} ${emp.last_name}`}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            {/* Approver Dropdown with Search */}
-                            <FormControl sx={{ marginBottom: 3, width: '32%' }}>
-                                <InputLabel id="approver-label">Approver</InputLabel>
-                                <Select
-                                    labelId="approver-label"
-                                    id="approver-select"
-                                    value={branch.approver_id || ''}
-                                    label="Approver"
-                                    onChange={(e) => setBranch({ ...branch, approver_id: e.target.value })}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            style: {
-                                                maxHeight: 300
-                                            }
-                                        },
-                                        onClick: (e) => e.stopPropagation()
-                                    }}
-                                >
-                                    <MenuItem value="" sx={{ p: 0 }}>
-                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-                                            <TextField
-                                                fullWidth
-                                                placeholder="Search approver..."
-                                                value={approverSearch}
-                                                onChange={(e) => setApproverSearch(e.target.value)}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    e.nativeEvent.stopImmediatePropagation();
-                                                }}
-                                                onKeyDown={(e) => e.stopPropagation()}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <SearchIcon />
-                                                        </InputAdornment>
-                                                    ),
-                                                }}
-                                                variant="standard"
-                                                sx={{ p: 1 }}
-                                                autoFocus
-                                            />
-                                        </Box>
-                                    </MenuItem>
-                                    <MenuItem value="">Not assigned</MenuItem>
-                                    {filteredApproverOptions.map((emp) => (
-                                        <MenuItem key={emp.id} value={emp.id}>
-                                            {`${emp.first_name} ${emp.last_name}`}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </FormGroup>
+                                        <MenuItem value="">Not assigned</MenuItem>
+                                        {getFilteredEmployeeOptions(position.id).map((emp) => (
+                                            <MenuItem key={emp.id} value={emp.id}>
+                                                {`${emp.first_name} ${emp.last_name}`}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </FormGroup>
+                        ))}
 
                         <FormGroup row={true} className="d-flex justify-content-between">
                             {/* Contact Number */}
@@ -648,21 +585,36 @@ const BranchDetails = () => {
                                 className="m-1"
                                 onClick={async () => {
                                     try {
-                                        const response = await axiosInstance.post('/settings/editBranch', branch, { headers });
-                                        if (response.data.status === 200) {
-                                            Swal.fire({
-                                                customClass: { container: 'my-swal' },
-                                                text: "Branch updated successfully!",
-                                                icon: "success",
-                                                showConfirmButton: true,
-                                                confirmButtonText: 'Proceed',
-                                                confirmButtonColor: '#177604',
-                                            });
-                                            setOpenEditModal(false);
-                                            // Refresh the branch data
-                                            const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
-                                            setBranch(updatedResponse.data.branch);
-                                            setEmployees(updatedResponse.data.employees || []);
+                                        // First update branch details
+                                        const branchResponse = await axiosInstance.post('/settings/editBranch', branch, { headers });
+                                        
+                                        if (branchResponse.data.status === 200) {
+                                            // Then update position assignments
+                                            const assignmentsResponse = await axiosInstance.post(
+                                                '/settings/updateBranchPositionAssignments',
+                                                { 
+                                                    branch_id: id,
+                                                    assignments: positionAssignments
+                                                },
+                                                { headers }
+                                            );
+
+                                            if (assignmentsResponse.data.status === 200) {
+                                                Swal.fire({
+                                                    customClass: { container: 'my-swal' },
+                                                    text: "Branch updated successfully!",
+                                                    icon: "success",
+                                                    showConfirmButton: true,
+                                                    confirmButtonText: 'Proceed',
+                                                    confirmButtonColor: '#177604',
+                                                });
+                                                setOpenEditModal(false);
+                                                // Refresh the branch data
+                                                const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
+                                                setBranch(updatedResponse.data.branch);
+                                                setEmployees(updatedResponse.data.employees || []);
+                                                setPositionAssignments(updatedResponse.data.position_assignments || []);
+                                            }
                                         }
                                     } catch (error) {
                                         console.error('Error:', error);

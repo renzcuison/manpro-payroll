@@ -38,37 +38,29 @@ const BranchList = () => {
     const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-    
-    // Table settings state with defaults
-    const [tableSettings, setTableSettings] = useState({
-        client_id: "",
-        with_manager: true,
-        with_supervisor: true,
-        with_approver: true,
-        manager_limit: 1,
-        supervisor_limit: 1,
-        approver_limit: 1
-    });
+    const [branchPositions, setBranchPositions] = useState([]);
 
+    // Add Branch Modal
     const [openModal, setOpenModal] = useState(false);
-    const [openSettingsModal, setOpenSettingsModal] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
     const [name, setName] = useState("");
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
-    
-    // For dropdown menu
-    const [anchorEl, setAnchorEl] = useState(null);
-    const openMenu = Boolean(anchorEl);
 
-    const handleMenuClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
+    // Branch Positions Settings Modal
+    const [openSettingsModal, setOpenSettingsModal] = useState(false);
+    const [newPosition, setNewPosition] = useState({
+        name: "",
+        can_review_request: false,
+        can_approve_request: false,
+        can_note_request: false,
+        can_accept_request: false
+    });
+
+    // Add Button Dropdown
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -83,21 +75,19 @@ const BranchList = () => {
                 const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
                 setAllEmployees(employeesResponse.data.employees || []);
 
-                // Fetch branch settings
-                const settingsResponse = await axiosInstance.get('/settings/getBranchSettings', { headers });
-                if (settingsResponse.data.settings) {
-                    setTableSettings(settingsResponse.data.settings);
-                    // Also save to localStorage as fallback
-                    localStorage.setItem("branchTableSettings", JSON.stringify(settingsResponse.data.settings));
-                }
+                // Fetch branch positions
+                const positionsResponse = await axiosInstance.get('/settings/getBranchPositions', { headers });
+                setBranchPositions(positionsResponse.data.positions || []);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
-                // Fallback to localStorage if API fails
-                const savedSettings = localStorage.getItem("branchTableSettings");
-                if (savedSettings) {
-                    setTableSettings(JSON.parse(savedSettings));
-                }
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error loading data!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
             } finally {
                 setIsLoading(false);
             }
@@ -113,17 +103,36 @@ const BranchList = () => {
         return employee ? `${employee.first_name} ${employee.last_name}` : "-";
     };
 
-    // Helper function to get employee avatar by ID
-    const getEmployeeAvatarById = (employeeId) => {
-        if (!employeeId) return null;
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? employee.avatar : null;
+    // Helper function to get employees assigned to a specific branch and position
+    const getEmployeesForBranchPosition = (branchId, positionId) => {
+        const employeesInBranch = allEmployees.filter(emp => emp.branch_id === branchId && emp.branch_position_id === positionId);
+        return employeesInBranch.map(emp => `${emp.first_name} ${emp.last_name}`).join(", ") || "-";
     };
 
     const filteredBranches = branches.filter((bran) =>
         bran.name.toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
+    // Add Button Dropdown Handlers
+    const handleAddClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleAddClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleAddNew = () => {
+        handleAddClose();
+        setOpenModal(true);
+    };
+
+    const handleSettings = () => {
+        handleAddClose();
+        setOpenSettingsModal(true);
+    };
+
+    // Add New Branch Functions
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -188,46 +197,99 @@ const BranchList = () => {
             })
             .catch(error => {
                 console.error('Error:', error);
-            });
-    };
-
-    const handleSettingsChange = (field, value) => {
-        setTableSettings(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const saveSettings = async () => {
-        try {
-            const response = await axiosInstance.post(
-                '/settings/saveBranchSettings', 
-                tableSettings,
-                { headers }
-            );
-            
-            if (response.data.status === 200) {
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Settings saved successfully!",
-                    icon: "success",
+                    text: "Error saving branch!",
+                    icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: '#177604',
                 });
-                setOpenSettingsModal(false);
-                // Also save to localStorage as fallback
-                localStorage.setItem("branchTableSettings", JSON.stringify(tableSettings));
-            }
-        } catch (error) {
-            console.error("Error saving settings:", error);
+            });
+    };
+
+    // Branch Positions Settings Functions
+    const handlePositionChange = (index, field, value) => {
+        const updatedPositions = [...branchPositions];
+        updatedPositions[index][field] = value;
+        setBranchPositions(updatedPositions);
+    };
+
+    const savePositionChanges = (index) => {
+        const position = branchPositions[index];
+        
+        axiosInstance.post('/settings/saveBranchPosition', position, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    // Update the local state with the returned position data
+                    const updatedPositions = [...branchPositions];
+                    updatedPositions[index] = response.data.position;
+                    setBranchPositions(updatedPositions);
+                    
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Position updated successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#177604',
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error updating position:', error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error updating position!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            });
+    };
+
+    const addNewPosition = () => {
+        if (!newPosition.name) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "Failed to save settings",
+                text: "Position name is required!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
             });
+            return;
         }
+
+        axiosInstance.post('/settings/saveBranchPosition', newPosition, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    setBranchPositions(prev => [...prev, response.data.position]);
+                    setNewPosition({
+                        name: "",
+                        can_review_request: false,
+                        can_approve_request: false,
+                        can_note_request: false,
+                        can_accept_request: false
+                    });
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Position added successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#177604',
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error adding position:', error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error adding position!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            });
     };
 
     return (
@@ -251,7 +313,7 @@ const BranchList = () => {
                             <Button 
                                 variant="contained" 
                                 color="primary"
-                                onClick={handleMenuClick}
+                                onClick={handleAddClick}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
                                 endIcon={<i className="fa fa-caret-down"></i>}
                             >
@@ -259,26 +321,19 @@ const BranchList = () => {
                                     <i className="fa fa-plus mr-2"></i> Add
                                 </p>
                             </Button>
-                            
                             <Menu
                                 anchorEl={anchorEl}
-                                open={openMenu}
-                                onClose={handleMenuClose}
+                                open={open}
+                                onClose={handleAddClose}
                                 MenuListProps={{
                                     'aria-labelledby': 'basic-button',
                                 }}
                             >
-                                <MenuItem onClick={() => {
-                                    setOpenModal(true);
-                                    handleMenuClose();
-                                }}>
-                                    <i className="fa fa-plus mr-2"></i> Add Branch
+                                <MenuItem onClick={handleAddNew}>
+                                    <ListItemText>Add New Branch</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={() => {
-                                    setOpenSettingsModal(true);
-                                    handleMenuClose();
-                                }}>
-                                    <i className="fa fa-cog mr-2"></i> Settings
+                                <MenuItem onClick={handleSettings}>
+                                    <ListItemText>Branch Positions Settings</ListItemText>
                                 </MenuItem>
                             </Menu>
                         </Grid>
@@ -316,22 +371,19 @@ const BranchList = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center" sx={{fontWeight: 'bold'}}>Branch</TableCell>
-                                                {tableSettings.with_manager && (
-                                                    <TableCell align="center"sx={{fontWeight: 'bold'}}>Assigned Manager</TableCell>
-                                                )}
-                                                {tableSettings.with_supervisor && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Supervisor</TableCell>
-                                                )}
-                                                {tableSettings.with_approver && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Approver</TableCell>
-                                                )}
+                                                {branchPositions.map(position => (
+                                                    <TableCell key={position.id} align="center" sx={{fontWeight: 'bold'}}>
+                                                        {position.name}
+                                                    </TableCell>
+                                                ))}
+                                                <TableCell align="center" sx={{fontWeight: 'bold'}}>No. of Employees</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {filteredBranches.length > 0 ? (
-                                                filteredBranches.map((bran) => (
+                                                filteredBranches.map((branch) => (
                                                     <TableRow 
-                                                        key={bran.id}
+                                                        key={branch.id}
                                                         hover
                                                         sx={{ 
                                                             cursor: "pointer",
@@ -342,7 +394,7 @@ const BranchList = () => {
                                                     >
                                                         <TableCell align="center">
                                                             <Link
-                                                                to={`/admin/branches/${bran.id}`}
+                                                                to={`/admin/branches/${branch.id}`}
                                                                 style={{
                                                                     textDecoration: "none",
                                                                     color: "inherit",
@@ -357,14 +409,15 @@ const BranchList = () => {
                                                                     alignItems="center"
                                                                     justifyContent="center"
                                                                 >
-                                                                    {bran.name}
+                                                                    {branch.name}
                                                                 </Box>
                                                             </Link>
                                                         </TableCell>
-                                                        {tableSettings.with_manager && (
-                                                            <TableCell align="center">
+                                                        
+                                                        {branchPositions.map(position => (
+                                                            <TableCell key={position.id} align="center">
                                                                 <Link
-                                                                    to={`/admin/branches/${bran.id}`}
+                                                                    to={`/admin/branches/${branch.id}`}
                                                                     style={{
                                                                         textDecoration: "none",
                                                                         color: "inherit",
@@ -374,60 +427,31 @@ const BranchList = () => {
                                                                         padding: "16px"
                                                                     }}
                                                                 >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.manager_id)}
-                                                                    </Box>
+                                                                    {getEmployeesForBranchPosition(branch.id, position.id)}
                                                                 </Link>
                                                             </TableCell>
-                                                        )}
-                                                        {tableSettings.with_supervisor && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.supervisor_id)}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                        {tableSettings.with_approver && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.approver_id)}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
+                                                        ))}
+                                                        
+                                                        <TableCell align="center">
+                                                            <Link
+                                                                to={`/admin/branches/${branch.id}`}
+                                                                style={{
+                                                                    textDecoration: "none",
+                                                                    color: "inherit",
+                                                                    display: "block",
+                                                                    width: "100%",
+                                                                    height: "100%",
+                                                                    padding: "16px"
+                                                                }}
+                                                            >
+                                                                {branch.employees_count || "0"}
+                                                            </Link>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={
-                                                        1 + // Branch column
-                                                        (tableSettings.with_manager ? 1 : 0) +
-                                                        (tableSettings.with_supervisor ? 1 : 0) +
-                                                        (tableSettings.with_approver ? 1 : 0)
-                                                    } align="center">
+                                                    <TableCell colSpan={branchPositions.length + 2} align="center">
                                                         No branches found.
                                                     </TableCell>
                                                 </TableRow>
@@ -464,7 +488,7 @@ const BranchList = () => {
                 </Box>
             </Box>
 
-            {/* Add Branch Modal */}
+            {/* Add New Branch Modal */}
             <Dialog
                 open={openModal}
                 onClose={() => setOpenModal(false)}
@@ -484,7 +508,7 @@ const BranchList = () => {
             >
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Branch </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add New Branch </Typography>
                         <IconButton onClick={() => setOpenModal(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -555,121 +579,154 @@ const BranchList = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Settings Modal */}
+            {/* Branch Positions Settings Modal */}
             <Dialog
                 open={openSettingsModal}
                 onClose={() => setOpenSettingsModal(false)}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="lg"
                 PaperProps={{
                     style: {
                         padding: '16px',
                         backgroundColor: '#f8f9fa',
                         boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
                         borderRadius: '20px',
+                        minWidth: '800px',
+                        maxWidth: '1200px',
                         marginBottom: '5%'
                     }
                 }}
             >
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Table Settings </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Branch Positions Settings </Typography>
                         <IconButton onClick={() => setOpenSettingsModal(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box sx={{ mt: 3, my: 3 }}>
-                        <Typography variant="h6" sx={{ mb: 2 }}>Branch Settings:</Typography>
+                        <Typography variant="h6" sx={{ mb: 3 }}>Existing Positions</Typography>
+                        
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Position Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Can Review Request</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Can Approve Request</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Can Note Request</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Can Accept Request</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {branchPositions.map((position, index) => (
+                                        <TableRow key={position.id}>
+                                            <TableCell>
+                                                <TextField
+                                                    fullWidth
+                                                    value={position.name}
+                                                    onChange={(e) => handlePositionChange(index, 'name', e.target.value)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_review_request}
+                                                    onChange={(e) => handlePositionChange(index, 'can_review_request', e.target.checked)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_approve_request}
+                                                    onChange={(e) => handlePositionChange(index, 'can_approve_request', e.target.checked)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_note_request}
+                                                    onChange={(e) => handlePositionChange(index, 'can_note_request', e.target.checked)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_accept_request}
+                                                    onChange={(e) => handlePositionChange(index, 'can_accept_request', e.target.checked)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button 
+                                                    variant="contained" 
+                                                    onClick={() => savePositionChanges(index)}
+                                                    sx={{ backgroundColor: '#177604', color: 'white' }}
+                                                >
+                                                    Save
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
 
-                        <FormGroup>
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Client ID"
-                                    variant="outlined"
-                                    value={tableSettings.client_id}
-                                    onChange={(e) => handleSettingsChange('client_id', e.target.value)}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Box>
-
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Checkbox
-                                    checked={tableSettings.with_manager}
-                                    onChange={(e) => handleSettingsChange('with_manager', e.target.checked)}
-                                    color="primary"
-                                />
-                                <Typography>Show Manager Column</Typography>
-                            </Box>
-
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Checkbox
-                                    checked={tableSettings.with_supervisor}
-                                    onChange={(e) => handleSettingsChange('with_supervisor', e.target.checked)}
-                                    color="primary"
-                                />
-                                <Typography>Show Supervisor Column</Typography>
-                            </Box>
-
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Checkbox
-                                    checked={tableSettings.with_approver}
-                                    onChange={(e) => handleSettingsChange('with_approver', e.target.checked)}
-                                    color="primary"
-                                />
-                                <Typography>Show Approver Column</Typography>
-                            </Box>
-
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Manager Limit"
-                                    type="number"
-                                    variant="outlined"
-                                    value={tableSettings.manager_limit}
-                                    onChange={(e) => handleSettingsChange('manager_limit', e.target.value)}
-                                    sx={{ mb: 2 }}
-                                    InputProps={{ inputProps: { min: 0 } }}
-                                />
-                            </Box>
-
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Supervisor Limit"
-                                    type="number"
-                                    variant="outlined"
-                                    value={tableSettings.supervisor_limit}
-                                    onChange={(e) => handleSettingsChange('supervisor_limit', e.target.value)}
-                                    sx={{ mb: 2 }}
-                                    InputProps={{ inputProps: { min: 0 } }}
-                                />
-                            </Box>
-
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Approver Limit"
-                                    type="number"
-                                    variant="outlined"
-                                    value={tableSettings.approver_limit}
-                                    onChange={(e) => handleSettingsChange('approver_limit', e.target.value)}
-                                    sx={{ mb: 2 }}
-                                    InputProps={{ inputProps: { min: 0 } }}
-                                />
-                            </Box>
-                        </FormGroup>
-
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button 
-                                variant="contained" 
-                                sx={{ backgroundColor: '#177604', color: 'white' }} 
-                                className="m-1"
-                                onClick={saveSettings}
-                            >
-                                <p className='m-0'><i className="fa fa-check mr-2 mt-1"></i> Apply Settings </p>
-                            </Button>
+                        <Typography variant="h6" sx={{ mt: 5, mb: 3 }}>Add New Position</Typography>
+                        
+                        <Box component="form" sx={{ mb: 3 }}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={3}>
+                                    <TextField
+                                        fullWidth
+                                        label="Position Name"
+                                        value={newPosition.name}
+                                        onChange={(e) => setNewPosition({...newPosition, name: e.target.value})}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={2}>
+                                    <Box display="flex" alignItems="center" height="100%">
+                                        <Checkbox
+                                            checked={newPosition.can_review_request}
+                                            onChange={(e) => setNewPosition({...newPosition, can_review_request: e.target.checked})}
+                                        />
+                                        <Typography>Can Review</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12} md={2}>
+                                    <Box display="flex" alignItems="center" height="100%">
+                                        <Checkbox
+                                            checked={newPosition.can_approve_request}
+                                            onChange={(e) => setNewPosition({...newPosition, can_approve_request: e.target.checked})}
+                                        />
+                                        <Typography>Can Approve</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12} md={2}>
+                                    <Box display="flex" alignItems="center" height="100%">
+                                        <Checkbox
+                                            checked={newPosition.can_note_request}
+                                            onChange={(e) => setNewPosition({...newPosition, can_note_request: e.target.checked})}
+                                        />
+                                        <Typography>Can Note</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12} md={2}>
+                                    <Box display="flex" alignItems="center" height="100%">
+                                        <Checkbox
+                                            checked={newPosition.can_accept_request}
+                                            onChange={(e) => setNewPosition({...newPosition, can_accept_request: e.target.checked})}
+                                        />
+                                        <Typography>Can Accept</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12} md={1}>
+                                    <Button 
+                                        variant="contained" 
+                                        onClick={addNewPosition}
+                                        sx={{ backgroundColor: '#177604', color: 'white' }}
+                                    >
+                                        Add
+                                    </Button>
+                                </Grid>
+                            </Grid>
                         </Box>
                     </Box>
                 </DialogContent>
