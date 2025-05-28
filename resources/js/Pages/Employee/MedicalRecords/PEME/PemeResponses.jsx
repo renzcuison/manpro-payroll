@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import PemeResponsesTable from "./PemeResponsesTable";
 import { useNavigate } from "react-router-dom";
 import PemeDueDatePicker from "./PemeDueDatePicker";
+import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 
 
 const PemeResponses = () => {
@@ -18,73 +19,69 @@ const PemeResponses = () => {
     const [toDate, setToDate] = React.useState(null);
     const [dueDate, setDueDate] = React.useState(null);
 
+    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
+        React.useState(false);
+
+    const handleCloseAddPemeRecordsModal = (reload) => {
+        setOpenAddPemeRecordsModal(false);
+        if (reload) {
+            // Reload the data or perform any action after closing the modal
+        }
+    };
+
     const responses = [
         {
             date: "2025-05-01",
+            exam: "Annual Physical Exam",
             dueDate: "2025-05-26",
-            employee: "Samuel Christian D. Nacar",
-            branch: "Cebu",
-            department: "Marketing",
             currentProgress: 2,
             fullProgress: 4,
             status: "Pending",
         },
         {
             date: "2025-05-23",
+            exam: "Drug Test",
             dueDate: "2025-05-25",
-            employee: "Pamelo Christian D. Nacar",
-            branch: "Makati",
-            department: "Customer Service",
             currentProgress: 4,
             fullProgress: 4,
             status: "Accepted",
         },
         {
             date: "2025-05-24",
+            exam: "Vaccination Record",
             dueDate: "2025-05-27",
-            employee: "Hamill Christian D. Nacar",
-            branch: "Davao",
-            department: "Finance",
             currentProgress: 2,
             fullProgress: 3,
             status: "Pending",
         },
         {
             date: "2025-05-24",
+            exam: "Allergy Test",
             dueDate: "2025-05-28",
-            employee: "Hamill Christian D. Nacar",
-            branch: "Davao",
-            department: "Finance",
             currentProgress: 2,
             fullProgress: 3,
             status: "Pending",
         },
         {
             date: "2024-06-25",
+            exam: "Annual Physical Exam",
             dueDate: "2025-05-22",
-            employee: "Cameron Christian D. Nacar",
-            branch: "Batangas",
-            department: "Human Resources",
             currentProgress: 2,
             fullProgress: 3,
             status: "Rejected",
         },
         {
             date: "2024-06-25",
+            exam: "Annual Physical Exam",
             dueDate: "2025-04-22",
-            employee: "Cameron Christian D. Nacar",
-            branch: "Batangas",
-            department: "Human Resources",
             currentProgress: 2,
             fullProgress: 3,
             status: "Rejected",
         },
         {
             date: "2024-03-25",
+            exam: "Annual Physical Exam",
             dueDate: "2024-04-22",
-            employee: "Cameron Christian D. Nacar",
-            branch: "Batangas",
-            department: "Human Resources",
             currentProgress: 2,
             fullProgress: 3,
             status: "Rejected",
@@ -92,19 +89,15 @@ const PemeResponses = () => {
         {
             date: "2024-06-25",
             dueDate: "2026-04-22",
-            employee: "Cameron Christian D. Nacar",
-            branch: "Batangas",
-            department: "Human Resources",
+            exam: "Annual Physical Exam",
             currentProgress: 2,
             fullProgress: 3,
             status: "Rejected",
         },
         {
             date: "2025-05-25",
+            exam: "Annual Physical Exam",
             dueDate: "2025-06-22",
-            employee: "Cameron Christian D. Nacar",
-            branch: "Batangas",
-            department: "Human Resources",
             currentProgress: 2,
             fullProgress: 3,
             status: "Rejected",
@@ -115,10 +108,8 @@ const PemeResponses = () => {
 const filteredRecords = responses
     .filter((response) =>
         [dayjs(response.date).format("MMMM D, YYYY"),
+        response.exam,
         response.dueDate,
-        response.employee,
-        response.branch,
-        response.department,
         response.status
         ].some((field) =>
             field?.toString().toLowerCase().includes(search.toLowerCase())
@@ -189,7 +180,7 @@ const filteredRecords = responses
 
     const handleOnRowClick = () => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            "/employee/medical-records/peme-records/peme-questionnaire-view"
         );
     };
 
@@ -204,6 +195,14 @@ const filteredRecords = responses
                 {/* Header */}
                 <Box sx={{mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center"}}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Questionnaire Name </Typography>
+                    
+                        <Button
+                            onClick={() => setOpenAddPemeRecordsModal(true)}
+                            variant="contained"
+                            style={{ color: "#e8f1e6" }}
+                        >
+                            <i className="fa fa-plus pr-2"></i> Add
+                        </Button>
                 </Box>
                 
                 <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
@@ -243,12 +242,17 @@ const filteredRecords = responses
                                 </Grid>
                     
                             </Grid>
-
+                    {openAddPemeRecordsModal && (
+                        <PemeRecordsAddModal
+                        open={openAddPemeRecordsModal}
+                        close={handleCloseAddPemeRecordsModal}
+                    />
+                    )}
                             {/* Spacing after date pickers */}
                                 <Box sx={{ height: 24 }} />
 
                                 <FormControl variant="outlined" sx={{ width: 652, mb: 1 }}>
-                                <InputLabel htmlFor="custom-search" >Search Date, Employee, Branch, Department, or Status</InputLabel>
+                                <InputLabel htmlFor="custom-search" >Search Date, Type of Exam, Due Date, or Status</InputLabel>
                                 <OutlinedInput
                                     id="custom-search"
                                     value={search}
@@ -262,7 +266,7 @@ const filteredRecords = responses
                                         </InputAdornment>
                                     )
                                     }
-                                    label="Search Date, Employee, Branch, Department, or Status"
+                                    label="Search Date, Type of Exam, Due Date, or Status"
                                     />
                                 </FormControl>
 

@@ -100,10 +100,8 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableHead>
                     <TableRow>
                         <TableCell align="center"> Date </TableCell>
+                        <TableCell align="center"> Type of Exam </TableCell>
                         <TableCell align="center"> Due Date </TableCell>
-                        <TableCell align="center"> Employee </TableCell>
-                        <TableCell align="center"> Branch </TableCell>
-                        <TableCell align="center"> Department </TableCell>
                         <TableCell align="center"> Progress
                         </TableCell>
                         <TableCell align="center"> Status </TableCell>
@@ -131,10 +129,8 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                             }}
                         >
                             <TableCell align="center">{dayjs(highlightMatch(response.date, search)).format("MMMM D, YYYY")}</TableCell>
+                            <TableCell align="center">{highlightMatch(response.exam, search)}</TableCell>
                             <TableCell align="center">{dayjs(response.dueDate).format("MMMM D, YYYY")} <p></p> {getDueStatus(response.dueDate)}</TableCell>
-                            <TableCell align="center">{highlightMatch(response.employee, search)}</TableCell>
-                            <TableCell align="center">{highlightMatch(response.branch, search)}</TableCell>
-                            <TableCell align="center">{highlightMatch(response.department, search)}</TableCell>
 
                             <TableCell align="center">
                                 <Box
