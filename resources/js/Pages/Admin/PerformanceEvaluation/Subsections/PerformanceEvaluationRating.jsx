@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Box, TextField, Button, Grid, FormControl, FormControlLabel, InputLabel, Select,
-    MenuItem, Typography, IconButton
+    RadioGroup, Radio, MenuItem, Typography, IconButton
 } from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -16,7 +16,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
     const {
         subcategoryId, subcategoryName, responseType, subcategoryDescription, required,
         allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
-        saveOption, toggleRequired
+        editSubcategory, saveOption, switchResponseType, toggleRequired
     } = useEvaluationFormSubcategory( subcategory );
     // const [responseType, setResponseType] = useState('');
     // const [options, setOptions] = useState(['']);
@@ -24,9 +24,9 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
     // const [label1, setLabel1] = useState('');
     // const [label2, setLabel2] = useState('');
 
-    // const handleResponseTypeChange = (event) => {
-    //     setResponseType(event.target.value);
-    // };
+    const handleResponseTypeChange = (event) => {
+        switchResponseType(event.target.value);
+    };
 
     // const handleRatingChange = (event) => {
     //     setRating(event.target.value);
@@ -56,7 +56,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                 <InputLabel>Response Type</InputLabel>
                 <Select
                     value={responseType}
-                    // onChange={handleResponseTypeChange}
+                    onChange={handleResponseTypeChange}
                     label="Response Type"
                 >
                     <MenuItem value="linearScale">

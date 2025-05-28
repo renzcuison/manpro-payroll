@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Box } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Box } from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -8,40 +8,47 @@ import TextFieldsIcon from '@mui/icons-material/TextFields';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 
-const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
-    const [subCategoryName, setSubCategoryName] = useState('');
+const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcategory }) => {
+    const [subcategoryName, setSubcategoryName] = useState('');
     const [responseType, setResponseType] = useState('');
     const [description, setDescription] = useState('');
     const [options, setOptions] = useState([]);
-    const [label1, setLabel1] = useState('');
-    const [label2, setLabel2] = useState('');
-    const [minValue, setMinValue] = useState(1);
-    const [maxValue, setMaxValue] = useState(5);
+    const [linearScaleStartLabel, setLinearScaleStartLabel] = useState('Not at all');
+    const [linearScaleEndLabel, setLinearScaleEndLabel] = useState('Extremely');
+    const [linearScaleStart, setLinearScaleStart] = useState(1);
+    const [linearScaleEnd, setLinearScaleEnd] = useState(5);
 
-    // Synchronize state with the subCategory prop when it changes
-    useEffect(() => {
-        if (subCategory) {
-            setSubCategoryName(subCategory.subCategoryName || '');
-            setResponseType(subCategory.responseType || '');
-            setDescription(subCategory.description || '');
-            setOptions(subCategory.options || []);
-            setLabel1(subCategory.label1 || '');
-            setLabel2(subCategory.label2 || '');
-            setMinValue(subCategory.minValue || 1);
-            setMaxValue(subCategory.maxValue || 5);
-        }
-    }, [subCategory]);
+    // Synchronize state with the subcategory prop when it changes
+    // useEffect(() => {
+    //     if (subcategory) {
+    //         setSubcategoryName(subcategory.subcategoryName || '');
+    //         setResponseType(subcategory.responseType || '');
+    //         setDescription(subcategory.description || '');
+    //         setOptions(subcategory.options || []);
+    //         setLinearScaleStartLabel(subcategory.linearScaleStartLabel || '');
+    //         setLinearScaleEndLabel(subcategory.linearScaleEndLabel || '');
+    //         setLinearScaleStart(subcategory.linearScaleStart || 1);
+    //         setLinearScaleEnd(subcategory.linearScaleEnd || 5);
+    //     }
+    // }, [subcategory]);
+
+
+
+    // note: this does not save options enlisted in modal to db as of yet
+
+
+
 
     const handleSave = () => {
         onSave({
-            subCategoryName,
-            responseType,
+            name: subcategoryName,
+            subcategory_type: responseType,
             description,
             options,
-            label1,
-            label2,
-            minValue,
-            maxValue,
+            linear_scale_start: linearScaleStartLabel,
+            linear_scale_end: linearScaleEndLabel,
+            linear_scale_start_label: linearScaleStart,
+            linear_scale_end_label: linearScaleEnd
         });
         onClose();
     };
@@ -97,8 +104,8 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                             label="Sub-Category Name"
                             variant="outlined"
                             fullWidth
-                            value={subCategoryName}
-                            onChange={(e) => setSubCategoryName(e.target.value)}
+                            value={subcategoryName}
+                            onChange={(e) => setSubcategoryName(e.target.value)}
                             required
                         />
                     </Grid>
@@ -199,8 +206,8 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                                 <FormControl fullWidth>
                                     {/* <InputLabel>Min Value</InputLabel> */}
                                     <Select
-                                        value={minValue}
-                                        onChange={(e) => setMinValue(e.target.value)}
+                                        value={linearScaleStart}
+                                        onChange={(e) => setLinearScaleStart(e.target.value)}
                                         label="Min Value"
                                     >
                                         <MenuItem value={0}>0</MenuItem>
@@ -216,8 +223,8 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                                 <FormControl fullWidth>
                                     {/* <InputLabel>Max Value</InputLabel> */}
                                     <Select
-                                        value={maxValue}
-                                        onChange={(e) => setMaxValue(e.target.value)}
+                                        value={linearScaleEnd}
+                                        onChange={(e) => setLinearScaleEnd(e.target.value)}
                                         label="Max Value"
                                     >
                                         <MenuItem value={3}>3</MenuItem>
@@ -235,8 +242,8 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                                     label="Label"
                                     variant="outlined"
                                     fullWidth
-                                    value={label1}
-                                    onChange={(e) => setLabel1(e.target.value)}
+                                    value={linearScaleStartLabel}
+                                    onChange={(e) => setLinearScaleStartLabel(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={5}>
@@ -244,8 +251,8 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
                                     label="Label"
                                     variant="outlined"
                                     fullWidth
-                                    value={label2}
-                                    onChange={(e) => setLabel2(e.target.value)}
+                                    value={linearScaleEndLabel}
+                                    onChange={(e) => setLinearScaleEndLabel(e.target.value)}
                                 />
                             </Grid>
                         </Grid>
@@ -311,4 +318,4 @@ const SubCategoryModal = ({ open, onClose, onSave, subCategory }) => {
     );
 };
 
-export default SubCategoryModal;
+export default PerformanceEvaludationAddSubcategory;

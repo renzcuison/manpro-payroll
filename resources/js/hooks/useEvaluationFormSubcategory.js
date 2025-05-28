@@ -1,5 +1,7 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-import { getSubcategorySelectValue } from "../utils/performance-evaluation-utils";
+import {
+    getSubcategoryDbValue, getSubcategorySelectValue
+} from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -31,6 +33,62 @@ export function useEvaluationFormSubcategory(subcategory) {
         setOptions(subcategory.options);
     }, [subcategory.id]);
 
+    // subcategory operations
+
+    function editSubcategory(subcategory) {
+        axiosInstance
+            .post('/editEvaluationFormSubcategory', {
+                id: subcategoryId,
+                ...subcategory                
+            }, { headers })
+            .then((response) => {
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSubcategory } = response.data;
+                    if(!evaluationFormSubcategory) return;
+                    setSubcategoryName(evaluationFormSubcategory.name);
+                    setSubcategoryType(evaluationFormSubcategory.subcategory_type);
+                    setSubcategoryDescription(evaluationFormSubcategory.description);
+                    setRequired(evaluationFormSubcategory.required);
+                    setAllowOtherOption(evaluationFormSubcategory.allow_other_option);
+                    setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
+                    setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
+                    setOrder(evaluationFormSubcategory.order);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving subcategory:', error);
+                Swal.fire({
+                    text: "Error saving subcategory",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+            })
+        ;
+    }
+
+    function switchResponseType(responseType) {
+
+        editSubcategory({ subcategory_type: getSubcategoryDbValue(responseType) });
+
+    }
+
+    function toggleRequired() {
+
+        editSubcategory({ required: !required });
+
+    }
+
+    // option operations
+
     function getOption(optionId) {
         axiosInstance
             .get(`/getEvaluationFormSubcategoryOption`, {
@@ -52,9 +110,20 @@ export function useEvaluationFormSubcategory(subcategory) {
                 subcategory_id: subcategoryId, name
             }, { headers })
             .then((response) => {
-                const { evaluationFormSubcategoryOptionID } = response.data;
-                if(!evaluationFormSubcategoryOptionID ) return;
-                getOption(evaluationFormSubcategoryOptionID);
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSubcategoryOptionID } = response.data;
+                    if(!evaluationFormSubcategoryOptionID ) return;
+                    getOption(evaluationFormSubcategoryOptionID);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error saving subcategory option:', error);
@@ -67,17 +136,11 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    function toggleRequired() {
-
-        // edit later + saving in database
-
-    }
-
     return {
         responseType: getSubcategorySelectValue(subcategoryType),
         subcategoryId, subcategoryName, subcategoryDescription, required,
         allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
-        saveOption, toggleRequired
+        editSubcategory, saveOption, switchResponseType, toggleRequired
     };
 
 }

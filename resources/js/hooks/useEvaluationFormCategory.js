@@ -48,9 +48,20 @@ export function useEvaluationFormCategory(category) {
                 required
             }, { headers })
             .then((response) => {
-                const { evaluationFormSubcategoryID } = response.data;
-                if(!evaluationFormSubcategoryID ) return;
-                getSubcategory(evaluationFormSubcategoryID);
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSubcategoryID } = response.data;
+                    if(!evaluationFormSubcategoryID ) return;
+                    getSubcategory(evaluationFormSubcategoryID);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error saving subcategory:', error);

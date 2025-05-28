@@ -92,13 +92,24 @@ export function useEvaluationFormSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
-                subcategory_type: getSubcategoryDbValue(subcategory.subcategoryType),
+                subcategory_type: getSubcategoryDbValue(subcategory.subcategory_type),
                 category_id: categories[0].id,
             }, { headers })
             .then((response) => {
-                const { evaluationFormSubcategoryID } = response.data;
-                if(!evaluationFormSubcategoryID) return;
-                getSubcategory(evaluationFormSubcategoryID);
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSubcategoryID } = response.data;
+                    if(!evaluationFormSubcategoryID) return;
+                    getSubcategory(evaluationFormSubcategoryID);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error saving subcategory:', error);
@@ -113,13 +124,13 @@ export function useEvaluationFormSection(section) {
 
     // showing and hiding section
 
-    function toggle() {
+    function toggleExpand() {
         setExpanded(!expanded);
     }
 
     return {
         sectionId, sectionName, expanded, order, categories, subcategories,
-        saveCategory, saveSubcategory, toggle
+        saveCategory, saveSubcategory, toggleExpand
     };
 
 }

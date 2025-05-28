@@ -1159,13 +1159,24 @@ class EvaluationController extends Controller
                 'evaluationFormSubcategoryID' => $request->id
             ]);
 
-            if($request->name) $evaluationFormSubcategory->name = $request->name;
-            if($request->description) $evaluationFormSubcategory->description = $request->description;
-            if(is_string($request->subcategory_type)) {
+            $isEmptyName = $request->has('name') && $request->name === null;
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Name is required!'
+            ]);
 
-                $subcategory_types = array(
-                    'checkbox','dropdown','linear_scale','long_answer','multiple_choice','short_answer'
-                );
+            $isEmptyDescription = $request->has('description') && $request->description === null;
+            if( $isEmptyDescription ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Description is required!'
+            ]);
+
+            if($request->subcategory_type) {
+
+                $subcategory_types = [
+                    'short_answer', 'long_answer', 'multiple_choice',
+                    'checkbox', 'linear_scale'
+                ];
                 if(!in_array($request->subcategory_type, $subcategory_types))
                     return response()->json([ 
                         'status' => 400,
@@ -1176,26 +1187,36 @@ class EvaluationController extends Controller
             }
             if(is_bool($request->required) || is_numeric($request->required))
                 $evaluationFormSubcategory->required = (int) $request->required;
-            if(is_bool($request->allow_other_option) || is_numeric($request->allow_other_option))
+            
+             if(is_bool($request->allow_other_option) || is_numeric($request->allow_other_option))
                 $evaluationFormSubcategory->allow_other_option = (int) $request->allow_other_option;
-            if(is_numeric($request->linear_scale_start) && is_numeric($request->linear_scale_end)) {
-
-                $request->linear_scale_start = floor($request->linear_scale_start);
-                $request->linear_scale_end = floor($request->linear_scale_end);
-                if($request->linear_scale_start<0 || $request->linear_scale_end<0)
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
-                    ]);
-                if($request->linear_scale_start>=$request->linear_scale_end)
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-                    ]);
+            
+            if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+                ]);
+            if(is_numeric($request->linear_scale_start))
                 $evaluationFormSubcategory->linear_scale_start = $request->linear_scale_start;
+            if(is_numeric($request->linear_scale_end))
                 $evaluationFormSubcategory->linear_scale_end = $request->linear_scale_end;
-
-            }
+            if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+                ]);
+            $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
+            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+            ]);
+            $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
+            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+            ]);
+            $evaluationFormSubcategory->linear_scale_start_label = $request->linear_scale_start_label;
+            $evaluationFormSubcategory->linear_scale_end_label = $request->linear_scale_end_label;
 
             $evaluationFormSubcategory->save();
 
@@ -1261,33 +1282,45 @@ class EvaluationController extends Controller
                 'short_answer', 'long_answer', 'multiple_choice',
                 'checkbox', 'linear_scale'
             ];
-            if(!in_array($request->subcategoryType, $subcategoryTypes))
+            if(!in_array($request->subcategory_type, $subcategoryTypes))
                 return response()->json([ 
                     'status' => 400,
                     'message' => 'Evaluation Form Subcategory Type is invalid!'
                 ]);
-            $linearScaleStart = $request->minValue ?? 1;
-            $linearScaleEnd = $request->maxValue ?? 5;
             if($request->linear_scale_start<0 || $request->linear_scale_end<0)
                 return response()->json([
                     'status' => 400,
                     'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
                 ]);
-            if($request->linear_scale_start>=$request->linear_scale_end)
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-                ]);
-            // save options
+            if(
+                is_numeric($request->linear_scale_start)
+                && is_numeric($request->linear_scale_end)
+                && $request->linear_scale_start>=$request->linear_scale_end
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+            ]);
+            $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+            ]);
+            $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+            ]);
 
             $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
                 'category_id' => $request->category_id,
                 'name' => $request->name,
-                'subcategory_type' => $request->subcategoryType,
+                'subcategory_type' => $request->subcategory_type,
                 'description' => $request->description,
                 'required' => 1,
-                'linear_scale_start' => $linearScaleStart,
-                'linear_scale_end' => $linearScaleEnd,
+                'linear_scale_start' => $request->linear_scale_start,
+                'linear_scale_end' => $request->linear_scale_end,
+                'linear_scale_start_label' => $request->linear_scale_start_label,
+                'linear_scale_end_label' => $request->linear_scale_end_label,
                 'order' => $order
             ]);
 
@@ -1352,7 +1385,7 @@ class EvaluationController extends Controller
     //             'checkbox' => 'checkbox',
     //             'linearScale' => 'linear_scale',
     //         ];
-    //         $subcategory_type = $typeMap[$request->subcategory_type ?? $request->subCategoryType ?? $request->responseType] ?? 'short_answer';
+    //         $subcategory_type = $typeMap[$request->subcategory_type ?? $request->subcategoryType ?? $request->responseType] ?? 'short_answer';
 
     //         $max =
     //             EvaluationFormSubcategory
