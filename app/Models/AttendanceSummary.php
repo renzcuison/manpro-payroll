@@ -27,5 +27,7 @@ class AttendanceSummary extends Model
         'minutes_late',
         'minutes_overtime',
         'minutes_night_differential',
+
+        'latest_log_id',
     ];
 }

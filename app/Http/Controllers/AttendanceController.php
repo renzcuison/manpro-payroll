@@ -241,12 +241,19 @@ class AttendanceController extends Controller
 
                 if ( $summary ) {
                     log::info("Has Summary");
+
+                    if ( $action === "Time In" ) {
+
+                    }
+
                 } else {
                     log::info("Has No Summary");
 
                     log::info("Creating New Summary");
 
-                    if ( $action === "Time Out" ) {
+                    log::info($attendanceLog->id);
+
+                    if ( $action === "Duty In" ) {
                         $summary = AttendanceSummary::create([
                             "user_id" => $user->id,
                             "client_id" => $user->client_id,
@@ -256,6 +263,8 @@ class AttendanceController extends Controller
                             "work_day_end" => $dayEnd,
 
                             "work_day_end" => "Regular Day",
+                            
+                            "latest_log_id" => $attendanceLog->id,
                         ]);
                     }
 
@@ -267,8 +276,8 @@ class AttendanceController extends Controller
                 $attendanceLog->save();
 
 
-                log::info("Stopper");
-                dd("Stopper");
+                // log::info("Stopper");
+                // dd("Stopper");
                 
 
                 DB::commit();

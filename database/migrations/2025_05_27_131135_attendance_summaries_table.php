@@ -32,13 +32,15 @@ return new class extends Migration
             $table->decimal('minutes_overtime', 10, 2)->default(0);
             $table->decimal('minutes_night_differential', 10, 2)->default(0);
 
+            $table->unsignedBigInteger('latest_log_id')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('client_id')->references('id')->on('clients');
             $table->foreign('work_hour_id')->references('id')->on('work_hours');
-
+            $table->foreign('latest_log_id')->references('id')->on('attendance_logs');
         });
     }
 
