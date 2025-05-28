@@ -9,22 +9,24 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
-import PerformanceEvaluationFormCategory from './PerformanceEvaluationFormCategory';
+import PerformanceEvaluationFormCategory from './PerformanceEvaluationFormCategory';4
+import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useState } from 'react';
 
 const PerformanceEvaluationFormSection = ({ section }) => {
     const {
-        sectionId, sectionName, expanded, order, categories,
-        saveCategory, toggle
+        sectionId, sectionName, expanded, order, categories, subcategories,
+        saveCategory, saveSubcategory, toggle
     } = useEvaluationFormSection( section );
     const hasCategories = categories.length > 0;
+    const hasSubcategories = subcategories.length > 0;
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
     // Category modal handlers
-    const handleOpenAddCategoryModal = (sectionId) => {
+    const handleOpenAddCategoryModal = () => {
         setAddCategoryOpen(true);
     };
 
@@ -99,40 +101,30 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                             No categories yet.
                         </Typography>
                     )}
+                    {
+                        hasSubcategories ? (
+                            subcategories.map(subcategory=><PerformanceEvaluationRating
+                                key={ subcategory.id }
+                                subcategory={ subcategory }
+                            />)
+                        ) : undefined
+                    }
                     <Box sx={{ textAlign: 'center', mt: 2 }}>
-                        {!hasCategories ? (
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    bgcolor: '#177604',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    borderRadius: 1,
-                                    px: 4,
-                                    py: 1.5,
-                                    '&:hover': { bgcolor: '#0d5c27' }
-                                }}
-                                onClick={() => handleOpenAddCategoryModal()}
-                            >
-                                ADD CATEGORY
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    bgcolor: '#177604',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    borderRadius: 1,
-                                    px: 4,
-                                    py: 1.5,
-                                    '&:hover': { bgcolor: '#0d5c27' }
-                                }}
-                                // onClick={() => handleOpenAddSubCategoryModal(section.id)}
-                            >
-                                ADD SUB-CATEGORY
-                            </Button>
-                        )}
+                        <Button
+                            variant="contained"
+                            sx={{
+                                bgcolor: '#177604',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                borderRadius: 1,
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': { bgcolor: '#0d5c27' }
+                            }}
+                            onClick={() => hasCategories ? undefined : handleOpenAddCategoryModal()}
+                        >{
+                            hasCategories ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>
+                        }</Button>
                     </Box>
                 </Paper>
             </AccordionDetails>

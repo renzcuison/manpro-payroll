@@ -1,4 +1,5 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
+import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -16,7 +17,7 @@ export function useEvaluationFormCategory(category) {
         setCategoryName(category.name);
         setOrder(category.order);
         setSubcategories(category.subcategories);
-    }, [category]);
+    }, [category.id]);
 
     function getSubcategory(subcategoryId) {
         axiosInstance
@@ -25,7 +26,7 @@ export function useEvaluationFormCategory(category) {
             })
             .then((response) => {
                 const { evaluationFormSubcategory } = response.data;
-                if(!evaluationFormSubcategory ) return;
+                if(!evaluationFormSubcategory) return;
                 setSubcategories([...subcategories, evaluationFormSubcategory]);
             })
             .catch(error => {
@@ -41,7 +42,7 @@ export function useEvaluationFormCategory(category) {
             .post('/saveEvaluationFormSubcategory', {
                 category_id: categoryId,
                 name, description,
-                subcategory_type: subcategoryType,
+                subcategory_type: getSubcategoryDbValue(subcategoryType),
                 linear_scale_start: linearScaleStart,
                 linear_scale_end: linearScaleEnd,
                 required

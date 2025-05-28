@@ -1,16 +1,6 @@
-import React, { useEffect, useState } from 'react';
 import {
-    Box,
-    Typography,
-    CardContent,
-    Button,
-    IconButton,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
     Paper
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useEvaluationFormCategory } from '../../../../hooks/useEvaluationFormCategory';
 
 const PerformanceEvaluationFormCategory = ({ category }) => {
@@ -34,7 +24,6 @@ const PerformanceEvaluationFormCategory = ({ category }) => {
         >
             {categoryName}
         </Paper>
-        {/*subcategories here*/}
     </>;
 
 };

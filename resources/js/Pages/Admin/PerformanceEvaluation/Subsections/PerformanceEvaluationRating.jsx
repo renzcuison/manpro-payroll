@@ -1,41 +1,51 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton } from '@mui/material';
+import {
+    Box, TextField, Button, Grid, FormControl, FormControlLabel, InputLabel, Select,
+    MenuItem, Typography, IconButton
+} from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import ShortTextIcon from '@mui/icons-material/ShortText';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import CloseIcon from '@mui/icons-material/Close';  // For the "X" icon
+import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
-const PerformanceEvaluationRating = () => {
-    const [responseType, setResponseType] = useState('');
-    const [options, setOptions] = useState(['']);
-    const [rating, setRating] = useState(0);
-    const [label1, setLabel1] = useState('');
-    const [label2, setLabel2] = useState('');
+const PerformanceEvaluationRating = ({ subcategory }) => {
 
-    const handleResponseTypeChange = (event) => {
-        setResponseType(event.target.value);
-    };
+    const {
+        subcategoryId, subcategoryName, responseType, subcategoryDescription, required,
+        allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
+        saveOption, toggleRequired
+    } = useEvaluationFormSubcategory( subcategory );
+    // const [responseType, setResponseType] = useState('');
+    // const [options, setOptions] = useState(['']);
+    // const [rating, setRating] = useState(0);
+    // const [label1, setLabel1] = useState('');
+    // const [label2, setLabel2] = useState('');
 
-    const handleRatingChange = (event) => {
-        setRating(event.target.value);
-    };
+    // const handleResponseTypeChange = (event) => {
+    //     setResponseType(event.target.value);
+    // };
 
-    const handleOptionChange = (index, event) => {
-        const newOptions = [...options];
-        newOptions[index] = event.target.value;
-        setOptions(newOptions);
-    };
+    // const handleRatingChange = (event) => {
+    //     setRating(event.target.value);
+    // };
 
-    const handleAddOption = () => {
-        setOptions([...options, '']);
-    };
+    // const handleOptionChange = (index, event) => {
+    //     const newOptions = [...options];
+    //     newOptions[index] = event.target.value;
+    //     setOptions(newOptions);
+    // };
 
-    const handleRemoveOption = (index) => {
-        const newOptions = options.filter((_, i) => i !== index);
-        setOptions(newOptions);
-    };
+    // const handleAddOption = () => {
+    //     setOptions([...options, '']);
+    // };
+
+    // const handleRemoveOption = (index) => {
+    //     const newOptions = options.filter((_, i) => i !== index);
+    //     setOptions(newOptions);
+    // };
 
     return (
         <div>
@@ -46,7 +56,7 @@ const PerformanceEvaluationRating = () => {
                 <InputLabel>Response Type</InputLabel>
                 <Select
                     value={responseType}
-                    onChange={handleResponseTypeChange}
+                    // onChange={handleResponseTypeChange}
                     label="Response Type"
                 >
                     <MenuItem value="linearScale">
@@ -78,8 +88,8 @@ const PerformanceEvaluationRating = () => {
                                     label="Label 1"
                                     variant="outlined"
                                     fullWidth
-                                    value={label1}
-                                    onChange={(e) => setLabel1(e.target.value)}
+                                    // value={label1}
+                                    // onChange={(e) => setLabel1(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={6}>
@@ -87,12 +97,13 @@ const PerformanceEvaluationRating = () => {
                                     label="Label 2"
                                     variant="outlined"
                                     fullWidth
-                                    value={label2}
-                                    onChange={(e) => setLabel2(e.target.value)}
+                                    // value={label2}
+                                    // onChange={(e) => setLabel2(e.target.value)}
                                 />
                             </Grid>
                         </Grid>
-                        <RadioGroup row value={rating} onChange={handleRatingChange}>
+                        {/* <RadioGroup row value={rating} onChange={handleRatingChange}> */}
+                        <RadioGroup row>
                             <FormControlLabel value={0} control={<Radio />} label="0" />
                             <FormControlLabel value={1} control={<Radio />} label="1" />
                             <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -113,13 +124,13 @@ const PerformanceEvaluationRating = () => {
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        value={option}
-                                        onChange={(e) => handleOptionChange(index, e)}
+                                        // value={option}
+                                        // onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
                                 <Grid item xs={2}>
                                     <IconButton
-                                        onClick={() => handleRemoveOption(index)}
+                                        // onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
                                     >
                                         <CloseIcon />
@@ -130,7 +141,7 @@ const PerformanceEvaluationRating = () => {
                         <Button
                             variant="contained"
                             color="success"
-                            onClick={handleAddOption}
+                            // onClick={handleAddOption}
                         >
                             Add Option
                         </Button>
@@ -147,13 +158,13 @@ const PerformanceEvaluationRating = () => {
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        value={option}
-                                        onChange={(e) => handleOptionChange(index, e)}
+                                        // value={option}
+                                        // onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
                                 <Grid item xs={2}>
                                     <IconButton
-                                        onClick={() => handleRemoveOption(index)}
+                                        // onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
                                     >
                                         <CloseIcon />
@@ -164,7 +175,7 @@ const PerformanceEvaluationRating = () => {
                         <Button
                             variant="contained"
                             color="success"
-                            onClick={handleAddOption}
+                            // onClick={handleAddOption}
                         >
                             Add Option
                         </Button>

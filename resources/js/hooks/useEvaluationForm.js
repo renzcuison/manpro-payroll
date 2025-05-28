@@ -2,28 +2,30 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
-export function useEvaluationForm({ name: formName }) {
+export function useEvaluationForm(form) {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [creatorName, setCreatorName] = useState();
-    const [createdDate, setCreatedDate] = useState();
     const [formId, setFormId] = useState();
+    const [formName, setFormName] = useState();
+    const [creatorName, setCreatorName] = useState();
+    const [createdDate, setCreatedDate] = useState();  
     const [loading, setLoading] = useState();
     const [sections, setSections] = useState([]);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
-        axiosInstance.get(`/getEvaluationForm`, { headers, params: { name: formName } })
+        axiosInstance.get(`/getEvaluationForm`, { headers, params: form })
             .then((response) => {
                 const { evaluationForm } = response.data;
                 if(!evaluationForm) {
                     setNotFound(true);
                     return;
                 };
+                setFormId(evaluationForm.id);
+                setFormName(evaluationForm.name);
                 setCreatorName(evaluationForm.creator_user_name);
                 setCreatedDate(evaluationForm.created_at);
-                setFormId(evaluationForm.id);
                 setSections(evaluationForm.sections);
             })
             .catch(error => {
@@ -32,7 +34,7 @@ export function useEvaluationForm({ name: formName }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [formName]);
+    }, [form.id, form.name]);
 
     function getSection(sectionId) {
         axiosInstance
@@ -41,7 +43,7 @@ export function useEvaluationForm({ name: formName }) {
             })
             .then((response) => {
                 const { evaluationFormSection } = response.data;
-                if(!evaluationFormSection ) return;
+                if(!evaluationFormSection) return;
                 setSections([...sections, evaluationFormSection]);
             })
             .catch(error => {
@@ -72,7 +74,7 @@ export function useEvaluationForm({ name: formName }) {
     }
 
     return {
-        creatorName, createdDate, formId, loading, notFound, sections,
+        creatorName, createdDate, formId, formName, loading, notFound, sections,
         saveSection
     };
 
