@@ -48,6 +48,7 @@ class PemeController extends Controller
             );
         }
 
+        $validatedData["user_id"] = $user->id;
         $validatedData["client_id"] = $user->client_id;
 
         $exists = Peme::where("name", $validatedData["name"])

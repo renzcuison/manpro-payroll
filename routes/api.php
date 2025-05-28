@@ -659,23 +659,24 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'show']);
     
     // PEME Responses
-    Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
+    // Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
+    Route::post('/peme-responses', [PemeResponseController::class, 'store']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
-    Route::post('/peme-responses', [PemeResponseController::class, 'store']);
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateStatus']);
     Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
+    Route::delete('/peme-responses/{id}', [PemeResponseController::class, 'destroy']);
     Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
 
     // Response Details
+    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
+    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
-    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
-    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
 
 });
 

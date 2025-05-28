@@ -12,7 +12,7 @@ class PemeResponseController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->user_type == "Admin") {
+            if ($user->user_type === "Admin") {
                 return true;
             }
         }
@@ -23,25 +23,32 @@ class PemeResponseController extends Controller
     {
         $user = Auth::user();
 
-        $responses =
-            $user->user_type === "Admin"
-            ? PemeResponse::with("peme")
-            ->latest()
-            ->get()
+        $responses = $user->user_type === "Admin"
+            ? PemeResponse::with(['peme.user'])->latest()->get()
             : PemeResponse::where("user_id", $user->id)
-            ->with("peme")
+            ->with(['peme.user'])
             ->latest()
             ->get();
 
         $responses = $responses->map(function ($response) {
+            $expiryDate = $response->expiry_date
+                ? $response->expiry_date->format("Y-m-d H:i:s")
+                : null;
+
+            $nextSchedule = $response->next_schedule
+                ? $response->next_schedule->format("Y-m-d H:i:s")
+                : null;
+
             return [
-                "date" => $response->created_at->format("Y-m-d"),
-                "due_date" => optional($response->expiry_date)->format("Y-m-d"),
-                "employee" => $response->peme->user->name ?? "N/A",
-                "branch" => $response->peme->branch ?? "N/A",
-                "department" => $response->peme->department ?? "N/A",
-                "progress" => $this->calculateProgress($response),
+                "response_id" => $response->id,
+                "peme" => $response->peme->name ?? 'null',
+                "user" => $response->user->user_name ??
+                    'null',
+                "expiry_date" => $expiryDate,
+                "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
+                "branch" => $response->peme->branch ?? 'null',
+                "department" => $response->peme->department ?? 'null',
             ];
         });
 
@@ -102,18 +109,28 @@ class PemeResponseController extends Controller
             "data" => $response,
         ]);
     }
-
     public function show($id)
     {
         $response = PemeResponse::with([
-            "details",
-            "details.question",
-            "details.type",
+            'details',
+            'details.question',
+            'details.type',
+            'peme',
+            'user',
         ])->findOrFail($id);
 
-        return response()->json($response);
+        return response()->json([
+            'response_id' => $response->id,
+            'peme' => $response->peme->name ?? 'null',
+            'user' => $response->user->user_name ?? 'null',
+            'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
+            'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
+            'status' => ucfirst($response->status),
+            'branch' => $response->peme->branch ?? 'null',
+            'department' => $response->peme->department ?? 'null',
+            'details' => $response->details,
+        ]);
     }
-
     public function filter(Request $request)
     {
         $validated = $request->validate([
@@ -137,6 +154,7 @@ class PemeResponseController extends Controller
 
         return response()->json($query->with("user")->get());
     }
+
     public function summary($pemeId)
     {
         $counts = PemeResponse::where("peme_id", $pemeId)
@@ -147,6 +165,16 @@ class PemeResponseController extends Controller
         return response()->json([
             "peme_id" => $pemeId,
             "summary" => $counts,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $response = PemeResponse::findOrFail($id);
+        $response->delete();
+
+        return response()->json([
+            "message" => "Response deleted.",
         ]);
     }
 
