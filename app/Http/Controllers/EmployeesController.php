@@ -536,6 +536,7 @@ class EmployeesController extends Controller
 
             return response()->json([
                 'user' => $user->load('media'),
+                 'message' => 'Profile updated successfully',
                 'status' => 200
             ]);
         } catch (\Exception $e) {

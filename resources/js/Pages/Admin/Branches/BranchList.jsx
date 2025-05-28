@@ -21,7 +21,8 @@ import {
     DialogActions,
     IconButton,
     FormGroup,
-    FormControl
+    FormControl,
+    Menu
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
@@ -37,19 +38,37 @@ const BranchList = () => {
     const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [selectedColumns, setSelectedColumns] = useState([
-        "Assigned Manager",
-        "Assigned Supervisor",
-        "Number of Employees",
-        "Assigned Approver"
-    ]);
+    
+    // Table settings state with defaults
+    const [tableSettings, setTableSettings] = useState({
+        client_id: "",
+        with_manager: true,
+        with_supervisor: true,
+        with_approver: true,
+        manager_limit: 1,
+        supervisor_limit: 1,
+        approver_limit: 1
+    });
 
     const [openModal, setOpenModal] = useState(false);
+    const [openSettingsModal, setOpenSettingsModal] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
     const [name, setName] = useState("");
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
+    
+    // For dropdown menu
+    const [anchorEl, setAnchorEl] = useState(null);
+    const openMenu = Boolean(anchorEl);
+
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -64,8 +83,21 @@ const BranchList = () => {
                 const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
                 setAllEmployees(employeesResponse.data.employees || []);
 
+                // Fetch branch settings
+                const settingsResponse = await axiosInstance.get('/settings/getBranchSettings', { headers });
+                if (settingsResponse.data.settings) {
+                    setTableSettings(settingsResponse.data.settings);
+                    // Also save to localStorage as fallback
+                    localStorage.setItem("branchTableSettings", JSON.stringify(settingsResponse.data.settings));
+                }
+
             } catch (error) {
                 console.error("Error fetching data:", error);
+                // Fallback to localStorage if API fails
+                const savedSettings = localStorage.getItem("branchTableSettings");
+                if (savedSettings) {
+                    setTableSettings(JSON.parse(savedSettings));
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -159,6 +191,45 @@ const BranchList = () => {
             });
     };
 
+    const handleSettingsChange = (field, value) => {
+        setTableSettings(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const saveSettings = async () => {
+        try {
+            const response = await axiosInstance.post(
+                '/settings/saveBranchSettings', 
+                tableSettings,
+                { headers }
+            );
+            
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Settings saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                setOpenSettingsModal(false);
+                // Also save to localStorage as fallback
+                localStorage.setItem("branchTableSettings", JSON.stringify(tableSettings));
+            }
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Failed to save settings",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
+    };
+
     return (
         <Layout title={"Branches"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
@@ -180,13 +251,36 @@ const BranchList = () => {
                             <Button 
                                 variant="contained" 
                                 color="primary"
-                                onClick={() => setOpenModal(true)}
+                                onClick={handleMenuClick}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
+                                endIcon={<i className="fa fa-caret-down"></i>}
                             >
                                 <p className="m-0">
                                     <i className="fa fa-plus mr-2"></i> Add
                                 </p>
                             </Button>
+                            
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={openMenu}
+                                onClose={handleMenuClose}
+                                MenuListProps={{
+                                    'aria-labelledby': 'basic-button',
+                                }}
+                            >
+                                <MenuItem onClick={() => {
+                                    setOpenModal(true);
+                                    handleMenuClose();
+                                }}>
+                                    <i className="fa fa-plus mr-2"></i> Add Branch
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    setOpenSettingsModal(true);
+                                    handleMenuClose();
+                                }}>
+                                    <i className="fa fa-cog mr-2"></i> Settings
+                                </MenuItem>
+                            </Menu>
                         </Grid>
                     </Box>
 
@@ -222,17 +316,14 @@ const BranchList = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center" sx={{fontWeight: 'bold'}}>Branch</TableCell>
-                                                {selectedColumns.includes("Assigned Manager") && (
+                                                {tableSettings.with_manager && (
                                                     <TableCell align="center"sx={{fontWeight: 'bold'}}>Assigned Manager</TableCell>
                                                 )}
-                                                {selectedColumns.includes("Assigned Supervisor") && (
+                                                {tableSettings.with_supervisor && (
                                                     <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Supervisor</TableCell>
                                                 )}
-                                                {selectedColumns.includes("Assigned Approver") && (
+                                                {tableSettings.with_approver && (
                                                     <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Approver</TableCell>
-                                                )}
-                                                {selectedColumns.includes("Number of Employees") && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>No. of Employees</TableCell>
                                                 )}
                                             </TableRow>
                                         </TableHead>
@@ -270,7 +361,7 @@ const BranchList = () => {
                                                                 </Box>
                                                             </Link>
                                                         </TableCell>
-                                                        {selectedColumns.includes("Assigned Manager") && (
+                                                        {tableSettings.with_manager && (
                                                             <TableCell align="center">
                                                                 <Link
                                                                     to={`/admin/branches/${bran.id}`}
@@ -289,7 +380,7 @@ const BranchList = () => {
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Assigned Supervisor") && (
+                                                        {tableSettings.with_supervisor && (
                                                             <TableCell align="center">
                                                                 <Link
                                                                     to={`/admin/branches/${bran.id}`}
@@ -308,7 +399,7 @@ const BranchList = () => {
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Assigned Approver") && (
+                                                        {tableSettings.with_approver && (
                                                             <TableCell align="center">
                                                                 <Link
                                                                     to={`/admin/branches/${bran.id}`}
@@ -327,28 +418,16 @@ const BranchList = () => {
                                                                 </Link>
                                                             </TableCell>
                                                         )}
-                                                        {selectedColumns.includes("Number of Employees") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    {bran.employees_count || "0"}
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={selectedColumns.length + 1} align="center">
+                                                    <TableCell colSpan={
+                                                        1 + // Branch column
+                                                        (tableSettings.with_manager ? 1 : 0) +
+                                                        (tableSettings.with_supervisor ? 1 : 0) +
+                                                        (tableSettings.with_approver ? 1 : 0)
+                                                    } align="center">
                                                         No branches found.
                                                     </TableCell>
                                                 </TableRow>
@@ -470,6 +549,126 @@ const BranchList = () => {
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
+                            </Button>
+                        </Box>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+
+            {/* Settings Modal */}
+            <Dialog
+                open={openSettingsModal}
+                onClose={() => setOpenSettingsModal(false)}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                    style: {
+                        padding: '16px',
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        marginBottom: '5%'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Table Settings </Typography>
+                        <IconButton onClick={() => setOpenSettingsModal(false)}><i className="si si-close"></i></IconButton>
+                    </Box>
+                </DialogTitle>
+
+                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
+                    <Box sx={{ mt: 3, my: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>Branch Settings:</Typography>
+
+                        <FormGroup>
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Client ID"
+                                    variant="outlined"
+                                    value={tableSettings.client_id}
+                                    onChange={(e) => handleSettingsChange('client_id', e.target.value)}
+                                    sx={{ mb: 2 }}
+                                />
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <Checkbox
+                                    checked={tableSettings.with_manager}
+                                    onChange={(e) => handleSettingsChange('with_manager', e.target.checked)}
+                                    color="primary"
+                                />
+                                <Typography>Show Manager Column</Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <Checkbox
+                                    checked={tableSettings.with_supervisor}
+                                    onChange={(e) => handleSettingsChange('with_supervisor', e.target.checked)}
+                                    color="primary"
+                                />
+                                <Typography>Show Supervisor Column</Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <Checkbox
+                                    checked={tableSettings.with_approver}
+                                    onChange={(e) => handleSettingsChange('with_approver', e.target.checked)}
+                                    color="primary"
+                                />
+                                <Typography>Show Approver Column</Typography>
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Manager Limit"
+                                    type="number"
+                                    variant="outlined"
+                                    value={tableSettings.manager_limit}
+                                    onChange={(e) => handleSettingsChange('manager_limit', e.target.value)}
+                                    sx={{ mb: 2 }}
+                                    InputProps={{ inputProps: { min: 0 } }}
+                                />
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Supervisor Limit"
+                                    type="number"
+                                    variant="outlined"
+                                    value={tableSettings.supervisor_limit}
+                                    onChange={(e) => handleSettingsChange('supervisor_limit', e.target.value)}
+                                    sx={{ mb: 2 }}
+                                    InputProps={{ inputProps: { min: 0 } }}
+                                />
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Approver Limit"
+                                    type="number"
+                                    variant="outlined"
+                                    value={tableSettings.approver_limit}
+                                    onChange={(e) => handleSettingsChange('approver_limit', e.target.value)}
+                                    sx={{ mb: 2 }}
+                                    InputProps={{ inputProps: { min: 0 } }}
+                                />
+                            </Box>
+                        </FormGroup>
+
+                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                            <Button 
+                                variant="contained" 
+                                sx={{ backgroundColor: '#177604', color: 'white' }} 
+                                className="m-1"
+                                onClick={saveSettings}
+                            >
+                                <p className='m-0'><i className="fa fa-check mr-2 mt-1"></i> Apply Settings </p>
                             </Button>
                         </Box>
                     </Box>

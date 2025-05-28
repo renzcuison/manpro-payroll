@@ -139,5 +139,18 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         return $this->BelongsTo(Company::class, 'company_id');
     }
+
+
+    public function approverOf() {
+    return $this->hasMany(BranchApprover::class);
+    }
+
+    public function managerOf() {
+        return $this->hasMany(BranchManager::class);
+    }
+
+    public function supervisorOf() {
+        return $this->hasMany(BranchSupervisor::class);
+    }
     
 }

@@ -45,4 +45,26 @@ class BranchesModel extends Model
     {
         return $this->belongsTo(UsersModel::class, 'approver_id');
     }
+
+
+
+
+
+
+    public function approvers()
+{
+    return $this->hasMany(BranchApprover::class);
+}
+
+
+    public function managers()
+{
+    return $this->hasMany(BranchManager::class);
+}
+
+
+    public function supervisors()
+{
+    return $this->hasMany(BranchSupervisor::class);
+}
 }
