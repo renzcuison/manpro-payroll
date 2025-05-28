@@ -43,10 +43,10 @@ const ProfileBenefits = ({ userName, headers }) => {
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employee_contribution).toFixed(2)}</Typography>  
                                     </TableCell>
                                 </TableRow>
                             ))) :

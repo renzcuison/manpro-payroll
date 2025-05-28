@@ -166,6 +166,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
         event.preventDefault();
         const addEducations = educations.filter(e => !e.id);
         const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+        const formDateOnly = (date) => date ? dayjs(date).format('YYYY-MM-DD'): null;
         const data = {
             userName: employee.user_name,
 
@@ -191,8 +192,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             selectedWorkGroup: selectedWorkGroup,
             selectedType: selectedType,
             selectedStatus: selectedStatus,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: formDateOnly(startDate),
+            endDate: formDateOnly(endDate),
             addEducations: addEducations, 
             updateEducations: updateEducations,
             deleteEducationIds: deleteIds,
@@ -485,6 +486,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                         slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
+                                
                             </FormControl>
                         </FormGroup>
 
