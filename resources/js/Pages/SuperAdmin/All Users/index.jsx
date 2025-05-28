@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Box,
@@ -24,6 +24,8 @@ import {
     flexRender,
 } from "@tanstack/react-table";
 import GlobalFilter from "../../../components/GlobalFilter";
+import { useUsers } from "../hooks/useUsers";
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
 function AllUsers() {
     const [sorting, setSorting] = useState([]);
@@ -32,19 +34,21 @@ function AllUsers() {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(5);
 
-    const data = useMemo(
-        () => [
-            { name: "Alice", age: 25 },
-            { name: "Bob", age: 30 },
-            { name: "Charlie", age: 20 },
-        ],
-        []
-    );
+    const { data: users, isLoading } = useUsers();
+    if (isLoading) {
+        return (
+            <>
+                <LoadingSpinner />
+            </>
+        );
+    }
+    console.log("Users: ", users);
 
+    const data = useMemo(() => users, [users, isLoading]);
     const columns = useMemo(
         () => [
             {
-                accessorKey: "name",
+                accessorKey: "first_name",
                 header: "Name",
                 cell: (info) => info.getValue(),
             },
@@ -76,6 +80,8 @@ function AllUsers() {
         getPaginationRowModel: getPaginationRowModel(),
         globalFilterFn: "includesString",
     });
+
+    console.log(table.getRowModel().rows[0].getVisibleCells()[0].getContext());
 
     return (
         <Layout>
