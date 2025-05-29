@@ -5,6 +5,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import Error404 from "../Pages/Errors/Error404";
 
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
+import DepartmentList from "../Pages/Admin/Department/DepartmentList";
+import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
+import BranchList from "../Pages/Admin/Branches/BranchList";
+import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
+
+
 
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
@@ -66,6 +72,8 @@ import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecord
 import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
+import ScheduleModule from "../Pages/Admin/Schedules";
+
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -78,10 +86,14 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route
-                path="dashboard"
-                element={<ProtectedRoute element={<Dashboard />} user={user} />}
-            />
+            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
+            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+
+            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
+            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
+            
+
+            <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
 
             <Route
                 path="employee/:user"
@@ -133,6 +145,7 @@ const AdminRoutes = ({ user }) => {
                     <ProtectedRoute element={<BenefitsList />} user={user} />
                 }
             />
+
             <Route
                 path="employees/benefits/:benefitID"
                 element={
@@ -204,6 +217,13 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
+                path="application/leave-credits"
+                element={
+                    <ProtectedRoute element={<LeaveCreditList />} user={user} />
+                }
+            />
+
+            {/* <Route
                 path="announcements"
                 element={
                     <ProtectedRoute
@@ -211,7 +231,7 @@ const AdminRoutes = ({ user }) => {
                         user={user}
                     />
                 }
-            />
+            /> */}
             {/* <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd />} user={user} />} />
             <Route path="announcements/types" element={<ProtectedRoute element={<AnnouncementTypes />} user={user} />} /> */}
 
@@ -224,7 +244,6 @@ const AdminRoutes = ({ user }) => {
                     />
                 }
             />
-
             <Route
                 path="trainings"
                 element={
@@ -331,7 +350,6 @@ const AdminRoutes = ({ user }) => {
                     <ProtectedRoute element={<PayrollSummary />} user={user} />
                 }
             />
-
             <Route
                 path="medical-records/peme-records"
                 element={
@@ -391,8 +409,17 @@ const AdminRoutes = ({ user }) => {
                 path="loan-management"
                 element={<ProtectedRoute element={<LoanList />} user={user} />}
             />
+
+            <Route
+                path="schedules"
+                element={
+                    <ProtectedRoute element={<ScheduleModule />} user={user} />
+                }
+            />
         </Routes>
     );
+
 };
+
 
 export default AdminRoutes;

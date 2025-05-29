@@ -197,25 +197,18 @@ const WorkGroupView = () => {
     }
 
     return (
-        <Layout title={workGroup?.name ? `${workGroup.name} Work Group` : "Work Group View"}>
+        <Layout title={workGroup?.name ? `${workGroup.name} Team` : "Team View"}>
             <Box sx={{ mx: 'auto', width: '100%', px: { xs: 1, md: 3 } }}>
 
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                        View Work Group
-                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}> View Team </Typography>
 
-                    <Button variant="contained" color="primary" onClick={handleOpenActions}>
-                        Actions
-                    </Button>
+                    <Button variant="contained" color="primary" onClick={handleOpenActions}>Actions</Button>
 
                     <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions}>
-                        <MenuItem onClick={handleOpenAssignShiftModal} disabled={isLoading || isAssignShiftModalLoading}>
-                            {isAssignShiftModalLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
-                            Assign Shift
-                        </MenuItem>
-                        <MenuItem onClick={handleOpenEditWorkGroupModal} disabled={isLoading || !workGroup}>Edit Work Group</MenuItem>
-                        <MenuItem onClick={handleDeleteWorkGroup} disabled={isLoading || !workGroup}>Delete Work Group</MenuItem>
+                        <MenuItem onClick={handleOpenAssignShiftModal} disabled={isLoading || isAssignShiftModalLoading}> {isAssignShiftModalLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null} Assign Shift </MenuItem>
+                        <MenuItem onClick={handleOpenEditWorkGroupModal} disabled={isLoading || !workGroup}>Edit Team</MenuItem>
+                        <MenuItem onClick={handleDeleteWorkGroup} disabled={isLoading || !workGroup}>Delete Team</MenuItem>
                     </Menu>
                 </Box>
 
@@ -227,11 +220,11 @@ const WorkGroupView = () => {
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={4} sx={{width: '100%', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'}}>
                             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px', height: '100%'}}>
-                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold'}}>Group Details</Typography>
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold'}}>Team Details</Typography>
                                 <Grid container spacing={2} sx={{display: 'flex', justifyContent: 'space-around'}}>
                                     <Box sx={{display:'flex', alignItems:'center', gap:'10px'}} >
                                         <Grid item xs={6} sm={4}>
-                                            <Typography variant="subtitle1" fontWeight="bold">Group Name:</Typography>
+                                            <Typography variant="subtitle1" fontWeight="bold">Team Name:</Typography>
                                         </Grid>
                                         <Grid item xs={6} sm={8}>
                                             <Typography variant="body1">{workGroup?.name || 'N/A'}</Typography>

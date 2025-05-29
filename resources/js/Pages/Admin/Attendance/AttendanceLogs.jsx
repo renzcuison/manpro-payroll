@@ -9,6 +9,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
 const AttendanceLogs = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -34,7 +36,6 @@ const AttendanceLogs = () => {
             },
         })
             .then((response) => {
-                console.log('API Response:', response.data);
                 setAttendances(response.data.attendances || []);
                 setIsLoading(false);
             })
@@ -118,7 +119,13 @@ const AttendanceLogs = () => {
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Filters */}
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+
                             <Grid container direction="row" justifyContent="flex-start" size={8} spacing={2}>
+                                <DateRangePicker />
+                            </Grid>
+
+
+                            {/* <Grid container direction="row" justifyContent="flex-start" size={8} spacing={2}>
                                 <FormControl sx={{ width: { xs: "100%", md: "180px" }, mr: 2 }}>
                                     <InputLabel id="date-range-select-label"> Date Range </InputLabel>
                                     <Select
@@ -166,7 +173,9 @@ const AttendanceLogs = () => {
                                         sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
                                     />
                                 </LocalizationProvider>
-                            </Grid>
+                            </Grid> */}
+
+
                             <Grid container direction="row" justifyContent="flex-end" size={{ xs: 2 }} spacing={2}>
                                 <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } } }}>
                                     <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />

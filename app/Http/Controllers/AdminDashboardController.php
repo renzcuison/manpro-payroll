@@ -17,9 +17,39 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 
 class AdminDashboardController extends Controller
 {
+
+    public function index(): JsonResponse
+    {
+        
+        if (!Auth::check()) {
+            return response()->json(["error" => 'Unautorized' ], 401);
+        }
+        $today = Carbon::now()->toDateString();
+        $user = Auth::user();
+        $clientId = $user->client_id;
+        // get employees
+        $employees = UsersModel::with(['department', 'branch', 'jobTitle', 'latestAttendanceLog'])->where('user_type', 'Employee')
+        ->where('client_id', $clientId)->get();
+
+        $attendanceQry = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
+        })->with('user', 'workHour');
+
+        $presentEmployees = $attendanceQry->clone()->whereDate('timestamp', $today)->get();
+        $allEmployees = $attendanceQry->get();
+        $absentEmployees = $attendanceQry->whereDate('timestamp', '!=', $today)->get();
+
+        return response()->json([
+            'employees' => $employees,
+            'attendance' => $allEmployees,
+            'present' => $presentEmployees,
+            'absent' => $absentEmployees
+        ]);
+    }
     public function checkUser()
     {
         // Log::info("AdminDashboardController::checkUser");
