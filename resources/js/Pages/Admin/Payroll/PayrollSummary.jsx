@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText, TableFooter } from '@mui/material';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText, TableFooter } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useUser } from '../../../hooks/useUser';
 import Swal from "sweetalert2";
 
 import dayjs, { Dayjs } from 'dayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 
@@ -21,8 +16,6 @@ import AddIcon from '@mui/icons-material/Add';
 import AddSignatory from './Modals/AddSignatory';
 
 const PayrollSummary = () => {
-    const { user } = useUser();
-    const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = useMemo(() => getJWTHeader(JSON.parse(storedUser)), [storedUser]);
 
@@ -77,6 +70,24 @@ const PayrollSummary = () => {
         },
         { key: 'totalAllowance', primaryLabel: 'Allowance', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'totalAllowance', isVisible: (cols) => cols.includes('totalAllowance'), isTotaled: true },
         { key: 'payrollGrossPay', primaryLabel: 'Gross Pay', secondaryLabel: null, rowSpan: 2, colSpan: 1, dataKey: 'payrollGrossPay', isVisible: (cols) => cols.includes('payrollGrossPay'), isTotaled: true },
+        {
+            key: 'sssGroup', primaryLabel: 'Social Security System', colSpan: 2, isGroup: true, children: [
+                { key: 'sssEmployer', secondaryLabel: 'Employer', dataKey: 'sssEmployer', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true },
+                { key: 'sssEmployee', secondaryLabel: 'Employee', dataKey: 'sssEmployee', isVisible: (cols) => cols.includes('absences'), isTotaled: true }
+            ]
+        },
+        {
+            key: 'sssGroup', primaryLabel: 'PHILHEALTH', colSpan: 2, isGroup: true, children: [
+                { key: 'philHealthEmployee', secondaryLabel: 'Employer', dataKey: 'philHealthEmployee', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true },
+                { key: 'philHealthEmployer', secondaryLabel: 'Employee', dataKey: 'philHealthEmployer', isVisible: (cols) => cols.includes('absences'), isTotaled: true }
+            ]
+        },
+        {
+            key: 'sssGroup', primaryLabel: 'PAG-IBIG', colSpan: 2, isGroup: true, children: [
+                { key: 'pagIbigEmployee', secondaryLabel: 'Employer', dataKey: 'pagIbigEmployee', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true },
+                { key: 'pagIbigEmployer', secondaryLabel: 'Employee', dataKey: 'pagIbigEmployer', isVisible: (cols) => cols.includes('absences'), isTotaled: true }
+            ]
+        },
         {
             key: 'deductionGroup', primaryLabel: 'Deduction', colSpan: 2, isGroup: true, children: [
                 { key: 'absences', secondaryLabel: 'Absences', dataKey: 'absences', isVisible: (cols) => cols.includes('absences'), isTotaled: true },
@@ -304,8 +315,7 @@ const PayrollSummary = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Summary of Payroll</Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                              <Button variant='contained' onClick={handleOpenSignatoryDialog}>
-                                 <AddIcon />
-                                 Add Signatory
+                                <AddIcon /> Add Signatory
                              </Button>
                             <FormControl sx={{ minWidth: 200 }} size="small">
                                 <InputLabel>Columns</InputLabel>
