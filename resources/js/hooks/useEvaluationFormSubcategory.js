@@ -10,9 +10,9 @@ export function useEvaluationFormSubcategory(subcategory) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
-    const [categoryId, setCategoryId] = useState();
     const [subcategoryId, setSubcategoryId] = useState();
     const [subcategoryName, setSubcategoryName] = useState();
+    const [sectionId, setSectionId] = useState();
     const [subcategoryType, setSubcategoryType] = useState();
     const [subcategoryDescription, setSubcategoryDescription] = useState();
     const [required, setRequired] = useState(true);
@@ -27,9 +27,9 @@ export function useEvaluationFormSubcategory(subcategory) {
     useEffect(() => {
         if(!subcategory) return;
         setIsNew(false);
-        setCategoryId(subcategory.category_id);
         setSubcategoryId(subcategory.id);
         setSubcategoryName(subcategory.name);
+        setSectionId(subcategory.section_id);
         setSubcategoryType(subcategory.subcategory_type);
         setSubcategoryDescription(subcategory.description);
         setRequired(subcategory.required);
@@ -87,7 +87,7 @@ export function useEvaluationFormSubcategory(subcategory) {
     function saveSubcategory() {
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
-                category_id: categoryId,
+                section_id: sectionId,
                 name: subcategoryName,
                 subcategory_type: getSubcategoryDbValue(subcategoryType),
                 description: subcategoryDescription,
@@ -229,7 +229,7 @@ export function useEvaluationFormSubcategory(subcategory) {
     let returnData = {
         subcategory: {
             id: subcategoryId,
-            category_id: categoryId,
+            section_id: sectionId,
             name: subcategoryName,
             subcategory_type: subcategoryType,
             description: subcategoryDescription,

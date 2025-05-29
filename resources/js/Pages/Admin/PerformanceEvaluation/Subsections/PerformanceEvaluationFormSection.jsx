@@ -5,24 +5,37 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    Paper
+    Paper,
+    TextField
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
-import PerformanceEvaluationFormCategory from './PerformanceEvaluationFormCategory';4
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaludationAddSubcategory from '../Modals/PerformanceEvaludationAddSubcategory';
 import Swal from 'sweetalert2';
+import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useState } from 'react';
 
 const PerformanceEvaluationFormSection = ({ section }) => {
     const {
-        sectionId, sectionName, expanded, order, categories, subcategories,
-        saveCategory, saveSubcategory, toggleExpand
+        sectionId,
+        sectionName, setSectionName,
+        sectionCategory, setSectionCategory,
+        expanded, toggleExpand,
+        editable, toggleEditable,
+        order,
+        subcategories, saveSubcategory,
+        editSection
     } = useEvaluationFormSection( section );
-    const hasCategories = categories.length > 0;
     const hasSubcategories = subcategories.length > 0;
+
+    // Section handlers
+
+    const [onSectionClick] = useClickHandler({
+        onSingleClick: toggleExpand,
+        onDoubleClick: toggleEditable
+    });
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -37,16 +50,16 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     };
 
     // Save category
-    const handleSaveCategory = (categoryName) => {
-        if (!sectionId || !categoryName) {
+    const handleSaveCategory = (sectionCategory) => {
+        if (!sectionId || !sectionCategory) {
             Swal.fire({
-                text: "Section ID and Category Name are required!",
+                text: "Category Name are required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
             });
             return;
         }
-        saveCategory(categoryName);
+        editSection({ category: sectionCategory });
     };
 
     // Subcategory modal state
@@ -77,7 +90,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     return <>
         <Accordion
             expanded={expanded}
-            onChange={toggleExpand}
+            onChange={onSectionClick}
             sx={{
                 my: 2,
                 boxShadow: 3,
@@ -100,10 +113,31 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     '& .MuiAccordionSummary-content': { my: 1 },
                 }}
             >
-                {sectionName}
+                {/* {sectionName} */}
+                {
+                    editable ? <TextField
+                        autoFocus
+                        label="Section Name"
+                        fullWidth
+                        variant="standard"
+                        value={sectionName}
+                        onChange={(e) => setSectionName(e.target.value)}
+                        onBlur={toggleEditable}
+                        required
+                        style={{
+                            bgcolor: '#eab31a',
+                            color: 'white',
+                            borderRadius: 2,
+                            fontWeight: 'bold',
+                            fontSize: 18,
+                            '& .MuiAccordionSummary-content': { my: 1 },
+                        }}
+                    /> : sectionName
+                }
             </AccordionSummary>
             <AccordionDetails sx={{ bgcolor: '#fafafa', borderRadius: 2 }}>
                 <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
+
                     <Typography variant="h6" sx={{
                         mb: 2,
                         display: 'flex',
@@ -118,16 +152,24 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     }}>
                         Categories
                     </Typography>
-                    {hasCategories ? (
-                        categories.map(category=><PerformanceEvaluationFormCategory
-                            key={ category.id }
-                            category={ category }
-                        />)
-                    ) : (
-                        <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
-                            No categories yet.
-                        </Typography>
-                    )}
+                    {
+                        sectionCategory ? <>
+                            <Paper
+                                sx={{
+                                    mb: 1,
+                                    p: 2,
+                                    bgcolor: "#fff8e1",
+                                    borderLeft: "5px solid #eab31a",
+                                    fontWeight: "bold"
+                                }}
+                                elevation={1}
+                            >{ sectionCategory }</Paper>
+                        </> : <>
+                            <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
+                                No category yet.
+                            </Typography>
+                        </>
+                    }
                     {
                         hasSubcategories ? (
                             subcategories.map(subcategory=><PerformanceEvaluationRating
@@ -148,9 +190,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 py: 1.5,
                                 '&:hover': { bgcolor: '#0d5c27' }
                             }}
-                            onClick={hasCategories ? handleOpenAddPerformanceEvaludationAddSubcategory : handleOpenAddCategoryModal}
+                            onClick={sectionCategory ? handleOpenAddPerformanceEvaludationAddSubcategory : handleOpenAddCategoryModal}
                         >{
-                            hasCategories ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>
+                            sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>
                         }</Button>
                     </Box>
                 </Paper>

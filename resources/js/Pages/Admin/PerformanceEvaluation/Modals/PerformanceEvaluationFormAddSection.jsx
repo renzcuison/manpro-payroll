@@ -10,20 +10,29 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 
 const PerformanceEvaluationFormAddSection = ({ open, onClose, onSave }) => {
-    const [categoryName, setCategoryName] = useState('');
+    const {
+        section,
+        sectionId,
+        sectionName, setSectionName,
+        sectionCategory, setSectionCategory,
+        expanded, toggleExpand,
+        order,
+        subcategories,
+        saveSubcategory
+    } = useEvaluationFormSection();
 
     const handleSave = () => {
-        if (categoryName.trim()) {
-            onSave(categoryName);
-            setCategoryName('');
-            onClose();
-        }
+        setSectionName(sectionName.trim());
+        onSave(section);
+        setSectionName('');
+        onClose();
     };
 
     const handleCancel = () => {
-        setCategoryName('');
+        setSectionName('');
         onClose();
     };
 
@@ -40,7 +49,6 @@ const PerformanceEvaluationFormAddSection = ({ open, onClose, onSave }) => {
                     minWidth: 400,
                     maxWidth: 800,
                     backgroundColor: '#f8f9fa',
-                    
                 }
             }}
             sx={{
@@ -75,8 +83,8 @@ const PerformanceEvaluationFormAddSection = ({ open, onClose, onSave }) => {
                         label="Section Name*"
                         variant="outlined"
                         fullWidth
-                        value={categoryName}
-                        onChange={e => setCategoryName(e.target.value)}
+                        value={sectionName}
+                        onChange={e => setSectionName(e.target.value)}
                         sx={{ mb: 4 }}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt:2 }}>

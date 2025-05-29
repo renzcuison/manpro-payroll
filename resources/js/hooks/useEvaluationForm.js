@@ -10,7 +10,7 @@ export function useEvaluationForm(form) {
     const [formName, setFormName] = useState();
     const [creatorName, setCreatorName] = useState();
     const [createdDate, setCreatedDate] = useState();  
-    const [loading, setLoading] = useState();
+    const [loading, setLoading] = useState(true);
     const [sections, setSections] = useState([]);
     const [notFound, setNotFound] = useState(false);
 
@@ -49,13 +49,14 @@ export function useEvaluationForm(form) {
             .catch(error => {
                 console.error('Error fetching section data:', error);
             })
+        ;
     }
 
-    function saveSection(sectionName) {
+    function saveSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSection', {
-                form_id: formId,
-                name: sectionName
+                ...section,
+                form_id: formId
             }, { headers })
             .then((response) => {
                 const { evaluationFormSectionID } = response.data;

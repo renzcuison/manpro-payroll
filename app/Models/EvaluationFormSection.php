@@ -26,10 +26,9 @@ class EvaluationFormSection extends Model
         return $this->belongsTo(EvaluationForm::class, 'form_id');
     }
 
-    public function categories()
+    public function subcategories()
     {
-        return $this->hasMany(EvaluationFormCategory::class, 'section_id');
+        return $this->hasMany(EvaluationFormSubcategory::class, 'section_id');
     }
-
 
 }

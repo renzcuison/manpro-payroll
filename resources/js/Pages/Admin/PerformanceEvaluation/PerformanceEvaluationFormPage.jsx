@@ -48,8 +48,6 @@ const PerformanceEvaluationFormPage = () => {
         saveSection(sectionName);
     };
 
-    useEffect(() => {console.log(sections)}, [sections]);
-
     if(notFound) return <CheckUser />;
 
     return (
@@ -72,10 +70,6 @@ const PerformanceEvaluationFormPage = () => {
                         <Typography variant="body1" sx={{ textAlign: 'left', color: '#777' }}>
                             Date Created: {createdDate ? new Date(createdDate).toLocaleString() : 'N/A'}
                         </Typography>
-
-                        
-
-                        {/* Sections as Accordions */}
                         <Box sx={{ mt: 2 }}>
                             {sections.map(section => <PerformanceEvaluationFormSection
                                 key={ section.id }

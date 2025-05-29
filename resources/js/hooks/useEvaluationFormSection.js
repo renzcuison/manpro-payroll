@@ -7,62 +7,68 @@ export function useEvaluationFormSection(section) {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const [isNew, setIsNew] = useState(true);
     const [sectionId, setSectionId] = useState();
     const [sectionName, setSectionName] = useState();
+    const [sectionCategory, setSectionCategory] = useState();
     const [expanded, setExpanded] = useState(false);
+    const [editable, setEditable] = useState(false);
     const [order, setOrder] = useState();
-    const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
 
     useEffect(() => {
+        if(!section) return;
+        setIsNew(false);
         setSectionId(section.id);
         setSectionName(section.name);
+        setSectionCategory(section.category);
         setOrder(section.order);
-        setCategories(section.categories);
-        setSubcategories(
-            section.categories.reduce(
-                (array, category) => [...array, ...category.subcategories], []
-            )
-        );
-    }, [section.id]);
+        setSubcategories(section.subcategories);
+    }, [section?.id]);
 
-    // category operations
+    // section operations
 
-    function getCategory(categoryId) {
+    function editSection(section) {
         axiosInstance
-            .get(`/getEvaluationFormCategory`, {
-                headers, params: { id: categoryId }
-            })
-            .then((response) => {
-                const { evaluationFormCategory } = response.data;
-                if(!evaluationFormCategory) return;
-                setCategories([...categories, evaluationFormCategory]);
-            })
-            .catch(error => {
-                console.error('Error fetching category data:', error);
-            })
-    }
-
-    function saveCategory(categoryName) {
-        axiosInstance
-            .post('/saveEvaluationFormCategory', {
-                section_id: sectionId,
-                name: categoryName
+            .post('/editEvaluationFormSection', {
+                id: sectionId,
+                ...section              
             }, { headers })
             .then((response) => {
-                const { evaluationFormCategoryID } = response.data;
-                if(!evaluationFormCategoryID) return;
-                getCategory(evaluationFormCategoryID);
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSection } = response.data;
+                    if(!evaluationFormSection) return;
+                    setSectionName(evaluationFormSection.name);
+                    setSectionCategory(evaluationFormSection.category);
+                    setOrder(evaluationFormSection.order);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
             })
             .catch(error => {
-                console.error('Error saving category:', error);
+                console.error('Error saving section:', error);
                 Swal.fire({
-                    text: "Error saving category",
+                    text: "Error saving section",
                     icon: "error",
                     confirmButtonColor: '#177604',
                 });
             })
         ;
+    }
+
+    function toggleEditable() {
+        setEditable(!editable);
+    }
+
+    function toggleExpand() {
+        setExpanded(!expanded);
     }
 
     // subcategory operations
@@ -83,7 +89,7 @@ export function useEvaluationFormSection(section) {
     }
 
     function saveSubcategory(subcategory) {
-        if(!categories[0]) Swal.fire({
+        if(!sectionCategory) Swal.fire({
             text: "A category must first be made in this section",
             icon: "error",
             confirmButtonColor: '#177604',
@@ -91,8 +97,8 @@ export function useEvaluationFormSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
-                subcategory_type: getSubcategoryDbValue(subcategory.subcategory_type),
-                category_id: categories[0].id,
+                section_id: sectionId,
+                subcategory_type: getSubcategoryDbValue(subcategory.subcategory_type)
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -121,15 +127,28 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-    // showing and hiding section
-
-    function toggleExpand() {
-        setExpanded(!expanded);
-    }
-
-    return {
-        sectionId, sectionName, expanded, order, categories, subcategories,
-        saveCategory, saveSubcategory, toggleExpand
+    let returnData = {
+        section: {
+            id: sectionId,
+            name: sectionName,
+            category: sectionCategory,
+            order,
+            subcategories
+        },
+        sectionId,
+        sectionName, setSectionName,
+        sectionCategory, setSectionCategory,
+        expanded, toggleExpand,
+        editable, toggleEditable,
+        order,
+        subcategories, saveSubcategory
     };
+
+    if(isNew)
+        undefined;
+    else
+        returnData = { ...returnData, editSection };
+
+    return returnData;
 
 }
