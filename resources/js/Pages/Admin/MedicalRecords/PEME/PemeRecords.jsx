@@ -36,6 +36,7 @@ const PemeRecords = () => {
             .then((response) => {
                 setPemeRecords(response.data);
                 setIsLoading(false);
+                console.log("DATA", response.data);
             })
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);

@@ -1,4 +1,9 @@
 import React from "react";
+import dayjs from "dayjs";
+import weekday from "dayjs/plugin/weekday";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+// MUI components
 import {
     Table,
     TableBody,
@@ -11,20 +16,6 @@ import {
     Box,
     Typography,
 } from "@mui/material";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    LinearProgress,
-    Box,
-    Typography,
-} from "@mui/material";
-import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 dayjs.extend(weekday);
 dayjs.extend(isSameOrBefore);

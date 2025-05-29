@@ -51,10 +51,10 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                             </TableCell>
                         </TableRow>
                     ) : (
-                        records.map((record) => (
+                        records.map((record, index) => (
                             <TableRow
-                                key={record.date}
-                                onClick={onRowClick}
+                                key={index}
+                                onClick={() => onRowClick(record.id)}
                                 sx={{
                                     cursor: "pointer",
                                     transition: ".15s",
@@ -72,7 +72,7 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {highlightMatch(record.exam, search)}
+                                    {highlightMatch(record.name, search)}
                                 </TableCell>
                             </TableRow>
                         ))
