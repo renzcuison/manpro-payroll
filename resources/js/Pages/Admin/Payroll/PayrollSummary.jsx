@@ -77,15 +77,15 @@ const PayrollSummary = () => {
             ]
         },
         {
-            key: 'sssGroup', primaryLabel: 'PHILHEALTH', colSpan: 2, isGroup: true, children: [
-                { key: 'philHealthEmployee', secondaryLabel: 'Employer', dataKey: 'philHealthEmployee', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true },
-                { key: 'philHealthEmployer', secondaryLabel: 'Employee', dataKey: 'philHealthEmployer', isVisible: (cols) => cols.includes('absences'), isTotaled: true }
+            key: 'philHealthGroup', primaryLabel: 'PHILHEALTH', colSpan: 2, isGroup: true, children: [
+                { key: 'philHealthEmployee', secondaryLabel: 'Employer', dataKey: 'philHealthEmployee', isVisible: (cols) => cols.includes('philHealthEmployee'), isTotaled: true },
+                { key: 'philHealthEmployer', secondaryLabel: 'Employee', dataKey: 'philHealthEmployer', isVisible: (cols) => cols.includes('philHealthEmployer'), isTotaled: true }
             ]
         },
         {
-            key: 'sssGroup', primaryLabel: 'PAG-IBIG', colSpan: 2, isGroup: true, children: [
-                { key: 'pagIbigEmployee', secondaryLabel: 'Employer', dataKey: 'pagIbigEmployee', isVisible: (cols) => cols.includes('tardiness'), isTotaled: true },
-                { key: 'pagIbigEmployer', secondaryLabel: 'Employee', dataKey: 'pagIbigEmployer', isVisible: (cols) => cols.includes('absences'), isTotaled: true }
+            key: 'pagIbigGroup', primaryLabel: 'PAG-IBIG', colSpan: 2, isGroup: true, children: [
+                { key: 'pagIbigEmployee', secondaryLabel: 'Employer', dataKey: 'pagIbigEmployee', isVisible: (cols) => cols.includes('pagIbigEmployee'), isTotaled: true },
+                { key: 'pagIbigEmployer', secondaryLabel: 'Employee', dataKey: 'pagIbigEmployer', isVisible: (cols) => cols.includes('pagIbigEmployer'), isTotaled: true }
             ]
         },
         {
@@ -112,6 +112,16 @@ const PayrollSummary = () => {
         { key: 'tardiness', label: 'Tardiness' },
         { key: 'totalAllowance', label: 'Allowance' },
         { key: 'payrollGrossPay', label: 'Gross Pay' },
+
+        { key: 'sssEmployer', label: 'SSS Employer' },
+        { key: 'sssEmployee', label: 'SSS Employee' },
+
+        { key: 'philHealthEmployee', label: 'PhilHealth Employee' },
+        { key: 'philHealthEmployer', label: 'PhilHealth Employee' },
+
+        { key: 'pagIbigEmployee', label: 'Pag-Ibig Employee' },
+        { key: 'pagIbigEmployer', label: 'Pag-Ibig Employer' },
+
         { key: 'payrollNetPay', label: 'Net Pay' },
     ], []);
 

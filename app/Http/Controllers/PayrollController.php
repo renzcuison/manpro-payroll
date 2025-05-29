@@ -1242,6 +1242,7 @@ class PayrollController extends Controller
 
 
                 $records[] = [
+                    'key' => $rawRecord->id . $rawRecord->employee_id,
                     'record' => encrypt($rawRecord->id),
                     'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
