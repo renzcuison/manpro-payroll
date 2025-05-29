@@ -10,9 +10,10 @@ export function useEvaluationFormSection(section) {
     const [isNew, setIsNew] = useState(true);
     const [sectionId, setSectionId] = useState();
     const [sectionName, setSectionName] = useState();
+    const [editableSectionName, setEditableSectionName] = useState(false);
     const [sectionCategory, setSectionCategory] = useState();
+    const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
-    const [editable, setEditable] = useState(false);
     const [order, setOrder] = useState();
     const [subcategories, setSubcategories] = useState([]);
 
@@ -63,8 +64,12 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-    function toggleEditable() {
-        setEditable(!editable);
+    function toggleEditableCategory() {
+        setEditableCategory(!editableCategory);
+    }
+
+    function toggleEditableSection() {
+        setEditableSectionName(!editableSectionName);
     }
 
     function toggleExpand() {
@@ -137,9 +142,10 @@ export function useEvaluationFormSection(section) {
         },
         sectionId,
         sectionName, setSectionName,
+        editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
+        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
-        editable, toggleEditable,
         order,
         subcategories, saveSubcategory
     };

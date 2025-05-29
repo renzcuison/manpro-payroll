@@ -21,9 +21,10 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const {
         sectionId,
         sectionName, setSectionName,
+        editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
+        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
-        editable, toggleEditable,
         order,
         subcategories, saveSubcategory,
         editSection
@@ -34,7 +35,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
 
     const [onSectionClick] = useClickHandler({
         onSingleClick: toggleExpand,
-        onDoubleClick: toggleEditable
+        onDoubleClick: toggleEditableSection
     });
 
     // Category modal state
@@ -115,14 +116,14 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             >
                 {/* {sectionName} */}
                 {
-                    editable ? <TextField
+                    editableSectionName ? <TextField
                         autoFocus
                         label="Section Name"
                         fullWidth
                         variant="standard"
                         value={sectionName}
                         onChange={(e) => setSectionName(e.target.value)}
-                        onBlur={toggleEditable}
+                        onBlur={toggleEditableSection}
                         required
                         style={{
                             bgcolor: '#eab31a',
@@ -137,7 +138,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             </AccordionSummary>
             <AccordionDetails sx={{ bgcolor: '#fafafa', borderRadius: 2 }}>
                 <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
-
                     <Typography variant="h6" sx={{
                         mb: 2,
                         display: 'flex',
@@ -153,7 +153,11 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         Categories
                     </Typography>
                     {
-                        sectionCategory ? <>
+                        !sectionCategory ? <>
+                            <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
+                                No category yet.
+                            </Typography>
+                        </> : !editableCategory ? <>
                             <Paper
                                 sx={{
                                     mb: 1,
@@ -163,12 +167,26 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                     fontWeight: "bold"
                                 }}
                                 elevation={1}
+                                onDoubleClick={toggleEditableCategory}
                             >{ sectionCategory }</Paper>
-                        </> : <>
-                            <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
-                                No category yet.
-                            </Typography>
-                        </>
+                        </> : <TextField
+                            autoFocus
+                            label="Category"
+                            fullWidth
+                            variant="standard"
+                            value={sectionCategory}
+                            onChange={(e) => setSectionCategory(e.target.value)}
+                            onBlur={toggleEditableCategory}
+                            required
+                            style={{
+                                bgcolor: '#eab31a',
+                                color: 'white',
+                                borderRadius: 2,
+                                fontWeight: 'bold',
+                                fontSize: 18,
+                                '& .MuiAccordionSummary-content': { my: 1 },
+                            }}
+                        />
                     }
                     {
                         hasSubcategories ? (
