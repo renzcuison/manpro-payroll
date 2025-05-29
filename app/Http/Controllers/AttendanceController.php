@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ApplicationsOvertimeModel;
-use App\Models\AttendanceLogsModel;
-use App\Models\AttendanceLogsMobileModel;
 use App\Models\UsersModel;
+use App\Models\AttendanceSummary;
+use App\Models\AttendanceLogsModel;
+use App\Models\ApplicationsOvertimeModel;
+use App\Models\AttendanceLogsMobileModel;
+use App\Models\WorkHoursModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -203,7 +205,7 @@ class AttendanceController extends Controller
     // Recorders
     public function saveEmployeeAttendance(Request $request)
     {
-        // log::info("AttendanceController::saveEmployeeAttendance");
+        log::info("AttendanceController::saveEmployeeAttendance");
 
         $validated = $request->validate(['action' => 'required']);
 
@@ -213,12 +215,70 @@ class AttendanceController extends Controller
             try {
                 DB::beginTransaction();
 
-                AttendanceLogsModel::create([
-                    "user_id" => $user->id,
-                    "work_hour_id" => $user->workShift->work_hour_id,
-                    "action" => $request->action,
-                    "method" => 1,
-                ]);
+                log::info($request);
+                log::info($request->action);
+
+                $workHour = WorkHoursModel::find($user->workShift->work_hour_id);
+                $attendanceLog = AttendanceLogsModel::create([ "user_id" => $user->id, "work_hour_id" => $workHour->id, "action" => $request->action, "method" => 1 ]);
+                
+                $day = \Carbon\Carbon::parse($attendanceLog->timestamp)->toDateString();
+
+                $dayStart = Carbon::parse("$day {$workHour->first_time_in}");
+
+                if ($workHour->shift_type === 'Regular') {
+                    $dayEnd = Carbon::parse("$day {$workHour->first_time_out}");
+                } elseif ($workHour->shift_type === 'Split') {
+                    $dayEnd = Carbon::parse("$day {$workHour->second_time_out}");
+                }
+
+                log::info("Day Start: " . $dayStart);
+                log::info("Day End: " . $dayEnd);
+
+                $action = $attendanceLog->action;
+                $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
+
+                log::info($summary);
+
+                if ( $summary ) {
+                    log::info("Has Summary");
+
+                    if ( $action === "Time In" ) {
+
+                    }
+
+                } else {
+                    log::info("Has No Summary");
+
+                    log::info("Creating New Summary");
+
+                    log::info($attendanceLog->id);
+
+                    if ( $action === "Duty In" ) {
+                        $summary = AttendanceSummary::create([
+                            "user_id" => $user->id,
+                            "client_id" => $user->client_id,
+                            "work_hour_id" => $workHour->id,
+                            
+                            "work_day_start" => $dayStart,
+                            "work_day_end" => $dayEnd,
+
+                            "work_day_end" => "Regular Day",
+                            
+                            "latest_log_id" => $attendanceLog->id,
+                        ]);
+                    }
+
+                    log::info("New Summary");
+                    log::info($summary);
+                }
+
+                $attendanceLog->attendance_summary_id = $summary->id;
+                $attendanceLog->save();
+
+
+                // log::info("Stopper");
+                // dd("Stopper");
+                
 
                 DB::commit();
 
@@ -232,6 +292,12 @@ class AttendanceController extends Controller
             }
         }
     }
+
+    public function saveAttendanceSummary()
+    {
+        log::info("AttendanceController::saveAttendanceSummary");
+    }
+
 
 /*
     public function saveMobileEmployeeAttendance(Request $request)

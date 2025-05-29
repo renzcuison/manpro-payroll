@@ -230,11 +230,6 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-
-
-
-    
-
     const workShifts = [
         {
             id: 5,
@@ -326,10 +321,7 @@ const Sidebar = ({ children, closeMini }) => {
     // console.log("User: ", user);
 
     return (
-        <nav
-            id="sidebar"
-            style={{ zIndex: 1, height: "100vh", overflow: "hidden" }}
-        >
+        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">
@@ -427,169 +419,70 @@ const Sidebar = ({ children, closeMini }) => {
                                         </span>
                                     </li>
 
-                                    <StyledNav
-                                        to={`/dashboard?year=${moment().year()}`}
-                                    >
-                                        <i
-                                            className="si si-grid"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            Dashboard
-                                        </span>
+                                    <StyledNav to={`/dashboard?year=${moment().year()}`} >
+                                        <i className="si si-grid" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Dashboard </span>
                                     </StyledNav>
 
                                     <li className="nav-main-heading">
-                                        <span className="sidebar-mini-hidden text-dark">
-                                            Management
-                                        </span>
+                                        <span className="sidebar-mini-hidden text-dark"> Management </span>
                                     </li>
 
                                     {employeesItems.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
+                                            <SideItem key={index} items={items} />
                                         );
                                     })}
 
                                     {attendanceLogs.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
+                                            <SideItem key={index} items={items} />
                                         );
                                     })}
 
 
-                                         <StyledNav to={`/admin/department/departmentlist`}>
-                                        <i
-                                            className="fa fa-building-o"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Departments{" "}
-                                        </span>
-                                    </StyledNav>
+                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
+                                        {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
+                                        {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
+                                    {/* </StyledNav> */}
 
-                                    
-                                    
-                                    
-
-                                         <StyledNav to={`/admin/branches/branchlist`}>
-                                        <i
-                                            className="fa fa-sitemap"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Branches{" "}
-                                        </span>
-                                    </StyledNav>
-
-
-
-                           
-
-
-
+                                    {/* <StyledNav to={`/admin/branches/branchlist`}> */}
+                                        {/* <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> */}
+                                        {/* <span id="navName" className="sidebar-mini-hide">Branches</span> */}
+                                    {/* </StyledNav> */}
 
                                     {payrollItems.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
+                                            <SideItem key={index} items={items} />
                                         );
                                     })}
 
                                     {applicationsItems.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
+                                            <SideItem key={index} items={items} />
+                                    );
+                                })}
 
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
                                     {/* </StyledNav>  */}
                                     <StyledNav to={`/admin/schedules`}>
-                                        <i
-                                            className="fa fa-calendar"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            Schedules & Holidays
-                                        </span>
+                                        <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
                                     </StyledNav>
                                     <StyledNav to={`/admin/announcements`}>
-                                        <i
-                                            className="fa fa-bullhorn"
-                                            style={{ color: "#2a800f" }}
-                                        ></i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Announcements{" "}
-                                        </span>
+                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
                                     </StyledNav>
 
-
-                                    
-
                                     <StyledNav to={`/admin/documents`}>
-                                        <i>
-                                            {" "}
-                                            <DescriptionOutlinedIcon
-                                                sx={{
-                                                    color: palette.success.main,
-                                                }}
-                                            />{" "}
-                                        </i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Documents{" "}
-                                        </span>
+                                        <i> {" "}<DescriptionOutlinedIcon sx={{ color: palette.success.main }} />{" "} </i>
+                                        <span id="navName" className="sidebar-mini-hide"> {" "}Documents{" "} </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
-                                        <i>
-                                            {" "}
-                                            <TrackChangesIcon
-                                                sx={{
-                                                    color: palette.success.main,
-                                                }}
-                                            />{" "}
-                                        </i>
-                                        <span
-                                            id="navName"
-                                            className="sidebar-mini-hide"
-                                        >
-                                            {" "}
-                                            Perimeters{" "}
-                                        </span>
+                                        <i> {" "}<TrackChangesIcon sx={{ color: palette.success.main }} />{" "} </i>
+                                        <span id="navName" className="sidebar-mini-hide"> {" "} Perimeters{" "} </span>
                                     </StyledNav>
 
                                     {/* <StyledNav to={`/admin/trainings`}> */}
