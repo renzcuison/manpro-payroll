@@ -25,6 +25,6 @@ export function useClickHandler({
         waitingRef.current = waiting;
     }, [waiting]);
 
-    return [onClick];
+    return onClick;
 
 }

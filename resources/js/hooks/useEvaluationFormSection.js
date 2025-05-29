@@ -2,6 +2,7 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
+import { result } from "lodash";
 
 export function useEvaluationFormSection(section) {
 
@@ -29,11 +30,11 @@ export function useEvaluationFormSection(section) {
 
     // section operations
 
-    function editSection(section) {
-        axiosInstance
+    async function editSection(section, inputRef) {
+        return axiosInstance
             .post('/editEvaluationFormSection', {
-                id: sectionId,
-                ...section              
+                ...section,
+                id: sectionId
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -50,8 +51,13 @@ export function useEvaluationFormSection(section) {
                         customClass: {
                             popup: 'swal-popup-overlay' // Custom class to ensure overlay
                         }
+                    }).then(result => {
+                        if(!result.isConfirmed) return;
+                        if(!inputRef || !inputRef.current) return;
+                        inputRef.current.querySelector('input').focus();
                     });
                 }
+                return response;
             })
             .catch(error => {
                 console.error('Error saving section:', error);

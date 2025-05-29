@@ -11,11 +11,11 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
-import PerformanceEvaludationAddSubcategory from '../Modals/PerformanceEvaludationAddSubcategory';
+import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const PerformanceEvaluationFormSection = ({ section }) => {
     const {
@@ -29,14 +29,29 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         subcategories, saveSubcategory,
         editSection
     } = useEvaluationFormSection( section );
+    const inputRef = useRef(null);
     const hasSubcategories = subcategories.length > 0;
 
     // Section handlers
 
-    const [onSectionClick] = useClickHandler({
-        onSingleClick: toggleExpand,
+    const onSectionClick = useClickHandler({
+        onSingleClick: () => toggleExpand(),
         onDoubleClick: toggleEditableSection
     });
+
+    const handleSaveSectionName = (sectionName) => {
+        editSection({ name: sectionName }, inputRef).then((response) => {
+            if(response.data.status.toString().startsWith(2))
+                toggleEditableSection();
+        });
+    }
+
+    const handleSaveCategoryName = (categoryName) => {
+        editSection({ category: categoryName }, inputRef).then((response) => {
+            if(response.data.status.toString().startsWith(2))
+                toggleEditableCategory();
+        });
+    }
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -54,7 +69,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const handleSaveCategory = (sectionCategory) => {
         if (!sectionId || !sectionCategory) {
             Swal.fire({
-                text: "Category Name are required!",
+                text: "Category Name is required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
             });
@@ -67,11 +82,11 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
 
     // Subcategory modal handlers
-    const handleOpenAddPerformanceEvaludationAddSubcategory = () => {
+    const handleOpenAddPerformanceEvaluationFormAddSubcategory = () => {
         setAddSubcategoryOpen(true);
     };
 
-    const handleCloseAddPerformanceEvaludationAddSubcategory = () => {
+    const handleCloseAddPerformanceEvaluationFormAddSubcategory = () => {
         setAddSubcategoryOpen(false);
     };
 
@@ -123,7 +138,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         variant="standard"
                         value={sectionName}
                         onChange={(e) => setSectionName(e.target.value)}
-                        onBlur={toggleEditableSection}
+                        onBlur={(e) => handleSaveSectionName(e.target.value)}
+                        ref={inputRef}
                         required
                         style={{
                             bgcolor: '#eab31a',
@@ -176,7 +192,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                             variant="standard"
                             value={sectionCategory}
                             onChange={(e) => setSectionCategory(e.target.value)}
-                            onBlur={toggleEditableCategory}
+                            onBlur={(e) => handleSaveCategoryName(e.target.value)}
+                            ref={inputRef}
                             required
                             style={{
                                 bgcolor: '#eab31a',
@@ -208,7 +225,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 py: 1.5,
                                 '&:hover': { bgcolor: '#0d5c27' }
                             }}
-                            onClick={sectionCategory ? handleOpenAddPerformanceEvaludationAddSubcategory : handleOpenAddCategoryModal}
+                            onClick={sectionCategory ? handleOpenAddPerformanceEvaluationFormAddSubcategory : handleOpenAddCategoryModal}
                         >{
                             sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>
                         }</Button>
@@ -221,9 +238,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             onClose={handleCloseAddCategoryModal}
             onSave={handleSaveCategory}
         />
-        <PerformanceEvaludationAddSubcategory
+        <PerformanceEvaluationFormAddSubcategory
             open={addSubcategoryOpen}
-            onClose={handleCloseAddPerformanceEvaludationAddSubcategory}
+            onClose={handleCloseAddPerformanceEvaluationFormAddSubcategory}
             onSave={handleSaveSubcategory}
         />
     </>;

@@ -28,7 +28,7 @@ import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationF
 import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
 import PerformanceEvaluationFormAcknowledge from './Modals/PerformanceEvaluationFormAcknowledge';
-import PerformanceEvaludationAddSubcategory from './Modals/PerformanceEvaludationAddSubcategory';
+import PerformanceEvaluationFormAddSubcategory from './Modals/PerformanceEvaluationFormAddSubcategory';
 
 const PerformanceEvaluationForm = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -187,7 +187,7 @@ const PerformanceEvaluationForm = () => {
         ))}
 
         {/* Modals */}
-        <PerformanceEvaludationAddSubcategory
+        <PerformanceEvaluationFormAddSubcategory
           open={openModal}
           onClose={handleCloseModal}
           onSave={handleSaveSubcategory}
