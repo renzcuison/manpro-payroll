@@ -19,7 +19,9 @@ import {
     DialogContent,
     DialogActions,
     IconButton,
-    Menu
+    Menu,
+    Avatar,
+    Tooltip
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
@@ -98,22 +100,44 @@ const BranchList = () => {
         );
     }, [branches, searchKeyword]);
 
-
     const getEmployeesForBranchPosition = (branchId, positionId) => {
-    const branch = branches.find(b => b.id === branchId);
-    if (!branch) return "-";
+        const branch = branches.find(b => b.id === branchId);
+        if (!branch) return [];
 
-    const employeesInBranch = allEmployees.filter(emp => 
-        emp.branch?.trim().toLowerCase() === branch.name.trim().toLowerCase() && 
-        Number(emp.branch_position_id) === Number(positionId)
-    );
+        return allEmployees.filter(emp => 
+            emp.branch?.trim().toLowerCase() === branch.name.trim().toLowerCase() && 
+            Number(emp.branch_position_id) === Number(positionId)
+        );
+    };
 
-    return employeesInBranch.length 
-        ? employeesInBranch.map(emp => `${emp.first_name} ${emp.last_name}`).join(", ") 
-        : "-";
-};
+    const renderEmployeeAvatars = (branchId, positionId) => {
+        const employees = getEmployeesForBranchPosition(branchId, positionId);
+        
+        if (employees.length === 0) {
+            return (
+                <Box display="flex" justifyContent="center">
+                    <Typography variant="caption" color="textSecondary">-</Typography>
+                </Box>
+            );
+        }
 
-
+        return (
+            <Box display="flex" justifyContent="center" flexWrap="wrap" gap={1}>
+                {employees.map(emp => (
+                    <Tooltip 
+                        key={emp.id} 
+                        title={`${emp.first_name} ${emp.last_name}`}
+                        arrow
+                    >
+                        <Avatar 
+                            src={emp.avatar} 
+                            sx={{ width: 32, height: 32 }}
+                        />
+                    </Tooltip>
+                ))}
+            </Box>
+        );
+    };
 
     // Modal handlers
     const handleAddClick = (event) => {
@@ -350,7 +374,7 @@ const BranchList = () => {
                                 
                                 {branchPositions.map(position => (
                                     <TableCell key={`${branch.id}-${position.id}`} align="center">
-                                        {getEmployeesForBranchPosition(branch.id, position.id)}
+                                        {renderEmployeeAvatars(branch.id, position.id)}
                                     </TableCell>
                                 ))}
                                 
