@@ -96,17 +96,19 @@ const BranchList = () => {
         fetchData();
     }, []);
 
-    // Helper function to get employee name by ID
-    const getEmployeeNameById = (employeeId) => {
-        if (!employeeId) return "-";
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? `${employee.first_name} ${employee.last_name}` : "-";
-    };
-
     // Helper function to get employees assigned to a specific branch and position
     const getEmployeesForBranchPosition = (branchId, positionId) => {
-        const employeesInBranch = allEmployees.filter(emp => emp.branch_id === branchId && emp.branch_position_id === positionId);
-        return employeesInBranch.map(emp => `${emp.first_name} ${emp.last_name}`).join(", ") || "-";
+        const employeesInPosition = allEmployees.filter(emp => 
+            emp.branch_id === branchId && emp.branch_position_id === positionId
+        );
+        
+        if (employeesInPosition.length === 0) {
+            return "-";
+        }
+        
+        return employeesInPosition.map(emp => 
+            `${emp.first_name} ${emp.last_name}`
+        ).join(", ");
     };
 
     const filteredBranches = branches.filter((bran) =>
@@ -132,6 +134,8 @@ const BranchList = () => {
         setOpenSettingsModal(true);
     };
 
+
+    
     // Add New Branch Functions
     const checkInput = (event) => {
         event.preventDefault();
@@ -444,7 +448,7 @@ const BranchList = () => {
                                                                     padding: "16px"
                                                                 }}
                                                             >
-                                                                {branch.employees_count || "0"}
+                                                                {allEmployees.filter(emp => emp.branch_id === branch.id).length}
                                                             </Link>
                                                         </TableCell>
                                                     </TableRow>

@@ -176,7 +176,7 @@ class EmployeesController extends Controller
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
-                    // $employee->branch_id,
+                    $employee->branch_id,
                     // $employee->department_id,
                     // $employee->role_id,
                     // $employee->job_title_id,
