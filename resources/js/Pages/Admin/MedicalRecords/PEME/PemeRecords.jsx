@@ -79,7 +79,7 @@ const PemeRecords = () => {
                                     search && (
                                         <InputAdornment position="end">
                                         <Typography variant="body2" sx={{ color: 'gray' }}>
-                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Result" : "Results"}
+                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
                                         </Typography>
                                         </InputAdornment>
                                     )
