@@ -65,7 +65,7 @@ import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
-import PemeOverview from "../Pages/Admin/MedicalRecords/PEME/PemeOverview";
+import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -339,13 +339,13 @@ const AdminRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-form"
+                path="medical-records/peme-records/peme-form/:PemeID"
                 element={
                     <ProtectedRoute element={<PemeRecordsForm />} user={user} />
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-responses"
+                path="medical-records/peme-records/peme-responses/:PemeID"
                 element={
                     <ProtectedRoute element={<PemeResponses />} user={user} />
                 }
@@ -361,10 +361,10 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="medical-records/peme-records/peme-overview"
+                path="medical-records/peme-records/peme-questionnaire-preview/:PemeID"
                 element={
                     <ProtectedRoute
-                        element={<PemeOverview />}
+                        element={<PemeQuestionnairePreview />}
                         user={user}
                     />
                 }

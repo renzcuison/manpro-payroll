@@ -9,21 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('hmo_types', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-            $table->softDeletes();
-            $table->string('name', 128);
+        Schema::table('peme_q_type', function (Blueprint $table) {
+            $table->float('file_size_limit')->nullable();
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('hmo_types');
+        Schema::table('peme_q_type', function (Blueprint $table) {
+            //
+        });
     }
 };

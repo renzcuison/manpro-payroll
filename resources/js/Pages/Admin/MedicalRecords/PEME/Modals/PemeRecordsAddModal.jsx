@@ -8,20 +8,44 @@ import {
     TextField,
     Button,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "@/utils/axiosConfig";
 
 const PemeRecordsAddModal = ({ open, close }) => {
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
-    const handleSubmit = () => {
-        navigator("/admin/medical-records/peme-records/peme-form");
-        console.log("Record Name:", recordName);
-        //Backend Save Logic
+    const getJWTHeader = (user) => {
+        return {
+            Authorization: `Bearer ${user.token}`,
+        };
     };
+
+    const handleSubmit = async () => {
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+        try {
+            const response = await axiosInstance.post(
+                "/pemes",
+                { name: recordName },
+                { headers }
+            );
+            console.log("Successfully created questionnaire:", response.data);
+
+            const newId = response?.data?.peme?.id;
+            console.log("New PEME ID:", newId);
+            navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
+
+            return newId;
+        } catch (error) {
+            console.error("Error creating questionnaire:", error);
+            return null;
+        }
+    };
+
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
-        console.log(recordName);
     };
 
     return (
@@ -88,10 +112,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                    onClick={() => {
-                                        handleSubmit();
-                                        close(true);
-                                    }}
+                                    onClick={handleSubmit}
                                     variant="contained"
                                 >
                                     Confirm

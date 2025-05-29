@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medical_allowances', function (Blueprint $table) {
+        Schema::create('peme_q_type', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('peme_q_item_id');
+            $table->enum('input_type', ['attachment', 'pass_fail', 'pos_neg', 'remarks', 'text']);
             $table->timestamps();
             $table->softDeletes();
-            $table->unsignedBigInteger('user_id');
-            $table->decimal('amount', 10, 2);
 
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('peme_q_item_id')->references('id')->on('peme_q_item')->onDelete('cascade');
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('medical_allowances');
+        Schema::dropIfExists('peme_q_type');
     }
 };

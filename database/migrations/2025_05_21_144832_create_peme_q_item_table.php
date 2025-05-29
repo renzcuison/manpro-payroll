@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('peme_types', function (Blueprint $table) {
+        Schema::create('peme_q_item', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
-            $table->unsignedBigInteger('clients_id');
+            $table->unsignedBigInteger('peme_id');
+            $table->string('question', 256);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('clients_id')->references('id')->on('clients');
+            $table->foreign('peme_id')->references('id')->on('peme')->onDelete('cascade');
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('peme_types');
+        Schema::dropIfExists('peme_q_item');
     }
 };
