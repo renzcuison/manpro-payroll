@@ -21,7 +21,7 @@ import ViewOvertime from "./Modals/ViewOvertime";
 
 const headCells = [
     { id: "time_in", label: "Date", sortable: true },
-    { id: "emp_name", label: "Employee", sortable: true },
+    { id: "emp_name", label: "Employee", sortable: false },
     { id: "reason", label: "Reason", sortable: false },
     { id: "time", label: "Time", sortable: false },
     { id: "status", label: "Status", sortable: false },
