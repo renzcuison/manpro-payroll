@@ -110,15 +110,16 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableBody>
                     {responses.length === 0 ? (
                         <TableRow>
-                        <TableCell colSpan={6} align="center">
+                        <TableCell colSpan={7} align="center">
                             <Typography>
                             No Result Found
                             </Typography>
                         </TableCell>
                         </TableRow>
                     ) : (
-                    
-                        responses.map((response) => (
+                        responses.map((response) => {
+                                    const formattedDate = dayjs(response.date).format("MMMM D, YYYY");
+                            return (
                         <TableRow
                             key={response.id}
                             onClick={onRowClick}
@@ -128,7 +129,7 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                 "&:hover": { backgroundColor: "#e0e0e0" },
                             }}
                         >
-                            <TableCell align="center">{dayjs(highlightMatch(response.date, search)).format("MMMM D, YYYY")}</TableCell>
+                            <TableCell align="center">{highlightMatch(formattedDate, search)}</TableCell>
                             <TableCell align="center">{highlightMatch(response.exam, search)}</TableCell>
                             <TableCell align="center">{dayjs(response.dueDate).format("MMMM D, YYYY")} <p></p> {getDueStatus(response.dueDate)}</TableCell>
 
@@ -156,7 +157,7 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                             </TableCell>
                             <TableCell align="center">{highlightMatch(response.status, search)}</TableCell>
                         </TableRow>
-                    ))
+                    )})
                     )}
                     </TableBody>
             </Table>

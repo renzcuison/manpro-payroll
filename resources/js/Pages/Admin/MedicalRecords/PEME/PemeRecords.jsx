@@ -1,10 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Typography, TextField, Grid, Divider } from "@mui/material";
+import { Box, Button, Typography, FormControl, InputLabel, OutlinedInput, InputAdornment } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
 import PemeOverview from "./PemeOverview";
+import dayjs from "dayjs";
 
 const PemeRecords = () => {
     const navigator = useNavigate();
@@ -25,7 +26,7 @@ const PemeRecords = () => {
         () => [
             {
                 exam: "Annual Physical Exam",
-                date: "2025-06-01",
+                date: "2025-06-02",
             },
             {
                 exam: "Drug Test",
@@ -36,14 +37,17 @@ const PemeRecords = () => {
     );
 
     const filteredRecords = records.filter((record) =>
-        [record.date, record.exam].some((field) =>
-            field?.toLowerCase().includes(search.toLowerCase())
-        )
-    );
+        [dayjs(record.date).format("MMMM D, YYYY"),
+        record.exam
+        ].some((field) =>
+            field?.toString().toLowerCase().includes(search.toLowerCase())
+    ));
 
     const handleOnRowClick = () => {
         navigator("/admin/medical-records/peme-records/peme-responses");
     };
+
+    const resultsCount = filteredRecords.length;
 
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -65,13 +69,24 @@ const PemeRecords = () => {
 
                         <Box>
                             <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                                <TextField
-                                    label="Search Exam or Date"
-                                    variant="outlined"
+                                <FormControl variant="outlined" sx={{ width: 652, mb: 1 }}>
+                                <InputLabel htmlFor="custom-search" >Search Date or Exam</InputLabel>
+                                <OutlinedInput
+                                    id="custom-search"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    sx={{ marginBottom: 2, width: "20%" }}
-                                />
+                                    endAdornment={
+                                    search && (
+                                        <InputAdornment position="end">
+                                        <Typography variant="body2" sx={{ color: 'gray' }}>
+                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Result" : "Results"}
+                                        </Typography>
+                                        </InputAdornment>
+                                    )
+                                    }
+                                    label="Search Date or Exam"
+                                    />
+                                </FormControl>
                                 <Box sx={{ mx: -3, my: -1.5, pl: 3, pr: 3 }}>
                             </Box>
                         </Box>
@@ -119,7 +134,7 @@ const PemeRecords = () => {
                             }}
                             >
 
-                            <PemeExamTypeTable records={filteredRecords} onRowClick={handleOnRowClick} />
+                            <PemeExamTypeTable records={filteredRecords} onRowClick={handleOnRowClick} search={search} />
                         </Box>
                     </Box>
                 </Box>
