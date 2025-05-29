@@ -19,6 +19,10 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
+use App\Http\Controllers\PemeController;
+use App\Http\Controllers\PemeQuestionnaireController;
+use App\Http\Controllers\PemeResponseController;
+use App\Http\Controllers\PemeResponseDetailsController;
 
 
 // Old Controllers
@@ -48,13 +52,6 @@ use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
-
-// Medical Records Controller
-// PEME
-use App\Http\Controllers\PemeController;
-use App\Http\Controllers\PemeQuestionnaireController;
-use App\Http\Controllers\PemeResponseController;
-use App\Http\Controllers\PemeResponseDetailsController;
 
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
@@ -113,7 +110,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
 
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SeterttingsController::class, 'saveJobTitle']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
@@ -140,7 +137,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
-        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeeController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -675,7 +672,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Response Details
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
-    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
+    // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);

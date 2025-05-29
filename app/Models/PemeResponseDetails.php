@@ -33,7 +33,7 @@ class PemeResponseDetails extends Model implements HasMedia
         return $this->belongsTo(PemeResponse::class, 'peme_response_id');
     }
 
-    public function questionItem()
+    public function question()
     {
         return $this->belongsTo(PemeQItem::class, 'peme_q_item_id');
     }

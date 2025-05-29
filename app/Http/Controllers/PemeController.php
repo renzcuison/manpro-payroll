@@ -79,12 +79,13 @@ class PemeController extends Controller
 
         $user = Auth::user();
 
-        $pemeList = Peme::select("created_at", "name")
+        $pemeList = Peme::select("id", "created_at", "name")
             ->where("client_id", $user->client_id)
             ->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
                 return [
+                    "id" => $peme->id,
                     "date" => Carbon::parse($peme->created_at)->format(
                         "F d, Y"
                     ),
