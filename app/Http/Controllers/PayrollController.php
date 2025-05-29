@@ -343,8 +343,10 @@ class PayrollController extends Controller
             $startDate = $request->startDate;
             $endDate = $request->endDate;
 
-            $employees = UsersModel::whereHas('attendanceLogs', function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('timestamp', [$startDate, $endDate]);
+            $employees = UsersModel::where(function ($query) use ($startDate, $endDate) {
+                $query->whereHas('attendanceLogs', function ($subQuery) use ($startDate, $endDate) {
+                    $subQuery->whereBetween('timestamp', [$startDate, $endDate]);
+                })->orWhere('is_fixed_salary', true);
             })->where('client_id', $user->client_id)->get();
 
             $payrolls = [];
