@@ -11,7 +11,7 @@ import {
     Radio,
     Select,
 } from "@mui/material";
-import Layout from "../../../../components/Layout/Layout";
+import Layout from "../../../../../components/Layout/Layout";
 import { useState } from "react";
 
 const SelectForm = ({
@@ -30,7 +30,7 @@ const SelectForm = ({
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     label="Form Name"
-                    inputprops={{ readOnly: readOnly }}
+                    inputProps={{ readOnly: readOnly }}
                 />
             </FormControl>
             <FormControl>
@@ -104,7 +104,7 @@ const SelectForm = ({
                                 }}
                                 type="number"
                                 label="Size"
-                                inputprops={{
+                                inputProps={{
                                     min: 0,
                                     max: 500,
                                 }}

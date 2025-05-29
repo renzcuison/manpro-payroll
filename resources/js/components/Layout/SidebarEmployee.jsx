@@ -65,7 +65,7 @@ const evaluationItems = [
             icon: "fa fa-medkit",
             children: [
                 {
-                    href: `/employee/medical-records/peme-records`,
+                    href: `/employee/medical-records/peme/peme-responses`,
                     text: "PEME",
                     icon: "fa fa-cogs",
                 },
