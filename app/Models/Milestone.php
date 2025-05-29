@@ -11,6 +11,8 @@ class Milestone extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $guarded = [];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(UsersModel::class, 'user_id');

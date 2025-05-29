@@ -16,13 +16,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('type', ['monthsarry', 'anniversarry', 'birthday', 'promotion', 'transfer', 'demotion']);
+            $table->enum('type', ['monthsarry', 'anniversary', 'birthday', 'promotion', 'transfer', 'demotion']);
             $table->timestamp('date');
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('client_id');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('client_id')->references('id')->on('users');
         });
     }
 

@@ -36,6 +36,7 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
+import { useMilestones } from "../Milestones/hook/useMilestones";
 
 const Dashboard = () => {
     const { data, isFetched } = useUsers();
@@ -44,6 +45,11 @@ const Dashboard = () => {
         isFetched: isFetchedDashboard,
         isLoading,
     } = useDashboard();
+
+    const { data: milestones, isLoading: isLoadingMilestones } =
+        useMilestones();
+    console.log(milestones);
+
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
@@ -315,20 +321,20 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {latestEmployees?.map((emp, index) => (
+                            {milestones?.map((emp, index) => (
                                 <React.Fragment key={index}>
                                     <ListItem
                                         alignItems="flex-start"
                                         secondaryAction={
                                             <>
-                                                <Typography variant="caption">
-                                                    Joined
-                                                </Typography>
-                                                <Typography>
-                                                    {moment(
-                                                        emp.created_at
-                                                    ).format("MMM. DD, YYYY")}
-                                                </Typography>
+                                                <Chip
+                                                    label={
+                                                        emp.type
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        emp.type.slice(1)
+                                                    }
+                                                />
                                             </>
                                         }
                                         sx={{ px: 0 }}
@@ -337,9 +343,9 @@ const Dashboard = () => {
                                             <Avatar
                                                 alt="Remy Sharp"
                                                 src={
-                                                    emp.media
-                                                        ? emp.media?.[0]
-                                                              .original_url
+                                                    emp.user?.media
+                                                        ? emp.user?.media?.[0]
+                                                              ?.original_url
                                                         : ""
                                                 }
                                             />
@@ -350,8 +356,8 @@ const Dashboard = () => {
                                                     variant="body1"
                                                     sx={{ fontWeight: 600 }}
                                                 >
-                                                    {emp.first_name}{" "}
-                                                    {emp.last_name}
+                                                    {emp.user?.first_name}{" "}
+                                                    {emp.user?.last_name}
                                                 </Typography>
                                             }
                                             secondary={
@@ -364,9 +370,8 @@ const Dashboard = () => {
                                                             display: "inline",
                                                         }}
                                                     >
-                                                        {emp.job_title.name}
+                                                        {emp.description}
                                                     </Typography>
-                                                    <Chip label="Birthday" />
                                                 </React.Fragment>
                                             }
                                         />
