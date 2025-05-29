@@ -7,65 +7,42 @@ import ShortTextIcon from '@mui/icons-material/ShortText';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
+import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
-const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcategory }) => {
-    const [subcategoryName, setSubcategoryName] = useState('');
-    const [responseType, setResponseType] = useState('');
-    const [description, setDescription] = useState('');
-    const [options, setOptions] = useState([]);
-    const [linearScaleStartLabel, setLinearScaleStartLabel] = useState('Not at all');
-    const [linearScaleEndLabel, setLinearScaleEndLabel] = useState('Extremely');
-    const [linearScaleStart, setLinearScaleStart] = useState(1);
-    const [linearScaleEnd, setLinearScaleEnd] = useState(5);
+const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave }) => {
 
-    // Synchronize state with the subcategory prop when it changes
-    // useEffect(() => {
-    //     if (subcategory) {
-    //         setSubcategoryName(subcategory.subcategoryName || '');
-    //         setResponseType(subcategory.responseType || '');
-    //         setDescription(subcategory.description || '');
-    //         setOptions(subcategory.options || []);
-    //         setLinearScaleStartLabel(subcategory.linearScaleStartLabel || '');
-    //         setLinearScaleEndLabel(subcategory.linearScaleEndLabel || '');
-    //         setLinearScaleStart(subcategory.linearScaleStart || 1);
-    //         setLinearScaleEnd(subcategory.linearScaleEnd || 5);
-    //     }
-    // }, [subcategory]);
-
-
-
-    // note: this does not save options enlisted in modal to db as of yet
-
-
-
+    const {
+        subcategory,
+        subcategoryId,
+        subcategoryName, setSubcategoryName,
+        responseType, switchResponseType,
+        subcategoryDescription, setSubcategoryDescription,
+        required, toggleRequired,
+        allowOtherOption, toggleAllowOtherOption,
+        linearScaleStart, setLinearScaleStart,
+        linearScaleEnd, setLinearScaleEnd,
+        linearScaleStartLabel, setLinearScaleStartLabel,
+        linearScaleEndLabel, setLinearScaleEndLabel,
+        order,
+        options, deleteOption, editOption, saveOption,
+        saveSubcategory
+    } = useEvaluationFormSubcategory();
 
     const handleSave = () => {
-        onSave({
-            name: subcategoryName,
-            subcategory_type: responseType,
-            description,
-            options,
-            linear_scale_start: linearScaleStartLabel,
-            linear_scale_end: linearScaleEndLabel,
-            linear_scale_start_label: linearScaleStart,
-            linear_scale_end_label: linearScaleEnd
-        });
+        onSave(subcategory);
         onClose();
     };
 
     const handleOptionChange = (index, event) => {
-        const newOptions = [...options];
-        newOptions[index] = event.target.value;
-        setOptions(newOptions);
+        editOption(index, event.target.value);
     };
 
     const handleAddOption = () => {
-        setOptions([...options, '']);
+        saveOption('');
     };
 
     const handleRemoveOption = (index) => {
-        const newOptions = options.filter((_, i) => i !== index);
-        setOptions(newOptions);
+        deleteOption(index);
     };
 
     return (
@@ -114,7 +91,7 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                             <InputLabel>Response Type</InputLabel>
                             <Select
                                 value={responseType}
-                                onChange={(e) => setResponseType(e.target.value)}
+                                onChange={(e) => switchResponseType(e.target.value)}
                                 label="Response Type"
                                 required
                             >
@@ -146,8 +123,8 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                         fullWidth
                         multiline
                         rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        value={subcategoryDescription}
+                        onChange={(e) => setSubcategoryDescription(e.target.value)}
                         required
                     />
                 </Box>
@@ -155,7 +132,7 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                 {/* Options for Multiple Choice or Checkbox */}
                 {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
                     <Box sx={{ mb: 2 }}>
-                        {options.map((option, index) => (
+                        {options.map(({ label }, index) => (
                             <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
                                 {/* Display option number */}
                                 <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -165,7 +142,7 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                                     <TextField
                                         variant="outlined"
                                         fullWidth
-                                        value={option}
+                                        value={label}
                                         onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
@@ -207,7 +184,7 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                                     {/* <InputLabel>Min Value</InputLabel> */}
                                     <Select
                                         value={linearScaleStart}
-                                        onChange={(e) => setLinearScaleStart(e.target.value)}
+                                        onChange={(e) => setLinearScaleStart(+e.target.value)}
                                         label="Min Value"
                                     >
                                         <MenuItem value={0}>0</MenuItem>
@@ -224,7 +201,7 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave, subcatego
                                     {/* <InputLabel>Max Value</InputLabel> */}
                                     <Select
                                         value={linearScaleEnd}
-                                        onChange={(e) => setLinearScaleEnd(e.target.value)}
+                                        onChange={(e) => setLinearScaleEnd(+e.target.value)}
                                         label="Max Value"
                                     >
                                         <MenuItem value={3}>3</MenuItem>

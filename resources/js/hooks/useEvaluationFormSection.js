@@ -21,8 +21,7 @@ export function useEvaluationFormSection(section) {
         setCategories(section.categories);
         setSubcategories(
             section.categories.reduce(
-                (array, category) => [...array, ...category.subcategories],
-                []
+                (array, category) => [...array, ...category.subcategories], []
             )
         );
     }, [section.id]);

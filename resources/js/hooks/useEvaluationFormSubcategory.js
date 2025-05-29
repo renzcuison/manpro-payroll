@@ -9,18 +9,25 @@ export function useEvaluationFormSubcategory(subcategory) {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const [isNew, setIsNew] = useState(true);
+    const [categoryId, setCategoryId] = useState();
     const [subcategoryId, setSubcategoryId] = useState();
     const [subcategoryName, setSubcategoryName] = useState();
     const [subcategoryType, setSubcategoryType] = useState();
     const [subcategoryDescription, setSubcategoryDescription] = useState();
-    const [required, setRequired] = useState();
-    const [allowOtherOption, setAllowOtherOption] = useState();
-    const [linearScaleStart, setLinearScaleStart] = useState();
-    const [linearScaleEnd, setLinearScaleEnd] = useState();
+    const [required, setRequired] = useState(true);
+    const [allowOtherOption, setAllowOtherOption] = useState(false);
+    const [linearScaleStart, setLinearScaleStart] = useState(1);
+    const [linearScaleEnd, setLinearScaleEnd] = useState(5);
+    const [linearScaleStartLabel, setLinearScaleStartLabel] = useState('Not at all');
+    const [linearScaleEndLabel, setLinearScaleEndLabel] = useState('Extremely');
     const [order, setOrder] = useState();
     const [options, setOptions] = useState([]);
 
     useEffect(() => {
+        if(!subcategory) return;
+        setIsNew(false);
+        setCategoryId(subcategory.category_id);
         setSubcategoryId(subcategory.id);
         setSubcategoryName(subcategory.name);
         setSubcategoryType(subcategory.subcategory_type);
@@ -29,9 +36,11 @@ export function useEvaluationFormSubcategory(subcategory) {
         setAllowOtherOption(subcategory.allow_other_option);
         setLinearScaleStart(subcategory.linear_scale_start);
         setLinearScaleEnd(subcategory.linear_scale_end);
+        setLinearScaleStartLabel(subcategory.linear_scale_start_label);
+        setLinearScaleEndLabel(subcategory.linear_scale_end_label);
         setOrder(subcategory.order);
         setOptions(subcategory.options);
-    }, [subcategory.id]);
+    }, [subcategory?.id]);
 
     // subcategory operations
 
@@ -75,19 +84,98 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
+    function saveSubcategory() {
+        axiosInstance
+            .post('/saveEvaluationFormSubcategory', {
+                category_id: categoryId,
+                name: subcategoryName,
+                subcategory_type: getSubcategoryDbValue(subcategoryType),
+                description: subcategoryDescription,
+                required,
+                allow_other_option: allowOtherOption,
+                linear_scale_start: linearScaleStart,
+                linear_scale_end: linearScaleEnd,
+                linear_scale_start_label: linearScaleStartLabel,
+                linear_scale_end_label: linearScaleEndLabel,
+                options
+            }, { headers })
+            .then((response) => {
+                if (response.data.status.toString().startsWith(2)) {
+                    const { evaluationFormSubcategoryID } = response.data;
+                    if(!evaluationFormSubcategoryID) return;
+                    setIsNew(false);
+                    setSubcategoryId(evaluationFormSubcategoryID);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving subcategory:', error);
+                Swal.fire({
+                    text: "Error saving subcategory",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+            })
+        ;
+    }
+
     function switchResponseType(responseType) {
 
-        editSubcategory({ subcategory_type: getSubcategoryDbValue(responseType) });
+        const subcategoryDbValue = getSubcategoryDbValue(responseType);
+        if(isNew)
+            setSubcategoryType(subcategoryDbValue);
+        else
+            editSubcategory({ subcategory_type: subcategoryDbValue });
+
+    }
+
+    function toggleAllowOtherOption() {
+
+        if(isNew)
+            setAllowOtherOption(!allowOtherOption);
+        else
+            editSubcategory({ allow_other_option: !allowOtherOption });
 
     }
 
     function toggleRequired() {
 
-        editSubcategory({ required: !required });
+        if(isNew)
+            setRequired(!required);
+        else
+            editSubcategory({ required: !required });
 
     }
 
     // option operations
+
+    function deleteOption(optionIndex) {
+
+        if(isNew) {
+            options.splice(optionIndex, 1);
+            setOptions([ ...options ]);
+        } else
+            undefined; // edit later
+
+    }
+
+    function editOption(optionIndex, label) {
+
+        if(isNew) {
+            options[ optionIndex ].label = label;
+            setOptions([ ...options ]);
+        } else
+            undefined; // edit later
+
+    }
 
     function getOption(optionId) {
         axiosInstance
@@ -104,10 +192,12 @@ export function useEvaluationFormSubcategory(subcategory) {
             })
     }
 
-    function saveOption({ name }) {
-        axiosInstance
+    function saveOption(label) {
+        if(isNew)
+            setOptions([ ...options, { label } ]);
+        else axiosInstance
             .post('/saveEvaluationFormSubcategoryOption', {
-                subcategory_id: subcategoryId, name
+                subcategory_id: subcategoryId, label
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -136,11 +226,39 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    return {
-        responseType: getSubcategorySelectValue(subcategoryType),
-        subcategoryId, subcategoryName, subcategoryDescription, required,
-        allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
-        editSubcategory, saveOption, switchResponseType, toggleRequired
+    let returnData = {
+        subcategory: {
+            id: subcategoryId,
+            category_id: categoryId,
+            name: subcategoryName,
+            subcategory_type: subcategoryType,
+            description: subcategoryDescription,
+            required,
+            allow_other_option: allowOtherOption,
+            linear_scale_start: linearScaleStart,
+            linear_scale_end: linearScaleEnd,
+            linear_scale_start_label: linearScaleStartLabel,
+            linear_scale_end_label: linearScaleEndLabel,
+            options
+        },
+        subcategoryId,
+        subcategoryName, setSubcategoryName,
+        responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
+        subcategoryDescription, setSubcategoryDescription,
+        required, toggleRequired,
+        allowOtherOption, toggleAllowOtherOption,
+        linearScaleStart, setLinearScaleStart,
+        linearScaleEnd, setLinearScaleEnd,
+        linearScaleStartLabel, setLinearScaleStartLabel,
+        linearScaleEndLabel, setLinearScaleEndLabel,
+        order,
+        options, deleteOption, editOption, saveOption
     };
+    if(isNew)
+        returnData = { ...returnData, saveSubcategory };
+    else
+        returnData = { ...returnData, editSubcategory };
+
+    return returnData;
 
 }

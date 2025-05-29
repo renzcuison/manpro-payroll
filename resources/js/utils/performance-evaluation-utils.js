@@ -16,7 +16,7 @@ export function getSubcategoryDbValue(value) {
         case 'linearScale':
             return 'linear_scale';
     }
-    return null;
+    return '';
 
 }
 
@@ -38,6 +38,6 @@ export function getSubcategorySelectValue(value) {
         case 'linearScale':
             return 'linearScale';
     }
-    return null;
+    return '';
 
 }

@@ -117,14 +117,14 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                 {responseType === 'multipleChoice' && (
                     <Box>
                         <Typography variant="h6">Multiple Choice</Typography>
-                        {options.map((option, index) => (
+                        {options.map(({ label }, index) => (
                             <Grid container spacing={2} key={index}>
                                 <Grid item xs={10}>
                                     <TextField
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        // value={option}
+                                        value={ label }
                                         // onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>

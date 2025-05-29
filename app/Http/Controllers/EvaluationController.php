@@ -675,11 +675,9 @@ class EvaluationController extends Controller
             ;
             $curOrder = $oldOrder;
             foreach($evaluationFormSectionsToMove as $evaluationFormSectionToMove) {
-
                 $evaluationFormSectionToMove->order = $curOrder;
                 $evaluationFormSectionToMove->save();
                 $curOrder += $moveUp ? 1 : -1;
-
             }
 
             $evaluationFormSection->order = $newOrder;
@@ -1317,6 +1315,7 @@ class EvaluationController extends Controller
                 'subcategory_type' => $request->subcategory_type,
                 'description' => $request->description,
                 'required' => 1,
+                'allow_other_option' => $request->allow_other_option,
                 'linear_scale_start' => $request->linear_scale_start,
                 'linear_scale_end' => $request->linear_scale_end,
                 'linear_scale_start_label' => $request->linear_scale_start_label,
@@ -1324,13 +1323,36 @@ class EvaluationController extends Controller
                 'order' => $order
             ]);
 
+            if($request->options) {
+                $labels = array();
+                foreach($request->options as $order => $option) {
+                    $label = $option["label"];
+                    $isEmptyName = !$label;
+                    if( $isEmptyName ) return response()->json([ 
+                        'status' => 400,
+                        'message' => 'Evaluation Form Subcategory Option Labels are required!'
+                    ]);
+
+                    $isRepeated = in_array($label, $labels);
+                    if($isRepeated) return response()->json([ 
+                        'status' => 409,
+                        'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+                    ]);
+                    $labels[] = $label;
+
+                    EvaluationFormSubcategoryOption::create([
+                        'subcategory_id' => $newEvaluationFormSubcategory->id,
+                        'label' => $label,
+                        'order' => $order
+                    ]);
+                }
+            }
+
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 201,
-                'evaluationSubcategoryID' => $newEvaluationFormSubcategory->id,
-                'linear_scale_start' => $linearScaleStart,
-                'linear_scale_end' => $linearScaleEnd,
+                'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
                 'message' => 'Evaluation Form Subcategory successfully created'
             ]);
 
