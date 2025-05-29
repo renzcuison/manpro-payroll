@@ -1,4 +1,9 @@
 import React from "react";
+import dayjs from "dayjs";
+import weekday from "dayjs/plugin/weekday";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+// MUI components
 import {
     Table,
     TableBody,
@@ -12,14 +17,15 @@ import {
     Typography,
 } from "@mui/material";
 
+dayjs.extend(weekday);
+dayjs.extend(isSameOrBefore);
+
 const GradientProgressBar = ({ currentProgress, completeProgress, status }) => {
     const progress = (currentProgress / completeProgress) * 100;
 
     const gradient =
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
-            : status === "Clear"
-            ? "#177604" // solid green for "Clear"
             : "linear-gradient(to right, #177604, #E9AE20)"; // default
 
     return (
@@ -39,76 +45,197 @@ const GradientProgressBar = ({ currentProgress, completeProgress, status }) => {
     );
 };
 
-const PemeResponsesTable = ({ responses, onRowClick }) => {
+const highlightMatch = (text, keyword) => {
+    if (!keyword) return text;
+    const regex = new RegExp(`(${keyword})`, "gi");
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+            <mark key={index} style={{ backgroundColor: "#E9AE20" }}>
+                {part}
+            </mark>
+        ) : (
+            part
+        )
+    );
+};
+
+const getDueStatus = (dueDateString) => {
+    const today = new Date();
+    const dueDate = new Date(dueDateString);
+
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    const weekdays = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ];
+
+    if (diffDays < 0) {
+        const overdueDays = Math.abs(diffDays);
+        let message = "";
+
+        if (overdueDays < 7)
+            message = `Overdue by ${overdueDays} day${
+                overdueDays > 1 ? "s" : ""
+            }`;
+        else if (overdueDays < 30) {
+            const weeks = Math.floor(overdueDays / 7);
+            message = `Overdue by ${weeks} week${weeks > 1 ? "s" : ""}`;
+        } else if (overdueDays < 365) {
+            const months = Math.floor(overdueDays / 30);
+            message = `Overdue by ${months} month${months > 1 ? "s" : ""}`;
+        } else {
+            const years = Math.floor(overdueDays / 365);
+            message = `Overdue by ${years} year${years > 1 ? "s" : ""}`;
+        }
+
+        return (
+            <span style={{ color: "red", fontWeight: "bold" }}>{message}</span>
+        );
+    }
+
+    if (diffDays === 0)
+        return (
+            <span style={{ color: "#E9AE20", fontWeight: "bold" }}>
+                Due today
+            </span>
+        );
+    if (diffDays < 7)
+        return (
+            <span style={{ color: "#E9AE20", fontWeight: "bold" }}>
+                Due in {diffDays} day{diffDays !== 1 ? "s" : ""}
+            </span>
+        );
+    if (diffDays < 14) return `Next ${weekdays[dueDate.getDay()]}`;
+    if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        return `In ${weeks} week${weeks > 1 ? "s" : ""}`;
+    }
+    if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `In ${months} month${months > 1 ? "s" : ""}`;
+    }
+
+    const years = Math.floor(diffDays / 365);
+    return `In ${years} year${years > 1 ? "s" : ""}`;
+};
+
+const PemeResponsesTable = ({ responses, onRowClick, search }) => {
     return (
-        <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-            <Table>
+        <TableContainer
+            style={{ overflowX: "auto" }}
+            sx={{ minHeight: 400, maxHeight: 500 }}
+        >
+            <Table stickyHeader aria-label="simple table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>
-                            <strong>Date</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Due Date</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Employee</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Branch</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Department</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Progress</strong>
-                        </TableCell>
-                        <TableCell>
-                            <strong>Status</strong>
-                        </TableCell>
+                        <TableCell align="center"> Date </TableCell>
+                        <TableCell align="center"> Due Date </TableCell>
+                        <TableCell align="center"> Employee </TableCell>
+                        <TableCell align="center"> Branch </TableCell>
+                        <TableCell align="center"> Department </TableCell>
+                        <TableCell align="center"> Progress</TableCell>
+                        <TableCell align="center"> Status </TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {responses.map((response) => (
-                        <TableRow
-                            key={response.id}
-                            onClick={onRowClick}
-                            sx={{
-                                cursor: "pointer",
-                                transition: ".15s",
-                                "&:hover": { backgroundColor: "#e0e0e0" },
-                            }}
-                        >
-                            <TableCell>{response.date}</TableCell>
-                            <TableCell>{response.dueDate}</TableCell>
-                            <TableCell>{response.employee}</TableCell>
-                            <TableCell>{response.branch}</TableCell>
-                            <TableCell>{response.department}</TableCell>
-                            <TableCell>
-                                <Box
+                    {responses.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={7} align="center">
+                                <Typography>No Result Found</Typography>
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        responses.map((response) => {
+                            const formattedDate = dayjs(response.date).format(
+                                "MMMM D, YYYY"
+                            );
+
+                            return (
+                                <TableRow
+                                    key={response.id}
+                                    onClick={onRowClick}
                                     sx={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        gap: 1,
+                                        cursor: "pointer",
+                                        transition: ".15s",
+                                        "&:hover": {
+                                            backgroundColor: "#e0e0e0",
+                                        },
                                     }}
                                 >
-                                    <GradientProgressBar
-                                        currentProgress={
-                                            response.currentProgress
-                                        }
-                                        completeProgress={response.fullProgress}
-                                        status={response.status}
-                                    ></GradientProgressBar>
-                                    <Typography>
-                                        {response.currentProgress} /{" "}
-                                        {response.fullProgress}
-                                    </Typography>
-                                </Box>
-                            </TableCell>
-                            <TableCell>{response.status}</TableCell>
-                        </TableRow>
-                    ))}
+                                    <TableCell align="center">
+                                        {highlightMatch(formattedDate, search)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {dayjs(response.dueDate).format(
+                                            "MMMM D, YYYY"
+                                        )}{" "}
+                                        <p></p> {getDueStatus(response.dueDate)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {highlightMatch(
+                                            response.employee,
+                                            search
+                                        )}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {highlightMatch(
+                                            response.branch,
+                                            search
+                                        )}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {highlightMatch(
+                                            response.department,
+                                            search
+                                        )}
+                                    </TableCell>
+
+                                    <TableCell align="center">
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                gap: 1,
+                                            }}
+                                        >
+                                            <GradientProgressBar
+                                                currentProgress={
+                                                    response.currentProgress
+                                                }
+                                                completeProgress={
+                                                    response.fullProgress
+                                                }
+                                                status={response.status}
+                                            ></GradientProgressBar>
+                                            <Typography>
+                                                {response.currentProgress} /{" "}
+                                                {response.fullProgress}
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {highlightMatch(
+                                            response.status,
+                                            search
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })
+                    )}
                 </TableBody>
             </Table>
         </TableContainer>

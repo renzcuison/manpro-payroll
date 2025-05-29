@@ -8,44 +8,44 @@ import {
     TextField,
     Button,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from'@/utils/axiosConfig';
+import axiosInstance from "@/utils/axiosConfig";
 
 const PemeRecordsAddModal = ({ open, close }) => {
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
     const getJWTHeader = (user) => {
         return {
-        Authorization: `Bearer ${user.token}`, 
-    };
+            Authorization: `Bearer ${user.token}`,
+        };
     };
 
     const handleSubmit = async () => {
-    console.log("Record Name:", recordName);
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    try {
-        const response = await axiosInstance.post(
-        "/pemes",
-        { name: recordName },
-        { headers }
-        );
-        console.log("Successfully created questionnaire:", response.data);
-        
-        const newId = response?.data?.peme?.id;
-        console.log("New PEME ID:", newId);
-        
-        return newId;
-    } catch (error) {
-        console.error("Error creating questionnaire:", error);
-        return null;
-    }
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+        try {
+            const response = await axiosInstance.post(
+                "/pemes",
+                { name: recordName },
+                { headers }
+            );
+            console.log("Successfully created questionnaire:", response.data);
+
+            const newId = response?.data?.peme?.id;
+            console.log("New PEME ID:", newId);
+            navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
+
+            return newId;
+        } catch (error) {
+            console.error("Error creating questionnaire:", error);
+            return null;
+        }
     };
 
     const handleTextFieldChange = (event) => {
         setRecordName(event.target.value);
-        console.log(recordName);
     };
 
     return (
@@ -72,7 +72,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                     }}
                 >
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        Create Exam
+                        Create Record
                     </Typography>
                 </Box>
             </DialogTitle>
@@ -90,7 +90,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                         <TextField
                             required
                             fullWidth
-                            label="Exam Name"
+                            label="Record Name"
                             variant="outlined"
                             onChange={handleTextFieldChange}
                         />
@@ -112,15 +112,10 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                onClick={async () => {
-                                    const newId = await handleSubmit();
-                                    if (newId) {
-                                    navigator(`/admin/medical-records/peme-records/${newId}/peme-form`);
-                                    }
-                                }}
-                                variant="contained"
+                                    onClick={handleSubmit}
+                                    variant="contained"
                                 >
-                                Confirm
+                                    Confirm
                                 </Button>
                             </Box>
                         </Box>

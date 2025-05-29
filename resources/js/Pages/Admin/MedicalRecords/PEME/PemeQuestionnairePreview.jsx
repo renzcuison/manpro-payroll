@@ -1,6 +1,8 @@
 import Layout from "../../../../components/Layout/Layout";
+import { useParams } from "react-router-dom";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Button,
@@ -16,9 +18,13 @@ import {
 
 import { Navigate, useNavigate } from "react-router-dom";
 
-const UploadForm = () => {
+const UploadForm = ({ fileSizeLimit }) => {
+    const limit = fileSizeLimit || 10;
     return (
         <>
+            <Typography variant="h7">
+                Max File Size: <strong>{limit}MB</strong>
+            </Typography>
             <input
                 accept="pdf/*"
                 style={{ display: "none" }}
@@ -32,10 +38,10 @@ const UploadForm = () => {
                         cursor: "pointer",
                         padding: 6,
                         borderRadius: 1,
-                        backgroundColor: "#ccc",
+                        backgroundColor: "#f0f0f0   ",
                         boxShadow: 1,
                         "&:hover": {
-                            backgroundColor: "#a3a3a3",
+                            backgroundColor: "#dbdbdb  ",
                         },
                         transition: ".2s",
                     }}
@@ -132,12 +138,48 @@ const PostiveOrNegative = () => {
     );
 };
 
-const PemeQuestionnaireView = () => {
+const PemeQuestionnairePreview = () => {
+    const getJWTHeader = (user) => {
+        return {
+            Authorization: `Bearer ${user.token}`,
+        };
+    };
+    const storedUser = localStorage.getItem("nasya_user");
+    const [pemePreview, setPemePreview] = useState([]);
+
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { PemeID } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
     const navigator = useNavigate();
     const handleOnDeleteClick = () => {};
     const handleOnCancelClick = () => {
-        navigator("/admin/medical-records/peme-records/peme-responses");
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${PemeID}`
+        );
     };
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .then((response) => {
+                setPemePreview(response.data);
+                console.log("PEME Records responses:", response.data);
+
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching loan applications:", error);
+                // Swal.fire({
+                //     title: "Error",
+                //     text:
+                //         "Failed to fetch PEME records. Please try again later.",
+                //     icon: "error",
+                //     confirmButtonText: "Okay",
+                //     confirmButtonColor: "#177604",
+                // });
+                setIsLoading(false);
+            });
+    }, []);
 
     return (
         <Layout>
@@ -150,7 +192,7 @@ const PemeQuestionnaireView = () => {
                     boxShadow: 1,
                     display: "flex",
                     flexDirection: "column",
-                    gap: 2,
+                    gap: 4,
                 }}
             >
                 <Box
@@ -169,40 +211,72 @@ const PemeQuestionnaireView = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Questionnaire Name
+                            {pemePreview.peme}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                             Employee Name
                         </Typography>
                     </Box>
+                </Box>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "12px",
-                        }}
-                    ></div>
-                </Box>
-                <Box
-                    sx={{
-                        backgroundColor: "#fafafa",
-                        paddingX: 8,
-                        paddingY: 6,
-                        borderRadius: 1,
-                        boxShadow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                    }}
-                >
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        Drug Test
-                    </Typography>
-                    <UploadForm></UploadForm>
-                    <PassOrFail></PassOrFail>
-                    <Remarks></Remarks>
-                    <TextBox></TextBox>
-                </Box>
+                {Array.isArray(pemePreview.questions) &&
+                    pemePreview.questions.map((form, index) => (
+                        <Box
+                            key={index}
+                            sx={{
+                                backgroundColor: "#fafafa",
+                                paddingX: 8,
+                                paddingY: 6,
+                                borderRadius: 1,
+                                boxShadow: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                        >
+                            <Typography
+                                variant="h4"
+                                sx={{ fontWeight: "bold", marginBottom: 3 }}
+                            >
+                                {form.question}
+                            </Typography>
+
+                            {Array.isArray(form.input_types) &&
+                                form.input_types.map((type, i) => {
+                                    switch (type.input_type) {
+                                        case "attachment":
+                                            return (
+                                                <Box
+                                                    key={i}
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        gap: 1,
+                                                    }}
+                                                >
+                                                    <UploadForm
+                                                        fileSizeLimit={
+                                                            type.file_size_limit
+                                                        }
+                                                    />
+                                                </Box>
+                                            );
+                                        case "remarks":
+                                            return <Remarks key={i} />;
+                                        case "text":
+                                            return <TextBox key={i} />;
+                                        case "pass_fail":
+                                            return <PassOrFail key={i} />;
+                                        case "pos_neg":
+                                            return (
+                                                <PostiveOrNegative key={i} />
+                                            );
+                                        default:
+                                            return null;
+                                    }
+                                })}
+                        </Box>
+                    ))}
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Button
                         variant="contained"
@@ -224,4 +298,4 @@ const PemeQuestionnaireView = () => {
     );
 };
 
-export default PemeQuestionnaireView;
+export default PemeQuestionnairePreview;

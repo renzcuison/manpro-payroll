@@ -15,7 +15,7 @@ const PemeOverview = ({ records }) => {
       labels: Object.keys(dateCounts),
       datasets: [
         {
-          label: "Employees",
+          label: "Employee Respondents",
           data: Object.values(dateCounts),
         },
       ],
@@ -30,7 +30,7 @@ const PemeOverview = ({ records }) => {
             plugins: {
                 legend: {
                     display: true,
-                    position: "bottom", // options: 'top', 'left', 'bottom', 'right'
+                    position: "bottom",
                     labels: {
                         usePointStyle: true,
                         pointStyle: 'circle',
@@ -53,7 +53,7 @@ const PemeOverview = ({ records }) => {
 
   return (
     <div className="p-1 max-w-xl mx-auto">
-      <h6 className="text-lg font-bold mb-2 text-left">Employees per Exam</h6>
+      <h6 className="text-lg mb-50 text-left">Employee Respondents per Exam</h6>
       <canvas ref={canvasRef}></canvas>
     </div>
   );

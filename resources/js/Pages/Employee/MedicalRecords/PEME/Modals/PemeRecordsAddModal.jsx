@@ -1,27 +1,21 @@
-import {
-    Dialog,
-    Typography,
-    DialogTitle,
-    Box,
-    DialogContent,
-    FormControl,
-    TextField,
-    Button,
-} from "@mui/material";
+import { Dialog, Typography, DialogTitle, Box, DialogContent, FormControl, Select, MenuItem, InputLabel, Button} from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const PemeRecordsAddModal = ({ open, close }) => {
-    const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
+
+    const [selectedRecord, setSelectedRecord] = React.useState("");
+
     const handleSubmit = () => {
-        navigator("/admin/medical-records/peme-records/peme-form");
-        console.log("Record Name:", recordName);
-        //Backend Save Logic
+        console.log("Record Name:", selectedRecord);
+        navigator("/employee/medical-records/peme/peme-responses");
+        // Backend Save Logic
     };
-    const handleTextFieldChange = (event) => {
-        setRecordName(event.target.value);
-        console.log(recordName);
+
+    const handleSelectChange = (event) => {
+        setSelectedRecord(event.target.value);
+        console.log("Selected Record:", event.target.value);
     };
 
     return (
@@ -30,7 +24,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
             onClose={close}
             fullWidth
             maxWidth="md"
-            PaperProps={{
+            SlotProps={{
                 sx: {
                     backgroundColor: "#f8f9fa",
                     boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -48,7 +42,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                     }}
                 >
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        Create Record
+                        Answer an Exam
                     </Typography>
                 </Box>
             </DialogTitle>
@@ -63,14 +57,20 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             paddingY: 2,
                         }}
                     >
-                        <TextField
-                            required
-                            fullWidth
-                            label="Record Name"
-                            variant="outlined"
-                            onChange={handleTextFieldChange}
-                        />
-
+                    <FormControl fullWidth>
+                        <InputLabel id="record-name-label">Select Type of Exam</InputLabel>
+                        <Select
+                            labelId="record-name-label"
+                            id="record-name"
+                            value={selectedRecord}
+                            label="Select Type of Exam"
+                            onChange={handleSelectChange}
+                        >
+                            
+                            <MenuItem value="exam1">Annual Physical Exam</MenuItem>
+                            <MenuItem value="exam2">Drug Test</MenuItem>
+                        </Select>
+                    </FormControl>
                         <Box
                             sx={{
                                 display: "flex",
@@ -94,7 +94,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                                     }}
                                     variant="contained"
                                 >
-                                    Confirm
+                                    Create
                                 </Button>
                             </Box>
                         </Box>
