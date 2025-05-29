@@ -49,7 +49,7 @@ class UsersModel extends Authenticatable implements HasMedia
 
         'date_start',
         'date_end',
-
+        'branch_position_id',
         'employment_type',
         'employment_status',
 
@@ -61,6 +61,12 @@ class UsersModel extends Authenticatable implements HasMedia
         'work_group_id',
         'company_id'
     ];
+
+
+    public function branchPosition(): BelongsTo
+    {
+        return $this->belongsTo(BranchPosition::class, 'branch_position_id');
+    }
 
     public function role()
     {
@@ -138,6 +144,19 @@ class UsersModel extends Authenticatable implements HasMedia
     public function company(): BelongsTo
     {
         return $this->BelongsTo(Company::class, 'company_id');
+    }
+
+
+    public function approverOf() {
+    return $this->hasMany(BranchApprover::class);
+    }
+
+    public function managerOf() {
+        return $this->hasMany(BranchManager::class);
+    }
+
+    public function supervisorOf() {
+        return $this->hasMany(BranchSupervisor::class);
     }
     
 }
