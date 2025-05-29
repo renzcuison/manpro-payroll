@@ -5,13 +5,15 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    Paper
+    Paper,
+    TextField
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaludationAddSubcategory from '../Modals/PerformanceEvaludationAddSubcategory';
 import Swal from 'sweetalert2';
+import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useState } from 'react';
 
@@ -21,11 +23,19 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         sectionName, setSectionName,
         sectionCategory, setSectionCategory,
         expanded, toggleExpand,
+        editable, toggleEditable,
         order,
         subcategories, saveSubcategory,
         editSection
     } = useEvaluationFormSection( section );
     const hasSubcategories = subcategories.length > 0;
+
+    // Section handlers
+
+    const [onSectionClick] = useClickHandler({
+        onSingleClick: toggleExpand,
+        onDoubleClick: toggleEditable
+    });
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -80,7 +90,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     return <>
         <Accordion
             expanded={expanded}
-            onChange={toggleExpand}
+            onChange={onSectionClick}
             sx={{
                 my: 2,
                 boxShadow: 3,
@@ -103,10 +113,31 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     '& .MuiAccordionSummary-content': { my: 1 },
                 }}
             >
-                {sectionName}
+                {/* {sectionName} */}
+                {
+                    editable ? <TextField
+                        autoFocus
+                        label="Section Name"
+                        fullWidth
+                        variant="standard"
+                        value={sectionName}
+                        onChange={(e) => setSectionName(e.target.value)}
+                        onBlur={toggleEditable}
+                        required
+                        style={{
+                            bgcolor: '#eab31a',
+                            color: 'white',
+                            borderRadius: 2,
+                            fontWeight: 'bold',
+                            fontSize: 18,
+                            '& .MuiAccordionSummary-content': { my: 1 },
+                        }}
+                    /> : sectionName
+                }
             </AccordionSummary>
             <AccordionDetails sx={{ bgcolor: '#fafafa', borderRadius: 2 }}>
                 <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
+
                     <Typography variant="h6" sx={{
                         mb: 2,
                         display: 'flex',

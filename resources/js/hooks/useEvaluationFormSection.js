@@ -12,6 +12,7 @@ export function useEvaluationFormSection(section) {
     const [sectionName, setSectionName] = useState();
     const [sectionCategory, setSectionCategory] = useState();
     const [expanded, setExpanded] = useState(false);
+    const [editable, setEditable] = useState(false);
     const [order, setOrder] = useState();
     const [subcategories, setSubcategories] = useState([]);
 
@@ -60,6 +61,14 @@ export function useEvaluationFormSection(section) {
                 });
             })
         ;
+    }
+
+    function toggleEditable() {
+        setEditable(!editable);
+    }
+
+    function toggleExpand() {
+        setExpanded(!expanded);
     }
 
     // subcategory operations
@@ -118,12 +127,6 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-    // showing and hiding section
-
-    function toggleExpand() {
-        setExpanded(!expanded);
-    }
-
     let returnData = {
         section: {
             id: sectionId,
@@ -136,6 +139,7 @@ export function useEvaluationFormSection(section) {
         sectionName, setSectionName,
         sectionCategory, setSectionCategory,
         expanded, toggleExpand,
+        editable, toggleEditable,
         order,
         subcategories, saveSubcategory
     };
