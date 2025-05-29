@@ -231,49 +231,49 @@ class AttendanceController extends Controller
                     $dayEnd = Carbon::parse("$day {$workHour->second_time_out}");
                 }
 
-                log::info("Day Start: " . $dayStart);
-                log::info("Day End: " . $dayEnd);
+                // log::info("Day Start: " . $dayStart);
+                // log::info("Day End: " . $dayEnd);
 
-                $action = $attendanceLog->action;
-                $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
+                // $action = $attendanceLog->action;
+                // $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
 
-                log::info($summary);
+                // log::info($summary);
 
-                if ( $summary ) {
-                    log::info("Has Summary");
+                // if ( $summary ) {
+                //     log::info("Has Summary");
 
-                    if ( $action === "Time In" ) {
+                //     if ( $action === "Time In" ) {
 
-                    }
+                //     }
 
-                } else {
-                    log::info("Has No Summary");
+                // } else {
+                //     log::info("Has No Summary");
 
-                    log::info("Creating New Summary");
+                //     log::info("Creating New Summary");
 
-                    log::info($attendanceLog->id);
+                //     log::info($attendanceLog->id);
 
-                    if ( $action === "Duty In" ) {
-                        $summary = AttendanceSummary::create([
-                            "user_id" => $user->id,
-                            "client_id" => $user->client_id,
-                            "work_hour_id" => $workHour->id,
+                //     if ( $action === "Duty In" ) {
+                //         $summary = AttendanceSummary::create([
+                //             "user_id" => $user->id,
+                //             "client_id" => $user->client_id,
+                //             "work_hour_id" => $workHour->id,
                             
-                            "work_day_start" => $dayStart,
-                            "work_day_end" => $dayEnd,
+                //             "work_day_start" => $dayStart,
+                //             "work_day_end" => $dayEnd,
 
-                            "work_day_end" => "Regular Day",
+                //             "work_day_end" => "Regular Day",
                             
-                            "latest_log_id" => $attendanceLog->id,
-                        ]);
-                    }
+                //             "latest_log_id" => $attendanceLog->id,
+                //         ]);
+                //     }
 
-                    log::info("New Summary");
-                    log::info($summary);
-                }
+                //     log::info("New Summary");
+                //     log::info($summary);
+                // }
 
-                $attendanceLog->attendance_summary_id = $summary->id;
-                $attendanceLog->save();
+                // $attendanceLog->attendance_summary_id = $summary->id;
+                // $attendanceLog->save();
 
 
                 // log::info("Stopper");
