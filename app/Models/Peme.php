@@ -16,8 +16,9 @@ class Peme extends Model
         'client_id',
         'user_id',
         'medical_record_id',
-        'name',
         'respondents',
+        'isVisible',    
+        'isEditable', 
     ];
 
     public function client()
