@@ -985,8 +985,8 @@ public function publishAnnouncement(Request $request)
         }
 
         $announcement->status = "Published";
-        $announcement->announcement_type_id = $request->input('announcement_type_id');
-
+        $announcement->announcement_types_id = $request->input('announcement_type_id');
+        
         // Set scheduled_send_datetime if provided
         if ($request->filled('scheduled_send_datetime')) {
             $announcement->scheduled_send_datetime = $request->input('scheduled_send_datetime');
