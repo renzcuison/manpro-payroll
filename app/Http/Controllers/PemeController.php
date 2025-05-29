@@ -37,7 +37,6 @@ class PemeController extends Controller
         $validatedData["respondents"] = $validatedData["respondents"] ?? 0;
         $validatedData["isVisible"] = $validatedData["isVisible"] ?? 0;
         $validatedData["isEditable"] = $validatedData["isEditable"] ?? 0;
-
         $validatedData["medical_record_id"] = 1;
         $validatedData["response_date"] = Carbon::now()->toDateString();
 

@@ -16,9 +16,10 @@ class Peme extends Model
         'client_id',
         'user_id',
         'medical_record_id',
+        'name',
         'respondents',
-        'isVisible',    
-        'isEditable', 
+        'isVisible',
+        'isEditable',
     ];
 
     public function client()
@@ -39,5 +40,9 @@ class Peme extends Model
     public function user()
     {
         return $this->belongsTo(UsersModel::class, 'user_id', 'id');
+    }
+    public function responses()
+    {
+        return $this->hasMany(PemeResponse::class, 'peme_id', 'id');
     }
 }

@@ -85,6 +85,9 @@ class PemeResponseController extends Controller
             "status" => "pending",
         ]);
 
+        $respondentsCount = PemeResponse::where('peme_id', $validated['peme_id'])->count();
+        \App\Models\Peme::where('id', $validated['peme_id'])->update(['respondents' => $respondentsCount]);
+
         return response()->json(
             [
                 "message" => "Response saved.",
@@ -171,10 +174,16 @@ class PemeResponseController extends Controller
     public function destroy($id)
     {
         $response = PemeResponse::findOrFail($id);
+        $pemeId = $response->peme_id;
+
         $response->delete();
+
+        $respondentsCount = PemeResponse::where('peme_id', $pemeId)->count();
+        \App\Models\Peme::where('id', $pemeId)->update(['respondents' => $respondentsCount]);
 
         return response()->json([
             "message" => "Response deleted.",
+            "respondents" => $respondentsCount,
         ]);
     }
 
@@ -183,6 +192,14 @@ class PemeResponseController extends Controller
         $response = PemeResponse::withTrashed()->findOrFail($id);
         $response->restore();
 
-        return response()->json(["message" => "Response restored."]);
+        $pemeId = $response->peme_id;
+
+        $respondentsCount = PemeResponse::where('peme_id', $pemeId)->count();
+        \App\Models\Peme::where('id', $pemeId)->update(['respondents' => $respondentsCount]);
+
+        return response()->json([
+            "message" => "Response restored.",
+            "respondents" => $respondentsCount,
+        ]);
     }
 }
