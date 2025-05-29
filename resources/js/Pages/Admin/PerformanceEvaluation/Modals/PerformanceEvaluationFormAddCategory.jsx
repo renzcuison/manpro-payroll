@@ -12,18 +12,18 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 
 const PerformanceEvaluationFormAddCategory = ({ open, onClose, onSave }) => {
-    const [categoryName, setCategoryName] = useState('');
+    const [sectionCategory, setSectionCategory] = useState('');
 
     const handleSave = () => {
-        if (categoryName.trim()) {
-            onSave(categoryName);
-            setCategoryName('');
-            onClose();
-        }
+        setSectionCategory(sectionCategory.trim());
+        if(!sectionCategory) return;
+        onSave(sectionCategory);
+        setSectionCategory('');
+        onClose();
     };
 
     const handleCancel = () => {
-        setCategoryName('');
+        setSectionCategory('');
         onClose();
     };
 
@@ -75,14 +75,14 @@ const PerformanceEvaluationFormAddCategory = ({ open, onClose, onSave }) => {
                         label="Category Name*"
                         variant="outlined"
                         fullWidth
-                        value={categoryName}
-                        onChange={e => setCategoryName(e.target.value)}
+                        value={sectionCategory}
+                        onChange={e => setSectionCategory(e.target.value)}
                         sx={{ mb: 4 }}
                     />
                     {/* Cancel and Save Buttons */}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
-                        onClick={onClose}
+                        onClick={handleCancel}
                         variant="contained"
                         sx={{
                             backgroundColor: '#727F91',

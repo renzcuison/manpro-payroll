@@ -48,8 +48,6 @@ const PerformanceEvaluationFormPage = () => {
         saveSection(sectionName);
     };
 
-    useEffect(() => {console.log(sections)}, [sections]);
-
     if(notFound) return <CheckUser />;
 
     return (

@@ -14,7 +14,7 @@ class EvaluationFormSubcategory extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'category_id',
+        'section_id',
         'name',
         'order',
         'subcategory_type',
@@ -26,9 +26,9 @@ class EvaluationFormSubcategory extends Model
         'deleted_at'
     ];
 
-    public function category()
+    public function section()
     {
-        return $this->belongsTo(EvaluationFormCategory::class, 'category_id');
+        return $this->belongsTo(EvaluationFormSection::class, 'section_id');
     }
 
     public function option_answers()
