@@ -243,7 +243,7 @@ const DepartmentDetails = () => {
                                             }}
                                             />
 
-                                    <Box sx={{ mt: 1, fontSize: '0.9rem', fontSize:"12"}}>
+                                    <Box sx={{ mt: 1, fontSize:"12"}}>
                                         {role}
                                     </Box>
                                     </Box>

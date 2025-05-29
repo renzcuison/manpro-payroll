@@ -9,6 +9,8 @@ use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\ApplicationTypesModel;
+use App\Models\BranchPosition;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +36,6 @@ class SettingsController extends Controller
 
     public function getBranches(Request $request)
     {
-        // Log::info("SettingsController::getBranches");
 
         if ($this->checkUser()) {
             $user = Auth::user();
@@ -177,6 +178,36 @@ class SettingsController extends Controller
     ], 403);
 }
 
+        public function updateBranchPositionAssignments(Request $request)
+        {
+            $validated = $request->validate([
+                'branch_id' => 'required|exists:branches,id',
+                'assignments' => 'required|array',
+                'assignments.*.branch_position_id' => 'required|exists:branch_positions,id',
+                'assignments.*.employee_id' => 'nullable|exists:users,id',
+            ]);
+
+            // Clear existing branch_position_id for this branch
+            UsersModel::where('branch_id', $validated['branch_id'])->update([
+                'branch_position_id' => null
+            ]);
+
+            // Apply new assignments
+            foreach ($validated['assignments'] as $assignment) {
+                if ($assignment['employee_id']) {
+                    UsersModel::where('id', $assignment['employee_id'])->update([
+                        'branch_position_id' => $assignment['branch_position_id']
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Position assignments updated'
+            ]);
+        }
+
+
 
 
 
@@ -314,6 +345,70 @@ class SettingsController extends Controller
         'message' => 'Unauthorized'
     ], 403);
 }
+
+
+
+
+
+
+
+ 
+
+
+public function getBranchPositions()
+{
+    $user = Auth::user();
+
+    $positions = BranchPosition::where('client_id', $user->client_id)->get();
+
+    return response()->json([
+        'status' => 200,
+        'positions' => $positions
+    ]);
+}
+
+public function saveBranchPosition(Request $request)
+{
+    $user = Auth::user();
+
+    $validated = $request->validate([
+        'id' => 'nullable|exists:branch_positions,id',
+        'name' => 'required|string|max:255',
+        'can_review_request' => 'required|boolean',
+        'can_approve_request' => 'required|boolean',
+        'can_note_request' => 'required|boolean',
+        'can_accept_request' => 'required|boolean',
+    ]);
+
+    // Update if ID is provided, otherwise create new
+    $position = BranchPosition::updateOrCreate(
+        ['id' => $request->id, 'client_id' => $user->client_id],
+        array_merge($validated, ['client_id' => $user->client_id])
+    );
+
+    return response()->json([
+        'status' => 200,
+        'message' => $request->id ? 'Position updated' : 'Position created',
+        'position' => $position
+    ]);
+}
+
+public function deleteBranchPosition($id)
+{
+    $user = Auth::user();
+
+    $position = BranchPosition::where('client_id', $user->client_id)->findOrFail($id);
+    $position->delete();
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Branch position deleted'
+    ]);
+}
+
+
+
+
 
     public function getJobTitles(Request $request)
     {
