@@ -28,20 +28,20 @@ import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationF
 import PerformanceEvaluationFormAddCategory from './Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
 import PerformanceEvaluationFormAcknowledge from './Modals/PerformanceEvaluationFormAcknowledge';
-import SubCategoryModal from './Modals/SubcategoryModal';
+import PerformanceEvaludationAddSubcategory from './Modals/PerformanceEvaludationAddSubcategory';
 
 const PerformanceEvaluationForm = () => {
   const [openModal, setOpenModal] = useState(false);
   const [subCategories, setSubCategories] = useState([]);
-  const [editingSubCategory, setEditingSubCategory] = useState(null);
+  const [editingSubcategory, setEditingSubcategory] = useState(null);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
   const [acknowledgeOpen, setAcknowledgeOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleOpenModal = (subCategory) => {
-    setEditingSubCategory(subCategory);
+  const handleOpenModal = (subcategory) => {
+    setEditingSubcategory(subcategory);
     setOpenModal(true);
   };
 
@@ -49,33 +49,33 @@ const PerformanceEvaluationForm = () => {
     setOpenModal(false);
   };
 
-  const handleLinearScaleChange = (subCategoryId, value) => {
-    setSubCategories(subCategories.map((subCategory) =>
-      subCategory.id === subCategoryId
-        ? { ...subCategory, selectedValue: value }
-        : subCategory
+  const handleLinearScaleChange = (subcategoryId, value) => {
+    setSubCategories(subCategories.map((subcategory) =>
+      subcategory.id === subcategoryId
+        ? { ...subcategory, selectedValue: value }
+        : subcategory
     ));
   };
 
-  const handleSaveSubCategory = (updatedSubCategory) => {
-    if (editingSubCategory) {
+  const handleSaveSubcategory = (updatedSubcategory) => {
+    if (editingSubcategory) {
       setSubCategories(subCategories.map(sc =>
-        sc.id === editingSubCategory.id ? { ...sc, ...updatedSubCategory } : sc
+        sc.id === editingSubcategory.id ? { ...sc, ...updatedSubcategory } : sc
       ));
     } else {
-      setSubCategories([...subCategories, { id: Date.now(), ...updatedSubCategory }]);
+      setSubCategories([...subCategories, { id: Date.now(), ...updatedSubcategory }]);
     }
-    setEditingSubCategory(null);
+    setEditingSubcategory(null);
     setOpenModal(false);
   };
 
-  const handleMultipleChoiceChange = (subCategoryId, value) => {
-  // Update only the subcategory with the matching subCategoryId
+  const handleMultipleChoiceChange = (subcategoryId, value) => {
+  // Update only the subcategory with the matching subcategoryId
   setSubCategories(prevState =>
-    prevState.map((subCategory) =>
-      subCategory.id === subCategoryId
-        ? { ...subCategory, selectedValue: value } // Set the selected value for the clicked subCategory
-        : subCategory
+    prevState.map((subcategory) =>
+      subcategory.id === subcategoryId
+        ? { ...subcategory, selectedValue: value } // Set the selected value for the clicked subcategory
+        : subcategory
     )
   );
 };
@@ -101,32 +101,32 @@ const PerformanceEvaluationForm = () => {
         </IconButton>
 
         {/* List of saved sub-categories */}
-        {subCategories.map((subCategory) => (
+        {subCategories.map((subcategory) => (
           <Box
-            key={subCategory.id}
+            key={subcategory.id}
             sx={{ mb: 2, border: '1px solid #ddd', borderRadius: 2, p: 2, cursor: 'pointer' }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                handleOpenModal(subCategory); // Open modal only when the box is clicked
+                handleOpenModal(subcategory); // Open modal only when the box is clicked
               }
             }}
           >
-            <Typography variant="h6">{subCategory.subCategoryName}</Typography>
-            <Typography variant="body1">Response Type: {subCategory.responseType}</Typography>
-            <Typography variant="body2">Description: {subCategory.description}</Typography>
+            <Typography variant="h6">{subcategory.subcategoryName}</Typography>
+            <Typography variant="body1">Response Type: {subcategory.responseType}</Typography>
+            <Typography variant="body2">Description: {subcategory.description}</Typography>
 
-            {subCategory.responseType === 'linearScale' && (
+            {subcategory.responseType === 'linearScale' && (
               <Box sx={{ mb: 2 }}>
                 <Grid container alignItems="center" spacing={2} justifyContent='center'>
-                  <Grid item><Typography variant="body1">{subCategory.label1}</Typography></Grid>
+                  <Grid item><Typography variant="body1">{subcategory.label1}</Typography></Grid>
                   <Grid item xs>
                     <Grid container justifyContent="center" spacing={1}>
-                      {[...Array(subCategory.maxValue - subCategory.minValue + 1)].map((_, index) => {
-                        const value = subCategory.minValue + index;
+                      {[...Array(subcategory.maxValue - subcategory.minValue + 1)].map((_, index) => {
+                        const value = subcategory.minValue + index;
                         return (
                           <Grid item key={value}>
                             <FormControlLabel
-                              control={<Radio checked={subCategory.selectedValue === value.toString()} onChange={() => handleLinearScaleChange(subCategory.id, value.toString())} value={value.toString()} />}
+                              control={<Radio checked={subcategory.selectedValue === value.toString()} onChange={() => handleLinearScaleChange(subcategory.id, value.toString())} value={value.toString()} />}
                               label={value}
                               labelPlacement="top"
                             />
@@ -135,18 +135,18 @@ const PerformanceEvaluationForm = () => {
                       })}
                     </Grid>
                   </Grid>
-                  <Grid item><Typography variant="body1">{subCategory.label2}</Typography></Grid>
+                  <Grid item><Typography variant="body1">{subcategory.label2}</Typography></Grid>
                 </Grid>
               </Box>
             )}
 
-{subCategory.responseType === 'multipleChoice' && (
+{subcategory.responseType === 'multipleChoice' && (
   <Box sx={{ mb: 2 }}>
     <RadioGroup
-      value={subCategory.selectedValue || ''} // This ensures only one radio button is selected
-      onChange={(e) => handleMultipleChoiceChange(subCategory.id, e.target.value)} // Handle change by updating the correct subCategory's selectedValue
+      value={subcategory.selectedValue || ''} // This ensures only one radio button is selected
+      onChange={(e) => handleMultipleChoiceChange(subcategory.id, e.target.value)} // Handle change by updating the correct subcategory's selectedValue
     >
-      {subCategory.options.map((option, index) => (
+      {subcategory.options.map((option, index) => (
         <FormControlLabel
           key={index}
           value={option} // Each radio button gets a unique value
@@ -161,16 +161,16 @@ const PerformanceEvaluationForm = () => {
 
 
             {/* Render Checkbox */}
-            {subCategory.responseType === 'checkbox' && (
+            {subcategory.responseType === 'checkbox' && (
               <Box sx={{ mb: 2 }}>
-                {subCategory.options.map((option, index) => (
+                {subcategory.options.map((option, index) => (
                   <FormControlLabel key={index} control={<Checkbox />} label={option} />
                 ))}
               </Box>
             )}
 
             {/* Render Short Text and Long Text */}
-            {subCategory.responseType === 'shortText' || subCategory.responseType === 'longText' ? (
+            {subcategory.responseType === 'shortText' || subcategory.responseType === 'longText' ? (
               <Box sx={{ mb: 2 }}>
                 <TextField
                   label="Your Response"
@@ -178,7 +178,7 @@ const PerformanceEvaluationForm = () => {
                   fullWidth
                   multiline
                   rows={4}
-                  value={subCategory.userResponse || ''}
+                  value={subcategory.userResponse || ''}
                   onChange={(e) => {}}
                 />
               </Box>
@@ -187,11 +187,11 @@ const PerformanceEvaluationForm = () => {
         ))}
 
         {/* Modals */}
-        <SubCategoryModal
+        <PerformanceEvaludationAddSubcategory
           open={openModal}
           onClose={handleCloseModal}
-          onSave={handleSaveSubCategory}
-          subCategory={editingSubCategory || {}}
+          onSave={handleSaveSubcategory}
+          subcategory={editingSubcategory || {}}
         />
         <PerformanceEvaluationFormAddSection open={addSectionOpen} onClose={() => setAddSectionOpen(false)} onSave={() => {}} />
         <PerformanceEvaluationFormAddCategory open={addCategoryOpen} onClose={() => setAddCategoryOpen(false)} onSave={() => {}} />

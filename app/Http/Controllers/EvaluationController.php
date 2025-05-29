@@ -23,55 +23,55 @@ class EvaluationController extends Controller
 
     // evaluation form
 
-        public function getEvaluationFormSections(Request $request)
-    {
-        $formId = $request->form_id;
+    //     public function getEvaluationFormSections(Request $request)
+    // {
+    //     $formId = $request->form_id;
 
-        if (!$formId) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'Form ID is required',
-                'sections' => []
-            ]);
-        }
+    //     if (!$formId) {
+    //         return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Form ID is required',
+    //             'sections' => []
+    //         ]);
+    //     }
 
-        $sections = \App\Models\EvaluationFormSection::with(['categories' => function($query) {
-                $query->whereNull('deleted_at')->orderBy('order');
-            }])
-            ->where('form_id', $formId)
-            ->whereNull('deleted_at')
-            ->orderBy('order')
-            ->get();
+    //     $sections = \App\Models\EvaluationFormSection::with(['categories' => function($query) {
+    //             $query->whereNull('deleted_at')->orderBy('order');
+    //         }])
+    //         ->where('form_id', $formId)
+    //         ->whereNull('deleted_at')
+    //         ->orderBy('order')
+    //         ->get();
 
-        return response()->json([
-            'status' => 200,
-            'sections' => $sections
-        ]);
-    }
-       public function getFormDetails(Request $request, $formName)
-    {
-        // Fetch the form details by name along with the creator's name
-        $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
-            ->where('evaluation_forms.name', $formName)
-            ->select('evaluation_forms.id','evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
-            ->first();
+    //     return response()->json([
+    //         'status' => 200,
+    //         'sections' => $sections
+    //     ]);
+    // }
+    //    public function getFormDetails(Request $request, $formName)
+    // {
+    //     // Fetch the form details by name along with the creator's name
+    //     $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+    //         ->where('evaluation_forms.name', $formName)
+    //         ->select('evaluation_forms.id','evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
+    //         ->first();
 
-        // If the form doesn't exist, return an error
-        if (!$form) {
-            return response()->json(['message' => 'Form not found'], 404);
-        }
+    //     // If the form doesn't exist, return an error
+    //     if (!$form) {
+    //         return response()->json(['message' => 'Form not found'], 404);
+    //     }
 
-        // Prepare the full creator name
-        $creatorName = $form->first_name . ' ' . $form->last_name;
+    //     // Prepare the full creator name
+    //     $creatorName = $form->first_name . ' ' . $form->last_name;
 
-        // Return the form details along with the creator's name and creation date
-        return response()->json([
-            'id' => $form->id,
-            'formName' => $form->name,
-            'created_at' => $form->created_at,
-            'creator_name' => $creatorName
-        ]);
-    }
+    //     // Return the form details along with the creator's name and creation date
+    //     return response()->json([
+    //         'id' => $form->id,
+    //         'formName' => $form->name,
+    //         'created_at' => $form->created_at,
+    //         'creator_name' => $creatorName
+    //     ]);
+    // }
 
     public function deleteEvaluationForm(Request $request)
     {
@@ -237,6 +237,12 @@ class EvaluationController extends Controller
 
         try {
 
+            $getById = (bool) $request->id;
+            if(!$getById && !$request->name) response()->json([
+                'status' => 400,
+                'message' => 'Either Evaluation Form ID or Name must be given!'
+            ]);
+
             $evaluationForm = EvaluationForm
                 ::join('users', 'evaluation_forms.id', '=', 'users.id')
                 ->select(
@@ -247,9 +253,6 @@ class EvaluationController extends Controller
                     'evaluation_forms.created_at',
                     'evaluation_forms.updated_at'
                 )
-            ;
-            $getById = (bool) $request->id;
-            $evaluationForm = $evaluationForm
                 ->where(
                     $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
                     $getById ? $request->id : $request->name
@@ -287,13 +290,12 @@ class EvaluationController extends Controller
             ;
             if( !$evaluationForm ) return response()->json([
                 'status' => 404,
-                'message' => 'No Evaluation Form found.',
-                'evaluationForm' => $evaluationForm
+                'message' => 'Evaluation Form not found!'
             ]);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form successfully retrieved.',
-                'evaluationForms' => $evaluationForm
+                'evaluationForm' => $evaluationForm
             ]);
 
         } catch (\Exception $e) {
@@ -518,7 +520,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormSection ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Section not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSectionID' => $request->id
             ]);
 
             $isEmptyName = !$request->name;
@@ -549,9 +551,155 @@ class EvaluationController extends Controller
         }
     }
 
-        // get evaluation form section
+    public function getEvaluationFormSection(Request $request)
+    {
 
-        // move evaluation form section
+        log::info('EvaluationController::getEvaluationFormSection');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationFormSection = EvaluationFormSection
+                ::select('form_id', 'id', 'name', 'order')
+                ->where('id', $request->id)
+                ->with(['categories' => fn ($category) =>
+                    $category
+                        ->select('section_id', 'id','name', 'order')
+                        ->with(['subcategories' => fn ($subcategory) =>
+                            $subcategory
+                                ->select(
+                                    'category_id', 'id',
+                                    'name', 'subcategory_type', 'description',
+                                    'required', 'allow_other_option',
+                                    'linear_scale_start', 'linear_scale_end',
+                                    'order'
+                                )
+                                ->with(['options' => fn ($option) =>
+                                    $option
+                                        ->select(
+                                            'subcategory_id', 'id',
+                                            'label', 'order'
+                                        )
+                                        ->orderBy('order')
+                                ])
+                                ->orderBy('order')
+                        ])
+                        ->orderBy('order')
+                ])
+                ->first()
+            ;
+            if( !$evaluationFormSection ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Form Section not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form Section successfully retrieved.',
+                'evaluationFormSection' => $evaluationFormSection
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+    
+    public function moveEvaluationFormSection(Request $request)
+    {
+        log::info('EvaluationController::moveEvaluationFormSection');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationFormSection = EvaluationFormSection
+                ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+                ->where('id', $request->id)
+                ->first()
+            ;
+
+            if( !$evaluationFormSection ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Form Section not found!',
+                'evaluationFormSectionID' => $request->id
+            ]);
+
+            $oldOrder = $evaluationFormSection->order;
+            $newOrder = $request->order;
+            $tempOrder = (
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->max('order')
+                ?? -1
+            ) + 1;
+            if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Section Order is not within valid range!',
+                'evaluationFormSectionID' => $request->id
+            ]);
+            $evaluationFormSection->order = $tempOrder;
+            $evaluationFormSection->save();
+            
+            $moveUp = $oldOrder < $newOrder;
+            $evaluationFormSectionsToMove = EvaluationFormSection
+                ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+                ->where('form_id', $evaluationFormSection->form_id)
+                ->where('order', $moveUp ? '>' : '<', $oldOrder)
+                ->where('order', $moveUp ? '<=' : '>=', $newOrder)
+                ->orderBy('order', $moveUp ? 'asc' : 'desc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationFormSectionsToMove as $evaluationFormSectionToMove) {
+                $evaluationFormSectionToMove->order = $curOrder;
+                $evaluationFormSectionToMove->save();
+                $curOrder += $moveUp ? 1 : -1;
+            }
+
+            $evaluationFormSection->order = $newOrder;
+            $evaluationFormSection->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationFormSection' => $evaluationFormSection,
+                'message' => 'Evaluation Form Section successfully moved'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function saveEvaluationFormSection(Request $request)
     {
@@ -581,19 +729,22 @@ class EvaluationController extends Controller
                 'message' => 'Evaluation Form Section Name is required!'
             ]);
 
-            $max = EvaluationFormSection::where('form_id', $request->form_id)->max('order') ?? 0;
+            $order = (
+                EvaluationFormSection::where('form_id', $request->form_id)->max('order')
+                ?? -1
+            ) + 1;
 
             $newEvaluationFormSection = EvaluationFormSection::create([
                 'form_id' => $request->form_id,
                 'name' => $request->name,
-                'order' => $max + 1
+                'order' => $order
             ]);
 
             DB::commit();
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationSectionID' => $newEvaluationFormSection->id,
+                'evaluationFormSectionID' => $newEvaluationFormSection->id,
                 'message' => 'Evaluation Form Section successfully created'
             ]);
 
@@ -699,7 +850,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormCategory ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Category not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormCategoryID' => $request->id
             ]);
 
             $isEmptyName = !$request->name;
@@ -730,11 +881,68 @@ class EvaluationController extends Controller
         }
     }
 
-        // get evaluation form category
+    public function getEvaluationFormCategory(Request $request)
+    {
+
+        log::info('EvaluationController::getEvaluationFormCategory');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationFormCategory = EvaluationFormCategory
+                ::select('section_id', 'id','name', 'order')
+                ->where('id', $request->id)
+                ->with(['subcategories' => fn ($subcategory) =>
+                    $subcategory
+                        ->select(
+                            'category_id', 'id',
+                            'name', 'subcategory_type', 'description',
+                            'required', 'allow_other_option',
+                            'linear_scale_start', 'linear_scale_end',
+                            'order'
+                        )
+                        ->with(['options' => fn ($option) =>
+                            $option
+                                ->select(
+                                    'subcategory_id', 'id',
+                                    'label', 'order'
+                                )
+                                ->orderBy('order')
+                        ])
+                        ->orderBy('order')
+                ])
+                ->first()
+            ;
+            if( !$evaluationFormCategory ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Form Category not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form Category successfully retrieved.',
+                'evaluationFormCategory' => $evaluationFormCategory
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
 
         // move evaluation form category
 
-        public function saveEvaluationFormCategory(Request $request)
+    public function saveEvaluationFormCategory(Request $request)
     {
         log::info('EvaluationController::saveEvaluationFormCategory');
 
@@ -762,29 +970,29 @@ class EvaluationController extends Controller
             ]);
 
             // ENFORCE ONLY ONE CATEGORY PER SECTION
-            $existingCategoryCount = \App\Models\EvaluationFormCategory::where('section_id', $request->section_id)
-                ->whereNull('deleted_at')
-                ->count();
-            if ($existingCategoryCount > 0) {
-                return response()->json([
-                    'status' => 409,
-                    'message' => 'A category already exists for this section.'
-                ]);
-            }
+            $existingEvaluationFormCategory = EvaluationFormCategory
+                ::where('section_id', $request->section_id)
+                ->first()
+            ;
 
-            $max = \App\Models\EvaluationFormCategory::where('section_id', $request->section_id)->max('order') ?? 0;
+            if( $existingEvaluationFormCategory ) return response()->json([ 
+                'status' => 409,
+                'message' => 'A Evaluation Form Category already exists for this section!',
+                'evaluationFormCategoryID' => $existingEvaluationFormCategory->id
+            ]);
 
-            $newEvaluationFormCategory = \App\Models\EvaluationFormCategory::create([
+            $order = 0;
+            $newEvaluationFormCategory = EvaluationFormCategory::create([
                 'section_id' => $request->section_id,
                 'name' => $request->name,
-                'order' => $max + 1
+                'order' => $order
             ]);
 
             DB::commit();
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationCategoryID' => $newEvaluationFormCategory->id,
+                'evaluationFormCategoryID' => $newEvaluationFormCategory->id,
                 'message' => 'Evaluation Form Category successfully created'
             ]);
 
@@ -796,60 +1004,60 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
-    // public function saveEvaluationFormCategory(Request $request)
-    // {
-    //     log::info('EvaluationController::saveEvaluationFormCategory');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+    public function getEvaluationFormSubcategory(Request $request)
+    {
 
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        log::info('EvaluationController::getEvaluationFormSubcategory');
 
-    //     try {
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
 
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
+        try {
 
-    //         DB::beginTransaction();
+            $evaluationFormSubcategory = EvaluationFormSubcategory
+                ::select(
+                    'category_id', 'id',
+                    'name', 'subcategory_type', 'description',
+                    'required', 'allow_other_option',
+                    'linear_scale_start', 'linear_scale_end',
+                    'order'
+                )
+                ->where('id', $request->id)
+                ->with(['options' => fn ($option) =>
+                    $option
+                        ->select(
+                            'subcategory_id', 'id',
+                            'label', 'order'
+                        )
+                        ->orderBy('order')
+                ])
+                ->first()
+            ;
+            if( !$evaluationFormSubcategory ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Form Subcategory not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form Subcategory successfully retrieved.',
+                'evaluationFormSubcategory' => $evaluationFormSubcategory
+            ]);
 
-    //         $isEmptyName = !$request->name;
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Category Name is required!'
-    //         ]);
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         $max = EvaluationFormCategory::where('section_id', $request->section_id)->max('order') ?? 0;
-
-    //         $newEvaluationFormCategory = EvaluationFormCategory::create([
-    //             'section_id' => $request->section_id,
-    //             'name' => $request->name,
-    //             'order' => $max + 1
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'evaluationCategoryID' => $newEvaluationFormCategory->id,
-    //             'message' => 'Evaluation Form Category successfully created'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
-    // evaluation form subcategory
+            throw $e;
+        }
+    
+    }
 
     public function deleteEvaluationFormSubcategory(Request $request)
     {
@@ -946,16 +1154,27 @@ class EvaluationController extends Controller
             if( !$evaluationFormSubcategory ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSubcategoryID' => $request->id
             ]);
 
-            if($request->name) $evaluationFormSubcategory->name = $request->name;
-            if($request->description) $evaluationFormSubcategory->description = $request->description;
-            if(is_string($request->subcategory_type)) {
+            $isEmptyName = $request->has('name') && $request->name === null;
+            if( $isEmptyName ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Name is required!'
+            ]);
 
-                $subcategory_types = array(
-                    'checkbox','dropdown','linear_scale','long_answer','multiple_choice','short_answer'
-                );
+            $isEmptyDescription = $request->has('description') && $request->description === null;
+            if( $isEmptyDescription ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Description is required!'
+            ]);
+
+            if($request->subcategory_type) {
+
+                $subcategory_types = [
+                    'short_answer', 'long_answer', 'multiple_choice',
+                    'checkbox', 'linear_scale'
+                ];
                 if(!in_array($request->subcategory_type, $subcategory_types))
                     return response()->json([ 
                         'status' => 400,
@@ -966,26 +1185,36 @@ class EvaluationController extends Controller
             }
             if(is_bool($request->required) || is_numeric($request->required))
                 $evaluationFormSubcategory->required = (int) $request->required;
-            if(is_bool($request->allow_other_option) || is_numeric($request->allow_other_option))
+            
+             if(is_bool($request->allow_other_option) || is_numeric($request->allow_other_option))
                 $evaluationFormSubcategory->allow_other_option = (int) $request->allow_other_option;
-            if(is_numeric($request->linear_scale_start) && is_numeric($request->linear_scale_end)) {
-
-                $request->linear_scale_start = floor($request->linear_scale_start);
-                $request->linear_scale_end = floor($request->linear_scale_end);
-                if($request->linear_scale_start<0 || $request->linear_scale_end<0)
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
-                    ]);
-                if($request->linear_scale_start>=$request->linear_scale_end)
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-                    ]);
+            
+            if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+                ]);
+            if(is_numeric($request->linear_scale_start))
                 $evaluationFormSubcategory->linear_scale_start = $request->linear_scale_start;
+            if(is_numeric($request->linear_scale_end))
                 $evaluationFormSubcategory->linear_scale_end = $request->linear_scale_end;
-
-            }
+            if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+                ]);
+            $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
+            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+            ]);
+            $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
+            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+            ]);
+            $evaluationFormSubcategory->linear_scale_start_label = $request->linear_scale_start_label;
+            $evaluationFormSubcategory->linear_scale_end_label = $request->linear_scale_end_label;
 
             $evaluationFormSubcategory->save();
 
@@ -1007,74 +1236,7 @@ class EvaluationController extends Controller
         }
     }
 
-        // get evaluation form subcategory
-
         // move evaluation form subcategory
-
-    // public function saveEvaluationFormSubcategory(Request $request)
-    // {
-    //     log::info('EvaluationController::saveEvaluationFormSubcategory');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $isEmptyName = !$request->name;
-
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Subcategory Name is required!'
-    //         ]);
-
-    //         $isEmptyDescription = !$request->description;
-
-    //         if( $isEmptyDescription ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Subcategory Description is required!'
-    //         ]);
-
-    //         $max = EvaluationFormSubcategory::where('category_id', $request->category_id)->max('order') ?? 0;
-
-    //         $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
-    //             'category_id' => $request->category_id,
-    //             'name' => $request->name,
-    //             'subcategory_type' => 'short_answer',
-    //             'description' => $request->description,
-    //             'required' => 1,
-    //             'linear_scale_start' => 1,
-    //             'linear_scale_end' => 5,
-    //             'order' => $max + 1
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'evaluationSubcategoryID' => $newEvaluationFormSubcategory->id,
-    //             'message' => 'Evaluation Form Subcategory successfully created'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
 
     public function saveEvaluationFormSubcategory(Request $request)
     {
@@ -1090,68 +1252,98 @@ class EvaluationController extends Controller
 
         try {
 
-            if ($user === null) return response()->json([
+            if( $user === null ) return response()->json([ 
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
 
             DB::beginTransaction();
 
-            if (!$request->name) return response()->json([
+            $isEmptyName = !$request->name;
+            if( $isEmptyName ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Subcategory Name is required!'
             ]);
-            if (!$request->description) return response()->json([
+
+            $isEmptyDescription = !$request->description;
+            if( $isEmptyDescription ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Subcategory Description is required!'
             ]);
-            if (!$request->category_id) return response()->json([
-                'status' => 400,
-                'message' => 'Category ID is required!'
-            ]);
 
-            // Map frontend responseType to backend subcategory_type
-            $typeMap = [
-                'shortText' => 'short_answer',
-                'longText' => 'long_answer',
-                'multipleChoice' => 'multiple_choice',
-                'checkbox' => 'checkbox',
-                'linearScale' => 'linear_scale',
+            $order = (
+                EvaluationFormSubcategory
+                    ::where('category_id', $request->category_id)->max('order')
+                ?? -1
+            ) + 1;
+            $subcategoryTypes = [
+                'short_answer', 'long_answer', 'multiple_choice',
+                'checkbox', 'linear_scale'
             ];
-            $subcategory_type = $typeMap[$request->subcategory_type ?? $request->subCategoryType ?? $request->responseType] ?? 'short_answer';
-
-            $max = EvaluationFormSubcategory::where('category_id', $request->category_id)->max('order') ?? 0;
-
-            // Default values
-            $linear_scale_start = 1;
-            $linear_scale_end = 5;
-            if ($subcategory_type == 'linear_scale') {
-                $linear_scale_start = $request->minValue ?? 1;
-                $linear_scale_end = $request->maxValue ?? 5;
-            }
+            if(!in_array($request->subcategory_type, $subcategoryTypes))
+                return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Type is invalid!'
+                ]);
+            if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+                ]);
+            if(
+                is_numeric($request->linear_scale_start)
+                && is_numeric($request->linear_scale_end)
+                && $request->linear_scale_start>=$request->linear_scale_end
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+            ]);
+            $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+            ]);
+            $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+            ]);
 
             $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
                 'category_id' => $request->category_id,
                 'name' => $request->name,
-                'subcategory_type' => $subcategory_type,
+                'subcategory_type' => $request->subcategory_type,
                 'description' => $request->description,
                 'required' => 1,
-                'linear_scale_start' => $linear_scale_start,
-                'linear_scale_end' => $linear_scale_end,
-                'order' => $max + 1
+                'allow_other_option' => $request->allow_other_option,
+                'linear_scale_start' => $request->linear_scale_start,
+                'linear_scale_end' => $request->linear_scale_end,
+                'linear_scale_start_label' => $request->linear_scale_start_label,
+                'linear_scale_end_label' => $request->linear_scale_end_label,
+                'order' => $order
             ]);
 
-            // Save options if present (for multiple choice / checkbox)
-            if (
-                ($subcategory_type == 'multiple_choice' || $subcategory_type == 'checkbox') &&
-                is_array($request->options)
-            ) {
-                foreach ($request->options as $i => $label) {
-                    if (!trim($label)) continue;
+            if($request->options) {
+                $labels = array();
+                foreach($request->options as $order => $option) {
+                    $label = $option["label"];
+                    $isEmptyName = !$label;
+                    if( $isEmptyName ) return response()->json([ 
+                        'status' => 400,
+                        'message' => 'Evaluation Form Subcategory Option Labels are required!'
+                    ]);
+
+                    $isRepeated = in_array($label, $labels);
+                    if($isRepeated) return response()->json([ 
+                        'status' => 409,
+                        'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+                    ]);
+                    $labels[] = $label;
+
                     EvaluationFormSubcategoryOption::create([
                         'subcategory_id' => $newEvaluationFormSubcategory->id,
                         'label' => $label,
-                        'order' => $i + 1
+                        'order' => $order
                     ]);
                 }
             }
@@ -1160,9 +1352,10 @@ class EvaluationController extends Controller
 
             return response()->json([
                 'status' => 201,
-                'evaluationSubcategoryID' => $newEvaluationFormSubcategory->id,
+                'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
                 'message' => 'Evaluation Form Subcategory successfully created'
             ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -1171,6 +1364,107 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
+
+    // public function saveEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationController::saveEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if ($user === null) return response()->json([
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         if (!$request->name) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Name is required!'
+    //         ]);
+    //         if (!$request->description) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Description is required!'
+    //         ]);
+    //         if (!$request->category_id) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Category ID is required!'
+    //         ]);
+
+    //         // Map frontend responseType to backend subcategory_type
+    //         $typeMap = [
+    //             'shortText' => 'short_answer',
+    //             'longText' => 'long_answer',
+    //             'multipleChoice' => 'multiple_choice',
+    //             'checkbox' => 'checkbox',
+    //             'linearScale' => 'linear_scale',
+    //         ];
+    //         $subcategory_type = $typeMap[$request->subcategory_type ?? $request->subcategoryType ?? $request->responseType] ?? 'short_answer';
+
+    //         $max =
+    //             EvaluationFormSubcategory
+    //                 ::where('category_id', $request->category_id)->max('order')
+    //                 ?? -1
+    //         ;
+
+    //         // Default values
+    //         $linear_scale_start = 1;
+    //         $linear_scale_end = 5;
+    //         if ($subcategory_type == 'linear_scale') {
+    //             $linear_scale_start = $request->minValue ?? 1;
+    //             $linear_scale_end = $request->maxValue ?? 5;
+    //         }
+
+    //         $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
+    //             'category_id' => $request->category_id,
+    //             'name' => $request->name,
+    //             'subcategory_type' => $subcategory_type,
+    //             'description' => $request->description,
+    //             'required' => 1,
+    //             'linear_scale_start' => $linear_scale_start,
+    //             'linear_scale_end' => $linear_scale_end,
+    //             'order' => $max + 1
+    //         ]);
+
+    //         // Save options if present (for multiple choice / checkbox)
+    //         if (
+    //             ($subcategory_type == 'multiple_choice' || $subcategory_type == 'checkbox') &&
+    //             is_array($request->options)
+    //         ) {
+    //             foreach ($request->options as $i => $label) {
+    //                 if (!trim($label)) continue;
+    //                 EvaluationFormSubcategoryOption::create([
+    //                     'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                     'label' => $label,
+    //                     'order' => $i + 1
+    //                 ]);
+    //             }
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'status' => 201,
+    //             'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+    //             'message' => 'Evaluation Form Subcategory successfully created'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
     // evaluation form subcategory option
 
     public function deleteEvaluationFormSubcategoryOption(Request $request)
@@ -1264,7 +1558,7 @@ class EvaluationController extends Controller
             if( !$evaluationFormSubcategoryOption ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory Option not found!',
-                'evaluationFormID' => $request->id
+                'evaluationFormSubcategoryOptionID' => $request->id
             ]);
 
             $isEmptyName = !$request->label;
@@ -1308,7 +1602,49 @@ class EvaluationController extends Controller
         }
     }
 
-        // get evaluation form subcategory option
+    public function getEvaluationFormSubcategoryOption(Request $request)
+    {
+
+        log::info('EvaluationController::getEvaluationFormSubcategoryOption');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+                ::select(
+                    'subcategory_id', 'id',
+                    'label', 'order'
+                )
+                ->where('id', $request->id)
+                ->orderBy('order')
+                ->first()
+            ;
+            if( !$evaluationFormSubcategoryOption ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Form Subcategory Option not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Form Subcategory Option successfully retrieved.',
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
 
         // move evaluation form subcategory option
 
@@ -1352,15 +1688,15 @@ class EvaluationController extends Controller
                 'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
             ]);
 
-            $max = (
+            $order = (
                 EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
-                ?? 0
-            );
+                ?? -1
+            ) + 1;
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
-                'order' => $max + 1
+                'order' => $order
             ]);
 
             DB::commit();
@@ -1379,8 +1715,5 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
-
-
-
 
 }

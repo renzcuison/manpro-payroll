@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('description');
             $table->boolean('required');
             $table->boolean('allow_other_option');
+            $table->string('linear_scale_start_label')->nullable();
+            $table->string('linear_scale_end_label')->nullable();
             $table->unsignedInteger('linear_scale_start')->nullable();
             $table->unsignedInteger('linear_scale_end')->nullable();
             $table->timestamps();

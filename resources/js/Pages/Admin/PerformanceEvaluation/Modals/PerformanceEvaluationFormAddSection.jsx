@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { max } from 'lodash';
 
 const PerformanceEvaluationFormAddSection = ({ open, onClose, onSave }) => {
     const [categoryName, setCategoryName] = useState('');
@@ -82,7 +81,7 @@ const PerformanceEvaluationFormAddSection = ({ open, onClose, onSave }) => {
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt:2 }}>
                     <Button
-                        onClick={onClose}
+                        onClick={handleCancel}
                         variant="contained"
                         sx={{
                             backgroundColor: '#727F91',
