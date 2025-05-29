@@ -103,7 +103,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
         Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
- 
+        Route::post('/updateBranchPositionAssignments', [SettingsController::class, 'updateBranchPositionAssignments']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
@@ -126,6 +126,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+
+  
+
+        Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
+
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 

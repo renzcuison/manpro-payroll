@@ -15,4 +15,24 @@ class BranchPosition extends Model
         'can_note_request',
         'can_accept_request',
     ];
+
+    public function assignments()
+    {
+        return $this->hasMany(BranchPositionAssignment::class, 'branch_position_id');
+    }
+
+    public function branchPosition(): BelongsTo
+    {
+        return $this->belongsTo(BranchPositionsModel::class, 'branch_position_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(BranchesModel::class);
+    }
+    public function client()
+    {
+        return $this->belongsTo(ClientsModel::class, 'client_id');
+    }
+
 }

@@ -36,7 +36,6 @@ class SettingsController extends Controller
 
     public function getBranches(Request $request)
     {
-        // Log::info("SettingsController::getBranches");
 
         if ($this->checkUser()) {
             $user = Auth::user();
@@ -179,6 +178,36 @@ class SettingsController extends Controller
     ], 403);
 }
 
+        public function updateBranchPositionAssignments(Request $request)
+        {
+            $validated = $request->validate([
+                'branch_id' => 'required|exists:branches,id',
+                'assignments' => 'required|array',
+                'assignments.*.branch_position_id' => 'required|exists:branch_positions,id',
+                'assignments.*.employee_id' => 'nullable|exists:users,id',
+            ]);
+
+            // Clear existing branch_position_id for this branch
+            UsersModel::where('branch_id', $validated['branch_id'])->update([
+                'branch_position_id' => null
+            ]);
+
+            // Apply new assignments
+            foreach ($validated['assignments'] as $assignment) {
+                if ($assignment['employee_id']) {
+                    UsersModel::where('id', $assignment['employee_id'])->update([
+                        'branch_position_id' => $assignment['branch_position_id']
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Position assignments updated'
+            ]);
+        }
+
+
 
 
 
@@ -320,105 +349,10 @@ class SettingsController extends Controller
 
 
 
-public function getBranchSettings(Request $request)
-{
-    if ($this->checkUser()) {
-        $user = Auth::user();
-        
-        // Try to find existing settings
-        $settings = DB::table('branch_settings')
-            ->where('client_id', $user->client_id)
-            ->first();
-
-        // If no settings exist, create defaults
-        if (!$settings) {
-            $settings = [
-                'client_id' => $user->client_id,
-                'with_manager' => true,
-                'with_supervisor' => true,
-                'with_approver' => true,
-                'manager_limit' => 1,
-                'supervisor_limit' => 1,
-                'approver_limit' => 1,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-            
-            $id = DB::table('branch_settings')->insertGetId($settings);
-            $settings['id'] = $id;
-        }
-
-        return response()->json([
-            'status' => 200,
-            'settings' => $settings
-        ]);
-    }
-
-    return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-}
-
-public function saveBranchSettings(Request $request)
-{
-    if ($this->checkUser()) {
-        $user = Auth::user();
-        
-        $validated = $request->validate([
-            'with_manager' => 'required|boolean',
-            'with_supervisor' => 'required|boolean',
-            'with_approver' => 'required|boolean',
-            'manager_limit' => 'required|integer|min:0',
-            'supervisor_limit' => 'required|integer|min:0',
-            'approver_limit' => 'required|integer|min:0',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $settings = [
-                'with_manager' => $request->with_manager,
-                'with_supervisor' => $request->with_supervisor,
-                'with_approver' => $request->with_approver,
-                'manager_limit' => $request->manager_limit,
-                'supervisor_limit' => $request->supervisor_limit,
-                'approver_limit' => $request->approver_limit,
-                'updated_at' => now()
-            ];
-
-            $affected = DB::table('branch_settings')
-                ->where('client_id', $user->client_id)
-                ->update($settings);
-
-            // If no rows were updated, insert new settings
-            if ($affected === 0) {
-                $settings['client_id'] = $user->client_id;
-                $settings['created_at'] = now();
-                DB::table('branch_settings')->insert($settings);
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Settings saved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Error saving branch settings: " . $e->getMessage());
-            return response()->json([
-                'status' => 500,
-                'message' => 'Error saving settings'
-            ], 500);
-        }
-    }
-
-    return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-}
 
 
 
-
-
+ 
 
 
 public function getBranchPositions()

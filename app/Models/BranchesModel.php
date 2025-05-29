@@ -48,6 +48,10 @@ class BranchesModel extends Model
 
 
 
+    public function positions()
+    {
+        return $this->hasMany(BranchPosition::class);
+    }
 
 
 

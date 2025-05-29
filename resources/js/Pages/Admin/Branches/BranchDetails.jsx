@@ -126,7 +126,7 @@ const BranchDetails = () => {
                 employee_id: employeeId
             });
         }
-        
+    
         setPositionAssignments(updatedAssignments);
     };
 
@@ -363,7 +363,6 @@ const BranchDetails = () => {
                                                         <TableCell align="left">
                                                             {employee.department}
                                                         </TableCell>
-
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -392,7 +391,7 @@ const BranchDetails = () => {
                                             Number of Employees:
                                         </Typography>
                                         <Typography
-                                            variant="h6"
+                                            variant="h6"    
                                             sx={{ fontWeight: "bold" }}
                                         >
                                             {filteredEmployees.length}
@@ -505,60 +504,72 @@ const BranchDetails = () => {
                             </FormControl>
                         </FormGroup>
 
-                        {/* Position Assignments */}
+                        {/* Position Assignments Section */}
+                        <Typography variant="h6" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
+                            Position Assignments
+                        </Typography>
+                        
                         {branchPositions.map(position => (
-                            <FormGroup key={position.id} row={true} className="d-flex justify-content-between">
-                                <FormControl sx={{ marginBottom: 3, width: '100%' }}>
-                                    <InputLabel id={`position-${position.id}-label`}>{position.name}</InputLabel>
-                                    <Select
-                                        labelId={`position-${position.id}-label`}
-                                        id={`position-${position.id}-select`}
-                                        value={getAssignedEmployeeForPosition(position.id) || ''}
-                                        label={position.name}
-                                        onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
-                                        MenuProps={{
-                                            PaperProps: {
-                                                style: {
-                                                    maxHeight: 300
-                                                }
-                                            },
-                                            onClick: (e) => e.stopPropagation()
-                                        }}
-                                    >
-                                        <MenuItem value="" sx={{ p: 0 }}>
-                                            <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-                                                <TextField
-                                                    fullWidth
-                                                    placeholder={`Search ${position.name}...`}
-                                                    value={searchQueries[position.id] || ''}
-                                                    onChange={(e) => handleSearchChange(position.id, e.target.value)}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        e.nativeEvent.stopImmediatePropagation();
-                                                    }}
-                                                    onKeyDown={(e) => e.stopPropagation()}
-                                                    InputProps={{
-                                                        startAdornment: (
-                                                            <InputAdornment position="start">
-                                                                <SearchIcon />
-                                                            </InputAdornment>
-                                                        ),
-                                                    }}
-                                                    variant="standard"
-                                                    sx={{ p: 1 }}
-                                                    autoFocus
-                                                />
-                                            </Box>
+                            <FormControl 
+                                key={position.id} 
+                                fullWidth 
+                                sx={{ 
+                                    marginBottom: 3,
+                                    '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { 
+                                        '&.Mui-focused fieldset': { borderColor: '#97a5ba' } 
+                                    },
+                                }}
+                            >
+                                <InputLabel id={`position-${position.id}-label`}>{position.name}</InputLabel>
+                                <Select
+                                    labelId={`position-${position.id}-label`}
+                                    id={`position-${position.id}-select`}
+                                    value={getAssignedEmployeeForPosition(position.id) || ''}
+                                    label={position.name}
+                                    onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                maxHeight: 300
+                                            }
+                                        },
+                                        onClick: (e) => e.stopPropagation()
+                                    }}
+                                >
+                                    <MenuItem value="" sx={{ p: 0 }}>
+                                        <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                            <TextField
+                                                fullWidth
+                                                placeholder={`Search ${position.name} (ID: ${position.id})...`}
+                                                value={searchQueries[position.id] || ''}
+                                                onChange={(e) => handleSearchChange(position.id, e.target.value)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.nativeEvent.stopImmediatePropagation();
+                                                }}
+                                                onKeyDown={(e) => e.stopPropagation()}
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <SearchIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                }}
+                                                variant="standard"
+                                                sx={{ p: 1 }}
+                                                autoFocus
+                                            />
+                                        </Box>
+                                    </MenuItem>
+                                    <MenuItem value="">Not assigned</MenuItem>
+                                    {getFilteredEmployeeOptions(position.id).map((emp) => (
+                                        <MenuItem key={emp.id} value={emp.id}>
+                                            {`${emp.first_name} ${emp.last_name}`}
                                         </MenuItem>
-                                        <MenuItem value="">Not assigned</MenuItem>
-                                        {getFilteredEmployeeOptions(position.id).map((emp) => (
-                                            <MenuItem key={emp.id} value={emp.id}>
-                                                {`${emp.first_name} ${emp.last_name}`}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </FormGroup>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         ))}
 
                         <FormGroup row={true} className="d-flex justify-content-between">
@@ -589,7 +600,7 @@ const BranchDetails = () => {
                                         const branchResponse = await axiosInstance.post('/settings/editBranch', branch, { headers });
                                         
                                         if (branchResponse.data.status === 200) {
-                                            // Then update position assignments
+                                            // Update position assignments
                                             const assignmentsResponse = await axiosInstance.post(
                                                 '/settings/updateBranchPositionAssignments',
                                                 { 
@@ -598,6 +609,20 @@ const BranchDetails = () => {
                                                 },
                                                 { headers }
                                             );
+
+                                            // Update each employee's branch_position_id in the users table
+                                            for (const assignment of positionAssignments) {
+                                                if (assignment.employee_id) {
+                                                    await axiosInstance.post(
+                                                        '/employee/updateEmployeeBranchPosition',
+                                                        {
+                                                            employee_id: assignment.employee_id,
+                                                            branch_position_id: assignment.branch_position_id
+                                                        },
+                                                        { headers }
+                                                    );
+                                                }
+                                            }
 
                                             if (assignmentsResponse.data.status === 200) {
                                                 Swal.fire({

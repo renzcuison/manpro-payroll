@@ -136,6 +136,22 @@ class EmployeesController extends Controller
         return $employee;
     }
 
+
+    public function updateBranchPosition(Request $request)
+{
+    $validated = $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'branch_position_id' => 'nullable|exists:branch_positions,id',
+    ]);
+
+    $employee = UsersModel::find($validated['employee_id']);
+    $employee->branch_position_id = $validated['branch_position_id'];
+    $employee->save();
+
+    return response()->json(['message' => 'Branch position updated successfully']);
+}
+
+
     public function getEmployees()
     {
         // log::info("EmployeesController::getEmployees");
