@@ -11,8 +11,5 @@ async function getMilestones() {
 }
 
 export function useMilestones() {
-    const { data, isLoading, isFetched, isFetching, refetch, isError } =
-        useQuery(["milestones"], () => getMilestones());
-
-    return { data, isLoading, isFetching, isFetched, refetch, isError };
+    return useQuery(["milestones"], () => getMilestones());
 }
