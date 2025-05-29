@@ -118,8 +118,19 @@ const AdminRoutes = ({ user }) => {
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} /> } />
             <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} /> } />
 
-            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} /> } />
-            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} /> } />
+            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledge />} user={user} />} />
+            <Route path="performance-evaluation/acknowledgment-sign" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledgeSign />} user={user} />} />
+            <Route path="performance-evaluation/add-category" element={<ProtectedRoute element={<PerformanceEvaluationFormAddCategory />} user={user} />} />
+            <Route path="performance-evaluation/add-section" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSection />} user={user} />} />
+            <Route path="performance-evaluation/save-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationFormSaveEvaluation />} user={user} />} />
+            <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<PerformanceEvaludationAddSubcategory />} user={user} />} />
+            <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />    
+            <Route path="performance-evaluation/form/:formName" element={<ProtectedRoute element={<PerformanceEvaluationFormPage />} user={user} />} />
+
+            <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
+            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
+            <Route path="performance-evaluation/forms/:name" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
@@ -144,9 +155,6 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="announcements/types" element={<AnnouncementTypes />} />
             <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
-
-            
-            
         </Routes>
     );
 };
