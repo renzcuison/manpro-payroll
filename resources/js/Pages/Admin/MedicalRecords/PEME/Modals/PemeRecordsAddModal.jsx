@@ -11,39 +11,37 @@ import {
 import { useParams } from "react-router-dom";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from'@/utils/axiosConfig';
+import axiosInstance from "@/utils/axiosConfig";
 
 const PemeRecordsAddModal = ({ open, close }) => {
-    const { recordId } = useParams();
     const [recordName, setRecordName] = React.useState("");
     const navigator = useNavigate();
     const getJWTHeader = (user) => {
         return {
-        Authorization: `Bearer ${user.token}`, 
-    };
+            Authorization: `Bearer ${user.token}`,
+        };
     };
 
     const handleSubmit = async () => {
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+        try {
+            const response = await axiosInstance.post(
+                "/pemes",
+                { name: recordName },
+                { headers }
+            );
+            console.log("Successfully created questionnaire:", response.data);
 
-    const storedUser = localStorage.getItem("nasya_user"); 
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    try {
-        const response = await axiosInstance.post(
-        "/pemes",
-        { name: recordName },
-        { headers }
-        );
-        console.log("Successfully created questionnaire:", response.data);
-        navigator(`/admin/medical-records/peme-records/peme-form`);
-        
-        const newId = response?.data?.peme?.id;
-        console.log("New PEME ID:", newId);
-        
-        return newId;
-    } catch (error) {
-        console.error("Error creating questionnaire:", error);
-        return null;
-    }
+            const newId = response?.data?.peme?.id;
+            console.log("New PEME ID:", newId);
+            navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
+
+            return newId;
+        } catch (error) {
+            console.error("Error creating questionnaire:", error);
+            return null;
+        }
     };
 
     const handleTextFieldChange = (event) => {
@@ -114,8 +112,8 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             </Box>
                             <Box>
                                 <Button
-                                onClick={handleSubmit}
-                                variant="contained"
+                                    onClick={handleSubmit}
+                                    variant="contained"
                                 >
                                     Confirm
                                 </Button>

@@ -10,7 +10,10 @@ import {
 
 const PemeExamTypeTable = ({ records, onRowClick }) => {
     return (
-        <TableContainer component={Paper} sx={{ marginTop: 2, overflowY:"scroll", maxHeight: 500 }}>
+        <TableContainer
+            component={Paper}
+            sx={{ marginTop: 2, overflowY: "scroll", maxHeight: 500 }}
+        >
             <Table>
                 <TableHead>
                     <TableRow>
@@ -26,7 +29,7 @@ const PemeExamTypeTable = ({ records, onRowClick }) => {
                     {records.map((record) => (
                         <TableRow
                             key={record.id}
-                            onClick={onRowClick}
+                            onClick={() => onRowClick(record.id)}
                             sx={{
                                 cursor: "pointer",
                                 transition: ".15s",

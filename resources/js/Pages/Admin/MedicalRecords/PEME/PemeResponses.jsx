@@ -1,11 +1,50 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../../../../components/Layout/Layout";
 import { Box, Button, Typography } from "@mui/material";
 import PemeResponsesTable from "./PemeResponsesTable";
 import { useNavigate } from "react-router-dom";
-
+import { useParams } from "react-router-dom";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 const PemeResponses = () => {
+    const getJWTHeader = (user) => {
+        return {
+            Authorization: `Bearer ${user.token}`,
+        };
+    };
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { PemeID } = useParams();
     const navigator = useNavigate();
+    const [pemeRecords, setPemeRecords] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const handleOnOpenPreview = () => {
+        navigator(
+            `/admin/medical-records/peme-records/peme-questionnaire-preview/${PemeID}`
+        );
+    };
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .then((response) => {
+                setPemeRecords(response.data);
+                console.log("PEME Records responses:", response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching loan applications:", error);
+                // Swal.fire({
+                //     title: "Error",
+                //     text:
+                //         "Failed to fetch PEME records. Please try again later.",
+                //     icon: "error",
+                //     confirmButtonText: "Okay",
+                //     confirmButtonColor: "#177604",
+                // });
+                setIsLoading(false);
+            });
+    }, []);
 
     const responses = [
         {
@@ -51,7 +90,7 @@ const PemeResponses = () => {
     ];
     const handleOnRowClick = () => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            `/admin/medical-records/peme-records/peme-questionnaire-view`
         );
     };
     return (
@@ -75,14 +114,15 @@ const PemeResponses = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Questionnaire Name
+                            {pemeRecords.peme}
                         </Typography>
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "12px",
-                            }}
-                        ></div>
+                        <Button
+                            onClick={handleOnOpenPreview}
+                            variant="contained"
+                            sx={{ backgroundColor: "#e3b017" }}
+                        >
+                            Preview Exam
+                        </Button>
                     </Box>
                 </Box>
                 <PemeResponsesTable

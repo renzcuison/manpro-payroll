@@ -11,10 +11,9 @@ import {
 import Swal from "sweetalert2";
 
 import Layout from "../../../../../components/Layout/Layout";
-import { useState } from "react";
-import axiosInstance, { getJWTHeader } from '../../../../../utils/axiosConfig';
-
-
+import { useState, useEffect } from "react";
+import axiosInstance, { getJWTHeader } from "../../../../../utils/axiosConfig";
+import { useParams } from "react-router-dom";
 
 const SelectForm = ({
     formName,
@@ -50,6 +49,7 @@ const SelectForm = ({
                                             ...prev,
                                             "attachment",
                                         ]);
+                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -72,7 +72,7 @@ const SelectForm = ({
                                 }
                                 disabled={
                                     Array.isArray(formType) &&
-                                    formType.includes("postive_negative")
+                                    formType.includes("pos_neg")
                                 }
                                 onChange={(e) => {
                                     if (e.target.checked) {
@@ -80,6 +80,7 @@ const SelectForm = ({
                                             ...prev,
                                             "pass_fail",
                                         ]);
+                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -110,11 +111,11 @@ const SelectForm = ({
                                             ...prev,
                                             "pos_neg",
                                         ]);
+                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
-                                                (type) =>
-                                                    type !== "pos_neg"
+                                                (type) => type !== "pos_neg"
                                             )
                                         );
                                     }
@@ -137,6 +138,7 @@ const SelectForm = ({
                                             ...prev,
                                             "remarks",
                                         ]);
+                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -194,6 +196,7 @@ const SelectForm = ({
                             }}
                         >
                             <TextField
+                                defaultValue={10}
                                 value={fileSize}
                                 onChange={(e) => {
                                     let value = e.target.value;
@@ -234,20 +237,47 @@ const SelectForm = ({
 };
 
 const PemeRecordsForm = () => {
-    
+    const getJWTHeader = (user) => {
+        return {
+            Authorization: `Bearer ${user.token}`,
+        };
+    };
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { PemeID } = useParams();
+    const pemeId = Number(PemeID);
     const [questionnaireForms, setQuestionnaireForms] = useState([]);
-    const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]); 
+    const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]);
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
     const [fileSize, setFileSize] = useState();
-    const getJWTHeader = (user) => {
-        return {
-        Authorization: `Bearer ${user.token}`, 
-        }
-        }
+    const [isLoading, setIsLoading] = useState(true);
+    const [pemeForms, setPemeForms] = useState({ peme: "", questions: [] });
+    let size;
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme/${pemeId}/questionnaire`, { headers })
+            .then((response) => {
+                setPemeForms(response.data);
+                console.log("PEME Records:", response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching loan applications:", error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to fetch forms. Please try again later.",
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+                setIsLoading(false);
+            });
+    }, []);
+
     const handleAddForm = async () => {
-        
-        const storedUser = localStorage.getItem("nasya_user"); 
+        const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
         // IF MISSING FIELDS
         if (formName === "" || formType.length === 0) {
@@ -262,49 +292,57 @@ const PemeRecordsForm = () => {
         }
         // Save current form
         else {
-            try{
-                let size =
-                fileSize === "" || Number(fileSize) === 0
-                    ? 10
-                    : Number(fileSize);
-       
-            
-             const payload = {
-                peme_id: 1,
-                question: formName,
-                input_types: formType,
-            };
+            try {
+                size =
+                    fileSize === "" || Number(fileSize) === 0
+                        ? 10
+                        : Number(fileSize);
 
-            // Log the payload
-            console.log("Payload to send:", payload);
+                const payload = {
+                    peme_id: pemeId,
+                    question: formName,
+                    input_types: formType,
+                    file_size_limit: size,
+                };
 
-            const response = await axiosInstance.post(
-                "/peme/questionnaire",
-                {
-                peme_id: 39,
-                question: formName,       
-                input_types: formType,
-                file_size_limit: size,
-                },
-                { headers }
+                console.log("Payload to send:", payload);
+                console.log("formType save:", formType);
+
+                const response = await axiosInstance.post(
+                    "/peme/questionnaire",
+                    payload,
+                    { headers }
                 );
+
                 console.log("Successfully created form:", response.data);
-                setQuestionnaireForms((prev) => [
-                    ...prev, response.data])
 
-                    console.log(questionnaireForms, "questionnaireForms");
-            }
-            // Set fileSize to 10 if empty or 0
-            catch (error) {
-
+                setQuestionnaireForms((prev) => [...prev, response.data]);
+            } catch (error) {
+                console.error("Error posting form:", error); // ✅ Always log the error
             }
         }
-
-
-        // Reset form fields
+        size = 0;
         setFormName("");
         setFormType([]);
         setFileSize("");
+
+        axiosInstance
+            .get(`/peme/${pemeId}/questionnaire`, { headers })
+            .then((response) => {
+                setPemeForms(response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching loan applications:", error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to fetch forms. Please try again later.",
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+                setIsLoading(false);
+            });
     };
 
     const handleConfirmQuestionnaire = () => {
@@ -345,7 +383,7 @@ const PemeRecordsForm = () => {
                 >
                     {/* HEADER */}
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        Record Name
+                        {pemeForms.peme}
                     </Typography>
                     {/* FORM */}
                     <Box
@@ -365,7 +403,7 @@ const PemeRecordsForm = () => {
                                 gap: 2,
                             }}
                         >
-                            {questionnaireForms.map((form, index) => {
+                            {pemeForms.questions.map((form, index) => {
                                 return (
                                     <Box
                                         key={index}
@@ -376,9 +414,19 @@ const PemeRecordsForm = () => {
                                         }}
                                     >
                                         <SelectForm
-                                            formName={form.formName}
-                                            formType={form.formType}
-                                            fileSize={form.fileSize}
+                                            formName={form.question}
+                                            setFormName={setFormName}
+                                            formType={form.input_types.map(
+                                                (item) => item.input_type
+                                            )}
+                                            fileSize={
+                                                form.input_types.find(
+                                                    (item) =>
+                                                        item.input_type ===
+                                                        "attachment"
+                                                )?.file_size_limit ?? 10
+                                            }
+                                            setFileSize={setFileSize}
                                             readOnly={true}
                                         />
                                         <Box

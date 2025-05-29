@@ -339,13 +339,13 @@ const AdminRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-form"
+                path="medical-records/peme-records/peme-form/:PemeID"
                 element={
                     <ProtectedRoute element={<PemeRecordsForm />} user={user} />
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-responses"
+                path="medical-records/peme-records/peme-responses/:PemeID"
                 element={
                     <ProtectedRoute element={<PemeResponses />} user={user} />
                 }
@@ -361,7 +361,7 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="medical-records/peme-records/peme-questionnaire-preview"
+                path="medical-records/peme-records/peme-questionnaire-preview/:PemeID"
                 element={
                     <ProtectedRoute
                         element={<PemeQuestionnairePreview />}

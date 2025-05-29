@@ -29,7 +29,7 @@ class PemeController extends Controller
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
-        
+
         $validatedData = $request->validate([
             "name" => "required|string|max:50",
             "respondents" => "nullable|integer",
@@ -71,16 +71,14 @@ class PemeController extends Controller
         Log::info($validatedData['medical_record_id']);
         Log::info($validatedData['response_date']);
 
-//         [2025-05-27 09:02:11] local.INFO: array (
-//   'name' => 'Test 22',
-//   'respondents' => 0,
-//   'medical_record_id' => 1,
-//   'response_date' => '2025-05-27',
-//   'client_id' => 3,
- 
+        //         [2025-05-27 09:02:11] local.INFO: array (
+        //   'name' => 'Test 22',
+        //   'respondents' => 0,
+        //   'medical_record_id' => 1,
+        //   'response_date' => '2025-05-27',
+        //   'client_id' => 3,
 
         $peme = Peme::create($validatedData);
-
 
         // $peme = Peme::create([
         //     "name" => $validatedData["name"],
@@ -98,20 +96,19 @@ class PemeController extends Controller
 
     public function getPemeList()
     {
-        log::info("PemeController::getPemeList");
-
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
 
         $user = Auth::user();
 
-        $pemeList = Peme::select("created_at", "name")
+        $pemeList = Peme::select("id", "created_at", "name")
             ->where("client_id", $user->client_id)
             ->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
                 return [
+                    "id" => $peme->id,
                     "date" => Carbon::parse($peme->created_at)->format(
                         "F d, Y"
                     ),

@@ -5,10 +5,9 @@ import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import PemeExamTypeTable from "./PemeExamTypeTable";
 import PemeOverview from "./PemeOverview";
-import TextField from '@mui/material/TextField';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import TextField from "@mui/material/TextField";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
-
 
 const PemeRecords = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -16,9 +15,12 @@ const PemeRecords = () => {
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
+    let pemeID;
 
-    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] =
-        React.useState(false);
+    const [
+        openAddPemeRecordsModal,
+        setOpenAddPemeRecordsModal,
+    ] = React.useState(false);
 
     const [search, setSearch] = React.useState("");
 
@@ -26,55 +28,42 @@ const PemeRecords = () => {
         setOpenAddPemeRecordsModal(false);
     };
 
-    const records = React.useMemo(
-        () => [
-            {
-                exam: "Annual Physical Exam",
-                date: "2025-06-01",
-            },
-            {
-                exam: "Drug Test",
-                date: "2025-06-01",
-            },
-        ],
-        []
-    );
-
     const filteredRecords = pemeRecords.filter((record) =>
         [record.date, record.name].some((field) =>
             field?.toLowerCase().includes(search.toLowerCase())
         )
     );
 
-    const handleOnRowClick = () => {
-        navigator("/admin/medical-records/peme-records/peme-responses");
+    const handleOnRowClick = (recordID) => {
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${recordID}`
+        );
     };
 
-     useEffect(() => {
-            axiosInstance.get('/pemes', { headers })
-                .then((response) => {
-                        setPemeRecords(response.data);
-                        console.log("PEME Records:", pemeRecords);
-
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error('Error fetching loan applications:', error);
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Failed to fetch loan applications. Please try again later.',
-                        icon: 'error',
-                        confirmButtonText: 'Okay',
-                        confirmButtonColor: '#177604',
-                    });
-                    setIsLoading(false);
+    useEffect(() => {
+        axiosInstance
+            .get("/pemes", { headers })
+            .then((response) => {
+                setPemeRecords(response.data);
+                console.log("PEME Records:", response.data);
+                pemeID = response?.data?.map((item) => item.id);
+                console.log("newid", pemeID);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching loan applications:", error);
+                Swal.fire({
+                    title: "Error",
+                    text:
+                        "Failed to fetch PEME records. Please try again later.",
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
                 });
-        }, []);
+                setIsLoading(false);
+            });
+    }, []);
 
-
-
-
-    
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
             <Box>
@@ -164,7 +153,10 @@ const PemeRecords = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         sx={{ marginBottom: 2 }}
                     />
-                    <PemeExamTypeTable records={pemeRecords} onRowClick={handleOnRowClick}/>
+                    <PemeExamTypeTable
+                        records={filteredRecords}
+                        onRowClick={handleOnRowClick}
+                    />
                 </Box>
             </Box>
         </Layout>
