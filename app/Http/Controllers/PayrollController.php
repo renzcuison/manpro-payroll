@@ -623,8 +623,12 @@ class PayrollController extends Controller
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
 
-                if ( $benefit->id == 3 ){
-                    $employerAmount = $employeeAmount + 30;
+                if ( $benefit->id == 3 && $employee->salary < 15000 ){
+                    $employerAmount = $employerAmount + 10;
+                }
+
+                if ( $benefit->id == 3 && $employee->salary >= 15000 ){
+                    $employerAmount = $employerAmount + 30;
                 }
             }
 
