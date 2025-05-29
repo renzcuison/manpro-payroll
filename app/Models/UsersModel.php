@@ -82,6 +82,10 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->belongsTo(DepartmentsModel::class, 'department_id');
     }
 
+    public function departmentPosition(){
+        return $this->hasMany(EmployeeDepartmentPosition::class, 'employee_id');
+    }
+
     public function workGroup()
     {
         return $this->belongsTo(WorkGroupsModel::class, 'work_group_id');
@@ -138,6 +142,5 @@ class UsersModel extends Authenticatable implements HasMedia
     public function company(): BelongsTo
     {
         return $this->BelongsTo(Company::class, 'company_id');
-    }
-    
+    }    
 }

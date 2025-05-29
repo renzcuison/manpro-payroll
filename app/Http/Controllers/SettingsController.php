@@ -9,6 +9,7 @@ use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\ApplicationTypesModel;
+use App\Models\DepartmentPositionsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -197,7 +198,61 @@ class SettingsController extends Controller
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
 
+    public function getDepartmentPositions(Request $request)
+    {
+        if($this->checkUser()){
+            $position = DepartmentPositionsModel::all();
+            return response()->json(['status' => 200, 'positions' => $position]);
+        }
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
 
+    public function saveDepartmentPositions(Request $request)
+    {
+        if(!$this->checkUser()){
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+        
+        try{
+            DB::beginTransaction();
+            if($request->has('add_positions')){
+                $positions = json_decode($request->input('add_positions'), true);
+                foreach($positions as $position){
+                    DepartmentPositionsModel::create([
+                        'position_name' => $position['position_name'],
+                        'can_review_request' => $position['can_review_request'],
+                        'can_approve_request' => $position['can_approve_request'],
+                        'can_note_request' => $position['can_note_request'],
+                        'can_accept_request' => $position['can_accept_request'],
+                    ]);
+                }
+            }
+            if ($request->has('update_positions')){
+                $positions = json_decode($request->input('update_positions'), true);
+
+                foreach($positions as $position){
+                    DepartmentPositionsModel::where('id', $position['id'])->update([
+                        'position_name' => $position['position_name'],
+                        'can_review_request' => $position['can_review_request'],
+                        'can_approve_request' => $position['can_approve_request'],
+                        'can_note_request' => $position['can_note_request'],
+                        'can_accept_request' => $position['can_accept_request'],
+                    ]);
+                }
+            }
+            if($request->has('delete_positions_id')){
+                $deleteIds = json_decode($request->input('delete_positions_id'), true);
+                DepartmentPositionsModel::whereIn('id', $deleteIds)->delete();
+            }
+            DB::commit();
+            return response()->json(['status' => 200]);
+        }
+        catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving: " . $e->getMessage());
+            throw $e;
+        }
+    }
 
     public function getDepartments(Request $request)
 {

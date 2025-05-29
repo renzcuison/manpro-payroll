@@ -13,6 +13,7 @@ import {
     Grid,
     Checkbox,
     ListItemText,
+    Menu,
     MenuItem,
     Avatar,
     Dialog,
@@ -24,10 +25,14 @@ import {
     FormControl
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import DepartmentAdd from "./Modals/DepartmentAdd";
+import DepartmentPositionEdit from "./Modals/DepartmentPositionEdit";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+
 import Swal from "sweetalert2";
+
 
 const DepartmentsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -44,13 +49,37 @@ const DepartmentsList = () => {
         "Assigned Approver"
     ]);
 
-    const [openModal, setOpenModal] = useState(false);
-    const [nameError, setNameError] = useState(false);
-    const [acronymError, setAcronymError] = useState(false);
-    const [name, setName] = useState("");
-    const [acronym, setAcronym] = useState("");
-    const [description, setDescription] = useState("");
 
+    //[1] ==> modal and anchor handlers
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+    
+    const handleOpenActions = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleCloseActions = () => {
+        setAnchorEl(null);
+    };
+    const [openDeptPosEditModal, setOpenDeptPosEditModal] = useState(false);
+    const [openDeptAddModal, setOpenDeptAddModal] = useState(false);
+
+    const handleOpenDeptPosEditModal = () => {
+        setOpenDeptPosEditModal(true);
+    } 
+    const handleCloseDeptPosEditModal = (reload) => {
+        setOpenDeptPosEditModal(false);
+        if (reload) {
+        }
+    };  
+    const handleOpenDeptAddModal = () => {
+        setOpenDeptAddModal(true);
+    } 
+    const handleCloseDeptAddModal = (reload) => {
+        setOpenDeptAddModal(false);
+        if (reload) {
+        }
+    }; 
+    //End of [1]
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -92,72 +121,7 @@ const DepartmentsList = () => {
         dept.name.toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        setNameError(!name);
-        setAcronymError(!acronym);
-
-        if (!name || !acronym) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "This department will be added",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Add",
-                confirmButtonColor: "#177604",
-                showCancelButton: true,
-                cancelButtonText: "Cancel",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    };
-
-    const saveInput = (event) => {
-        event.preventDefault();
-
-        const data = {
-            name: name,
-            acronym: acronym,
-            description: description
-        };
-
-        axiosInstance.post('/settings/saveDepartment', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Department saved successfully!",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        setDepartments(prev => [...prev, response.data.department]);
-                        setName("");
-                        setAcronym("");
-                        setDescription("");
-                        setOpenModal(false);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    };
+   
 
     return (
         <Layout title={"Departments"}>
@@ -180,13 +144,18 @@ const DepartmentsList = () => {
                             <Button 
                                 variant="contained" 
                                 color="primary"
-                                onClick={() => setOpenModal(true)}
+                                onClick={handleOpenActions}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
                             >
                                 <p className="m-0">
-                                    <i className="fa fa-plus mr-2"></i> Add
+                                    <i className="fa fa-plus mr-2"></i> ACTIONS
                                 </p>
                             </Button>
+                            <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
+                                <MenuItem onClick={handleOpenDeptAddModal}> Add Departments </MenuItem>
+                                <MenuItem onClick={handleOpenDeptPosEditModal}> Department Position Settings</MenuItem>
+                            </Menu>
+                            
                         </Grid>
                     </Box>
 
@@ -386,96 +355,11 @@ const DepartmentsList = () => {
                 </Box>
             </Box>
 
-            {/* Add Department Modal */}
-            <Dialog
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                fullWidth
-                maxWidth="md"
-                PaperProps={{
-                    style: {
-                        padding: '16px',
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: '800px',
-                        maxWidth: '1000px',
-                        marginBottom: '5%'
-                    }
-                }}
-            >
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Department </Typography>
-                        <IconButton onClick={() => setOpenModal(false)}><i className="si si-close"></i></IconButton>
-                    </Box>
-                </DialogTitle>
+            {openDeptAddModal &&
+            <DepartmentAdd open={handleOpenDeptAddModal} close={handleCloseDeptAddModal}></DepartmentAdd>}
+            {openDeptPosEditModal &&
+            <DepartmentPositionEdit open={handleOpenDeptPosEditModal} close={handleCloseDeptPosEditModal}></DepartmentPositionEdit>}
 
-                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="name"
-                                    label="Name"
-                                    variant="outlined"
-                                    value={name}
-                                    error={nameError}
-                                    onChange={(e) => setName(e.target.value)}
-                                />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="acronym"
-                                    label="Acronym"
-                                    variant="outlined"
-                                    value={acronym}
-                                    error={acronymError}
-                                    onChange={(e) => setAcronym(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="description"
-                                    label="Description"
-                                    variant="outlined"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    multiline
-                                    rows={4}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Department </p>
-                            </Button>
-                        </Box>
-                    </Box>
-                </DialogContent>
-            </Dialog>
         </Layout>
     );
 };
