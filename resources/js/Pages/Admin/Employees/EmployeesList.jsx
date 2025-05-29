@@ -245,7 +245,7 @@ const EmployeesList = () => {
                                                     (employee) => (
                                                         <TableRow key={employee.id} sx={{ "&:last-child td, &:last-child th": { border: 0 }, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} >
                                                             <TableCell align="left">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }} >
                                                                     <Box display="flex" sx={{ alignItems: "center" }} >
                                                                         <Avatar src={renderImage( employee.id, employee.avatar, employee.avatar_mime )} sx={{ mr: 2 }} />
                                                                         {employee.first_name}{" "}
@@ -256,11 +256,25 @@ const EmployeesList = () => {
                                                                 </Link>
                                                             </TableCell>
 
-                                                            <TableCell align="center">{employee.branch || ""}</TableCell>
-                                                            <TableCell align="center">{employee.department || ""}</TableCell>
-                                                            <TableCell align="center">{employee.role || ""}</TableCell>
-                                                            <TableCell align="center">{employee.employment_status || ""}</TableCell>
-                                                            <TableCell align="center">{employee.employment_type || ""}</TableCell>
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.branch || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.department || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.role || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.employment_status || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.employment_type || ""}</Link>
+                                                            </TableCell>
                                                         </TableRow>
                                                     )
                                                 )

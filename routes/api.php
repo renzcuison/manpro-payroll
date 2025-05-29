@@ -19,6 +19,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
+use App\Http\Controllers\BranchPositionController;
 
 
 // Old Controllers
@@ -96,9 +97,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::get('/getBranch/{id}', [SettingsController::class, 'getBranch']);
-
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
+
+
+        Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
+        Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
+        Route::post('/updateBranchPositionAssignments', [SettingsController::class, 'updateBranchPositionAssignments']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::get('/getDepartmentPositions', [SettingsController::class, 'getDepartmentPositions']);
@@ -108,7 +113,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
 
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
-        Route::post('/saveJobTitle', [SeterttingsController::class, 'saveJobTitle']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
@@ -123,6 +128,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+
+  
+
+        Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
+
+
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
@@ -134,7 +145,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editMyProfileAvatar', [EmployeesController::class, 'editMyProfileAvatar']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
-        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeeController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -552,6 +563,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/addEmployeeAttendance', [HrAttendanceController::class, 'addEmployeeAttendance']);
 
     Route::get('/getUserSchedule', [HrAttendanceController::class, 'getUserSchedule']);
+
+
+// Branch SAM
+
 
 
     // Hr applications

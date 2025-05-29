@@ -99,7 +99,9 @@ function UserInformation({ user }) {
             });
     };
     return (
+        
         <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            {/*User Profile picture*/}
             <Grid container sx={{ pt: 1, pb: 4, justifyContent: "center", alignItems: "center", }}>
                 <Box display="flex" sx={{
                     justifyContent: "center",

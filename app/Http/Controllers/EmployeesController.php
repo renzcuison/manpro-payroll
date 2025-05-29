@@ -136,6 +136,22 @@ class EmployeesController extends Controller
         return $employee;
     }
 
+
+    public function updateBranchPosition(Request $request)
+{
+    $validated = $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'branch_position_id' => 'nullable|exists:branch_positions,id',
+    ]);
+
+    $employee = UsersModel::find($validated['employee_id']);
+    $employee->branch_position_id = $validated['branch_position_id'];
+    $employee->save();
+
+    return response()->json(['message' => 'Branch position updated successfully']);
+}
+
+
     public function getEmployees()
     {
         // log::info("EmployeesController::getEmployees");
@@ -461,11 +477,9 @@ class EmployeesController extends Controller
 
     public function getEducationBackground(Request $request)
     {
-        log::info("EmployeesController::getEducationBackground");
+        // log::info("EmployeesController::getEducationBackground");
 
         $user = Auth::user();
-        
-        log::info($user->id);
 
         $educations = EmployeeEducation::where('employee_id', $user->id)->get();
 
@@ -526,6 +540,7 @@ class EmployeesController extends Controller
 
             return response()->json([
                 'user' => $user->load('media'),
+                 'message' => 'Profile updated successfully',
                 'status' => 200
             ]);
         } catch (\Exception $e) {

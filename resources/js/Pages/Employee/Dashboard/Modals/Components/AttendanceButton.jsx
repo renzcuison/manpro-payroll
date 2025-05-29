@@ -2,24 +2,12 @@ import React from "react";
 import { Grid, Button, Typography } from "@mui/material";
 import { AccessTime } from "@mui/icons-material";
 
-const AttendanceButtons = ({
-    label,
-    onDuty,
-    shiftType,
-    onTimeInOut
-}) => {
+const AttendanceButtons = ({ label, onDuty, shiftType, onTimeInOut }) => {
     return (
         <>
-            <Grid
-                container
-                direction="row"
-                sx={{ justifyContent: "flex-start", alignItems: "center" }}
-                size={{ xs: 12 }}
-            >
+            <Grid container direction="row" sx={{ justifyContent: "flex-start", alignItems: "center" }} size={{ xs: 12 }} >
                 <Grid size={{ xs: 8 }}>
-                    <Typography>
-                        {label}
-                    </Typography>
+                    <Typography> {label} </Typography>
                 </Grid>
 
                 <Grid size={{ xs: 4 }} sx={{ display: "flex", justifyContent: "flex-end" }}>
@@ -28,13 +16,7 @@ const AttendanceButtons = ({
                         variant="contained"
                         startIcon={<AccessTime />}
                         onClick={() => onTimeInOut(shiftType, !onDuty)}
-                        sx={{
-                            backgroundColor: onDuty ? "#f44336" : "#177604",
-                            "& .MuiButton-startIcon": {
-                                display: { xs: "none", sm: "flex" },
-                            },
-                            alignItems: "center"
-                        }}
+                        sx={{ backgroundColor: onDuty ? "#f44336" : "#177604", "& .MuiButton-startIcon": { display: { xs: "none", sm: "flex" } }, alignItems: "center" }}
                     >
                         {`Time ${onDuty ? "Out" : "In"}`}
                     </Button>
