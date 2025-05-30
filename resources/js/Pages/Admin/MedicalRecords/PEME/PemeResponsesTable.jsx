@@ -141,7 +141,9 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableHead>
                     <TableRow>
                         <TableCell align="center"> Date </TableCell>
-                        <TableCell align="center"> Due Date </TableCell>
+                        <TableCell align="center"> Expiry Date </TableCell>
+                        <TableCell align="center"> Next Schedule </TableCell>
+
                         <TableCell align="center"> Employee </TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department </TableCell>
@@ -152,19 +154,19 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableBody>
                     {responses.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
                     ) : (
-                        responses.map((response) => {
+                        responses.map((response, index) => {
                             const formattedDate = dayjs(response.date).format(
                                 "MMMM D, YYYY"
                             );
 
                             return (
                                 <TableRow
-                                    key={response.id}
+                                    key={response.id || index}
                                     onClick={onRowClick}
                                     sx={{
                                         cursor: "pointer",
@@ -182,6 +184,13 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             "MMMM D, YYYY"
                                         )}{" "}
                                         <p></p> {getDueStatus(response.dueDate)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {dayjs(response.nextSchedule).format(
+                                            "MMMM D, YYYY"
+                                        )}{" "}
+                                        <p></p>{" "}
+                                        {getDueStatus(response.nextSchedule)}
                                     </TableCell>
                                     <TableCell align="center">
                                         {highlightMatch(

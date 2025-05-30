@@ -14,6 +14,7 @@ import Layout from "../../../../../components/Layout/Layout";
 import { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../../utils/axiosConfig";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SelectForm = ({
     formName,
@@ -25,12 +26,12 @@ const SelectForm = ({
     readOnly,
 }) => {
     return (
-        <FormGroup inputProps={{ readOnly: readOnly }}>
+        <FormGroup inputprops={{ readOnly: readOnly }}>
             <FormControl>
                 <TextField
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    label="Form Name"
+                    label="Question Name"
                 />
             </FormControl>
             <FormControl>
@@ -49,7 +50,6 @@ const SelectForm = ({
                                             ...prev,
                                             "attachment",
                                         ]);
-                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -80,7 +80,6 @@ const SelectForm = ({
                                             ...prev,
                                             "pass_fail",
                                         ]);
-                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -111,7 +110,6 @@ const SelectForm = ({
                                             ...prev,
                                             "pos_neg",
                                         ]);
-                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -138,7 +136,6 @@ const SelectForm = ({
                                             ...prev,
                                             "remarks",
                                         ]);
-                                        console.log(formType);
                                     } else {
                                         setFormType((prev) =>
                                             prev.filter(
@@ -196,7 +193,6 @@ const SelectForm = ({
                             }}
                         >
                             <TextField
-                                defaultValue={10}
                                 value={fileSize}
                                 onChange={(e) => {
                                     let value = e.target.value;
@@ -212,7 +208,7 @@ const SelectForm = ({
                                 }}
                                 type="number"
                                 label="File Size"
-                                inputProps={{
+                                inputprops={{
                                     min: 0,
                                     max: 500,
                                 }}
@@ -242,25 +238,25 @@ const PemeRecordsForm = () => {
             Authorization: `Bearer ${user.token}`,
         };
     };
+    const navigator = useNavigate();
+
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeID } = useParams();
-    const pemeId = Number(PemeID);
     const [questionnaireForms, setQuestionnaireForms] = useState([]);
-    const [questionnaireConfirm, setQuestionnaireConfirm] = useState([]);
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
-    const [fileSize, setFileSize] = useState();
+    const [fileSize, setFileSize] = useState(10);
     const [isLoading, setIsLoading] = useState(true);
-    const [pemeForms, setPemeForms] = useState({ peme: "", questions: [] });
-    let size;
+    const [pemeForms, setPemeForms] = useState({ questions: [] });
+    const [initialForms, setInitialForms] = useState([]);
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme/${pemeId}/questionnaire`, { headers })
+            .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeForms(response.data);
-                console.log("PEME Records:", response.data);
+                console.log("PEME Records FORM:", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -276,10 +272,79 @@ const PemeRecordsForm = () => {
             });
     }, []);
 
-    const handleAddForm = async () => {
+    const handleSaveForm = async (formToSave) => {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
-        // IF MISSING FIELDS
+
+        try {
+            const payload = {
+                peme_id: PemeID,
+                question: formToSave.question,
+                input_types: formToSave.input_types,
+                file_size_limit: formToSave.file_size_limit,
+            };
+
+            console.log("Payload to send:", payload);
+
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to add this question?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "green",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    const response = await axiosInstance.post(
+                        "/peme/questionnaire",
+                        payload,
+                        { headers }
+                    );
+
+                    // Update frontend state
+                    setQuestionnaireForms((prev) => [...prev, response.data]);
+                    setInitialForms((prev) =>
+                        prev.filter((form) => form.tempId !== formToSave.tempId)
+                    );
+
+                    // Fetch updated forms
+                    try {
+                        const refreshed = await axiosInstance.get(
+                            `/peme/${PemeID}/questionnaire`,
+                            { headers }
+                        );
+                        setPemeForms(refreshed.data);
+                    } catch (err) {
+                        console.error("Error fetching forms:", err);
+                        Swal.fire({
+                            title: "Error",
+                            text:
+                                "Failed to fetch forms. Please try again later.",
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    } finally {
+                        setIsLoading(false);
+                    }
+
+                    // ✅ Now reset fields here
+                    setFormName("");
+                    setFormType([]);
+                    setFileSize(10); // reset to default value
+                }
+            });
+
+            // Refresh backend
+        } catch (error) {
+            console.error("Error posting form:", error);
+        }
+    };
+
+    const handleAddForm = () => {
         if (formName === "" || formType.length === 0) {
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -290,84 +355,92 @@ const PemeRecordsForm = () => {
             });
             return;
         }
-        // Save current form
-        else {
-            try {
-                size =
-                    fileSize === "" || Number(fileSize) === 0
-                        ? 10
-                        : Number(fileSize);
 
-                const payload = {
-                    peme_id: pemeId,
-                    question: formName,
-                    input_types: formType,
-                    file_size_limit: size,
-                };
+        const newForm = {
+            tempId: Date.now(), // unique temporary ID
+            question: formName,
+            input_types: formType,
+            file_size_limit:
+                fileSize === "" || Number(fileSize) === 0
+                    ? 10
+                    : Number(fileSize),
+        };
 
-                console.log("Payload to send:", payload);
-                console.log("formType save:", formType);
-
-                const response = await axiosInstance.post(
-                    "/peme/questionnaire",
-                    payload,
-                    { headers }
-                );
-
-                console.log("Successfully created form:", response.data);
-
-                setQuestionnaireForms((prev) => [...prev, response.data]);
-            } catch (error) {
-                console.error("Error posting form:", error); // ✅ Always log the error
-            }
-        }
-        size = 0;
+        setInitialForms((prev) => [...prev, newForm]);
         setFormName("");
         setFormType([]);
         setFileSize("");
-
-        axiosInstance
-            .get(`/peme/${pemeId}/questionnaire`, { headers })
-            .then((response) => {
-                setPemeForms(response.data);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching loan applications:", error);
-                Swal.fire({
-                    title: "Error",
-                    text: "Failed to fetch forms. Please try again later.",
-                    icon: "error",
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                });
-                setIsLoading(false);
-            });
     };
 
-    const handleConfirmQuestionnaire = () => {
-        // setQuestionnaireConfirm((p) => [...p, questionnaireForms]);
-        // console.log("confirm", questionnaireConfirm);
-    };
-
-    const handleDeleteForm = (index) => {
-        new Swal({
+    const handleDeleteForm = (index, isInitial = false) => {
+        Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
             text: "You want to delete this form?",
             icon: "warning",
             showConfirmButton: true,
-            confirmButtonText: "Save",
-            confirmButtonColor: "#177604",
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#d33", // red color
             showCancelButton: true,
             cancelButtonText: "Cancel",
-        }).then((res) => {
+        }).then(async (res) => {
             if (res.isConfirmed) {
-                setQuestionnaireForms((prev) =>
-                    prev.filter((_, i) => i !== index)
-                );
+                if (isInitial) {
+                    console.log("intialForms", index);
+                    setInitialForms((prev) =>
+                        prev.filter((_, i) => i !== index)
+                    );
+                } else {
+                    const storedUser = localStorage.getItem("nasya_user");
+                    const headers = getJWTHeader(JSON.parse(storedUser));
+
+                    // Get the ID of the question
+                    const questionId = pemeForms.questions[index].id;
+
+                    if (!questionId) {
+                        console.error("No question ID found at index", index);
+                        return;
+                    }
+
+                    try {
+                        await axiosInstance.delete(
+                            `/questionnaire/${questionId}`,
+                            { headers }
+                        );
+
+                        // Remove from local state after successful deletion
+                        setPemeForms((prev) => ({
+                            ...prev,
+                            questions: prev.questions.filter(
+                                (_, i) => i !== index
+                            ),
+                        }));
+
+                        Swal.fire({
+                            icon: "success",
+                            text: "Form deleted successfully.",
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
+                    } catch (error) {
+                        console.error("Error deleting form:", error);
+                        Swal.fire({
+                            title: "Error",
+                            text: "Failed to delete form. Please try again.",
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    }
+                }
             }
         });
+    };
+
+    const handleConfirmQuestionnaire = () => {
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${PemeID}`
+        );
     };
     return (
         <Layout>
@@ -382,12 +455,28 @@ const PemeRecordsForm = () => {
                     }}
                 >
                     {/* HEADER */}
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        {pemeForms.peme}
-                    </Typography>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            {pemeForms.peme}
+                        </Typography>
+                        <Button
+                            onClick={handleConfirmQuestionnaire}
+                            variant="contained"
+                        >
+                            Confirm Questionnaire
+                        </Button>
+                    </Box>
+
                     {/* FORM */}
                     <Box
                         sx={{
+                            maxHeight: 700,
+                            overflowY: "scroll",
                             marginTop: 6,
                             padding: 2,
                             backgroundColor: "white",
@@ -403,67 +492,6 @@ const PemeRecordsForm = () => {
                                 gap: 2,
                             }}
                         >
-                            {pemeForms.questions.map((form, index) => {
-                                return (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            backgroundColor: "#f5f5f5",
-                                            padding: 4,
-                                            boxShadow: 1,
-                                        }}
-                                    >
-                                        <SelectForm
-                                            formName={form.question}
-                                            setFormName={setFormName}
-                                            formType={form.input_types.map(
-                                                (item) => item.input_type
-                                            )}
-                                            fileSize={
-                                                form.input_types.find(
-                                                    (item) =>
-                                                        item.input_type ===
-                                                        "attachment"
-                                                )?.file_size_limit ?? 10
-                                            }
-                                            setFileSize={setFileSize}
-                                            readOnly={true}
-                                        />
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                justifyContent: "end",
-                                            }}
-                                        >
-                                            <Button
-                                                onClick={() =>
-                                                    handleDeleteForm(index)
-                                                }
-                                                sx={{
-                                                    padding: 2,
-                                                    transition: ".3s",
-                                                    fontSize: "26px",
-                                                    color: "#7a7a7a",
-                                                    borderRadius: "100%",
-                                                    backgroundColor:
-                                                        "transparent",
-                                                    "&:hover": {
-                                                        backgroundColor:
-                                                            "transparent",
-                                                        color: "#3d3d3d",
-                                                    },
-                                                    boxShadow: "none",
-                                                }}
-                                            >
-                                                <i
-                                                    className="fa fa-trash-o"
-                                                    aria-hidden="true"
-                                                ></i>
-                                            </Button>
-                                        </Box>
-                                    </Box>
-                                );
-                            })}
                             <Box sx={{ boxShadow: 1, padding: 4 }}>
                                 <SelectForm
                                     formName={formName}
@@ -474,7 +502,146 @@ const PemeRecordsForm = () => {
                                     setFileSize={setFileSize}
                                     readOnly={false}
                                 />
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "end",
+                                    }}
+                                >
+                                    <Button
+                                        onClick={handleAddForm}
+                                        variant="contained"
+                                        sx={{
+                                            display: "flex",
+                                            gap: 1,
+                                            alignSelf: "end",
+                                        }}
+                                    >
+                                        New form{" "}
+                                        <i className="fa fa-plus pr-2"></i>
+                                    </Button>
+                                </Box>
                             </Box>
+                            {/* INITIAL FORM */}
+                            {initialForms.map((form, index) => (
+                                <Box
+                                    key={form.tempId}
+                                    sx={{
+                                        backgroundColor: "#fafafa",
+                                        padding: 4,
+                                        boxShadow: 1,
+                                    }}
+                                >
+                                    <SelectForm
+                                        formName={form.question}
+                                        setFormName={setFormName}
+                                        formType={form.input_types.map((item) =>
+                                            typeof item === "string"
+                                                ? item
+                                                : item.input_type
+                                        )}
+                                        fileSize={
+                                            form.input_types.find(
+                                                (item) =>
+                                                    (item.input_type ??
+                                                        item) === "attachment"
+                                            )?.file_size_limit ?? 10
+                                        }
+                                        setFileSize={setFileSize}
+                                        readOnly={true}
+                                    />
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "end",
+                                            gap: 2,
+                                        }}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleSaveForm(form)}
+                                        >
+                                            Save
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                handleDeleteForm(index, true)
+                                            }
+                                            sx={{
+                                                transition: ".3s",
+                                                fontSize: "26px",
+                                                color: "#7a7a7a",
+                                                borderRadius: "100%",
+                                                backgroundColor: "transparent",
+                                                "&:hover": {
+                                                    backgroundColor:
+                                                        "transparent",
+                                                    color: "#3d3d3d",
+                                                },
+                                                boxShadow: "none",
+                                            }}
+                                        >
+                                            <i className="fa fa-trash-o" />
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ))}
+                            {/* SAVED FORM */}
+                            {pemeForms.questions.map((form, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        backgroundColor: "#ebebeb",
+                                        padding: 4,
+                                        boxShadow: 1,
+                                    }}
+                                >
+                                    <SelectForm
+                                        formName={form.question}
+                                        setFormName={setFormName}
+                                        formType={form.input_types.map(
+                                            (item) => item.input_type
+                                        )}
+                                        fileSize={
+                                            form.input_types.find(
+                                                (item) =>
+                                                    item.input_type ===
+                                                    "attachment"
+                                            )?.file_size_limit ?? 10
+                                        }
+                                        setFileSize={setFileSize}
+                                        readOnly={true}
+                                    />
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "end",
+                                            gap: 2,
+                                        }}
+                                    >
+                                        <Button
+                                            onClick={() =>
+                                                handleDeleteForm(index, false)
+                                            }
+                                            sx={{
+                                                transition: ".3s",
+                                                fontSize: "26px",
+                                                color: "#7a7a7a",
+                                                borderRadius: "100%",
+                                                backgroundColor: "transparent",
+                                                "&:hover": {
+                                                    backgroundColor:
+                                                        "transparent",
+                                                    color: "#3d3d3d",
+                                                },
+                                                boxShadow: "none",
+                                            }}
+                                        >
+                                            <i className="fa fa-trash-o" />
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ))}
                         </Box>
                         <Box
                             sx={{
@@ -483,15 +650,7 @@ const PemeRecordsForm = () => {
                                 width: "100%",
                                 padding: 2,
                             }}
-                        >
-                            <Button
-                                onClick={handleAddForm}
-                                variant="contained"
-                                sx={{ display: "flex", gap: 1 }}
-                            >
-                                New form <i className="fa fa-plus pr-2"></i>
-                            </Button>
-                        </Box>
+                        ></Box>
 
                         <Box
                             sx={{
@@ -499,14 +658,7 @@ const PemeRecordsForm = () => {
                                 justifyContent: "end",
                                 padding: 2,
                             }}
-                        >
-                            <Button
-                                onClick={handleConfirmQuestionnaire}
-                                variant="contained"
-                            >
-                                Confirm Questionnaire
-                            </Button>
-                        </Box>
+                        ></Box>
                     </Box>
                 </Box>
             </Box>

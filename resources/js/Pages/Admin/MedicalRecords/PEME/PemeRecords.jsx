@@ -32,7 +32,7 @@ const PemeRecords = () => {
 
     useEffect(() => {
         axiosInstance
-            .get("/pemes", { headers })
+            .get("/getPemeList", { headers })
             .then((response) => {
                 setPemeRecords(response.data);
                 setIsLoading(false);
@@ -170,14 +170,6 @@ const PemeRecords = () => {
                                 overflow: "hidden",
                             }}
                         >
-                            <TextField
-                                label="Search exam, date, or status"
-                                variant="outlined"
-                                fullWidth
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                sx={{ marginBottom: 2 }}
-                            />
                             <PemeExamTypeTable
                                 records={filteredRecords}
                                 onRowClick={handleOnRowClick}

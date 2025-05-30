@@ -7,7 +7,7 @@ const PemeOverview = ({ records }) => {
     useEffect(() => {
         // Group by date
         const dateCounts = records.reduce((acc, record) => {
-            acc[record.name] = (acc[record.name] || 0) + 1;
+            acc[record.name] = acc[record.name] || record.respondents;
             return acc;
         }, {});
 
