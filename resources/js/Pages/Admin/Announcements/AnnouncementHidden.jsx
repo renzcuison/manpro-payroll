@@ -264,7 +264,7 @@ const AnnouncementHidden = () => {
                                 image={
                                   announcement.thumbnail
                                     ? announcement.thumbnail
-                                    : "../../../images/ManProTab.png"
+                                    : "../../../images/defaultThumbnail.jpg"
                                 }
                                 title={`${announcement.title}_Thumbnail`}
                               />
